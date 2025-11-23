@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.flowerpot.Flowerpot
@@ -45,6 +46,7 @@ class LawnchairAlphabeticalAppsList<T>(
 
     private val folderOrder = FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get())
     private val potsManager = Flowerpot.Manager.getInstance(context)
+    private val autoCatProvider = AutoCatAppProvider.getInstance(context)
 
     init {
         context.launcher.deviceProfile.inv.addOnChangeListener(this)
@@ -87,7 +89,8 @@ class LawnchairAlphabeticalAppsList<T>(
         if (isWorkOrPrivateSpace(appList)) return super.addAppsWithSections(appList, position)
 
         if (!drawerListDefault) {
-            val categorizedApps = potsManager.categorizeApps(appList)
+            // Use AutoCat database categorization
+            val categorizedApps = autoCatProvider.categorizeApps(appList)
             categorizedApps.forEach { (category, apps) ->
                 if (apps.size == 1) {
                     mAdapterItems.add(AdapterItem.asApp(apps.first()))
