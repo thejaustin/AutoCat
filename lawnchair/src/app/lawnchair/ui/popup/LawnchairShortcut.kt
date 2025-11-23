@@ -18,6 +18,8 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.unit.dp
 import app.lawnchair.LawnchairLauncher
+import app.lawnchair.categorization.CategorizationManager
+import app.lawnchair.data.category.CategoryDatabase
 import app.lawnchair.override.CustomizeAppDialog
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.views.ComposeBottomSheet
@@ -35,6 +37,10 @@ import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.PackageManagerHelper
 import com.patrykmichalik.opto.core.firstBlocking
 import java.net.URISyntaxException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class LawnchairShortcut {
 
@@ -78,6 +84,13 @@ class LawnchairShortcut {
             if (PackageManagerHelper(activity).isAppSuspended(packageName, itemInfo.user)) return@Factory null
 
             PauseApps(activity, itemInfo, originalView)
+        }
+
+        val CHANGE_CATEGORY = SystemShortcut.Factory { activity: LawnchairLauncher, itemInfo: ItemInfo, originalView: View ->
+            val targetCmp = itemInfo.targetComponent
+            val packageName = targetCmp?.packageName ?: return@Factory null
+
+            ChangeCategory(activity, itemInfo, originalView)
         }
     }
 
@@ -231,6 +244,84 @@ class LawnchairShortcut {
             } catch (e: URISyntaxException) {
                 // Do nothing.
             }
+        }
+    }
+
+    class ChangeCategory(
+        private val launcher: LawnchairLauncher,
+        itemInfo: ItemInfo,
+        originalView: View,
+    ) : SystemShortcut<LawnchairLauncher>(
+        R.drawable.ic_palette,
+        R.string.change_category_title,
+        launcher,
+        itemInfo,
+        originalView,
+    ) {
+        override fun onClick(view: View) {
+            val context = view.context
+            val packageName = mItemInfo.targetComponent?.packageName ?: return
+
+            // Get all visible categories from database
+            val database = CategoryDatabase.getInstance(context)
+            val categoryDao = database.categoryDao()
+
+            val categories = runBlocking {
+                categoryDao.getVisibleCustomCategories()
+            }
+
+            if (categories.isEmpty()) {
+                Toast.makeText(context, "No categories available", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Get current category
+            val currentCategory = runBlocking {
+                categoryDao.getAppCategory(packageName)?.category
+            }
+
+            // Create category names array for dialog
+            val categoryNames = categories.map { it.name }.toTypedArray()
+            val currentIndex = categoryNames.indexOf(currentCategory).takeIf { it >= 0 } ?: -1
+
+            // Show category picker dialog
+            AlertDialog.Builder(context)
+                .setTitle(R.string.change_category_title)
+                .setSingleChoiceItems(categoryNames, currentIndex) { dialog, which ->
+                    val selectedCategory = categories[which]
+
+                    // Update category in database with user override
+                    CoroutineScope(Dispatchers.IO).launch {
+                        categoryDao.insertAppCategory(
+                            com.android.launcher3.model.data.AppInfo().apply {
+                                componentName = mItemInfo.targetComponent
+                            }.let {
+                                app.lawnchair.data.category.entities.AppCategory(
+                                    packageName = packageName,
+                                    category = selectedCategory.name,
+                                    confidence = 1.0f,
+                                    source = app.lawnchair.data.category.entities.AppCategory.SOURCE_USER,
+                                    isUserOverride = true,
+                                )
+                            },
+                        )
+
+                        // Refresh the app drawer on main thread
+                        CoroutineScope(Dispatchers.Main).launch {
+                            launcher.appsView.appsStore.notifyUpdate()
+                            Toast.makeText(
+                                context,
+                                "Moved to ${selectedCategory.name}",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+                    }
+
+                    dialog.dismiss()
+                    AbstractFloatingView.closeAllOpenViews(launcher)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
         }
     }
 }

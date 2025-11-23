@@ -901,4 +901,7 @@
     <string name="grant_requested_permissions">Grant permissions</string>
     <string name="permissions_needed">Permissions needed</string>
     <string name="grant_requested_permissions_tap">Tap to grant permissions</string>
+
+    <!-- AutoCat: Category management -->
+    <string name="change_category_title">Change Category</string>
 </resources>
