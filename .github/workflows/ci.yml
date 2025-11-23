@@ -138,3 +138,65 @@ jobs:
         run: |
           gh release view "nightly" && gh release delete "nightly" -y --cleanup-tag
           gh release create "nightly" "./$APK_NAME" -p -t "Lawnchair Nightly" --generate-notes
+
+  autocat-release:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'thejaustin' && github.event_name == 'push' && github.ref == 'refs/heads/15-dev'
+    needs: build-debug-apk
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v6
+        with:
+          name: Debug APK
+          path: apk-artifacts
+      - name: Prepare APK for release
+        run: |
+          # Find the GitHub debug APK (installable variant)
+          APK_FILE=$(find apk-artifacts -name "*GithubDebug.apk" | head -1)
+          if [ -z "$APK_FILE" ]; then
+            echo "No GitHub Debug APK found, trying any debug APK"
+            APK_FILE=$(find apk-artifacts -name "*debug.apk" | head -1)
+          fi
+
+          # Create descriptive filename
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          APK_NAME="AutoCat-debug-${SHORT_SHA}.apk"
+
+          # Copy to root with new name
+          cp "$APK_FILE" "./$APK_NAME"
+          echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+      - name: Delete old dev release if exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "dev-latest" && gh release delete "dev-latest" -y --cleanup-tag || true
+      - name: Create new dev release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "dev-latest" "./$APK_NAME" \
+            --prerelease \
+            --title "AutoCat Development Build" \
+            --notes "**Latest development build from commit [\`$SHORT_SHA\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})**
+
+            ### Installation
+            1. Download the APK below
+            2. Enable 'Install from Unknown Sources' in Android settings
+            3. Install the APK
+            4. Grant necessary permissions
+
+            ### Build Info
+            - **Commit**: $SHORT_SHA
+            - **Branch**: ${{ github.ref_name }}
+            - **Build**: #${{ github.run_number }}
+            - **Date**: $(date -u +'%Y-%m-%d %H:%M UTC')
+
+            ### Changes in this build
+            $(git log -1 --pretty=format:'**%s**%n%n%b')
+
+            ---
+
+            ⚠️ **Development Build** - May contain bugs. For testing purposes only."

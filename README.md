@@ -23,6 +23,18 @@
 - 🚧 ML categorization (planned)
 - 🚧 Categorized drawer UI (planned)
 
+### Download & Testing
+
+**Latest Development Build**: [dev-latest release](https://github.com/thejaustin/AutoCat/releases/tag/dev-latest)
+
+Every push to the `15-dev` branch automatically builds and publishes a new APK. To test:
+
+1. **Download**: Go to [Releases](https://github.com/thejaustin/AutoCat/releases) → `dev-latest` → Download `AutoCat-debug-*.apk`
+2. **Install**: Enable "Install from Unknown Sources" in Android settings
+3. **Test**: Install the APK and report any issues
+
+**Alternative**: Download artifacts from the [Actions tab](https://github.com/thejaustin/AutoCat/actions) (requires GitHub login)
+
 ### Development Logs
 
 This project includes detailed development session logs in the [`dev-logs/`](dev-logs/) directory. Each log contains:
