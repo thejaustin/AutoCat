@@ -100,7 +100,7 @@ interface CategoryDao {
      * Gets count of apps in each category.
      */
     @Query("SELECT category, COUNT(*) as count FROM app_categories GROUP BY category")
-    suspend fun getCategoryCounts(): Map<String, Int>
+    suspend fun getCategoryCounts(): List<CategoryCount>
 
     /**
      * Deletes all app categories that are not user overrides.
@@ -209,3 +209,14 @@ interface CategoryDao {
         }
     }
 }
+
+/**
+ * Data class for category count query results.
+ *
+ * @property category The category name
+ * @property count The number of apps in this category
+ */
+data class CategoryCount(
+    val category: String,
+    val count: Int,
+)
