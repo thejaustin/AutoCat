@@ -122,6 +122,13 @@ class PreferenceManager private constructor(private val context: Context) :
     val drawerList = BoolPref("pref_drawerList", true, recreate)
     val folderApps = BoolPref("pref_hideFolderApps", true, reloadGrid)
 
+    // AutoCat: Work apps settings
+    val showWorkTab = BoolPref("pref_showWorkTab", false, recreate)
+    val hideWorkApps = BoolPref("pref_hideWorkApps", false, recreate)
+
+    // AutoCat: Category tabs settings
+    val useCategoryTabs = BoolPref("pref_useCategoryTabs", true, recreate)
+
     val recentsActionScreenshot = BoolPref("pref_recentsActionScreenshot", !isOnePlusStock)
     val recentsActionShare = BoolPref("pref_recentsActionShare", isOnePlusStock)
     val recentsActionLens = BoolPref("pref_recentsActionLens", true)
