@@ -36,8 +36,8 @@ class AutoCatAppProvider(private val context: Context) {
 
         // Group apps by their database category
         validApps.forEach { app ->
-            val packageName = app.componentName.packageName
-            val category = appCategories[packageName]?.category
+            val packageName = app.componentName?.packageName
+            val category = packageName?.let { appCategories[it]?.category }
 
             if (category != null) {
                 categorizedApps.getOrPut(category) { mutableListOf() }.add(app)
