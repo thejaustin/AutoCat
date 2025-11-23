@@ -20,7 +20,7 @@ class CustomCategoryTest {
             colorHex = "#FF5722",
             sortOrder = 5,
             isVisible = true,
-            createdAt = 1234567890L
+            createdAt = 1234567890L,
         )
 
         assertEquals(1, customCategory.id)
@@ -36,7 +36,7 @@ class CustomCategoryTest {
         val customCategory = CustomCategory(
             name = "Test",
             colorHex = "#000000",
-            sortOrder = 0
+            sortOrder = 0,
         )
 
         assertEquals(0, customCategory.id)

@@ -36,7 +36,7 @@ data class AppCategory(
     val isUserOverride: Boolean = false,
 
     @ColumnInfo(name = "last_updated")
-    val lastUpdated: Long = System.currentTimeMillis()
+    val lastUpdated: Long = System.currentTimeMillis(),
 ) {
     companion object {
         const val SOURCE_BUILT_IN = "built-in"

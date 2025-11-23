@@ -21,7 +21,7 @@ class AppCategoryTest {
             confidence = 0.95f,
             source = AppCategory.SOURCE_BUILT_IN,
             isUserOverride = false,
-            lastUpdated = 1234567890L
+            lastUpdated = 1234567890L,
         )
 
         assertEquals("com.example.app", appCategory.packageName)
@@ -38,7 +38,7 @@ class AppCategoryTest {
             packageName = "com.example.app",
             category = "Tools",
             confidence = 0.7f,
-            source = AppCategory.SOURCE_RULE
+            source = AppCategory.SOURCE_RULE,
         )
 
         assertFalse(appCategory.isUserOverride)
@@ -52,7 +52,7 @@ class AppCategoryTest {
             category = "Games",
             confidence = 0.5f,
             source = AppCategory.SOURCE_USER,
-            isUserOverride = true
+            isUserOverride = true,
         )
 
         assertTrue(appCategory.isReliable())
@@ -64,7 +64,7 @@ class AppCategoryTest {
             packageName = "com.example.app",
             category = "Games",
             confidence = 0.9f,
-            source = AppCategory.SOURCE_BUILT_IN
+            source = AppCategory.SOURCE_BUILT_IN,
         )
 
         assertTrue(appCategory.isReliable())
@@ -76,7 +76,7 @@ class AppCategoryTest {
             packageName = "com.example.app",
             category = "Tools",
             confidence = AppCategory.CONFIDENCE_RULE_MEDIUM,
-            source = AppCategory.SOURCE_RULE
+            source = AppCategory.SOURCE_RULE,
         )
 
         assertTrue(appCategory.isReliable())
@@ -89,7 +89,7 @@ class AppCategoryTest {
             category = "Unknown",
             confidence = 0.5f,
             source = AppCategory.SOURCE_ML,
-            isUserOverride = false
+            isUserOverride = false,
         )
 
         assertFalse(appCategory.isReliable())

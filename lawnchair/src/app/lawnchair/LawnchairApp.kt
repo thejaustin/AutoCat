@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import app.lawnchair.backup.LawnchairBackup
+import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.ui.ModalBottomSheetContent
@@ -52,6 +53,10 @@ import com.android.launcher3.Utilities
 import com.android.quickstep.RecentsActivity
 import com.android.systemui.shared.system.QuickStepContract
 import java.io.File
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class LawnchairApp : Application() {
     private val compatible = Build.VERSION.SDK_INT in BuildConfig.QUICKSTEP_MIN_SDK..BuildConfig.QUICKSTEP_MAX_SDK
@@ -61,11 +66,35 @@ class LawnchairApp : Application() {
     internal var accessibilityService: LawnchairAccessibilityService? = null
     val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
 
+    // AutoCat: Application-level coroutine scope for background operations
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
     override fun onCreate() {
         super.onCreate()
         instance = this
         QuickStepContract.sRecentsDisabled = !recentsEnabled
         Flowerpot.Manager.getInstance(this)
+
+        // AutoCat: Initialize app categorization in background
+        initializeAutoCategorization()
+    }
+
+    /**
+     * AutoCat: Initializes the app categorization system.
+     *
+     * Runs in background to avoid blocking app startup.
+     * Categorizes all installed apps using built-in system categories.
+     */
+    private fun initializeAutoCategorization() {
+        applicationScope.launch(Dispatchers.IO) {
+            try {
+                val manager = CategorizationManager.getInstance(this@LawnchairApp)
+                manager.initializeCategorization()
+                Log.d(TAG, "AutoCat categorization initialized")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to initialize AutoCat categorization", e)
+            }
+        }
     }
 
     fun hideClockInStatusBar() {

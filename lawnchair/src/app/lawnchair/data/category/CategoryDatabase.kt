@@ -15,15 +15,15 @@ import app.lawnchair.data.category.entities.CustomCategory
  * - Custom category definitions (user-created categories with colors and ordering)
  *
  * Database version: 1
- * Export schema: true (for migrations and version control)
+ * Export schema: false (disabled for development, will enable for production)
  */
 @Database(
     entities = [
         AppCategory::class,
-        CustomCategory::class
+        CustomCategory::class,
     ],
     version = 1,
-    exportSchema = true
+    exportSchema = false,
 )
 abstract class CategoryDatabase : RoomDatabase() {
 
@@ -36,7 +36,7 @@ abstract class CategoryDatabase : RoomDatabase() {
         private const val DATABASE_NAME = "category_database"
 
         @Volatile
-        private var INSTANCE: CategoryDatabase? = null
+        private var instance: CategoryDatabase? = null
 
         /**
          * Gets the singleton instance of CategoryDatabase.
@@ -49,8 +49,8 @@ abstract class CategoryDatabase : RoomDatabase() {
          * @return Singleton CategoryDatabase instance
          */
         fun getInstance(context: Context): CategoryDatabase {
-            return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
+            return instance ?: synchronized(this) {
+                instance ?: buildDatabase(context).also { instance = it }
             }
         }
 
@@ -61,7 +61,7 @@ abstract class CategoryDatabase : RoomDatabase() {
             return Room.databaseBuilder(
                 context.applicationContext,
                 CategoryDatabase::class.java,
-                DATABASE_NAME
+                DATABASE_NAME,
             )
                 // For development: destroy and rebuild on schema changes
                 // TODO: Replace with proper migrations before production release
@@ -83,8 +83,8 @@ abstract class CategoryDatabase : RoomDatabase() {
          */
         @androidx.annotation.VisibleForTesting
         fun clearInstance() {
-            INSTANCE?.close()
-            INSTANCE = null
+            instance?.close()
+            instance = null
         }
     }
 }

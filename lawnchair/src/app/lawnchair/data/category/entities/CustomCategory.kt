@@ -36,7 +36,7 @@ data class CustomCategory(
     val isVisible: Boolean = true,
 
     @ColumnInfo(name = "created_at")
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
 ) {
     companion object {
         // Default category colors
@@ -58,7 +58,7 @@ data class CustomCategory(
             CustomCategory(name = "Tools", colorHex = COLOR_TOOLS, sortOrder = 3),
             CustomCategory(name = "Entertainment", colorHex = COLOR_ENTERTAINMENT, sortOrder = 4),
             CustomCategory(name = "Photography", colorHex = COLOR_PHOTOGRAPHY, sortOrder = 5),
-            CustomCategory(name = "Communication", colorHex = COLOR_COMMUNICATION, sortOrder = 6)
+            CustomCategory(name = "Communication", colorHex = COLOR_COMMUNICATION, sortOrder = 6),
         )
     }
 }
