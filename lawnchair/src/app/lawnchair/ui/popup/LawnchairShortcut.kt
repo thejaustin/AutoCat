@@ -308,7 +308,7 @@ class LawnchairShortcut {
 
                         // Refresh the app drawer on main thread
                         CoroutineScope(Dispatchers.Main).launch {
-                            launcher.appsView.appsStore.notifyUpdate()
+                            launcher.appsView.activeRecyclerView?.apps?.updateAdapterItems()
                             Toast.makeText(
                                 context,
                                 "Moved to ${selectedCategory.name}",
