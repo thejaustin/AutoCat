@@ -1,13 +1,46 @@
-# Lawnchair 15
+# AutoCat
 
-[![Build debug APK](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/ci.yml/badge.svg)](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/ci.yml)
-[![Build release APK](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/release_update.yml/badge.svg)](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/release_update.yml)
+> **Fork of [Lawnchair 15](https://github.com/LawnchairLauncher/lawnchair)** with intelligent app auto-categorization
+
+[![Build debug APK](https://github.com/thejaustin/AutoCat/actions/workflows/ci.yml/badge.svg)](https://github.com/thejaustin/AutoCat/actions/workflows/ci.yml)
+
+## About AutoCat
+
+**AutoCat** is a personal fork of Lawnchair Launcher that adds intelligent automatic app categorization to the app drawer. It uses a 4-stage hybrid pipeline to organize your apps:
+
+1. **Built-in Categories** - Uses Android system categories (Android 8+)
+2. **Rule-Based Classification** - Package patterns, permissions, and keywords
+3. **ML Inference** - TensorFlow Lite text classifier
+4. **User Overrides** - Manual categorization always takes precedence
+
+### Development Status
+
+🚧 **Active Development** - This is a personal project under active development. Features are being added iteratively.
+
+**Current Progress:**
+- ✅ Room database foundation
+- 🚧 Rule-based categorizer (planned)
+- 🚧 ML categorization (planned)
+- 🚧 Categorized drawer UI (planned)
+
+### Development Logs
+
+This project includes detailed development session logs in the [`dev-logs/`](dev-logs/) directory. Each log contains:
+- Full conversation transcripts between developer and AI assistant
+- Technical decisions and rationale
+- Code changes and commits
+- Next steps and open questions
+
+See [`dev-logs/README.md`](dev-logs/README.md) for more information.
+
+---
+
+## About Lawnchair
+
 [![Crowdin](https://badges.crowdin.net/e/188ba69d884418987f0b7f1dd55e3a4e/localized.svg)](https://lawnchair.crowdin.com/lawnchair)
 [![OpenCollective](https://img.shields.io/opencollective/all/lawnchair?label=financial%20contributors&logo=open-collective)](https://opencollective.com/lawnchair)
 [![Telegram](https://img.shields.io/endpoint?url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Flccommunity)](https://t.me/lccommunity)
 [![Discord](https://img.shields.io/discord/803299970169700402?label=server&logo=discord)](https://discord.gg/3x8qNWxgGZ)
-[![GitHub Downloads](https://img.shields.io/github/downloads/LawnchairLauncher/lawnchair/total.svg?label=GitHub%20Downloads&logo=github)](https://github.com/LawnchairLauncher/lawnchair/releases)
-[![Play Store Installs](https://img.shields.io/endpoint?color=green&logo=googleplay&logoColor=green&url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dapp.lawnchair.play%26l%3DPlay%2520Store%2520Installs%26m%3D%24shortinstalls)](https://play.google.com/store/apps/details?id=app.lawnchair.play)
 
 <picture>
     <!-- Avoid image being clickable with slight workaround -->
