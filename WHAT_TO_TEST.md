@@ -2,10 +2,10 @@
 
 This document explains what features are in the current AutoCat build and what to look for when testing.
 
-## Current Version: v15.0-autocat.5 (Expected)
+## Current Version: v15.0.b1-autocat.6 (Expected)
 
 **Release Date**: November 23, 2025
-**Base**: Lawnchair 15.0 Beta 1
+**Base**: Lawnchair 15.0 Beta 1 (b1)
 **AutoCat Features**: Room database foundation + versioning
 
 ---
@@ -81,7 +81,7 @@ Since visible features aren't implemented yet, focus on **stability and baseline
 **Test**:
 - [ ] Go to Android Settings → Apps → AutoCat (or Lawnchair Debug)
 - [ ] Check version string matches downloaded build
-- [ ] Note the version format: `15.0-autocat.{BUILD_NUMBER}`
+- [ ] Note the version format: `15.0.b1-autocat.{BUILD_NUMBER}`
 
 **Expected**: Version shows AutoCat versioning
 
@@ -122,9 +122,9 @@ adb shell run-as app.lawnchair.debug sqlite3 databases/category_database ".schem
 ### Check Build Configuration (Requires Logcat or Code Inspection)
 
 The following constants are available in `BuildConfig`:
-- `BuildConfig.AUTOCAT_VERSION` = "autocat.5"
-- `BuildConfig.AUTOCAT_BUILD_NUMBER` = "5"
-- `BuildConfig.VERSION_DISPLAY_NAME` = "15.0-autocat.5"
+- `BuildConfig.AUTOCAT_VERSION` = "autocat.6"
+- `BuildConfig.AUTOCAT_BUILD_NUMBER` = "6"
+- `BuildConfig.VERSION_DISPLAY_NAME` = "15.0.b1-autocat.6"
 
 ### Verify Custom Categories Initialized
 
@@ -209,7 +209,7 @@ These features are **planned but not implemented**:
 
 ## Next Build Preview
 
-### Coming in v15.0-autocat.6+:
+### Coming in v15.0.b1-autocat.7+:
 
 The next significant build will likely include one of:
 - **AppMetadataProvider**: Wraps PackageManager to get app information
@@ -227,8 +227,8 @@ Check `dev-logs/` for latest development decisions.
 1. **Download both APKs** from different version releases
 2. **Check version codes**:
    ```bash
-   aapt dump badging AutoCat-v15.0-autocat.5-abc1234.apk | grep versionCode
-   aapt dump badging AutoCat-v15.0-autocat.6-def5678.apk | grep versionCode
+   aapt dump badging AutoCat-v15.0.b1-autocat.5-abc1234.apk | grep versionCode
+   aapt dump badging AutoCat-v15.0.b1-autocat.6-def5678.apk | grep versionCode
    ```
 3. **Install newer version** (will upgrade if version code is higher)
 4. **Test for regressions** (make sure old features still work)
@@ -239,9 +239,9 @@ Check `dev-logs/` for latest development decisions.
 - Build number added as last 2 digits: `15_00_02_05` for build #5
 
 Example:
-- v15.0-autocat.1 → versionCode: `1500020001`
-- v15.0-autocat.5 → versionCode: `1500020005`
-- v15.0-autocat.25 → versionCode: `1500020025`
+- v15.0.b1-autocat.1 → versionCode: `1500020001`
+- v15.0.b1-autocat.5 → versionCode: `1500020005`
+- v15.0.b1-autocat.25 → versionCode: `1500020025`
 
 ---
 

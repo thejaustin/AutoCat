@@ -146,15 +146,16 @@ final def isReleaseBuild = ciBuild && ciRef.contains("beta")
 
 // AutoCat versioning
 final def lawnchairBaseVersion = "15.0"
+final def lawnchairBetaNumber = "b1"  // Tracks Lawnchair 15.0 Beta 1
 final def autocatBuildNumber = ciRunNumber ?: "local"
 final def autocatVersion = "autocat.${autocatBuildNumber}"
-final def autocatVersionName = "${lawnchairBaseVersion}-${autocatVersion}"
+final def autocatVersionName = "${lawnchairBaseVersion}.${lawnchairBetaNumber}-${autocatVersion}"
 
 // Keep original Lawnchair versioning for compatibility
 final def version = "15"
 final def releaseName = "Beta 1"
 final def devReleaseName = ciBuild ? "Dev.(#${ciRunNumber})" : "Dev.(${buildCommit})"
-final def versionDisplayName = ciBuild ? autocatVersionName : "${lawnchairBaseVersion}-autocat.dev"
+final def versionDisplayName = ciBuild ? autocatVersionName : "${lawnchairBaseVersion}.${lawnchairBetaNumber}-autocat.dev"
 final def majorVersion = version
 
 final def quickstepMinSdk = "29"

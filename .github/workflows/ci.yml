@@ -164,7 +164,7 @@ jobs:
 
           # Version info
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          VERSION_TAG="v15.0-autocat.${{ github.run_number }}"
+          VERSION_TAG="v15.0.b1-autocat.${{ github.run_number }}"
           APK_NAME="AutoCat-${VERSION_TAG}-${SHORT_SHA}.apk"
           DEV_APK_NAME="AutoCat-dev-latest.apk"
 
@@ -201,9 +201,9 @@ jobs:
             $(git log -1 --pretty=format:'**%s**%n%n%b')
 
             ### What's in AutoCat $VERSION_TAG
-            - Based on Lawnchair 15.0 Beta 1
-            - Room database foundation for app categorization
-            - Development logs system
+            - **Base**: Lawnchair 15.0 Beta 1 (b1)
+            - **Features**: Room database foundation for app categorization
+            - **Infrastructure**: Development logs system, versioning
 
             ---
 

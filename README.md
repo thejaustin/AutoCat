@@ -27,13 +27,13 @@
 
 **Latest Development Build**: [dev-latest release](https://github.com/thejaustin/AutoCat/releases/tag/dev-latest)
 
-AutoCat uses a versioning scheme: `15.0-autocat.{BUILD_NUMBER}`
-- `15.0` = Lawnchair base version
+AutoCat uses a versioning scheme: `15.0.b1-autocat.{BUILD_NUMBER}`
+- `15.0.b1` = Lawnchair 15.0 Beta 1 (base version)
 - `autocat.X` = AutoCat build number
 
 Every push creates TWO releases:
 - **`dev-latest`** (rolling) - Always points to newest build
-- **`v15.0-autocat.X`** (versioned) - Permanent release for each build
+- **`v15.0.b1-autocat.X`** (versioned) - Permanent release for each build
 
 **Quick Install**:
 1. **Download**: [dev-latest release](https://github.com/thejaustin/AutoCat/releases/tag/dev-latest) → Download `AutoCat-dev-latest.apk`
