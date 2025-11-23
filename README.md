@@ -27,13 +27,20 @@
 
 **Latest Development Build**: [dev-latest release](https://github.com/thejaustin/AutoCat/releases/tag/dev-latest)
 
-Every push to the `15-dev` branch automatically builds and publishes a new APK. To test:
+AutoCat uses a versioning scheme: `15.0-autocat.{BUILD_NUMBER}`
+- `15.0` = Lawnchair base version
+- `autocat.X` = AutoCat build number
 
-1. **Download**: Go to [Releases](https://github.com/thejaustin/AutoCat/releases) → `dev-latest` → Download `AutoCat-debug-*.apk`
+Every push creates TWO releases:
+- **`dev-latest`** (rolling) - Always points to newest build
+- **`v15.0-autocat.X`** (versioned) - Permanent release for each build
+
+**Quick Install**:
+1. **Download**: [dev-latest release](https://github.com/thejaustin/AutoCat/releases/tag/dev-latest) → Download `AutoCat-dev-latest.apk`
 2. **Install**: Enable "Install from Unknown Sources" in Android settings
-3. **Test**: Install the APK and report any issues
+3. **Test**: See [WHAT_TO_TEST.md](WHAT_TO_TEST.md) for testing checklist
 
-**Alternative**: Download artifacts from the [Actions tab](https://github.com/thejaustin/AutoCat/actions) (requires GitHub login)
+**All Versions**: [Releases page](https://github.com/thejaustin/AutoCat/releases) | **Testing Guide**: [TESTING.md](TESTING.md) | **Changelog**: [CHANGELOG.md](CHANGELOG.md)
 
 ### Development Logs
 

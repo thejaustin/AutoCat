@@ -147,11 +147,13 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - uses: actions/download-artifact@v6
         with:
           name: Debug APK
           path: apk-artifacts
-      - name: Prepare APK for release
+      - name: Prepare APK and version info
         run: |
           # Find the GitHub debug APK (installable variant)
           APK_FILE=$(find apk-artifacts -name "*GithubDebug.apk" | head -1)
@@ -160,43 +162,80 @@ jobs:
             APK_FILE=$(find apk-artifacts -name "*debug.apk" | head -1)
           fi
 
-          # Create descriptive filename
+          # Version info
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          APK_NAME="AutoCat-debug-${SHORT_SHA}.apk"
+          VERSION_TAG="v15.0-autocat.${{ github.run_number }}"
+          APK_NAME="AutoCat-${VERSION_TAG}-${SHORT_SHA}.apk"
+          DEV_APK_NAME="AutoCat-dev-latest.apk"
 
-          # Copy to root with new name
+          # Copy APK with versioned name
           cp "$APK_FILE" "./$APK_NAME"
+          cp "$APK_FILE" "./$DEV_APK_NAME"
+
+          # Export variables
           echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
+          echo "DEV_APK_NAME=$DEV_APK_NAME" >> $GITHUB_ENV
           echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
-      - name: Delete old dev release if exists
+          echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
+      - name: Create versioned release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view "dev-latest" && gh release delete "dev-latest" -y --cleanup-tag || true
-      - name: Create new dev release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "dev-latest" "./$APK_NAME" \
-            --prerelease \
-            --title "AutoCat Development Build" \
-            --notes "**Latest development build from commit [\`$SHORT_SHA\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})**
+          # Create permanent versioned release
+          gh release create "$VERSION_TAG" "./$APK_NAME" \
+            --title "AutoCat $VERSION_TAG" \
+            --notes "**AutoCat Build #${{ github.run_number }}**
+
+            ### Version Info
+            - **Version**: $VERSION_TAG
+            - **Commit**: [\`$SHORT_SHA\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            - **Branch**: ${{ github.ref_name }}
+            - **Build Date**: $(date -u +'%Y-%m-%d %H:%M UTC')
 
             ### Installation
-            1. Download the APK below
+            1. Download \`$APK_NAME\` below
             2. Enable 'Install from Unknown Sources' in Android settings
             3. Install the APK
-            4. Grant necessary permissions
-
-            ### Build Info
-            - **Commit**: $SHORT_SHA
-            - **Branch**: ${{ github.ref_name }}
-            - **Build**: #${{ github.run_number }}
-            - **Date**: $(date -u +'%Y-%m-%d %H:%M UTC')
 
             ### Changes in this build
             $(git log -1 --pretty=format:'**%s**%n%n%b')
 
+            ### What's in AutoCat $VERSION_TAG
+            - Based on Lawnchair 15.0 Beta 1
+            - Room database foundation for app categorization
+            - Development logs system
+
             ---
 
-            ⚠️ **Development Build** - May contain bugs. For testing purposes only."
+            📥 **[Download Latest](https://github.com/${{ github.repository }}/releases/tag/dev-latest)** | 📝 **[All Releases](https://github.com/${{ github.repository }}/releases)**"
+      - name: Update dev-latest rolling release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Delete old dev-latest
+          gh release view "dev-latest" && gh release delete "dev-latest" -y --cleanup-tag || true
+
+          # Create new dev-latest pointing to same build
+          gh release create "dev-latest" "./$DEV_APK_NAME" \
+            --prerelease \
+            --title "AutoCat Development Build (Latest)" \
+            --notes "**🔄 Rolling release - Always points to latest build**
+
+            Current version: **$VERSION_TAG** from commit [\`$SHORT_SHA\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+
+            ### Quick Install
+            1. Download \`$DEV_APK_NAME\` below
+            2. Install on your Android device
+            3. Test and report issues
+
+            ### This Build
+            - **Build**: #${{ github.run_number }}
+            - **Date**: $(date -u +'%Y-%m-%d %H:%M UTC')
+
+            $(git log -1 --pretty=format:'**Changes**: %s')
+
+            ---
+
+            💡 **Want a specific version?** See [all versioned releases](https://github.com/${{ github.repository }}/releases)
+
+            ⚠️ **Development Build** - For testing only"
