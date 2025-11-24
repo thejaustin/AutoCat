@@ -2,12 +2,21 @@ package app.lawnchair.ui.preferences.destinations
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
@@ -17,12 +26,17 @@ import app.lawnchair.ui.preferences.components.controls.TextPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
+import kotlinx.coroutines.launch
 
 @Composable
 fun LLMSettingsPreferences(
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     val prefs = preferenceManager()
+    val scope = rememberCoroutineScope()
+    var isCategorizing by remember { mutableStateOf(false) }
+    var categorizationStatus by remember { mutableStateOf("") }
 
     PreferenceScaffold(
         label = "LLM Settings",
@@ -115,6 +129,62 @@ fun LLMSettingsPreferences(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+            }
+
+            item {
+                PreferenceGroup(heading = "Actions") {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                    ) {
+                        Button(
+                            onClick = {
+                                isCategorizing = true
+                                categorizationStatus = "Starting categorization..."
+                                scope.launch {
+                                    try {
+                                        val manager = CategorizationManager.getInstance(context)
+                                        manager.recategorizeAll()
+                                        categorizationStatus = "✅ Categorization complete! Check your app drawer."
+                                        isCategorizing = false
+                                    } catch (e: Exception) {
+                                        categorizationStatus = "❌ Error: ${e.message}"
+                                        isCategorizing = false
+                                    }
+                                }
+                            },
+                            enabled = !isCategorizing,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(if (isCategorizing) "Categorizing..." else "Re-categorize All Apps")
+                        }
+
+                        if (categorizationStatus.isNotEmpty()) {
+                            Spacer(modifier = Modifier.padding(8.dp))
+                            Text(
+                                text = categorizationStatus,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (categorizationStatus.startsWith("✅")) {
+                                    MaterialTheme.colorScheme.primary
+                                } else if (categorizationStatus.startsWith("❌")) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                },
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.padding(4.dp))
+
+                        Text(
+                            text = "This will re-categorize all apps using Stage 1 (built-in) and Stage 2 (LLM). " +
+                                "User overrides will be preserved. May take a few minutes for large app collections.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
