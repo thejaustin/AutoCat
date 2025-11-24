@@ -58,8 +58,8 @@ class CategorizationManager(private val context: Context) {
      *
      * - Ensures default categories exist
      * - Categorizes all installed apps using multi-stage pipeline:
-     *   1. Built-in categorizer (Android system categories)
-     *   2. LLM categorizer (for apps without built-in categories)
+     *   1. LLM categorizer (for custom categories - higher priority)
+     *   2. Built-in categorizer (Android system categories - fallback)
      *
      * Safe to call multiple times (idempotent).
      */
@@ -71,15 +71,15 @@ class CategorizationManager(private val context: Context) {
             // Get all installed apps
             val apps = metadataProvider.getInstalledApps()
 
-            // Stage 1: Built-in categorizer
-            val builtInCount = builtInCategorizer.categorizeBatch(apps)
+            // Stage 1: LLM categorizer for custom categories (PRIORITY)
+            val llmCount = llmCategorizer.categorizeBatch(apps)
 
             android.util.Log.d(
                 TAG,
-                "Stage 1 (Built-in) complete: $builtInCount/${apps.size} apps categorized",
+                "Stage 1 (LLM) complete: $llmCount/${apps.size} apps categorized",
             )
 
-            // Stage 2: LLM categorizer for remaining apps
+            // Stage 2: Built-in categorizer for remaining apps (FALLBACK)
             val uncategorizedApps = apps.filter { app ->
                 categoryDao.getAppCategory(app.packageName) == null
             }
@@ -87,18 +87,17 @@ class CategorizationManager(private val context: Context) {
             if (uncategorizedApps.isNotEmpty()) {
                 android.util.Log.d(
                     TAG,
-                    "Starting Stage 2 (LLM) for ${uncategorizedApps.size} uncategorized apps",
+                    "Starting Stage 2 (Built-in) for ${uncategorizedApps.size} uncategorized apps",
                 )
 
-                val llmCount = llmCategorizer.categorizeBatch(uncategorizedApps)
+                val builtInCount = builtInCategorizer.categorizeBatch(uncategorizedApps)
 
                 android.util.Log.d(
                     TAG,
-                    "Stage 2 (LLM) complete: $llmCount/${uncategorizedApps.size} apps categorized",
+                    "Stage 2 (Built-in) complete: $builtInCount/${uncategorizedApps.size} apps categorized",
                 )
             }
 
-            val totalCategorized = builtInCount + (uncategorizedApps.size - uncategorizedApps.size)
             android.util.Log.d(
                 TAG,
                 "All stages complete: ${categoryDao.getAllAppCategories().size}/${apps.size} apps categorized",
@@ -134,20 +133,40 @@ class CategorizationManager(private val context: Context) {
 
             _progress.value = CategorizationProgress(
                 isRunning = true,
-                currentStage = "Built-in",
+                currentStage = "LLM",
                 processedCount = 0,
                 totalCount = apps.size,
             )
 
-            // Stage 1: Built-in categorizer (fast, batch operation)
-            val builtInCount = builtInCategorizer.categorizeBatch(apps)
+            // Stage 1: LLM categorizer for custom categories (PRIORITY)
+            android.util.Log.d(
+                TAG,
+                "Starting Stage 1 (LLM) for ${apps.size} apps",
+            )
+
+            var llmProcessed = 0
+            for (app in apps) {
+                _progress.value = CategorizationProgress(
+                    isRunning = true,
+                    currentStage = "LLM",
+                    processedCount = llmProcessed,
+                    totalCount = apps.size,
+                    currentAppName = app.label,
+                )
+
+                llmCategorizer.categorize(app)
+                llmProcessed++
+
+                // Small delay for rate limiting
+                kotlinx.coroutines.delay(100)
+            }
 
             android.util.Log.d(
                 TAG,
-                "Stage 1 (Built-in) complete: $builtInCount/${apps.size} apps categorized",
+                "Stage 1 (LLM) complete: categorization attempted for ${apps.size} apps",
             )
 
-            // Get uncategorized apps for LLM stage
+            // Get uncategorized apps for built-in stage (FALLBACK)
             val uncategorizedApps = apps.filter { app ->
                 categoryDao.getAppCategory(app.packageName) == null
             }
@@ -155,37 +174,22 @@ class CategorizationManager(private val context: Context) {
             if (uncategorizedApps.isNotEmpty()) {
                 _progress.value = CategorizationProgress(
                     isRunning = true,
-                    currentStage = "LLM",
+                    currentStage = "Built-in",
                     processedCount = 0,
                     totalCount = uncategorizedApps.size,
                 )
 
                 android.util.Log.d(
                     TAG,
-                    "Starting Stage 2 (LLM) for ${uncategorizedApps.size} uncategorized apps",
+                    "Starting Stage 2 (Built-in) for ${uncategorizedApps.size} uncategorized apps",
                 )
 
-                // Stage 2: LLM categorizer with progress tracking
-                var llmProcessed = 0
-                for (app in uncategorizedApps) {
-                    _progress.value = CategorizationProgress(
-                        isRunning = true,
-                        currentStage = "LLM",
-                        processedCount = llmProcessed,
-                        totalCount = uncategorizedApps.size,
-                        currentAppName = app.label,
-                    )
-
-                    llmCategorizer.categorize(app)
-                    llmProcessed++
-
-                    // Small delay for rate limiting (handled in LLMCategorizer)
-                    kotlinx.coroutines.delay(100)
-                }
+                // Stage 2: Built-in categorizer as fallback
+                val builtInCount = builtInCategorizer.categorizeBatch(uncategorizedApps)
 
                 android.util.Log.d(
                     TAG,
-                    "Stage 2 (LLM) complete: $llmProcessed/${uncategorizedApps.size} apps processed",
+                    "Stage 2 (Built-in) complete: $builtInCount/${uncategorizedApps.size} apps categorized",
                 )
             }
 
