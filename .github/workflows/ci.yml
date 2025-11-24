@@ -41,6 +41,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
         with:
           cache-encryption-key: Da25KUVSE5jbGds2zXmfXw==
+          cache-read-only: ${{ github.ref != 'refs/heads/15-dev' }}
       - name: Write sign info
         run: |
           if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
@@ -51,7 +52,7 @@ jobs:
             echo "${{ secrets.KEYSTORE }}" | base64 --decode > ${{ github.workspace }}/key.jks
           fi
       - name: Build debug APK
-        run: ./gradlew assembleLawnWithQuickstepGithubDebug assembleLawnWithQuickstepPlayDebug assembleLawnWithQuickstepNightlyRelease --no-configuration-cache
+        run: ./gradlew assembleLawnWithQuickstepGithubDebug assembleLawnWithQuickstepNightlyRelease
       - name: Upload artifact
         uses: actions/upload-artifact@v5
         with:
@@ -63,13 +64,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          submodules: true
+          submodules: false
       - uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: 21
       - uses: gradle/actions/setup-gradle@v5
-      - run: ./gradlew spotlessCheck
+        with:
+          cache-read-only: true
+      - run: ./gradlew spotlessCheck --no-configuration-cache
 
   send-notifications:
     runs-on: ubuntu-latest
@@ -111,6 +114,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: false
       - uses: actions/download-artifact@v6
         with:
           name: Debug APK
@@ -135,7 +140,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 10
+          submodules: false
       - uses: actions/download-artifact@v6
         with:
           name: Debug APK
