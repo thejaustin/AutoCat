@@ -99,6 +99,10 @@ class PreferenceManager private constructor(private val context: Context) :
 
     val allAppBulkIconLoading = BoolPref("pref_allapps_bulk_icon_loading", false, recreate)
 
+    // LLM / AI Categorization settings
+    val llmProviderPreference = StringPref("pref_llm_provider", "google_ai")
+    val llmGoogleAIKey = StringPref("pref_llm_google_ai_key", "")
+
     val themedIcons = BoolPref("themed_icons", false, recreate)
     val drawerThemedIcons = BoolPref("drawer_themed_icons", false, recreate)
     val tintIconPackBackgrounds = BoolPref("tint_icon_pack_backgrounds", false, recreate)
