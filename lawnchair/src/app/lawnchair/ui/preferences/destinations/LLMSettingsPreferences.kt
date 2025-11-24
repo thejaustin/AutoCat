@@ -1,18 +1,25 @@
 package app.lawnchair.ui.preferences.destinations
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -35,7 +42,8 @@ fun LLMSettingsPreferences(
     val context = LocalContext.current
     val prefs = preferenceManager()
     val scope = rememberCoroutineScope()
-    var isCategorizing by remember { mutableStateOf(false) }
+    val categorizationManager = remember { CategorizationManager.getInstance(context) }
+    val progress by categorizationManager.progress.collectAsState()
     var categorizationStatus by remember { mutableStateOf("") }
 
     PreferenceScaffold(
@@ -141,26 +149,75 @@ fun LLMSettingsPreferences(
                     ) {
                         Button(
                             onClick = {
-                                isCategorizing = true
-                                categorizationStatus = "Starting categorization..."
+                                categorizationStatus = ""
                                 scope.launch {
                                     try {
-                                        val manager = CategorizationManager.getInstance(context)
-                                        manager.recategorizeAll()
+                                        categorizationManager.recategorizeAll()
                                         categorizationStatus = "✅ Categorization complete! Check your app drawer."
-                                        isCategorizing = false
                                     } catch (e: Exception) {
                                         categorizationStatus = "❌ Error: ${e.message}"
-                                        isCategorizing = false
                                     }
                                 }
                             },
-                            enabled = !isCategorizing,
+                            enabled = !progress.isRunning,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text(if (isCategorizing) "Categorizing..." else "Re-categorize All Apps")
+                            Text(if (progress.isRunning) "Categorizing..." else "Re-categorize All Apps")
                         }
 
+                        // Progress indicator with animated progress bar
+                        if (progress.isRunning) {
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Animated progress value
+                            val animatedProgress by animateFloatAsState(
+                                targetValue = progress.progressPercentage,
+                                animationSpec = tween(durationMillis = 300),
+                                label = "progress",
+                            )
+
+                            // Linear progress bar (Material You style)
+                            LinearProgressIndicator(
+                                progress = { animatedProgress },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(8.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Progress text with stage info
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = "Stage: ${progress.currentStage}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                Text(
+                                    text = "${progress.processedCount} / ${progress.totalCount}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+
+                            // Current app being processed
+                            if (progress.currentAppName != null) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Processing: ${progress.currentAppName}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+
+                        // Status message after completion
                         if (categorizationStatus.isNotEmpty()) {
                             Spacer(modifier = Modifier.padding(8.dp))
                             Text(

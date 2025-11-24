@@ -6,7 +6,30 @@ import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.category.CategoryDatabase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+
+/**
+ * Represents the current progress of categorization.
+ *
+ * @property isRunning Whether categorization is currently in progress
+ * @property currentStage The current categorization stage (e.g., "Built-in", "LLM", "Complete")
+ * @property processedCount Number of apps processed so far
+ * @property totalCount Total number of apps to process
+ * @property currentAppName Name of the app currently being processed (optional)
+ */
+data class CategorizationProgress(
+    val isRunning: Boolean = false,
+    val currentStage: String = "",
+    val processedCount: Int = 0,
+    val totalCount: Int = 0,
+    val currentAppName: String? = null,
+) {
+    val progressPercentage: Float
+        get() = if (totalCount > 0) (processedCount.toFloat() / totalCount.toFloat()) else 0f
+}
 
 /**
  * Manages the app categorization pipeline.
@@ -24,6 +47,11 @@ class CategorizationManager(private val context: Context) {
     private val metadataProvider = AppMetadataProvider(context)
     private val builtInCategorizer = BuiltInCategorizer(categoryDao)
     private val llmCategorizer = LLMCategorizer(context, categoryDao)
+    private val appProvider = AutoCatAppProvider.getInstance(context)
+
+    // Progress tracking
+    private val _progress = MutableStateFlow(CategorizationProgress())
+    val progress: StateFlow<CategorizationProgress> = _progress.asStateFlow()
 
     /**
      * Initializes categorization system on first run.
@@ -75,6 +103,9 @@ class CategorizationManager(private val context: Context) {
                 TAG,
                 "All stages complete: ${categoryDao.getAllAppCategories().size}/${apps.size} apps categorized",
             )
+
+            // Refresh cache after categorization
+            appProvider.refreshCache()
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Error during categorization", e)
         }
@@ -84,16 +115,103 @@ class CategorizationManager(private val context: Context) {
      * Re-categorizes all apps (useful after installing/updating apps).
      *
      * Only re-categorizes apps that don't have user overrides.
+     * Emits progress updates via the progress StateFlow.
      */
     suspend fun recategorizeAll() = withContext(Dispatchers.IO) {
         try {
+            _progress.value = CategorizationProgress(
+                isRunning = true,
+                currentStage = "Preparing",
+                processedCount = 0,
+                totalCount = 0,
+            )
+
             // Delete non-user-override categories
             categoryDao.deleteNonUserOverrides()
 
-            // Re-run categorization
-            initializeCategorization()
+            // Get all installed apps
+            val apps = metadataProvider.getInstalledApps()
+
+            _progress.value = CategorizationProgress(
+                isRunning = true,
+                currentStage = "Built-in",
+                processedCount = 0,
+                totalCount = apps.size,
+            )
+
+            // Stage 1: Built-in categorizer (fast, batch operation)
+            val builtInCount = builtInCategorizer.categorizeBatch(apps)
+
+            android.util.Log.d(
+                TAG,
+                "Stage 1 (Built-in) complete: $builtInCount/${apps.size} apps categorized",
+            )
+
+            // Get uncategorized apps for LLM stage
+            val uncategorizedApps = apps.filter { app ->
+                categoryDao.getAppCategory(app.packageName) == null
+            }
+
+            if (uncategorizedApps.isNotEmpty()) {
+                _progress.value = CategorizationProgress(
+                    isRunning = true,
+                    currentStage = "LLM",
+                    processedCount = 0,
+                    totalCount = uncategorizedApps.size,
+                )
+
+                android.util.Log.d(
+                    TAG,
+                    "Starting Stage 2 (LLM) for ${uncategorizedApps.size} uncategorized apps",
+                )
+
+                // Stage 2: LLM categorizer with progress tracking
+                var llmProcessed = 0
+                for (app in uncategorizedApps) {
+                    _progress.value = CategorizationProgress(
+                        isRunning = true,
+                        currentStage = "LLM",
+                        processedCount = llmProcessed,
+                        totalCount = uncategorizedApps.size,
+                        currentAppName = app.label,
+                    )
+
+                    llmCategorizer.categorize(app)
+                    llmProcessed++
+
+                    // Small delay for rate limiting (handled in LLMCategorizer)
+                    kotlinx.coroutines.delay(100)
+                }
+
+                android.util.Log.d(
+                    TAG,
+                    "Stage 2 (LLM) complete: $llmProcessed/${uncategorizedApps.size} apps processed",
+                )
+            }
+
+            android.util.Log.d(
+                TAG,
+                "All stages complete: ${categoryDao.getAllAppCategories().size}/${apps.size} apps categorized",
+            )
+
+            // Refresh cache after categorization
+            appProvider.refreshCache()
+
+            // Mark as complete
+            _progress.value = CategorizationProgress(
+                isRunning = false,
+                currentStage = "Complete",
+                processedCount = apps.size,
+                totalCount = apps.size,
+            )
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Error during re-categorization", e)
+            _progress.value = CategorizationProgress(
+                isRunning = false,
+                currentStage = "Error",
+                processedCount = 0,
+                totalCount = 0,
+            )
         }
     }
 
@@ -113,6 +231,9 @@ class CategorizationManager(private val context: Context) {
 
             if (categorized) {
                 android.util.Log.d(TAG, "Categorized new app (built-in): $packageName")
+                // Update cache with the new category
+                val appCategory = categoryDao.getAppCategory(packageName)
+                appProvider.updateCacheForApp(packageName, appCategory?.category)
                 return@withContext
             }
 
@@ -121,6 +242,9 @@ class CategorizationManager(private val context: Context) {
 
             if (categorized) {
                 android.util.Log.d(TAG, "Categorized new app (LLM): $packageName")
+                // Update cache with the new category
+                val appCategory = categoryDao.getAppCategory(packageName)
+                appProvider.updateCacheForApp(packageName, appCategory?.category)
             } else {
                 android.util.Log.d(TAG, "Could not categorize new app: $packageName")
             }
