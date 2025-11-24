@@ -39,7 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategorizationManager
-import app.lawnchair.categorization.llm.LLMProviderFactory
+import app.lawnchair.categorization.llm.GoogleAIProvider
 import app.lawnchair.categorization.llm.SuggestedCategory
 import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.category.CategoryDatabase
@@ -120,7 +120,7 @@ fun CategoryManagementPreferences(
                             scope.launch {
                                 isLoadingSuggestions = true
                                 try {
-                                    val llmProvider = LLMProviderFactory.getProvider(context)
+                                    val llmProvider = GoogleAIProvider(context)
                                     if (llmProvider.isAvailable()) {
                                         val metadataProvider = AppMetadataProvider(context)
                                         val installedApps = metadataProvider.getInstalledApps()
