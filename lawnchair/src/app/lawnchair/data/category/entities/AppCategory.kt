@@ -43,6 +43,7 @@ data class AppCategory(
         const val SOURCE_RULE = "rule"
         const val SOURCE_ML = "ml"
         const val SOURCE_USER = "user"
+        const val SOURCE_LLM = "llm"
 
         // Confidence thresholds
         const val CONFIDENCE_BUILT_IN = 0.95f
