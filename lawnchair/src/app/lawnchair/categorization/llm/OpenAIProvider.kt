@@ -10,32 +10,27 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Google AI (Gemini) LLM provider implementation.
+ * OpenAI LLM provider implementation.
  *
- * Uses the Gemini API for app categorization. Supports both:
- * - Free tier (using default API key with rate limits)
- * - User-provided API keys for higher limits
- *
- * API Docs: https://ai.google.dev/api/rest
+ * Uses the OpenAI API (GPT models) for app categorization.
+ * API Docs: https://platform.openai.com/docs/api-reference
  */
-class GoogleAIProvider(
+class OpenAIProvider(
     private val context: Context,
     private val apiKey: String? = null,
 ) : LLMProvider {
 
-    override val name: String = "Google AI (Gemini)"
+    override val name: String = "OpenAI (GPT)"
 
-    override val requiresApiKey: Boolean = false // Has free tier
+    override val requiresApiKey: Boolean = true
 
     private val effectiveApiKey: String
         get() {
-            // Priority: constructor param > user preference
-            val userKey = apiKey ?: PreferenceManager.getInstance(context).llmGoogleAIKey.get()
+            val userKey = apiKey ?: PreferenceManager.getInstance(context).llmOpenAIKey.get()
             return userKey.ifEmpty { "" }
         }
 
     override suspend fun isAvailable(): Boolean {
-        // Check if API key is configured
         return effectiveApiKey.isNotEmpty()
     }
 
@@ -47,10 +42,10 @@ class GoogleAIProvider(
     ): CategorizationResult = withContext(Dispatchers.IO) {
         try {
             val prompt = buildPrompt(appName, appPackage, appDescription, availableCategories)
-            val response = callGeminiAPI(prompt)
+            val response = callOpenAIAPI(prompt)
             parseResponse(response, availableCategories)
         } catch (e: Exception) {
-            throw LLMException("Google AI categorization failed: ${e.message}", e)
+            throw LLMException("OpenAI categorization failed: ${e.message}", e)
         }
     }
 
@@ -61,10 +56,10 @@ class GoogleAIProvider(
     ): List<SuggestedCategory> = withContext(Dispatchers.IO) {
         try {
             val prompt = buildSuggestionPrompt(installedApps, existingCategories, maxSuggestions)
-            val response = callGeminiAPI(prompt)
+            val response = callOpenAIAPI(prompt)
             parseSuggestionResponse(response)
         } catch (e: Exception) {
-            throw LLMException("Google AI category suggestion failed: ${e.message}", e)
+            throw LLMException("OpenAI category suggestion failed: ${e.message}", e)
         }
     }
 
@@ -105,7 +100,6 @@ Respond ONLY in this JSON format:
         existingCategories: List<String>,
         maxSuggestions: Int,
     ): String {
-        // Sample apps for better suggestions (take up to 50 apps for analysis)
         val appSample = installedApps.take(50).joinToString("\n") { "- $it" }
         val existingText = if (existingCategories.isNotEmpty()) {
             "\n\nExisting Categories (do NOT suggest these):\n${existingCategories.joinToString("\n") { "- $it" }}"
@@ -141,42 +135,31 @@ Respond ONLY in this JSON format:
         """.trimIndent()
     }
 
-    private fun callGeminiAPI(prompt: String): String {
-        val url = URL("https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=$effectiveApiKey")
+    private fun callOpenAIAPI(prompt: String): String {
+        val url = URL("https://api.openai.com/v1/chat/completions")
         val connection = url.openConnection() as HttpURLConnection
 
         try {
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")
+            connection.setRequestProperty("Authorization", "Bearer $effectiveApiKey")
             connection.doOutput = true
 
             val requestBody = JSONObject().apply {
+                put("model", "gpt-4o-mini")
                 put(
-                    "contents",
+                    "messages",
                     JSONArray().apply {
                         put(
                             JSONObject().apply {
-                                put(
-                                    "parts",
-                                    JSONArray().apply {
-                                        put(
-                                            JSONObject().apply {
-                                                put("text", prompt)
-                                            },
-                                        )
-                                    },
-                                )
+                                put("role", "user")
+                                put("content", prompt)
                             },
                         )
                     },
                 )
-                put(
-                    "generationConfig",
-                    JSONObject().apply {
-                        put("temperature", 0.2) // Lower temperature for more consistent categorization
-                        put("maxOutputTokens", 200)
-                    },
-                )
+                put("temperature", 0.2)
+                put("max_tokens", 200)
             }
 
             connection.outputStream.use { it.write(requestBody.toString().toByteArray()) }
@@ -184,7 +167,7 @@ Respond ONLY in this JSON format:
             val responseCode = connection.responseCode
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 val errorBody = connection.errorStream?.bufferedReader()?.readText() ?: "Unknown error"
-                throw LLMException("Gemini API error: $responseCode - $errorBody")
+                throw LLMException("OpenAI API error: $responseCode - $errorBody")
             }
 
             return connection.inputStream.bufferedReader().readText()
@@ -199,17 +182,10 @@ Respond ONLY in this JSON format:
     ): CategorizationResult {
         try {
             val response = JSONObject(responseJson)
-            val candidates = response.getJSONArray("candidates")
-
-            if (candidates.length() == 0) {
-                throw LLMException("No response candidates from Gemini")
-            }
-
-            val content = candidates.getJSONObject(0)
-                .getJSONObject("content")
-                .getJSONArray("parts")
+            val content = response.getJSONArray("choices")
                 .getJSONObject(0)
-                .getString("text")
+                .getJSONObject("message")
+                .getString("content")
 
             // Extract JSON from markdown code blocks if present
             val jsonText = content
@@ -233,24 +209,17 @@ Respond ONLY in this JSON format:
                 reasoning = reasoning,
             )
         } catch (e: Exception) {
-            throw LLMException("Failed to parse Gemini response: ${e.message}", e)
+            throw LLMException("Failed to parse OpenAI response: ${e.message}", e)
         }
     }
 
     private fun parseSuggestionResponse(responseJson: String): List<SuggestedCategory> {
         try {
             val response = JSONObject(responseJson)
-            val candidates = response.getJSONArray("candidates")
-
-            if (candidates.length() == 0) {
-                throw LLMException("No response candidates from Gemini")
-            }
-
-            val content = candidates.getJSONObject(0)
-                .getJSONObject("content")
-                .getJSONArray("parts")
+            val content = response.getJSONArray("choices")
                 .getJSONObject(0)
-                .getString("text")
+                .getJSONObject("message")
+                .getString("content")
 
             // Extract JSON from markdown code blocks if present
             val jsonText = content
@@ -276,7 +245,7 @@ Respond ONLY in this JSON format:
                 )
             }
         } catch (e: Exception) {
-            throw LLMException("Failed to parse Gemini suggestion response: ${e.message}", e)
+            throw LLMException("Failed to parse OpenAI suggestion response: ${e.message}", e)
         }
     }
 }

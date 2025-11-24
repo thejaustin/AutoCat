@@ -10,32 +10,27 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Google AI (Gemini) LLM provider implementation.
+ * Anthropic Claude LLM provider implementation.
  *
- * Uses the Gemini API for app categorization. Supports both:
- * - Free tier (using default API key with rate limits)
- * - User-provided API keys for higher limits
- *
- * API Docs: https://ai.google.dev/api/rest
+ * Uses the Claude API for app categorization.
+ * API Docs: https://docs.anthropic.com/claude/reference/
  */
-class GoogleAIProvider(
+class ClaudeProvider(
     private val context: Context,
     private val apiKey: String? = null,
 ) : LLMProvider {
 
-    override val name: String = "Google AI (Gemini)"
+    override val name: String = "Claude (Anthropic)"
 
-    override val requiresApiKey: Boolean = false // Has free tier
+    override val requiresApiKey: Boolean = true
 
     private val effectiveApiKey: String
         get() {
-            // Priority: constructor param > user preference
-            val userKey = apiKey ?: PreferenceManager.getInstance(context).llmGoogleAIKey.get()
+            val userKey = apiKey ?: PreferenceManager.getInstance(context).llmClaudeKey.get()
             return userKey.ifEmpty { "" }
         }
 
     override suspend fun isAvailable(): Boolean {
-        // Check if API key is configured
         return effectiveApiKey.isNotEmpty()
     }
 
@@ -47,10 +42,10 @@ class GoogleAIProvider(
     ): CategorizationResult = withContext(Dispatchers.IO) {
         try {
             val prompt = buildPrompt(appName, appPackage, appDescription, availableCategories)
-            val response = callGeminiAPI(prompt)
+            val response = callClaudeAPI(prompt)
             parseResponse(response, availableCategories)
         } catch (e: Exception) {
-            throw LLMException("Google AI categorization failed: ${e.message}", e)
+            throw LLMException("Claude categorization failed: ${e.message}", e)
         }
     }
 
@@ -61,10 +56,10 @@ class GoogleAIProvider(
     ): List<SuggestedCategory> = withContext(Dispatchers.IO) {
         try {
             val prompt = buildSuggestionPrompt(installedApps, existingCategories, maxSuggestions)
-            val response = callGeminiAPI(prompt)
+            val response = callClaudeAPI(prompt)
             parseSuggestionResponse(response)
         } catch (e: Exception) {
-            throw LLMException("Google AI category suggestion failed: ${e.message}", e)
+            throw LLMException("Claude category suggestion failed: ${e.message}", e)
         }
     }
 
@@ -105,7 +100,6 @@ Respond ONLY in this JSON format:
         existingCategories: List<String>,
         maxSuggestions: Int,
     ): String {
-        // Sample apps for better suggestions (take up to 50 apps for analysis)
         val appSample = installedApps.take(50).joinToString("\n") { "- $it" }
         val existingText = if (existingCategories.isNotEmpty()) {
             "\n\nExisting Categories (do NOT suggest these):\n${existingCategories.joinToString("\n") { "- $it" }}"
@@ -141,40 +135,29 @@ Respond ONLY in this JSON format:
         """.trimIndent()
     }
 
-    private fun callGeminiAPI(prompt: String): String {
-        val url = URL("https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=$effectiveApiKey")
+    private fun callClaudeAPI(prompt: String): String {
+        val url = URL("https://api.anthropic.com/v1/messages")
         val connection = url.openConnection() as HttpURLConnection
 
         try {
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")
+            connection.setRequestProperty("x-api-key", effectiveApiKey)
+            connection.setRequestProperty("anthropic-version", "2023-06-01")
             connection.doOutput = true
 
             val requestBody = JSONObject().apply {
+                put("model", "claude-3-5-haiku-20241022")
+                put("max_tokens", 1024)
                 put(
-                    "contents",
+                    "messages",
                     JSONArray().apply {
                         put(
                             JSONObject().apply {
-                                put(
-                                    "parts",
-                                    JSONArray().apply {
-                                        put(
-                                            JSONObject().apply {
-                                                put("text", prompt)
-                                            },
-                                        )
-                                    },
-                                )
+                                put("role", "user")
+                                put("content", prompt)
                             },
                         )
-                    },
-                )
-                put(
-                    "generationConfig",
-                    JSONObject().apply {
-                        put("temperature", 0.2) // Lower temperature for more consistent categorization
-                        put("maxOutputTokens", 200)
                     },
                 )
             }
@@ -184,7 +167,7 @@ Respond ONLY in this JSON format:
             val responseCode = connection.responseCode
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 val errorBody = connection.errorStream?.bufferedReader()?.readText() ?: "Unknown error"
-                throw LLMException("Gemini API error: $responseCode - $errorBody")
+                throw LLMException("Claude API error: $responseCode - $errorBody")
             }
 
             return connection.inputStream.bufferedReader().readText()
@@ -199,15 +182,7 @@ Respond ONLY in this JSON format:
     ): CategorizationResult {
         try {
             val response = JSONObject(responseJson)
-            val candidates = response.getJSONArray("candidates")
-
-            if (candidates.length() == 0) {
-                throw LLMException("No response candidates from Gemini")
-            }
-
-            val content = candidates.getJSONObject(0)
-                .getJSONObject("content")
-                .getJSONArray("parts")
+            val content = response.getJSONArray("content")
                 .getJSONObject(0)
                 .getString("text")
 
@@ -233,22 +208,14 @@ Respond ONLY in this JSON format:
                 reasoning = reasoning,
             )
         } catch (e: Exception) {
-            throw LLMException("Failed to parse Gemini response: ${e.message}", e)
+            throw LLMException("Failed to parse Claude response: ${e.message}", e)
         }
     }
 
     private fun parseSuggestionResponse(responseJson: String): List<SuggestedCategory> {
         try {
             val response = JSONObject(responseJson)
-            val candidates = response.getJSONArray("candidates")
-
-            if (candidates.length() == 0) {
-                throw LLMException("No response candidates from Gemini")
-            }
-
-            val content = candidates.getJSONObject(0)
-                .getJSONObject("content")
-                .getJSONArray("parts")
+            val content = response.getJSONArray("content")
                 .getJSONObject(0)
                 .getString("text")
 
@@ -276,7 +243,7 @@ Respond ONLY in this JSON format:
                 )
             }
         } catch (e: Exception) {
-            throw LLMException("Failed to parse Gemini suggestion response: ${e.message}", e)
+            throw LLMException("Failed to parse Claude suggestion response: ${e.message}", e)
         }
     }
 }

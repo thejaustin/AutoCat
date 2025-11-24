@@ -39,7 +39,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategorizationManager
+import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.GoogleAIProvider
+import app.lawnchair.categorization.llm.LLMProvider
+import app.lawnchair.categorization.llm.OpenAIProvider
+import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.categorization.llm.SuggestedCategory
 import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.category.CategoryDatabase
@@ -122,12 +126,13 @@ fun CategoryManagementPreferences(
                                 isLoadingSuggestions = true
                                 suggestionsError = null
                                 try {
-                                    val llmProvider = GoogleAIProvider(context)
-                                    if (!llmProvider.isAvailable()) {
-                                        suggestionsError = "Please configure your Google AI API key in LLM Settings first"
-                                        android.util.Log.e("CategoryManagement", "LLM provider not available")
-                                        return@launch
-                                    }
+                                    // Try all available LLM providers in order
+                                    val providers = listOf<LLMProvider>(
+                                        GoogleAIProvider(context),
+                                        ClaudeProvider(context),
+                                        OpenAIProvider(context),
+                                        PerplexityProvider(context),
+                                    )
 
                                     val metadataProvider = AppMetadataProvider(context)
                                     val installedApps = metadataProvider.getInstalledApps()
@@ -142,19 +147,40 @@ fun CategoryManagementPreferences(
 
                                     android.util.Log.d("CategoryManagement", "Requesting suggestions for ${appNames.size} apps")
 
-                                    suggestedCategories = llmProvider.suggestCategories(
-                                        installedApps = appNames,
-                                        existingCategories = existingCategories,
-                                        maxSuggestions = 5,
-                                    )
+                                    // Try each provider until one succeeds
+                                    var lastError: Exception? = null
+                                    for (provider in providers) {
+                                        try {
+                                            if (!provider.isAvailable()) {
+                                                android.util.Log.d("CategoryManagement", "${provider.name} not available, trying next")
+                                                continue
+                                            }
 
-                                    android.util.Log.d("CategoryManagement", "Got ${suggestedCategories.size} suggestions")
+                                            android.util.Log.d("CategoryManagement", "Trying ${provider.name}")
+                                            suggestedCategories = provider.suggestCategories(
+                                                installedApps = appNames,
+                                                existingCategories = existingCategories,
+                                                maxSuggestions = 5,
+                                            )
 
-                                    if (suggestedCategories.isEmpty()) {
-                                        suggestionsError = "No new categories suggested. Try creating more diverse custom categories first."
-                                    } else {
-                                        showSuggestionsDialog = true
+                                            android.util.Log.d("CategoryManagement", "Got ${suggestedCategories.size} suggestions from ${provider.name}")
+
+                                            if (suggestedCategories.isEmpty()) {
+                                                suggestionsError = "No new categories suggested. Try creating more diverse custom categories first."
+                                            } else {
+                                                showSuggestionsDialog = true
+                                            }
+                                            return@launch // Success, exit
+                                        } catch (e: Exception) {
+                                            android.util.Log.e("CategoryManagement", "${provider.name} failed: ${e.message}")
+                                            lastError = e
+                                            // Try next provider
+                                        }
                                     }
+
+                                    // All providers failed
+                                    suggestionsError = "All LLM providers failed. Please configure at least one API key in LLM Settings.\nLast error: ${lastError?.message}"
+                                    android.util.Log.e("CategoryManagement", "All providers failed", lastError)
                                 } catch (e: Exception) {
                                     android.util.Log.e("CategoryManagement", "Failed to get suggestions", e)
                                     suggestionsError = "Error: ${e.message}"
