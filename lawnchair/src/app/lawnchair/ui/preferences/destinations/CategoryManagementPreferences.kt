@@ -39,6 +39,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategorizationManager
+import app.lawnchair.categorization.llm.LLMProviderFactory
+import app.lawnchair.categorization.llm.SuggestedCategory
+import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.category.CategoryDatabase
 import app.lawnchair.data.category.entities.CustomCategory
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
@@ -60,6 +63,9 @@ fun CategoryManagementPreferences(
     var categories by remember { mutableStateOf<List<CustomCategory>>(emptyList()) }
     var showAddDialog by remember { mutableStateOf(false) }
     var editingCategory by remember { mutableStateOf<CustomCategory?>(null) }
+    var showSuggestionsDialog by remember { mutableStateOf(false) }
+    var suggestedCategories by remember { mutableStateOf<List<SuggestedCategory>>(emptyList()) }
+    var isLoadingSuggestions by remember { mutableStateOf(false) }
 
     // Load categories
     LaunchedEffect(Unit) {
@@ -101,11 +107,45 @@ fun CategoryManagementPreferences(
                         .fillMaxWidth()
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Button(onClick = { showAddDialog = true }) {
                         Icon(Icons.Default.Add, contentDescription = "Add Category")
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Add Category")
+                    }
+
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                isLoadingSuggestions = true
+                                try {
+                                    val llmProvider = LLMProviderFactory.getProvider(context)
+                                    if (llmProvider.isAvailable()) {
+                                        val metadataProvider = AppMetadataProvider(context)
+                                        val installedApps = metadataProvider.getInstalledApps()
+                                        val appNames = installedApps.map { it.label }
+                                        val existingCategories = categories.map { it.name }
+
+                                        suggestedCategories = llmProvider.suggestCategories(
+                                            installedApps = appNames,
+                                            existingCategories = existingCategories,
+                                            maxSuggestions = 5,
+                                        )
+                                        showSuggestionsDialog = true
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("CategoryManagement", "Failed to get suggestions", e)
+                                } finally {
+                                    isLoadingSuggestions = false
+                                }
+                            }
+                        },
+                        enabled = !isLoadingSuggestions,
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "AI Suggestions")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(if (isLoadingSuggestions) "Analyzing..." else "Get AI Suggestions")
                     }
                 }
             }
@@ -149,6 +189,31 @@ fun CategoryManagementPreferences(
                     appProvider.refreshCache()
                     showAddDialog = false
                     editingCategory = null
+                }
+            },
+        )
+    }
+
+    // Suggestions Dialog
+    if (showSuggestionsDialog) {
+        SuggestionsDialog(
+            suggestions = suggestedCategories,
+            onDismiss = { showSuggestionsDialog = false },
+            onAddCategory = { suggestion ->
+                scope.launch {
+                    val maxSortOrder = categories.maxOfOrNull { it.sortOrder } ?: 0
+                    categoryDao.insertCustomCategory(
+                        CustomCategory(
+                            name = suggestion.name,
+                            colorHex = "#4CAF50", // Default green color
+                            sortOrder = maxSortOrder + 1,
+                        ),
+                    )
+                    categories = categoryDao.getAllCustomCategories()
+                    appProvider.refreshCache()
+
+                    // Trigger recategorization
+                    categorizationManager.recategorizeAll()
                 }
             },
         )
@@ -286,6 +351,77 @@ private fun CategoryDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancel")
+            }
+        },
+    )
+}
+
+@Composable
+private fun SuggestionsDialog(
+    suggestions: List<SuggestedCategory>,
+    onDismiss: () -> Unit,
+    onAddCategory: (SuggestedCategory) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("AI Category Suggestions") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "Based on your installed apps, here are some suggested categories:",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+
+                if (suggestions.isEmpty()) {
+                    Text(
+                        text = "No suggestions available. Make sure you have enough apps installed.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    suggestions.forEach { suggestion ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = suggestion.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                TextButton(onClick = { onAddCategory(suggestion) }) {
+                                    Text("Add")
+                                }
+                            }
+
+                            Text(
+                                text = suggestion.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+
+                            if (suggestion.exampleApps.isNotEmpty()) {
+                                Text(
+                                    text = "Examples: ${suggestion.exampleApps.take(3).joinToString(", ")}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(top = 2.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
             }
         },
     )

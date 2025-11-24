@@ -14,6 +14,21 @@ data class CategorizationResult(
 )
 
 /**
+ * Represents a suggested category from LLM analysis.
+ *
+ * @property name The suggested category name
+ * @property description Brief description of what apps belong in this category
+ * @property exampleApps Example apps that would fit this category
+ * @property confidence How confident the LLM is in this suggestion (0.0 to 1.0)
+ */
+data class SuggestedCategory(
+    val name: String,
+    val description: String,
+    val exampleApps: List<String>,
+    val confidence: Float,
+)
+
+/**
  * Abstract interface for LLM providers used in app categorization.
  *
  * Implementations provide different LLM backends (Google AI, Claude, OpenAI, etc.)
@@ -53,6 +68,21 @@ interface LLMProvider {
         appDescription: String?,
         availableCategories: List<String>,
     ): CategorizationResult
+
+    /**
+     * Analyzes installed apps and suggests useful categories beyond built-in ones.
+     *
+     * @param installedApps List of app names to analyze
+     * @param existingCategories Categories that already exist (to avoid duplicates)
+     * @param maxSuggestions Maximum number of category suggestions to return
+     * @return List of suggested categories with descriptions and examples
+     * @throws LLMException if suggestion fails
+     */
+    suspend fun suggestCategories(
+        installedApps: List<String>,
+        existingCategories: List<String>,
+        maxSuggestions: Int = 5,
+    ): List<SuggestedCategory>
 }
 
 /**

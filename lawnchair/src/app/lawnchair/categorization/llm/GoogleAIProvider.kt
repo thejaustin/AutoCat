@@ -54,6 +54,20 @@ class GoogleAIProvider(
         }
     }
 
+    override suspend fun suggestCategories(
+        installedApps: List<String>,
+        existingCategories: List<String>,
+        maxSuggestions: Int,
+    ): List<SuggestedCategory> = withContext(Dispatchers.IO) {
+        try {
+            val prompt = buildSuggestionPrompt(installedApps, existingCategories, maxSuggestions)
+            val response = callGeminiAPI(prompt)
+            parseSuggestionResponse(response)
+        } catch (e: Exception) {
+            throw LLMException("Google AI category suggestion failed: ${e.message}", e)
+        }
+    }
+
     private fun buildPrompt(
         appName: String,
         appPackage: String,
@@ -82,6 +96,47 @@ Respond ONLY in this JSON format:
   "category": "category name",
   "confidence": 0.85,
   "reasoning": "brief explanation"
+}
+        """.trimIndent()
+    }
+
+    private fun buildSuggestionPrompt(
+        installedApps: List<String>,
+        existingCategories: List<String>,
+        maxSuggestions: Int,
+    ): String {
+        // Sample apps for better suggestions (take up to 50 apps for analysis)
+        val appSample = installedApps.take(50).joinToString("\n") { "- $it" }
+        val existingText = if (existingCategories.isNotEmpty()) {
+            "\n\nExisting Categories (do NOT suggest these):\n${existingCategories.joinToString("\n") { "- $it" }}"
+        } else {
+            ""
+        }
+
+        return """
+You are an expert at organizing Android apps. Analyze this list of installed apps and suggest useful custom categories that would help organize them.
+
+Installed Apps:
+$appSample
+
+Instructions:
+1. Analyze the types of apps installed
+2. Suggest $maxSuggestions useful category names that would help organize these apps
+3. Categories should be specific and meaningful (e.g., "Finance", "Travel", "Education")
+4. Each category should have at least 2-3 apps that would fit
+5. Provide a brief description and example apps for each category
+6. DO NOT suggest generic categories like "Other" or "Miscellaneous"$existingText
+
+Respond ONLY in this JSON format:
+{
+  "suggestions": [
+    {
+      "name": "Category Name",
+      "description": "Brief description of what belongs here",
+      "exampleApps": ["App 1", "App 2", "App 3"],
+      "confidence": 0.85
+    }
+  ]
 }
         """.trimIndent()
     }
@@ -179,6 +234,49 @@ Respond ONLY in this JSON format:
             )
         } catch (e: Exception) {
             throw LLMException("Failed to parse Gemini response: ${e.message}", e)
+        }
+    }
+
+    private fun parseSuggestionResponse(responseJson: String): List<SuggestedCategory> {
+        try {
+            val response = JSONObject(responseJson)
+            val candidates = response.getJSONArray("candidates")
+
+            if (candidates.length() == 0) {
+                throw LLMException("No response candidates from Gemini")
+            }
+
+            val content = candidates.getJSONObject(0)
+                .getJSONObject("content")
+                .getJSONArray("parts")
+                .getJSONObject(0)
+                .getString("text")
+
+            // Extract JSON from markdown code blocks if present
+            val jsonText = content
+                .replace("```json", "")
+                .replace("```", "")
+                .trim()
+
+            val result = JSONObject(jsonText)
+            val suggestions = result.getJSONArray("suggestions")
+
+            return (0 until suggestions.length()).map { i ->
+                val suggestion = suggestions.getJSONObject(i)
+                val exampleApps = suggestion.getJSONArray("exampleApps")
+                val examples = (0 until exampleApps.length()).map { j ->
+                    exampleApps.getString(j)
+                }
+
+                SuggestedCategory(
+                    name = suggestion.getString("name"),
+                    description = suggestion.getString("description"),
+                    exampleApps = examples,
+                    confidence = suggestion.getDouble("confidence").toFloat().coerceIn(0f, 1f),
+                )
+            }
+        } catch (e: Exception) {
+            throw LLMException("Failed to parse Gemini suggestion response: ${e.message}", e)
         }
     }
 }
