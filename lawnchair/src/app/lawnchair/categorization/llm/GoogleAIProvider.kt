@@ -142,7 +142,7 @@ Respond ONLY in this JSON format:
     }
 
     private fun callGeminiAPI(prompt: String): String {
-        val url = URL("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$effectiveApiKey")
+        val url = URL("https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=$effectiveApiKey")
         val connection = url.openConnection() as HttpURLConnection
 
         try {
