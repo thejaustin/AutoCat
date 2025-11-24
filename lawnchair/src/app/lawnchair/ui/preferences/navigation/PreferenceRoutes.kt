@@ -100,6 +100,9 @@ data object DockSearchProvider : PreferenceRoute
 data object AppDrawerHiddenApps : PreferenceRoute
 
 @Serializable
+data object AppDrawerManageCategories : PreferenceRoute
+
+@Serializable
 data object AppDrawerFolder : PreferenceRoute
 
 @Serializable

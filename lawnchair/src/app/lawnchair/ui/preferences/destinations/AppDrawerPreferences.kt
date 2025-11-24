@@ -57,6 +57,7 @@ import com.android.launcher3.R
 
 object AppDrawerRoutes {
     const val HIDDEN_APPS = "hiddenApps"
+    const val MANAGE_CATEGORIES = "manageCategories"
 }
 
 @Composable
@@ -84,6 +85,11 @@ fun AppDrawerPreferences(
                 label = stringResource(id = R.string.hidden_apps_label),
                 subtitle = resources.getQuantityString(R.plurals.apps_count, hiddenApps.size, hiddenApps.size),
                 destination = AppDrawerHiddenApps,
+            )
+            NavigationActionPreference(
+                label = "Manage Categories",
+                subtitle = "Create and edit app categories",
+                destination = app.lawnchair.ui.preferences.navigation.AppDrawerManageCategories,
             )
             SearchBarPreference(SearchRoute.DRAWER_SEARCH, showLabel = false)
             SuggestionsPreference()
