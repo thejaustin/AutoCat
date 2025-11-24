@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -20,12 +19,10 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -43,7 +40,8 @@ import androidx.compose.ui.unit.dp
 import app.lawnchair.data.category.CategoryDatabase
 import app.lawnchair.data.category.entities.CustomCategory
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
-import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
+import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
+import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import kotlinx.coroutines.launch
 
 @Composable
@@ -64,45 +62,47 @@ fun CategoryManagementPreferences(
         categories = categoryDao.getAllCustomCategories()
     }
 
-    PreferenceLayout(
+    PreferenceScaffold(
         label = "Manage Categories",
-        backArrowVisible = !LocalIsExpandedScreen.current,
         modifier = modifier,
+        isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
-        item {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Create custom categories for organizing your apps. The LLM will learn to auto-assign apps to these categories.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+        PreferenceLazyColumn {
+            item {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Create custom categories for organizing your apps. The LLM will learn to auto-assign apps to these categories.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            items(categories, key = { it.id }) { category ->
+                CategoryItem(
+                    category = category,
+                    onEdit = { editingCategory = it },
+                    onDelete = {
+                        scope.launch {
+                            categoryDao.deleteCustomCategory(it)
+                            categories = categoryDao.getAllCustomCategories()
+                        }
+                    },
                 )
             }
-        }
 
-        items(categories) { category ->
-            CategoryItem(
-                category = category,
-                onEdit = { editingCategory = it },
-                onDelete = {
-                    scope.launch {
-                        categoryDao.deleteCustomCategory(it)
-                        categories = categoryDao.getAllCustomCategories()
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Button(onClick = { showAddDialog = true }) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Category")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Add Category")
                     }
-                },
-            )
-        }
-
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Button(onClick = { showAddDialog = true }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Category")
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Add Category")
                 }
             }
         }
