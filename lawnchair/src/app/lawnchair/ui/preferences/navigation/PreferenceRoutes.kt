@@ -103,6 +103,9 @@ data object AppDrawerHiddenApps : PreferenceRoute
 data object AppDrawerManageCategories : PreferenceRoute
 
 @Serializable
+data object AppDrawerLLMSettings : PreferenceRoute
+
+@Serializable
 data object AppDrawerFolder : PreferenceRoute
 
 @Serializable

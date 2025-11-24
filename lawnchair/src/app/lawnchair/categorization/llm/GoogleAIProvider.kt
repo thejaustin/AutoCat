@@ -1,6 +1,7 @@
 package app.lawnchair.categorization.llm
 
 import android.content.Context
+import app.lawnchair.preferences.preferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -27,11 +28,16 @@ class GoogleAIProvider(
     override val requiresApiKey: Boolean = false // Has free tier
 
     private val effectiveApiKey: String
-        get() = apiKey ?: DEFAULT_API_KEY
+        get() {
+            // Priority: constructor param > user preference > default (if any)
+            return apiKey
+                ?: context.preferenceManager().llmGoogleAIKey.get().takeIf { it.isNotEmpty() }
+                ?: ""
+        }
 
     override suspend fun isAvailable(): Boolean {
-        // Google AI free tier is always available
-        return true
+        // Check if API key is configured
+        return effectiveApiKey.isNotEmpty()
     }
 
     override suspend fun categorizeApp(
@@ -164,8 +170,4 @@ Respond ONLY in this JSON format:
         }
     }
 
-    companion object {
-        // TODO: Replace with actual free-tier API key or remove if user must provide
-        private const val DEFAULT_API_KEY = "YOUR_GOOGLE_AI_API_KEY"
-    }
 }

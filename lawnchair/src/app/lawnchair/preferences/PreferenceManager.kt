@@ -129,6 +129,13 @@ class PreferenceManager private constructor(private val context: Context) :
     // AutoCat: Category tabs settings
     val useCategoryTabs = BoolPref("pref_useCategoryTabs", true, recreate)
 
+    // AutoCat: LLM API keys
+    val llmGoogleAIKey = StringPref("pref_llmGoogleAIKey", "", doNothing)
+    val llmClaudeKey = StringPref("pref_llmClaudeKey", "", doNothing)
+    val llmOpenAIKey = StringPref("pref_llmOpenAIKey", "", doNothing)
+    val llmPerplexityKey = StringPref("pref_llmPerplexityKey", "", doNothing)
+    val llmProviderPreference = StringPref("pref_llmProvider", "google_ai", doNothing)
+
     val recentsActionScreenshot = BoolPref("pref_recentsActionScreenshot", !isOnePlusStock)
     val recentsActionShare = BoolPref("pref_recentsActionShare", isOnePlusStock)
     val recentsActionLens = BoolPref("pref_recentsActionLens", true)

@@ -91,6 +91,11 @@ fun AppDrawerPreferences(
                 subtitle = "Create and edit app categories",
                 destination = app.lawnchair.ui.preferences.navigation.AppDrawerManageCategories,
             )
+            NavigationActionPreference(
+                label = "LLM Settings",
+                subtitle = "Configure AI for auto-categorization",
+                destination = app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings,
+            )
             SearchBarPreference(SearchRoute.DRAWER_SEARCH, showLabel = false)
             SuggestionsPreference()
         }
