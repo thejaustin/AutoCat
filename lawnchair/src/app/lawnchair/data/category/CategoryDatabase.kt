@@ -65,7 +65,8 @@ abstract class CategoryDatabase : RoomDatabase() {
             )
                 // For development: destroy and rebuild on schema changes
                 // TODO: Replace with proper migrations before production release
-                .fallbackToDestructiveMigration()
+                // dropAllTables = true: all tables will be dropped on migration failure
+                .fallbackToDestructiveMigration(dropAllTables = true)
                 // Initialize default categories on first run
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {

@@ -2,6 +2,7 @@ package app.lawnchair
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -30,7 +31,14 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 
 class BlankActivity : ComponentActivity() {
 
-    private val resultReceiver by unsafeLazy { intent.getParcelableExtra<ResultReceiver>("callback")!! }
+    private val resultReceiver by unsafeLazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("callback", ResultReceiver::class.java)!!
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra<ResultReceiver>("callback")!!
+        }
+    }
     private var resultSent = false
     private var firstResume = true
     private var targetStarted = false
@@ -87,14 +95,20 @@ class BlankActivity : ComponentActivity() {
     private fun startTargetActivity() {
         when {
             intent.hasExtra("intent") -> {
+                val targetIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra("intent", Intent::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra("intent")
+                }
                 if (intent.hasExtra("dialogTitle")) {
-                    startActivity(intent.getParcelableExtra("intent"))
+                    startActivity(targetIntent)
                 } else {
                     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                         resultReceiver.send(it.resultCode, it.data?.extras)
                         resultSent = true
                         finish()
-                    }.launch(requireNotNull(intent.getParcelableExtra("intent")))
+                    }.launch(requireNotNull(targetIntent))
                 }
             }
 
