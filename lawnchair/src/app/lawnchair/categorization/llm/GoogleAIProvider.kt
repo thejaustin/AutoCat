@@ -30,9 +30,8 @@ class GoogleAIProvider(
     private val effectiveApiKey: String
         get() {
             // Priority: constructor param > user preference > default (if any)
-            return apiKey
-                ?: context.preferenceManager().llmGoogleAIKey.get().takeIf { it.isNotEmpty() }
-                ?: ""
+            val userKey = apiKey ?: context.preferenceManager().llmGoogleAIKey.get()
+            return if (userKey.isNotEmpty()) userKey else ""
         }
 
     override suspend fun isAvailable(): Boolean {
