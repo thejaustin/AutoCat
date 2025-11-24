@@ -37,6 +37,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import app.lawnchair.categorization.AutoCatAppProvider
+import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.data.category.CategoryDatabase
 import app.lawnchair.data.category.entities.CustomCategory
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
@@ -52,6 +54,8 @@ fun CategoryManagementPreferences(
     val scope = rememberCoroutineScope()
     val database = remember { CategoryDatabase.getInstance(context) }
     val categoryDao = database.categoryDao()
+    val categorizationManager = remember { CategorizationManager.getInstance(context) }
+    val appProvider = remember { AutoCatAppProvider.getInstance(context) }
 
     var categories by remember { mutableStateOf<List<CustomCategory>>(emptyList()) }
     var showAddDialog by remember { mutableStateOf(false) }
@@ -127,7 +131,7 @@ fun CategoryManagementPreferences(
                             ),
                         )
                     } else {
-                        // Add new
+                        // Add new category
                         val maxSortOrder = categories.maxOfOrNull { it.sortOrder } ?: 0
                         categoryDao.insertCustomCategory(
                             CustomCategory(
@@ -136,8 +140,13 @@ fun CategoryManagementPreferences(
                                 sortOrder = maxSortOrder + 1,
                             ),
                         )
+
+                        // Trigger recategorization so LLM can assign apps to the new category
+                        // This runs in background and won't block the UI
+                        categorizationManager.recategorizeAll()
                     }
                     categories = categoryDao.getAllCustomCategories()
+                    appProvider.refreshCache()
                     showAddDialog = false
                     editingCategory = null
                 }
