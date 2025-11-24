@@ -1,7 +1,7 @@
 package app.lawnchair.categorization.llm
 
 import android.content.Context
-import app.lawnchair.preferences.preferenceManager
+import app.lawnchair.preferences.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -29,9 +29,9 @@ class GoogleAIProvider(
 
     private val effectiveApiKey: String
         get() {
-            // Priority: constructor param > user preference > default (if any)
-            val userKey = apiKey ?: context.preferenceManager().llmGoogleAIKey.get()
-            return if (userKey.isNotEmpty()) userKey else ""
+            // Priority: constructor param > user preference
+            val userKey = apiKey ?: PreferenceManager.getInstance(context).llmGoogleAIKey.get()
+            return userKey.ifEmpty { "" }
         }
 
     override suspend fun isAvailable(): Boolean {

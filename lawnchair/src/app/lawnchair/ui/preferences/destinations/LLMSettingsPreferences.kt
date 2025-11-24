@@ -73,8 +73,6 @@ fun LLMSettingsPreferences(
                     TextPreference(
                         adapter = prefs.llmGoogleAIKey.getAdapter(),
                         label = "Google AI API Key",
-                        placeholder = "Enter your API key",
-                        isPassword = true,
                     )
 
                     Spacer(modifier = Modifier.padding(4.dp))
@@ -91,8 +89,6 @@ fun LLMSettingsPreferences(
                     TextPreference(
                         adapter = prefs.llmClaudeKey.getAdapter(),
                         label = "Claude API Key",
-                        placeholder = "Enter your API key",
-                        isPassword = true,
                     )
 
                     Spacer(modifier = Modifier.padding(8.dp))
@@ -100,8 +96,6 @@ fun LLMSettingsPreferences(
                     TextPreference(
                         adapter = prefs.llmOpenAIKey.getAdapter(),
                         label = "OpenAI API Key",
-                        placeholder = "Enter your API key",
-                        isPassword = true,
                     )
 
                     Spacer(modifier = Modifier.padding(8.dp))
@@ -109,8 +103,6 @@ fun LLMSettingsPreferences(
                     TextPreference(
                         adapter = prefs.llmPerplexityKey.getAdapter(),
                         label = "Perplexity API Key",
-                        placeholder = "Enter your API key",
-                        isPassword = true,
                     )
                 }
             }
