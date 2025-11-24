@@ -66,6 +66,7 @@ fun CategoryManagementPreferences(
     var showSuggestionsDialog by remember { mutableStateOf(false) }
     var suggestedCategories by remember { mutableStateOf<List<SuggestedCategory>>(emptyList()) }
     var isLoadingSuggestions by remember { mutableStateOf(false) }
+    var suggestionsError by remember { mutableStateOf<String?>(null) }
 
     // Load categories
     LaunchedEffect(Unit) {
@@ -119,23 +120,44 @@ fun CategoryManagementPreferences(
                         onClick = {
                             scope.launch {
                                 isLoadingSuggestions = true
+                                suggestionsError = null
                                 try {
                                     val llmProvider = GoogleAIProvider(context)
-                                    if (llmProvider.isAvailable()) {
-                                        val metadataProvider = AppMetadataProvider(context)
-                                        val installedApps = metadataProvider.getInstalledApps()
-                                        val appNames = installedApps.map { it.label }
-                                        val existingCategories = categories.map { it.name }
+                                    if (!llmProvider.isAvailable()) {
+                                        suggestionsError = "Please configure your Google AI API key in LLM Settings first"
+                                        android.util.Log.e("CategoryManagement", "LLM provider not available")
+                                        return@launch
+                                    }
 
-                                        suggestedCategories = llmProvider.suggestCategories(
-                                            installedApps = appNames,
-                                            existingCategories = existingCategories,
-                                            maxSuggestions = 5,
-                                        )
+                                    val metadataProvider = AppMetadataProvider(context)
+                                    val installedApps = metadataProvider.getInstalledApps()
+
+                                    if (installedApps.isEmpty()) {
+                                        suggestionsError = "No apps found to analyze"
+                                        return@launch
+                                    }
+
+                                    val appNames = installedApps.map { it.label }
+                                    val existingCategories = categories.map { it.name }
+
+                                    android.util.Log.d("CategoryManagement", "Requesting suggestions for ${appNames.size} apps")
+
+                                    suggestedCategories = llmProvider.suggestCategories(
+                                        installedApps = appNames,
+                                        existingCategories = existingCategories,
+                                        maxSuggestions = 5,
+                                    )
+
+                                    android.util.Log.d("CategoryManagement", "Got ${suggestedCategories.size} suggestions")
+
+                                    if (suggestedCategories.isEmpty()) {
+                                        suggestionsError = "No new categories suggested. Try creating more diverse custom categories first."
+                                    } else {
                                         showSuggestionsDialog = true
                                     }
                                 } catch (e: Exception) {
                                     android.util.Log.e("CategoryManagement", "Failed to get suggestions", e)
+                                    suggestionsError = "Error: ${e.message}"
                                 } finally {
                                     isLoadingSuggestions = false
                                 }
@@ -146,6 +168,17 @@ fun CategoryManagementPreferences(
                         Icon(Icons.Default.Add, contentDescription = "AI Suggestions")
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(if (isLoadingSuggestions) "Analyzing..." else "Get AI Suggestions")
+                    }
+
+                    // Show error if any
+                    if (suggestionsError != null) {
+                        Spacer(modifier = Modifier.padding(4.dp))
+                        Text(
+                            text = suggestionsError!!,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
                     }
                 }
             }
