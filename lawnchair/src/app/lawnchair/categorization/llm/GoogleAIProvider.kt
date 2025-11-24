@@ -2,12 +2,12 @@ package app.lawnchair.categorization.llm
 
 import android.content.Context
 import app.lawnchair.preferences.PreferenceManager
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * Google AI (Gemini) LLM provider implementation.
@@ -96,19 +96,32 @@ Respond ONLY in this JSON format:
             connection.doOutput = true
 
             val requestBody = JSONObject().apply {
-                put("contents", JSONArray().apply {
-                    put(JSONObject().apply {
-                        put("parts", JSONArray().apply {
-                            put(JSONObject().apply {
-                                put("text", prompt)
-                            })
-                        })
-                    })
-                })
-                put("generationConfig", JSONObject().apply {
-                    put("temperature", 0.2) // Lower temperature for more consistent categorization
-                    put("maxOutputTokens", 200)
-                })
+                put(
+                    "contents",
+                    JSONArray().apply {
+                        put(
+                            JSONObject().apply {
+                                put(
+                                    "parts",
+                                    JSONArray().apply {
+                                        put(
+                                            JSONObject().apply {
+                                                put("text", prompt)
+                                            },
+                                        )
+                                    },
+                                )
+                            },
+                        )
+                    },
+                )
+                put(
+                    "generationConfig",
+                    JSONObject().apply {
+                        put("temperature", 0.2) // Lower temperature for more consistent categorization
+                        put("maxOutputTokens", 200)
+                    },
+                )
             }
 
             connection.outputStream.use { it.write(requestBody.toString().toByteArray()) }
@@ -168,5 +181,4 @@ Respond ONLY in this JSON format:
             throw LLMException("Failed to parse Gemini response: ${e.message}", e)
         }
     }
-
 }
