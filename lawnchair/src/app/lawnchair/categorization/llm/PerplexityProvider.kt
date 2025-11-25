@@ -154,7 +154,7 @@ Respond ONLY in this JSON format:
             connection.doOutput = true
 
             val requestBody = JSONObject().apply {
-                put("model", "llama-3.1-sonar-small-128k-online")
+                put("model", "llama-3.1-sonar-small-128k-chat")
                 put(
                     "messages",
                     JSONArray().apply {

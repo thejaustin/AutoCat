@@ -54,6 +54,11 @@ class CategoryTabsManager(private val context: Context) {
             categoryDao.getVisibleCustomCategories()
         }
 
+        android.util.Log.d(TAG, "getTabs: Found ${categories.size} visible categories")
+        categories.forEach { category ->
+            android.util.Log.d(TAG, "  - ${category.name} (id: ${category.id}, visible: ${category.isVisible}, sortOrder: ${category.sortOrder})")
+        }
+
         // Add a tab for each visible category
         categories.forEach { category ->
             tabs.add(
@@ -90,6 +95,7 @@ class CategoryTabsManager(private val context: Context) {
             )
         }
 
+        android.util.Log.d(TAG, "getTabs: Returning ${tabs.size} total tabs")
         return tabs
     }
 
@@ -105,6 +111,8 @@ class CategoryTabsManager(private val context: Context) {
     }
 
     companion object {
+        private const val TAG = "CategoryTabsManager"
+
         @Volatile
         private var instance: CategoryTabsManager? = null
 

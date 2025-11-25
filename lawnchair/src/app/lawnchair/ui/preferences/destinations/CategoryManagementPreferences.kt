@@ -232,19 +232,26 @@ fun CategoryManagementPreferences(
                     } else {
                         // Add new category
                         val maxSortOrder = categories.maxOfOrNull { it.sortOrder } ?: 0
-                        categoryDao.insertCustomCategory(
+                        android.util.Log.d("CategoryManagement", "Creating new category: $name, sortOrder: ${maxSortOrder + 1}, isVisible: true")
+                        val categoryId = categoryDao.insertCustomCategory(
                             CustomCategory(
                                 name = name,
                                 colorHex = color,
                                 sortOrder = maxSortOrder + 1,
+                                isVisible = true,
                             ),
                         )
+                        android.util.Log.d("CategoryManagement", "Category created with ID: $categoryId")
 
                         // Trigger recategorization so LLM can assign apps to the new category
                         // This runs in background and won't block the UI
                         categorizationManager.recategorizeAll()
                     }
                     categories = categoryDao.getAllCustomCategories()
+                    android.util.Log.d("CategoryManagement", "Total categories after save: ${categories.size}")
+                    categories.forEach { cat ->
+                        android.util.Log.d("CategoryManagement", "  - ${cat.name} (visible: ${cat.isVisible}, sortOrder: ${cat.sortOrder})")
+                    }
                     appProvider.refreshCache()
                     showAddDialog = false
                     editingCategory = null

@@ -99,30 +99,10 @@ fun LLMSettingsPreferences(
 
             item {
                 PreferenceGroup(heading = "API Keys") {
-                    // Google AI API Key
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 16.dp, end = 8.dp)
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (prefs.llmGoogleAIKey.get().isNotEmpty()) {
-                                        Color(0xFF4CAF50) // Green
-                                    } else {
-                                        Color(0xFF9E9E9E) // Gray
-                                    },
-                                ),
-                        )
-                        TextPreference(
-                            adapter = prefs.llmGoogleAIKey.getAdapter(),
-                            label = "Google AI API Key",
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                    TextPreference(
+                        adapter = prefs.llmGoogleAIKey.getAdapter(),
+                        label = "Google AI API Key ${if (prefs.llmGoogleAIKey.get().isNotEmpty()) "✓" else ""}",
+                    )
 
                     Spacer(modifier = Modifier.padding(4.dp))
 
@@ -135,84 +115,24 @@ fun LLMSettingsPreferences(
 
                     Spacer(modifier = Modifier.padding(8.dp))
 
-                    // Claude API Key
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 16.dp, end = 8.dp)
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (prefs.llmClaudeKey.get().isNotEmpty()) {
-                                        Color(0xFF4CAF50)
-                                    } else {
-                                        Color(0xFF9E9E9E)
-                                    },
-                                ),
-                        )
-                        TextPreference(
-                            adapter = prefs.llmClaudeKey.getAdapter(),
-                            label = "Claude API Key",
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                    TextPreference(
+                        adapter = prefs.llmClaudeKey.getAdapter(),
+                        label = "Claude API Key ${if (prefs.llmClaudeKey.get().isNotEmpty()) "✓" else ""}",
+                    )
 
                     Spacer(modifier = Modifier.padding(8.dp))
 
-                    // OpenAI API Key
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 16.dp, end = 8.dp)
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (prefs.llmOpenAIKey.get().isNotEmpty()) {
-                                        Color(0xFF4CAF50)
-                                    } else {
-                                        Color(0xFF9E9E9E)
-                                    },
-                                ),
-                        )
-                        TextPreference(
-                            adapter = prefs.llmOpenAIKey.getAdapter(),
-                            label = "OpenAI API Key",
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                    TextPreference(
+                        adapter = prefs.llmOpenAIKey.getAdapter(),
+                        label = "OpenAI API Key ${if (prefs.llmOpenAIKey.get().isNotEmpty()) "✓" else ""}",
+                    )
 
                     Spacer(modifier = Modifier.padding(8.dp))
 
-                    // Perplexity API Key
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 16.dp, end = 8.dp)
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (prefs.llmPerplexityKey.get().isNotEmpty()) {
-                                        Color(0xFF4CAF50)
-                                    } else {
-                                        Color(0xFF9E9E9E)
-                                    },
-                                ),
-                        )
-                        TextPreference(
-                            adapter = prefs.llmPerplexityKey.getAdapter(),
-                            label = "Perplexity API Key",
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                    TextPreference(
+                        adapter = prefs.llmPerplexityKey.getAdapter(),
+                        label = "Perplexity API Key ${if (prefs.llmPerplexityKey.get().isNotEmpty()) "✓" else ""}",
+                    )
                 }
             }
 
