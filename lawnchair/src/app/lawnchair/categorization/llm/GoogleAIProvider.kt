@@ -31,12 +31,20 @@ class GoogleAIProvider(
         get() {
             // Priority: constructor param > user preference
             val userKey = apiKey ?: PreferenceManager.getInstance(context).llmGoogleAIKey.get()
-            return userKey.ifEmpty { "" }
+            val finalKey = userKey.ifEmpty { "" }
+            android.util.Log.d(TAG, "Google AI API key status: ${if (finalKey.isEmpty()) "NOT SET" else "SET (length: ${finalKey.length})"}")
+            return finalKey
         }
 
     override suspend fun isAvailable(): Boolean {
         // Check if API key is configured
-        return effectiveApiKey.isNotEmpty()
+        val available = effectiveApiKey.isNotEmpty()
+        android.util.Log.d(TAG, "Google AI provider available: $available")
+        return available
+    }
+
+    companion object {
+        private const val TAG = "GoogleAIProvider"
     }
 
     override suspend fun categorizeApp(

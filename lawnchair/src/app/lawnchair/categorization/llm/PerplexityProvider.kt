@@ -27,11 +27,19 @@ class PerplexityProvider(
     private val effectiveApiKey: String
         get() {
             val userKey = apiKey ?: PreferenceManager.getInstance(context).llmPerplexityKey.get()
-            return userKey.ifEmpty { "" }
+            val finalKey = userKey.ifEmpty { "" }
+            android.util.Log.d(TAG, "Perplexity API key status: ${if (finalKey.isEmpty()) "NOT SET" else "SET (length: ${finalKey.length})"}")
+            return finalKey
         }
 
     override suspend fun isAvailable(): Boolean {
-        return effectiveApiKey.isNotEmpty()
+        val available = effectiveApiKey.isNotEmpty()
+        android.util.Log.d(TAG, "Perplexity provider available: $available")
+        return available
+    }
+
+    companion object {
+        private const val TAG = "PerplexityProvider"
     }
 
     override suspend fun categorizeApp(

@@ -27,11 +27,19 @@ class ClaudeProvider(
     private val effectiveApiKey: String
         get() {
             val userKey = apiKey ?: PreferenceManager.getInstance(context).llmClaudeKey.get()
-            return userKey.ifEmpty { "" }
+            val finalKey = userKey.ifEmpty { "" }
+            android.util.Log.d(TAG, "Claude API key status: ${if (finalKey.isEmpty()) "NOT SET" else "SET (length: ${finalKey.length})"}")
+            return finalKey
         }
 
     override suspend fun isAvailable(): Boolean {
-        return effectiveApiKey.isNotEmpty()
+        val available = effectiveApiKey.isNotEmpty()
+        android.util.Log.d(TAG, "Claude provider available: $available")
+        return available
+    }
+
+    companion object {
+        private const val TAG = "ClaudeProvider"
     }
 
     override suspend fun categorizeApp(
