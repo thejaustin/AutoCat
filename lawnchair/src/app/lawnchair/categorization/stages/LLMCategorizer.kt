@@ -10,6 +10,7 @@ import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.category.CategoryDao
 import app.lawnchair.data.category.entities.AppCategory
+import app.lawnchair.preferences.PreferenceManager
 
 /**
  * LLM-based categorizer that uses AI to assign apps to custom categories.
@@ -29,20 +30,21 @@ import app.lawnchair.data.category.entities.AppCategory
 class LLMCategorizer(
     private val context: Context,
     private val categoryDao: CategoryDao,
-    private val primaryProvider: LLMProvider = GoogleAIProvider(context),
 ) {
 
-    // Initialize all available providers for fallback
-    private val fallbackProviders = listOf(
-        ClaudeProvider(context),
-        OpenAIProvider(context),
-        PerplexityProvider(context),
+    // Initialize providers once to avoid overhead in loops
+    private val googleProvider = GoogleAIProvider(context)
+    private val providers = mapOf(
+        "google_ai" to googleProvider,
+        "claude" to ClaudeProvider(context),
+        "openai" to OpenAIProvider(context),
+        "perplexity" to PerplexityProvider(context),
     )
 
     /**
      * Attempts to categorize an app using LLM analysis with fallback support.
      *
-     * Tries providers in order: primary provider, then fallbacks.
+     * Tries providers in order: primary provider (from settings), then fallbacks.
      *
      * @param appInfo App metadata including name and package
      * @return true if app was categorized, false if LLM couldn't determine a category
@@ -58,8 +60,14 @@ class LLMCategorizer(
 
         val categoryNames = customCategories.map { it.name }
 
-        // Try primary provider first
-        val allProviders = listOf(primaryProvider) + fallbackProviders
+        // Get user's preferred provider
+        val prefManager = PreferenceManager.getInstance(context)
+        val preferredProviderId = prefManager.llmProviderPreference.get()
+
+        // Order providers: Preferred first, then others as fallback
+        val primary = providers[preferredProviderId] ?: googleProvider
+        val fallbacks = providers.values.filter { it.name != primary.name }
+        val allProviders = listOf(primary) + fallbacks
 
         for (provider in allProviders) {
             try {
@@ -131,14 +139,25 @@ class LLMCategorizer(
     suspend fun categorizeBatch(apps: List<AppInfo>): Int {
         var categorizedCount = 0
 
+        // Check preference for rate limiting
+        val prefManager = PreferenceManager.getInstance(context)
+        val preferredProviderId = prefManager.llmProviderPreference.get()
+        // If Google AI is preferred (or default), use the slow rate limit.
+        val isGooglePreferred = preferredProviderId == "google_ai" || preferredProviderId.isEmpty()
+
         for (app in apps) {
             try {
                 if (categorize(app)) {
                     categorizedCount++
                 }
 
-                // Add small delay to respect rate limits (Google AI: 15 req/min)
-                kotlinx.coroutines.delay(RATE_LIMIT_DELAY_MS)
+                if (isGooglePreferred) {
+                    // Google AI Free Tier: 15 RPM = 4s delay
+                    kotlinx.coroutines.delay(RATE_LIMIT_DELAY_MS)
+                } else {
+                    // Other providers: fast delay
+                    kotlinx.coroutines.delay(200)
+                }
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "Error categorizing ${app.packageName}", e)
                 // Continue with next app
