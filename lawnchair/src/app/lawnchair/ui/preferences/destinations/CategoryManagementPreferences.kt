@@ -126,13 +126,22 @@ fun CategoryManagementPreferences(
                                 isLoadingSuggestions = true
                                 suggestionsError = null
                                 try {
-                                    // Try all available LLM providers in order
-                                    val providers = listOf<LLMProvider>(
-                                        GoogleAIProvider(context),
-                                        ClaudeProvider(context),
-                                        OpenAIProvider(context),
-                                        PerplexityProvider(context),
+                                    // Get user's preferred provider
+                                    val prefManager = app.lawnchair.preferences.PreferenceManager.getInstance(context)
+                                    val preferredProviderId = prefManager.llmProviderPreference.get()
+
+                                    val googleProvider = GoogleAIProvider(context)
+                                    val allProviderMap = mapOf(
+                                        "google_ai" to googleProvider,
+                                        "claude" to ClaudeProvider(context),
+                                        "openai" to OpenAIProvider(context),
+                                        "perplexity" to PerplexityProvider(context),
                                     )
+
+                                    // Order providers: Preferred first, then others as fallback
+                                    val primary = allProviderMap[preferredProviderId] ?: googleProvider
+                                    val fallbacks = allProviderMap.values.filter { it.name != primary.name }
+                                    val providers = listOf(primary) + fallbacks
 
                                     val metadataProvider = AppMetadataProvider(context)
                                     val installedApps = metadataProvider.getInstalledApps()
