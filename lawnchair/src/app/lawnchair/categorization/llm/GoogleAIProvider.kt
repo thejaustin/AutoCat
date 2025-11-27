@@ -25,7 +25,7 @@ class GoogleAIProvider(
 
     override val name: String = "Google AI (Gemini)"
 
-    override val requiresApiKey: Boolean = false // Has free tier
+    override val requiresApiKey: Boolean = true // Free tier requires your own API key
 
     private val effectiveApiKey: String
         get() {
