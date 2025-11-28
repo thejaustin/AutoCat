@@ -71,6 +71,8 @@ fun CategoryManagementPreferences(
     var suggestedCategories by remember { mutableStateOf<List<SuggestedCategory>>(emptyList()) }
     var isLoadingSuggestions by remember { mutableStateOf(false) }
     var suggestionsError by remember { mutableStateOf<String?>(null) }
+    var suggestionsProvider by remember { mutableStateOf<String?>(null) }
+    var successMessage by remember { mutableStateOf<String?>(null) }
 
     // Load categories
     LaunchedEffect(Unit) {
@@ -125,6 +127,7 @@ fun CategoryManagementPreferences(
                             scope.launch {
                                 isLoadingSuggestions = true
                                 suggestionsError = null
+                                successMessage = null
                                 try {
                                     // Get user's preferred provider
                                     val prefManager = app.lawnchair.preferences.PreferenceManager.getInstance(context)
@@ -175,8 +178,9 @@ fun CategoryManagementPreferences(
                                             android.util.Log.d("CategoryManagement", "Got ${suggestedCategories.size} suggestions from ${provider.name}")
 
                                             if (suggestedCategories.isEmpty()) {
-                                                suggestionsError = "No new categories suggested. Try creating more diverse custom categories first."
+                                                suggestionsError = "No new categories suggested. You may already have all the useful categories for your apps!"
                                             } else {
+                                                suggestionsProvider = provider.name
                                                 showSuggestionsDialog = true
                                             }
                                             return@launch // Success, exit
@@ -215,6 +219,17 @@ fun CategoryManagementPreferences(
                             modifier = Modifier.padding(horizontal = 16.dp),
                         )
                     }
+
+                    // Show success message if any
+                    if (successMessage != null) {
+                        Spacer(modifier = Modifier.padding(4.dp))
+                        Text(
+                            text = successMessage!!,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    }
                 }
             }
         }
@@ -238,6 +253,7 @@ fun CategoryManagementPreferences(
                                 colorHex = color,
                             ),
                         )
+                        successMessage = "✓ Category '$name' updated"
                     } else {
                         // Add new category
                         val maxSortOrder = categories.maxOfOrNull { it.sortOrder } ?: 0
@@ -252,6 +268,8 @@ fun CategoryManagementPreferences(
                         )
                         android.util.Log.d("CategoryManagement", "Category created with ID: $categoryId")
 
+                        successMessage = "✓ Category '$name' created! Recategorizing apps..."
+
                         // Trigger recategorization so LLM can assign apps to the new category
                         // This runs in background and won't block the UI
                         categorizationManager.recategorizeAll()
@@ -264,6 +282,7 @@ fun CategoryManagementPreferences(
                     appProvider.refreshCache()
                     showAddDialog = false
                     editingCategory = null
+                    suggestionsError = null // Clear any previous errors
                 }
             },
         )
@@ -273,6 +292,7 @@ fun CategoryManagementPreferences(
     if (showSuggestionsDialog) {
         SuggestionsDialog(
             suggestions = suggestedCategories,
+            providerName = suggestionsProvider,
             onDismiss = { showSuggestionsDialog = false },
             onAddCategory = { suggestion ->
                 scope.launch {
@@ -286,6 +306,9 @@ fun CategoryManagementPreferences(
                     )
                     categories = categoryDao.getAllCustomCategories()
                     appProvider.refreshCache()
+
+                    successMessage = "✓ Added '${suggestion.name}' category! Recategorizing apps..."
+                    suggestionsError = null
 
                     // Trigger recategorization
                     categorizationManager.recategorizeAll()
@@ -434,12 +457,24 @@ private fun CategoryDialog(
 @Composable
 private fun SuggestionsDialog(
     suggestions: List<SuggestedCategory>,
+    providerName: String?,
     onDismiss: () -> Unit,
     onAddCategory: (SuggestedCategory) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("AI Category Suggestions") },
+        title = {
+            Column {
+                Text("AI Category Suggestions")
+                if (providerName != null) {
+                    Text(
+                        text = "Powered by $providerName",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
