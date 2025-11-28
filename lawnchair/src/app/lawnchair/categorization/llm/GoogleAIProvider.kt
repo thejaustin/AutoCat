@@ -84,7 +84,9 @@ class GoogleAIProvider(
     companion object {
         private const val TAG = "GoogleAIProvider"
         private const val DEFAULT_MODEL = "gemini-2.0-flash-exp"
-        private const val BASE_URL = "https://generativelanguage.googleapis.com/v1/models"
+
+        // Use v1beta for experimental models like 2.0-flash-exp
+        private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
     }
 
     override suspend fun testConnection(): TestResult = withContext(Dispatchers.IO) {
