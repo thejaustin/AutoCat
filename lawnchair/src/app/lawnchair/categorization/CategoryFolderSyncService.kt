@@ -71,11 +71,16 @@ class CategoryFolderSyncService(
                 message = "Starting folder sync for ${categorizations.size} categorizations",
             )
 
-            // Group apps by category
-            val appsByCategory = categorizations.entries.groupBy(
-                keySelector = { it.value },
-                valueTransform = { it.key },
-            )
+            // Group apps by category, excluding "Other" and system categories
+            val appsByCategory = categorizations.entries
+                .filter { (_, category) ->
+                    // Exclude "Other" category and empty categories
+                    category.isNotEmpty() && category != "Other"
+                }
+                .groupBy(
+                    keySelector = { it.value },
+                    valueTransform = { it.key },
+                )
 
             var foldersCreated = 0
             var appsMovedToFolders = 0
