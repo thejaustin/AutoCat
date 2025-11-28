@@ -1,6 +1,7 @@
 package app.lawnchair.categorization.stages
 
 import android.content.Context
+import app.lawnchair.categorization.llm.AppBatchInfo
 import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.GoogleAIProvider
 import app.lawnchair.categorization.llm.LLMException
@@ -195,7 +196,7 @@ class LLMCategorizer(
         // Process apps in batches
         apps.chunked(batchSize).forEach { batch ->
             val batchInfo = batch.map { app ->
-                app.lawnchair.categorization.llm.AppBatchInfo(
+                AppBatchInfo(
                     packageName = app.packageName,
                     appName = app.label,
                     appDescription = null, // TODO: Add description from metadata
@@ -214,11 +215,11 @@ class LLMCategorizer(
                     // Save successful categorizations
                     results.forEach { (packageName, result) ->
                         if (result.confidence >= MIN_CONFIDENCE) {
-                            val appCategory = app.lawnchair.data.category.entities.AppCategory(
+                            val appCategory = AppCategory(
                                 packageName = packageName,
                                 category = result.category,
                                 confidence = result.confidence,
-                                source = app.lawnchair.data.category.entities.AppCategory.SOURCE_LLM,
+                                source = AppCategory.SOURCE_LLM,
                                 isUserOverride = false,
                             )
                             categoryDao.insertAppCategory(appCategory)
