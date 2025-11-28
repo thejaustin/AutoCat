@@ -136,6 +136,19 @@ class PreferenceManager private constructor(private val context: Context) :
     val llmPerplexityKey = StringPref("pref_llmPerplexityKey", "", {})
     val llmProviderPreference = StringPref("pref_llmProvider", "google_ai", {})
 
+    // AutoCat: LLM model selection
+    val llmGoogleAIModel = StringPref("pref_llmGoogleAIModel", "gemini-2.0-flash-exp", {})
+    val llmClaudeModel = StringPref("pref_llmClaudeModel", "claude-3-5-haiku-20241022", {})
+    val llmOpenAIModel = StringPref("pref_llmOpenAIModel", "gpt-4o-mini", {})
+    val llmPerplexityModel = StringPref("pref_llmPerplexityModel", "llama-3.1-sonar-small-128k-online", {})
+
+    // AutoCat: Batch processing settings
+    val llmEnableBatching = BoolPref("pref_llmEnableBatching", true, {})
+    val llmBatchSize = IntPref("pref_llmBatchSize", 0, {}) // 0 = auto-calculate
+
+    // AutoCat: Folder sync settings
+    val autoCatSyncFolders = BoolPref("pref_autoCatSyncFolders", true, {})
+
     val recentsActionScreenshot = BoolPref("pref_recentsActionScreenshot", !isOnePlusStock)
     val recentsActionShare = BoolPref("pref_recentsActionShare", isOnePlusStock)
     val recentsActionLens = BoolPref("pref_recentsActionLens", true)
@@ -160,6 +173,17 @@ class PreferenceManager private constructor(private val context: Context) :
                     hotseatColumns.set(gridState.hotseatCount)
                 }
             }
+        }
+
+        // AutoCat: Migrate deprecated Gemini models
+        if (llmGoogleAIModel.get() == "gemini-1.5-flash" ||
+            llmGoogleAIModel.get() == "gemini-1.5-pro"
+        ) {
+            llmGoogleAIModel.set("gemini-2.0-flash-exp")
+            android.util.Log.i(
+                "PreferenceManager",
+                "Auto-migrated Gemini model from deprecated 1.5 to 2.0",
+            )
         }
     }
 

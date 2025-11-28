@@ -29,6 +29,26 @@ data class SuggestedCategory(
 )
 
 /**
+ * Result of testing an LLM provider connection
+ */
+data class TestResult(
+    val success: Boolean,
+    val message: String,
+    val latencyMs: Long? = null,
+    val modelVersion: String? = null,
+    val error: Throwable? = null,
+)
+
+/**
+ * Information about an app for batch categorization
+ */
+data class AppBatchInfo(
+    val packageName: String,
+    val appName: String,
+    val appDescription: String?,
+)
+
+/**
  * Abstract interface for LLM providers used in app categorization.
  *
  * Implementations provide different LLM backends (Google AI, Claude, OpenAI, etc.)
@@ -47,10 +67,23 @@ interface LLMProvider {
     val requiresApiKey: Boolean
 
     /**
+     * Gets the currently configured model for this provider.
+     * Returns null if no model is configured or provider is not available.
+     */
+    suspend fun getCurrentModel(): ModelInfo?
+
+    /**
      * Checks if the provider is properly configured and ready to use.
      * For providers requiring API keys, this validates the key is set.
      */
     suspend fun isAvailable(): Boolean
+
+    /**
+     * Tests the connection to this provider and validates configuration.
+     *
+     * @return TestResult with success status, message, and latency
+     */
+    suspend fun testConnection(): TestResult
 
     /**
      * Categorizes an app using this LLM provider.
@@ -68,6 +101,20 @@ interface LLMProvider {
         appDescription: String?,
         availableCategories: List<String>,
     ): CategorizationResult
+
+    /**
+     * Categorizes multiple apps in a single batch request.
+     * More efficient than individual requests, saves tokens and time.
+     *
+     * @param apps List of apps to categorize
+     * @param availableCategories List of custom categories to choose from
+     * @return Map of packageName → CategorizationResult
+     * @throws LLMException if batch categorization fails
+     */
+    suspend fun categorizeAppBatch(
+        apps: List<AppBatchInfo>,
+        availableCategories: List<String>,
+    ): Map<String, CategorizationResult>
 
     /**
      * Analyzes installed apps and suggests useful categories beyond built-in ones.

@@ -48,6 +48,7 @@ class CategorizationManager(private val context: Context) {
     private val builtInCategorizer = BuiltInCategorizer(categoryDao)
     private val llmCategorizer = LLMCategorizer(context, categoryDao)
     private val appProvider = AutoCatAppProvider.getInstance(context)
+    private val folderSyncService = CategoryFolderSyncService(context)
 
     // Progress tracking
     private val _progress = MutableStateFlow(CategorizationProgress())
@@ -200,6 +201,25 @@ class CategorizationManager(private val context: Context) {
 
             // Refresh cache after categorization
             appProvider.refreshCache()
+
+            // Sync to folders if enabled
+            if (folderSyncService.isSyncEnabled()) {
+                _progress.value = CategorizationProgress(
+                    isRunning = true,
+                    currentStage = "Syncing folders",
+                    processedCount = apps.size,
+                    totalCount = apps.size,
+                )
+
+                android.util.Log.d(TAG, "Starting folder sync")
+
+                val allCategories = categoryDao.getAllAppCategories()
+                val categorizations = allCategories.associate { it.packageName to it.category }
+
+                val syncResult = folderSyncService.syncCategoriesToFolders(categorizations)
+
+                android.util.Log.d(TAG, "Folder sync complete: ${syncResult.message}")
+            }
 
             // Mark as complete
             _progress.value = CategorizationProgress(

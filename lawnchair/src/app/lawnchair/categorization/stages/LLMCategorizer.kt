@@ -130,13 +130,126 @@ class LLMCategorizer(
     /**
      * Categorizes multiple apps in batch.
      *
-     * Note: This processes apps sequentially to respect API rate limits.
-     * Future: Implement smart batching and rate limiting.
+     * Uses LLM batch API when enabled, falls back to sequential processing.
      *
      * @param apps List of apps to categorize
      * @return Number of apps successfully categorized
      */
     suspend fun categorizeBatch(apps: List<AppInfo>): Int {
+        val prefManager = PreferenceManager.getInstance(context)
+
+        // Check if batching is enabled
+        val batchingEnabled = prefManager.llmEnableBatching.get()
+
+        return if (batchingEnabled) {
+            categorizeBatchAPI(apps)
+        } else {
+            categorizeBatchSequential(apps)
+        }
+    }
+
+    /**
+     * Categorizes apps using the batch API (efficient).
+     */
+    private suspend fun categorizeBatchAPI(apps: List<AppInfo>): Int {
+        if (apps.isEmpty()) return 0
+
+        // Get available custom categories
+        val customCategories = categoryDao.getVisibleCustomCategories()
+        if (customCategories.isEmpty()) {
+            android.util.Log.d(TAG, "No custom categories available for LLM categorization")
+            return 0
+        }
+
+        val categoryNames = customCategories.map { it.name }
+
+        // Get user's preferred provider
+        val prefManager = PreferenceManager.getInstance(context)
+        val preferredProviderId = prefManager.llmProviderPreference.get()
+
+        // Order providers: Preferred first, then others as fallback
+        val primary = providers[preferredProviderId] ?: googleProvider
+        val fallbacks = providers.values.filter { it.name != primary.name }
+        val allProviders = listOf(primary) + fallbacks
+
+        // Get model info to calculate batch size
+        val modelInfo = primary.getCurrentModel()
+        val batchSize = if (modelInfo != null) {
+            val prefBatchSize = prefManager.llmBatchSize.get()
+            if (prefBatchSize > 0) {
+                prefBatchSize // User-specified
+            } else {
+                // Auto-calculate
+                app.lawnchair.categorization.llm.BatchCalculator.calculateOptimalBatchSize(
+                    modelInfo = modelInfo,
+                    totalApps = apps.size,
+                    categories = categoryNames,
+                ).batchSize
+            }
+        } else {
+            20 // Default batch size
+        }
+
+        var categorizedCount = 0
+
+        // Process apps in batches
+        apps.chunked(batchSize).forEach { batch ->
+            val batchInfo = batch.map { app ->
+                app.lawnchair.categorization.llm.AppBatchInfo(
+                    packageName = app.packageName,
+                    appName = app.label,
+                    appDescription = null, // TODO: Add description from metadata
+                )
+            }
+
+            // Try providers in order
+            for (provider in allProviders) {
+                try {
+                    if (!provider.isAvailable()) continue
+
+                    android.util.Log.d(TAG, "Batch categorizing ${batch.size} apps with ${provider.name}")
+
+                    val results = provider.categorizeAppBatch(batchInfo, categoryNames)
+
+                    // Save successful categorizations
+                    results.forEach { (packageName, result) ->
+                        if (result.confidence >= MIN_CONFIDENCE) {
+                            val appCategory = app.lawnchair.data.category.entities.AppCategory(
+                                packageName = packageName,
+                                category = result.category,
+                                confidence = result.confidence,
+                                source = app.lawnchair.data.category.entities.AppCategory.SOURCE_LLM,
+                                isUserOverride = false,
+                            )
+                            categoryDao.insertAppCategory(appCategory)
+                            categorizedCount++
+
+                            android.util.Log.d(
+                                TAG,
+                                "Batch: $packageName → ${result.category} (${result.confidence})",
+                            )
+                        }
+                    }
+
+                    // Successfully categorized batch, break to next batch
+                    break
+                } catch (e: Exception) {
+                    android.util.Log.e(TAG, "${provider.name} batch error", e)
+                    // Try next provider
+                }
+            }
+
+            // Rate limiting between batches
+            kotlinx.coroutines.delay(RATE_LIMIT_DELAY_MS)
+        }
+
+        return categorizedCount
+    }
+
+    /**
+     * Categorizes apps sequentially (fallback method).
+     */
+    private suspend fun categorizeBatchSequential(apps: List<AppInfo>): Int {
         var categorizedCount = 0
 
         // Check preference for rate limiting
