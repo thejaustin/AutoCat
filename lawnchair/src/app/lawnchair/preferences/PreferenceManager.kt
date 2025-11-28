@@ -140,7 +140,7 @@ class PreferenceManager private constructor(private val context: Context) :
     val llmGoogleAIModel = StringPref("pref_llmGoogleAIModel", "gemini-2.0-flash-exp", {})
     val llmClaudeModel = StringPref("pref_llmClaudeModel", "claude-3-5-haiku-20241022", {})
     val llmOpenAIModel = StringPref("pref_llmOpenAIModel", "gpt-4o-mini", {})
-    val llmPerplexityModel = StringPref("pref_llmPerplexityModel", "llama-3.1-sonar-small-128k-online", {})
+    val llmPerplexityModel = StringPref("pref_llmPerplexityModel", "sonar", {}) // Updated to 2025 API
 
     // AutoCat: Batch processing settings
     val llmEnableBatching = BoolPref("pref_llmEnableBatching", true, {})

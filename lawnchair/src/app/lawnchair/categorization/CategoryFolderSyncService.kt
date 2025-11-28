@@ -8,7 +8,9 @@ import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.pm.UserCache
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 /**
  * Service for syncing app categorizations to app drawer folders.
@@ -78,8 +80,16 @@ class CategoryFolderSyncService(
             var foldersCreated = 0
             var appsMovedToFolders = 0
 
-            // Get existing drawer folders
-            val existingFolders = drawerFolderService.getAllFolders()
+            // Get existing drawer folders (with timeout to prevent hanging)
+            val existingFolders = try {
+                withTimeout(10000) {
+                    // 10 second timeout
+                    drawerFolderService.getAllFolders()
+                }
+            } catch (e: TimeoutCancellationException) {
+                android.util.Log.w(TAG, "Timeout getting folders, continuing with empty list")
+                emptyList()
+            }
             val existingFolderMap = existingFolders.associateBy { it.title.toString() }
 
             // Get UserCache for creating AppInfo
@@ -135,9 +145,15 @@ class CategoryFolderSyncService(
                         }
                         drawerFolderService.saveFolderInfo(newFolder)
 
-                        // Get the created folder ID and add items
-                        val createdFolder = drawerFolderService.getAllFolders()
-                            .find { it.title.toString() == folderName }
+                        // Get the created folder ID and add items (with timeout)
+                        val createdFolder = try {
+                            withTimeout(10000) {
+                                drawerFolderService.getAllFolders()
+                            }
+                        } catch (e: TimeoutCancellationException) {
+                            android.util.Log.w(TAG, "Timeout getting created folder")
+                            emptyList()
+                        }.find { it.title.toString() == folderName }
 
                         if (createdFolder != null) {
                             drawerFolderService.updateFolderWithItems(
@@ -196,7 +212,15 @@ class CategoryFolderSyncService(
                 message = "Removing all drawer folders",
             )
 
-            val folders = drawerFolderService.getAllFolders()
+            val folders = try {
+                withTimeout(10000) {
+                    drawerFolderService.getAllFolders()
+                }
+            } catch (e: TimeoutCancellationException) {
+                android.util.Log.w(TAG, "Timeout getting folders to remove")
+                emptyList()
+            }
+
             folders.forEach { folder ->
                 drawerFolderService.deleteFolderInfo(folder.id)
             }

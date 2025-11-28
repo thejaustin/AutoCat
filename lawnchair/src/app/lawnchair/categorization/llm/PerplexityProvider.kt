@@ -149,7 +149,7 @@ class PerplexityProvider(
 
     companion object {
         private const val TAG = "PerplexityProvider"
-        private const val DEFAULT_MODEL = "llama-3.1-sonar-small-128k-online"
+        private const val DEFAULT_MODEL = "sonar" // Updated to 2025 API model names
     }
 
     override suspend fun categorizeApp(

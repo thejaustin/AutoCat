@@ -144,11 +144,11 @@ object ModelRegistry {
         ),
     )
 
-    // Perplexity Models
+    // Perplexity Models (updated to current API - 2025)
     val PERPLEXITY_MODELS = listOf(
         ModelInfo(
-            id = "llama-3.1-sonar-small-128k-online",
-            displayName = "Llama 3.1 Sonar Small (Fast)",
+            id = "sonar",
+            displayName = "Sonar (Fast & Affordable)",
             provider = "perplexity",
             isAvailable = true,
             costTier = ModelInfo.CostTier.LOW,
@@ -158,15 +158,26 @@ object ModelRegistry {
             recommendedFor = listOf("categorization"),
         ),
         ModelInfo(
-            id = "llama-3.1-sonar-large-128k-online",
-            displayName = "Llama 3.1 Sonar Large (Better)",
+            id = "sonar-pro",
+            displayName = "Sonar Pro (Advanced)",
+            provider = "perplexity",
+            isAvailable = true,
+            costTier = ModelInfo.CostTier.MEDIUM,
+            contextWindow = 200000,
+            speedTier = ModelInfo.SpeedTier.FAST,
+            qualityTier = ModelInfo.QualityTier.HIGH,
+            recommendedFor = listOf("categorization", "suggestions", "batch"),
+        ),
+        ModelInfo(
+            id = "sonar-reasoning",
+            displayName = "Sonar Reasoning (Problem Solving)",
             provider = "perplexity",
             isAvailable = true,
             costTier = ModelInfo.CostTier.MEDIUM,
             contextWindow = 128000,
-            speedTier = ModelInfo.SpeedTier.MEDIUM,
+            speedTier = ModelInfo.SpeedTier.FAST,
             qualityTier = ModelInfo.QualityTier.HIGH,
-            recommendedFor = listOf("suggestions", "batch"),
+            recommendedFor = listOf("suggestions"),
         ),
     )
 
