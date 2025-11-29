@@ -4,6 +4,7 @@ import android.content.Context
 import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.preferences.PreferenceManager
+import app.lawnchair.preferences2.ReloadHelper
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.pm.UserCache
@@ -26,6 +27,7 @@ class CategoryFolderSyncService(
 
     private val prefs = PreferenceManager.getInstance(context)
     private val drawerFolderService = FolderService.INSTANCE.get(context)
+    private val reloadHelper = ReloadHelper(context)
 
     companion object {
         private const val TAG = "CategoryFolderSync"
@@ -188,6 +190,10 @@ class CategoryFolderSyncService(
                 message = result.message,
             )
 
+            // Reload app drawer to display new/updated folders
+            reloadHelper.reloadGrid()
+            android.util.Log.d(TAG, "Triggered app drawer reload to display folders")
+
             result
         } catch (e: Exception) {
             LLMLogger.logError(
@@ -229,6 +235,9 @@ class CategoryFolderSyncService(
             folders.forEach { folder ->
                 drawerFolderService.deleteFolderInfo(folder.id)
             }
+
+            // Reload app drawer to reflect removed folders
+            reloadHelper.reloadGrid()
 
             android.util.Log.i(TAG, "Removed ${folders.size} drawer folders")
             folders.size
