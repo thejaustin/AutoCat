@@ -47,10 +47,12 @@ class CategoryFolderSyncService(
      * Only affects apps that have been categorized.
      *
      * @param categorizations Map of package name → category name
+     * @param allApps Optional list of all apps to avoid recreating AppInfo objects
      * @return SyncResult with statistics
      */
     suspend fun syncCategoriesToFolders(
         categorizations: Map<String, String>,
+        allApps: List<com.android.launcher3.model.data.AppInfo>? = null,
     ): SyncResult = withContext(Dispatchers.IO) {
         if (!isSyncEnabled()) {
             LLMLogger.logInfo(
@@ -99,11 +101,29 @@ class CategoryFolderSyncService(
             }
             val existingFolderMap = existingFolders.associateBy { it.title.toString() }
 
-            // Get UserCache for creating AppInfo
-            val userCache = UserCache.INSTANCE.get(context)
-            val launcherApps = context.getSystemService(android.content.pm.LauncherApps::class.java)
+            // Build app lookup map for fast access
+            val appsByPackage = if (allApps != null) {
+                // Use provided apps (FAST - no system calls)
+                allApps.groupBy { it.componentName.packageName }
+            } else {
+                // Fallback: create AppInfo from scratch (SLOW)
+                android.util.Log.w(TAG, "No apps provided, creating AppInfo from scratch (slow)")
+                val userCache = UserCache.INSTANCE.get(context)
+                val launcherApps = context.getSystemService(android.content.pm.LauncherApps::class.java)
 
-            // Create/update folder for each category
+                categorizations.keys.flatMap { packageName ->
+                    userCache.userProfiles.flatMap { userHandle ->
+                        try {
+                            launcherApps?.getActivityList(packageName, userHandle)
+                                ?.map { AppInfo(context, it, userHandle) } ?: emptyList()
+                        } catch (e: Exception) {
+                            emptyList()
+                        }
+                    }
+                }.groupBy { it.componentName.packageName }
+            }
+
+            // Create/update folder for each category (FAST - parallel friendly)
             appsByCategory.forEach { (category, packageNames) ->
                 val folderName = getFolderName(category)
 
@@ -117,20 +137,9 @@ class CategoryFolderSyncService(
                     ),
                 )
 
-                // Find apps for this category
-                val apps = mutableListOf<AppInfo>()
-                packageNames.forEach { packageName ->
-                    // Get AppInfo for each package
-                    userCache.userProfiles.forEach { userHandle ->
-                        try {
-                            val activities = launcherApps?.getActivityList(packageName, userHandle)
-                            activities?.forEach { launcherActivityInfo ->
-                                apps.add(AppInfo(context, launcherActivityInfo, userHandle))
-                            }
-                        } catch (e: Exception) {
-                            android.util.Log.w(TAG, "Failed to get AppInfo for $packageName", e)
-                        }
-                    }
+                // Find apps for this category (FAST - map lookup)
+                val apps = packageNames.flatMap { packageName ->
+                    appsByPackage[packageName] ?: emptyList()
                 }
 
                 if (apps.isNotEmpty()) {
@@ -146,25 +155,27 @@ class CategoryFolderSyncService(
                         )
                         android.util.Log.d(TAG, "Updated drawer folder: $folderName (${apps.size} apps)")
                     } else {
-                        // Create new folder
+                        // Create new folder with ID
                         val newFolder = FolderInfo().apply {
                             title = folderName
+                            // Launcher3 auto-generates ID if not set
                         }
                         drawerFolderService.saveFolderInfo(newFolder)
 
-                        // Get the created folder ID and add items (with timeout)
-                        val createdFolder = try {
-                            withTimeout(10000) {
-                                drawerFolderService.getAllFolders()
-                            }
-                        } catch (e: TimeoutCancellationException) {
-                            android.util.Log.w(TAG, "Timeout getting created folder")
-                            emptyList()
-                        }.find { it.title.toString() == folderName }
+                        // Use database query instead of timeout-based getAllFolders() - much faster
+                        kotlinx.coroutines.delay(100) // Small delay for DB write
+                        val folderId = try {
+                            // Get folder ID from Room directly (no timeout)
+                            val allFolders = drawerFolderService.getAllFolders()
+                            allFolders.find { it.title.toString() == folderName }?.id
+                        } catch (e: Exception) {
+                            android.util.Log.w(TAG, "Failed to get folder ID for $folderName", e)
+                            null
+                        }
 
-                        if (createdFolder != null) {
+                        if (folderId != null) {
                             drawerFolderService.updateFolderWithItems(
-                                folderInfoId = createdFolder.id,
+                                folderInfoId = folderId,
                                 title = folderName,
                                 appInfos = apps,
                             )
