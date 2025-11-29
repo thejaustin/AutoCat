@@ -125,7 +125,8 @@ class CategoryFolderSyncService(
                             emptyList()
                         }
                     }
-                }.groupBy { it.componentName.packageName }
+                }.filter { it.componentName != null }
+                    .groupBy { it.componentName!!.packageName }
             }
 
             // Create/update folder for each category (FAST - parallel friendly)
