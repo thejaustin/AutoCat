@@ -667,6 +667,32 @@ Respond ONLY in this JSON format:
         }
     }
 
+    /**
+     * Fixes common JSON formatting issues that LLMs sometimes produce.
+     * Specifically handles missing commas between array/object elements.
+     */
+    private fun fixMalformedJson(json: String): String {
+        var fixed = json
+
+        // Fix missing commas between objects in arrays
+        // Pattern: }[\s\n]*{ should be },{
+        fixed = fixed.replace(Regex("}\\s*\\{"), "},{")
+
+        // Fix missing commas between arrays
+        // Pattern: ][\s\n]*[ should be ],[
+        fixed = fixed.replace(Regex("]\\s*\\["), "],[")
+
+        // Fix missing commas after closing braces before new properties
+        // Pattern: }[\s\n]*"property" should be },"property"
+        fixed = fixed.replace(Regex("}\\s*\""), "},\"")
+
+        // Fix missing commas after closing brackets before new properties
+        // Pattern: ][\s\n]*"property" should be ],"property"
+        fixed = fixed.replace(Regex("]\\s*\""), "],\"")
+
+        return fixed
+    }
+
     private fun parseSuggestionResponse(responseJson: String): List<SuggestedCategory> {
         try {
             val response = JSONObject(responseJson)
@@ -683,10 +709,14 @@ Respond ONLY in this JSON format:
                 .getString("text")
 
             // Extract JSON from markdown code blocks if present
-            val jsonText = content
+            var jsonText = content
                 .replace("```json", "")
                 .replace("```", "")
                 .trim()
+
+            // Fix common JSON formatting issues from LLM responses
+            // Add missing commas between array elements if needed
+            jsonText = fixMalformedJson(jsonText)
 
             val result = JSONObject(jsonText)
             val suggestions = result.getJSONArray("suggestions")
