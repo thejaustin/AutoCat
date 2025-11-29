@@ -109,7 +109,8 @@ class CategoryFolderSyncService(
             // Build app lookup map for fast access
             val appsByPackage = if (allApps != null) {
                 // Use provided apps (FAST - no system calls)
-                allApps.groupBy { it.componentName.packageName }
+                allApps.filter { it.componentName != null }
+                    .groupBy { it.componentName!!.packageName }
             } else {
                 // Fallback: create AppInfo from scratch (SLOW)
                 android.util.Log.w(TAG, "No apps provided, creating AppInfo from scratch (slow)")

@@ -216,8 +216,8 @@ class CategorizationManager(private val context: Context) {
                 val allCategories = categoryDao.getAllAppCategories()
                 val categorizations = allCategories.associate { it.packageName to it.category }
 
-                // Pass apps to avoid recreating AppInfo (FAST)
-                val syncResult = folderSyncService.syncCategoriesToFolders(categorizations, apps)
+                // Sync categorizations to folders
+                val syncResult = folderSyncService.syncCategoriesToFolders(categorizations)
 
                 android.util.Log.d(TAG, "Folder sync complete: ${syncResult.message}")
             }
