@@ -518,6 +518,7 @@ Respond ONLY in this JSON format:
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")
             connection.setRequestProperty("Authorization", "Bearer $effectiveApiKey")
+            connection.setRequestProperty("User-Agent", "AutoCat/1.0")
             connection.doOutput = true
 
             val requestBody = JSONObject().apply {
@@ -561,7 +562,15 @@ Respond ONLY in this JSON format:
                     durationMs = durationMs,
                 )
 
-                throw LLMException("Perplexity API error: $responseCode - $errorBody")
+                // Provide helpful error messages for common issues
+                val errorMessage = when (responseCode) {
+                    401 -> "Authentication failed. Please check your Perplexity API key in settings."
+                    403 -> "Access forbidden. Your API key may not have permission for this operation."
+                    429 -> "Rate limit exceeded. Please wait before making more requests."
+                    else -> "API error: $responseCode"
+                }
+
+                throw LLMException("$errorMessage (Details: ${errorBody.take(200)})")
             }
 
             val responseBody = connection.inputStream.bufferedReader().readText()

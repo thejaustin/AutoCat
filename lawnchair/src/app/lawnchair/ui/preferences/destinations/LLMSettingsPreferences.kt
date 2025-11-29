@@ -352,6 +352,15 @@ fun LLMSettingsPreferences(
                             modifier = Modifier.padding(horizontal = 16.dp),
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Get your API key at docs.perplexity.ai. If you get a 401 error, verify your API key is correct and active.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
                 }
             }
 
@@ -475,6 +484,40 @@ fun LLMSettingsPreferences(
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.primary,
                                 )
+                            }
+
+                            // Show batch progress if available
+                            if (progress.batchProgressText != null) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = progress.batchProgressText!!,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+
+                                    if (progress.currentProvider != null) {
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "• ${progress.currentProvider}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+
+                                    if (progress.estimatedTimeMs > 0) {
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        val seconds = (progress.estimatedTimeMs / 1000).toInt()
+                                        Text(
+                                            text = "• ~${seconds}s remaining",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
                             }
 
                             if (progress.currentAppName != null) {
