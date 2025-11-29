@@ -86,6 +86,11 @@ class CategoryFolderSyncService(
                     valueTransform = { it.key },
                 )
 
+            android.util.Log.d(TAG, "Categorizations: ${categorizations.size} total, ${appsByCategory.size} categories")
+            appsByCategory.forEach { (category, packages) ->
+                android.util.Log.d(TAG, "Category '$category': ${packages.size} packages - ${packages.take(3)}" + if (packages.size > 3) "..." else "")
+            }
+
             var foldersCreated = 0
             var appsMovedToFolders = 0
 
@@ -139,10 +144,15 @@ class CategoryFolderSyncService(
 
                 // Find apps for this category (FAST - map lookup)
                 val apps = packageNames.flatMap { packageName ->
-                    appsByPackage[packageName] ?: emptyList()
+                    val matchedApps = appsByPackage[packageName] ?: emptyList()
+                    if (matchedApps.isEmpty()) {
+                        android.util.Log.w(TAG, "No apps found for package: $packageName in category: $category")
+                    }
+                    matchedApps
                 }
 
                 if (apps.isNotEmpty()) {
+                    android.util.Log.d(TAG, "Folder '$folderName': ${apps.size} apps from ${packageNames.size} packages")
                     // Check if folder exists
                     val existingFolder = existingFolderMap[folderName]
 
