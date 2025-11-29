@@ -1,6 +1,7 @@
 package app.lawnchair.categorization.stages
 
 import android.content.Context
+import app.lawnchair.categorization.CategorizationProgress
 import app.lawnchair.categorization.llm.AppBatchInfo
 import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.GoogleAIProvider
@@ -12,6 +13,12 @@ import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.category.CategoryDao
 import app.lawnchair.data.category.entities.AppCategory
 import app.lawnchair.preferences.PreferenceManager
+import kotlin.math.min
+import kotlin.math.pow
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 
 /**
  * LLM-based categorizer that uses AI to assign apps to custom categories.
@@ -134,16 +141,20 @@ class LLMCategorizer(
      * Uses LLM batch API when enabled, falls back to sequential processing.
      *
      * @param apps List of apps to categorize
+     * @param onProgress Optional callback for progress updates
      * @return Number of apps successfully categorized
      */
-    suspend fun categorizeBatch(apps: List<AppInfo>): Int {
+    suspend fun categorizeBatch(
+        apps: List<AppInfo>,
+        onProgress: ((CategorizationProgress) -> Unit)? = null,
+    ): Int {
         val prefManager = PreferenceManager.getInstance(context)
 
         // Check if batching is enabled
         val batchingEnabled = prefManager.llmEnableBatching.get()
 
         return if (batchingEnabled) {
-            categorizeBatchAPI(apps)
+            categorizeBatchAPI(apps, onProgress)
         } else {
             categorizeBatchSequential(apps)
         }
@@ -152,7 +163,10 @@ class LLMCategorizer(
     /**
      * Categorizes apps using the batch API (efficient).
      */
-    private suspend fun categorizeBatchAPI(apps: List<AppInfo>): Int {
+    private suspend fun categorizeBatchAPI(
+        apps: List<AppInfo>,
+        onProgress: ((CategorizationProgress) -> Unit)? = null,
+    ): Int {
         if (apps.isEmpty()) return 0
 
         // Get available custom categories
@@ -193,27 +207,92 @@ class LLMCategorizer(
 
         var categorizedCount = 0
 
-        // Process apps in batches
-        apps.chunked(batchSize).forEach { batch ->
-            val batchInfo = batch.map { app ->
-                AppBatchInfo(
-                    packageName = app.packageName,
-                    appName = app.label,
-                    appDescription = null, // TODO: Add description from metadata
-                )
+        // Calculate total batches for progress tracking
+        val batches = apps.chunked(batchSize)
+        val totalBatches = batches.size
+        var currentBatchIndex = 0
+        val startTime = System.currentTimeMillis()
+
+        // Process batches in parallel chunks to maximize throughput
+        // while respecting rate limits
+        val batchChunks = batches.chunked(PARALLEL_BATCH_LIMIT)
+
+        for (batchChunk in batchChunks) {
+            // Process multiple batches concurrently
+            val results = coroutineScope {
+                batchChunk.map { batch ->
+                    async {
+                        val batchIndex = ++currentBatchIndex
+
+                        // Update progress at start of batch
+                        onProgress?.invoke(
+                            CategorizationProgress(
+                                isRunning = true,
+                                currentStage = "LLM Categorization",
+                                processedCount = categorizedCount,
+                                totalCount = apps.size,
+                                currentBatch = batchIndex,
+                                totalBatches = totalBatches,
+                                batchSize = batch.size,
+                                currentProvider = primary.name,
+                                estimatedTimeMs = calculateEstimatedTime(
+                                    batchIndex,
+                                    totalBatches,
+                                    startTime,
+                                ),
+                            ),
+                        )
+
+                        val batchInfo = batch.map { app ->
+                            AppBatchInfo(
+                                packageName = app.packageName,
+                                appName = app.label,
+                                appDescription = null,
+                            )
+                        }
+
+                        // Try providers in order with retry logic
+                        var batchSuccess = false
+                        for (provider in allProviders) {
+                            if (!provider.isAvailable()) continue
+
+                            // Retry with exponential backoff
+                            val apiResults = retryWithBackoff(
+                                maxRetries = MAX_RETRIES,
+                                initialDelayMs = INITIAL_RETRY_DELAY_MS,
+                            ) {
+                                android.util.Log.d(
+                                    TAG,
+                                    "Batch $batchIndex categorizing ${batch.size} apps with ${provider.name}",
+                                )
+                                provider.categorizeAppBatch(batchInfo, categoryNames)
+                            }
+
+                            // If retry succeeded, return results
+                            if (apiResults != null) {
+                                batchSuccess = true
+                                return@async apiResults to batch.size
+                            } else {
+                                android.util.Log.w(
+                                    TAG,
+                                    "${provider.name} failed for batch $batchIndex after $MAX_RETRIES retries",
+                                )
+                            }
+                        }
+
+                        if (!batchSuccess) {
+                            android.util.Log.e(TAG, "All providers failed for batch $batchIndex")
+                        }
+
+                        return@async null to 0
+                    }
+                }.awaitAll()
             }
 
-            // Try providers in order
-            for (provider in allProviders) {
-                try {
-                    if (!provider.isAvailable()) continue
-
-                    android.util.Log.d(TAG, "Batch categorizing ${batch.size} apps with ${provider.name}")
-
-                    val results = provider.categorizeAppBatch(batchInfo, categoryNames)
-
-                    // Save successful categorizations
-                    results.forEach { (packageName, result) ->
+            // Process results from parallel batches
+            results.forEach { (apiResults, _) ->
+                if (apiResults != null) {
+                    apiResults.forEach { (packageName, result) ->
                         if (result.confidence >= MIN_CONFIDENCE) {
                             val appCategory = AppCategory(
                                 packageName = packageName,
@@ -231,20 +310,88 @@ class LLMCategorizer(
                             )
                         }
                     }
-
-                    // Successfully categorized batch, break to next batch
-                    break
-                } catch (e: Exception) {
-                    android.util.Log.e(TAG, "${provider.name} batch error", e)
-                    // Try next provider
                 }
             }
 
-            // Rate limiting between batches
-            kotlinx.coroutines.delay(RATE_LIMIT_DELAY_MS)
+            // Update progress after chunk completion
+            onProgress?.invoke(
+                CategorizationProgress(
+                    isRunning = true,
+                    currentStage = "LLM Categorization",
+                    processedCount = categorizedCount,
+                    totalCount = apps.size,
+                    currentBatch = currentBatchIndex,
+                    totalBatches = totalBatches,
+                    batchSize = batchSize,
+                    currentProvider = primary.name,
+                    estimatedTimeMs = calculateEstimatedTime(
+                        currentBatchIndex,
+                        totalBatches,
+                        startTime,
+                    ),
+                ),
+            )
+
+            // Rate limiting between chunks (not individual batches)
+            if (batchChunk.size == PARALLEL_BATCH_LIMIT) {
+                kotlinx.coroutines.delay(RATE_LIMIT_DELAY_MS)
+            }
         }
 
         return categorizedCount
+    }
+
+    /**
+     * Calculates estimated time remaining based on current progress.
+     */
+    private fun calculateEstimatedTime(
+        currentBatch: Int,
+        totalBatches: Int,
+        startTime: Long,
+    ): Long {
+        if (currentBatch == 0) return 0
+
+        val elapsed = System.currentTimeMillis() - startTime
+        val avgTimePerBatch = elapsed / currentBatch
+        val remainingBatches = totalBatches - currentBatch
+
+        return avgTimePerBatch * remainingBatches
+    }
+
+    /**
+     * Retries an operation with exponential backoff.
+     *
+     * @param maxRetries Maximum number of retry attempts
+     * @param initialDelayMs Initial delay in milliseconds (doubles each retry)
+     * @param operation The operation to retry
+     * @return Result of the operation, or null if all retries failed
+     */
+    private suspend fun <T> retryWithBackoff(
+        maxRetries: Int,
+        initialDelayMs: Long,
+        operation: suspend () -> T,
+    ): T? {
+        var currentDelay = initialDelayMs
+        var lastException: Exception? = null
+
+        repeat(maxRetries) { attempt ->
+            try {
+                return operation()
+            } catch (e: Exception) {
+                lastException = e
+                if (attempt < maxRetries - 1) {
+                    android.util.Log.w(
+                        TAG,
+                        "Attempt ${attempt + 1}/$maxRetries failed, retrying in ${currentDelay}ms: ${e.message}",
+                    )
+                    delay(currentDelay)
+                    currentDelay = (currentDelay * 2.0.pow(1.0)).toLong() // Exponential backoff
+                }
+            }
+        }
+
+        android.util.Log.e(TAG, "All $maxRetries retry attempts failed", lastException)
+        return null
     }
 
     /**
@@ -289,5 +436,12 @@ class LLMCategorizer(
 
         // Delay between API calls to respect rate limits (4 seconds = 15/min)
         private const val RATE_LIMIT_DELAY_MS = 4000L
+
+        // Retry configuration
+        private const val MAX_RETRIES = 3
+        private const val INITIAL_RETRY_DELAY_MS = 1000L // 1 second, doubles each retry
+
+        // Parallel processing configuration
+        private const val PARALLEL_BATCH_LIMIT = 3 // Process 3 batches concurrently
     }
 }

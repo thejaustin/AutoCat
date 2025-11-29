@@ -19,6 +19,11 @@ import kotlinx.coroutines.withContext
  * @property processedCount Number of apps processed so far
  * @property totalCount Total number of apps to process
  * @property currentAppName Name of the app currently being processed (optional)
+ * @property currentBatch Current batch being processed (for batch mode)
+ * @property totalBatches Total number of batches (for batch mode)
+ * @property batchSize Size of each batch (for batch mode)
+ * @property currentProvider Name of the LLM provider currently being used
+ * @property estimatedTimeMs Estimated time remaining in milliseconds
  */
 data class CategorizationProgress(
     val isRunning: Boolean = false,
@@ -26,9 +31,17 @@ data class CategorizationProgress(
     val processedCount: Int = 0,
     val totalCount: Int = 0,
     val currentAppName: String? = null,
+    val currentBatch: Int = 0,
+    val totalBatches: Int = 0,
+    val batchSize: Int = 0,
+    val currentProvider: String? = null,
+    val estimatedTimeMs: Long = 0,
 ) {
     val progressPercentage: Float
         get() = if (totalCount > 0) (processedCount.toFloat() / totalCount.toFloat()) else 0f
+
+    val batchProgressText: String?
+        get() = if (totalBatches > 0) "Batch $currentBatch/$totalBatches" else null
 }
 
 /**
@@ -145,26 +158,13 @@ class CategorizationManager(private val context: Context) {
                 "Starting Stage 1 (LLM) for ${apps.size} apps",
             )
 
-            var llmProcessed = 0
-            for (app in apps) {
-                _progress.value = CategorizationProgress(
-                    isRunning = true,
-                    currentStage = "LLM",
-                    processedCount = llmProcessed,
-                    totalCount = apps.size,
-                    currentAppName = app.label,
-                )
-
-                llmCategorizer.categorize(app)
-                llmProcessed++
-
-                // Small delay for rate limiting
-                kotlinx.coroutines.delay(100)
+            val llmCount = llmCategorizer.categorizeBatch(apps) { progress ->
+                _progress.value = progress
             }
 
             android.util.Log.d(
                 TAG,
-                "Stage 1 (LLM) complete: categorization attempted for ${apps.size} apps",
+                "Stage 1 (LLM) complete: $llmCount/${apps.size} apps categorized",
             )
 
             // Get uncategorized apps for built-in stage (FALLBACK)
