@@ -401,10 +401,13 @@ Available Categories:
 ${availableCategories.joinToString("\n") { "- $it" }}
 
 Instructions:
-1. Analyze the app's name, package, and description
-2. Choose the MOST appropriate category from the list above
-3. Provide a confidence score (0.0 to 1.0)
-4. Give a brief 1-sentence reason for your choice
+1. Analyze the app's name, package, and description carefully
+2. Choose the MOST SPECIFIC and appropriate category from the list above
+3. Prefer narrower, more specific categories over broad parent categories
+   - Example: "Notes" is better than "Productivity" for note-taking apps
+   - Example: "Finance" is better than "Utilities" for banking apps
+4. Provide a confidence score (0.0 to 1.0)
+5. Give a brief 1-sentence reason for your choice
 
 Respond ONLY in this JSON format:
 {
@@ -474,10 +477,14 @@ Available Categories:
 ${availableCategories.joinToString("\n") { "- $it" }}
 
 Instructions:
-1. Analyze each app's name, package, and description
-2. Choose the MOST appropriate category from the list above for each app
-3. Provide a confidence score (0.0 to 1.0) for each
-4. Give a brief 1-sentence reason for each choice
+1. Analyze each app's name, package, and description carefully
+2. Choose the MOST SPECIFIC and appropriate category from the list above for each app
+3. Prefer narrower, more specific categories over broad parent categories
+   - Example: "Notes" is better than "Productivity" for note-taking apps
+   - Example: "Finance" is better than "Utilities" for banking apps
+   - Example: "Shopping" is better than "Lifestyle" for shopping apps
+4. Provide a confidence score (0.0 to 1.0) for each
+5. Give a brief 1-sentence reason for each choice
 
 Respond ONLY in this JSON format:
 {
