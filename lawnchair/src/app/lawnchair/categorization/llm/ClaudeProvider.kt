@@ -59,7 +59,7 @@ class ClaudeProvider(
 
             // Make a minimal API call to test connectivity
             val testPrompt = "Respond with 'OK'"
-            val response = callClaudeAPI(testPrompt)
+            val response = callClaudeAPIWithFallback(testPrompt)
 
             val latency = System.currentTimeMillis() - startTime
 
@@ -170,7 +170,7 @@ class ClaudeProvider(
             )
 
             val prompt = buildPrompt(appName, appPackage, appDescription, availableCategories)
-            val response = callClaudeAPI(prompt)
+            val response = callClaudeAPIWithFallback(prompt)
             val result = parseResponse(response, availableCategories)
 
             LLMLogger.logInfo(
@@ -215,7 +215,7 @@ class ClaudeProvider(
             )
 
             val prompt = buildBatchPrompt(apps, availableCategories)
-            val response = callClaudeAPI(prompt)
+            val response = callClaudeAPIWithFallback(prompt)
             val results = parseBatchResponse(response, apps, availableCategories)
 
             LLMLogger.logInfo(
@@ -285,7 +285,7 @@ class ClaudeProvider(
             )
 
             val prompt = buildSuggestionPrompt(installedApps, existingCategories, maxSuggestions)
-            val response = callClaudeAPI(prompt)
+            val response = callClaudeAPIWithFallback(prompt)
             val suggestions = parseSuggestionResponse(response)
 
             LLMLogger.logInfo(
@@ -309,6 +309,88 @@ class ClaudeProvider(
             )
             throw LLMException("Claude category suggestion failed: ${e.message}", e)
         }
+    }
+
+    /**
+     * Calls Claude API with automatic model fallback.
+     * Tries the preferred model first, then falls back to other available models if it fails.
+     */
+    private fun callClaudeAPIWithFallback(prompt: String): String {
+        // Get list of available models for this provider
+        val availableModels = ModelRegistry.getAvailableModels("claude")
+
+        // Start with the effective (preferred) model
+        val modelsToTry = listOf(effectiveModel) +
+            availableModels.map { it.id }.filter { it != effectiveModel }
+
+        var lastException: Exception? = null
+
+        for ((index, model) in modelsToTry.withIndex()) {
+            try {
+                android.util.Log.d(TAG, "Attempting API call with model: $model (attempt ${index + 1}/${modelsToTry.size})")
+
+                val response = callClaudeAPI(prompt, model)
+
+                // If we succeeded with a non-preferred model, log it
+                if (model != effectiveModel) {
+                    LLMLogger.logWarning(
+                        provider = name,
+                        operation = "MODEL_FALLBACK",
+                        message = "Successfully used fallback model: $model",
+                        details = mapOf(
+                            "preferredModel" to effectiveModel,
+                            "fallbackModel" to model,
+                            "attemptNumber" to (index + 1),
+                        ),
+                    )
+                }
+
+                return response
+            } catch (e: Exception) {
+                lastException = e
+
+                // Check if error is model-specific (not found, deprecated, etc.)
+                val errorMessage = e.message ?: ""
+                val isModelSpecificError = errorMessage.contains("model", ignoreCase = true) ||
+                    errorMessage.contains("not found", ignoreCase = true) ||
+                    errorMessage.contains("deprecated", ignoreCase = true) ||
+                    errorMessage.contains("unavailable", ignoreCase = true) ||
+                    errorMessage.contains("invalid_model", ignoreCase = true)
+
+                if (isModelSpecificError && index < modelsToTry.size - 1) {
+                    LLMLogger.logWarning(
+                        provider = name,
+                        operation = "MODEL_FALLBACK",
+                        message = "Model $model failed, trying next model",
+                        details = mapOf(
+                            "failedModel" to model,
+                            "error" to errorMessage,
+                            "nextModel" to modelsToTry[index + 1],
+                        ),
+                    )
+                    continue
+                } else if (!isModelSpecificError) {
+                    // Non-model errors (auth, network, etc.) should fail immediately
+                    throw e
+                }
+            }
+        }
+
+        // All models failed
+        LLMLogger.logError(
+            provider = name,
+            operation = "MODEL_FALLBACK",
+            error = lastException ?: Exception("All models failed"),
+            context = mapOf(
+                "triedModels" to modelsToTry.joinToString(),
+                "totalAttempts" to modelsToTry.size,
+            ),
+        )
+
+        throw LLMException(
+            "All available Claude models failed. Last error: ${lastException?.message}",
+            lastException,
+        )
     }
 
     private fun buildPrompt(
@@ -425,7 +507,7 @@ Respond ONLY in this JSON format:
         """.trimIndent()
     }
 
-    private fun callClaudeAPI(prompt: String): String {
+    private fun callClaudeAPI(prompt: String, model: String = effectiveModel): String {
         val startTime = System.currentTimeMillis()
         val endpoint = "https://api.anthropic.com/v1/messages"
         val url = URL(endpoint)
@@ -439,7 +521,7 @@ Respond ONLY in this JSON format:
             connection.doOutput = true
 
             val requestBody = JSONObject().apply {
-                put("model", effectiveModel)
+                put("model", model)
                 put("max_tokens", 1024)
                 put(
                     "messages",
