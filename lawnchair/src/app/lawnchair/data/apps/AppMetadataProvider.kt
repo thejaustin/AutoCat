@@ -32,6 +32,7 @@ class AppMetadataProvider(private val context: Context) {
                         label = appInfo.loadLabel(packageManager).toString(),
                         category = getCategoryCompat(appInfo),
                         installedTime = getInstallTimeCompat(appInfo.packageName),
+                        description = getAppDescription(appInfo.packageName),
                     )
                 } catch (e: Exception) {
                     // Skip apps we can't read metadata for
@@ -55,6 +56,7 @@ class AppMetadataProvider(private val context: Context) {
                 label = appInfo.loadLabel(packageManager).toString(),
                 category = getCategoryCompat(appInfo),
                 installedTime = getInstallTimeCompat(packageName),
+                description = getAppDescription(packageName),
             )
         } catch (e: PackageManager.NameNotFoundException) {
             null
@@ -92,6 +94,34 @@ class AppMetadataProvider(private val context: Context) {
             packageInfo.firstInstallTime
         } catch (e: Exception) {
             System.currentTimeMillis()
+        }
+    }
+
+    /**
+     * Extracts app description from PackageManager metadata.
+     *
+     * Tries to get the description from:
+     * 1. Application description (if available)
+     * 2. Package summary text
+     *
+     * @param packageName The package to query
+     * @return Description string if available, null otherwise
+     */
+    private fun getAppDescription(packageName: String): String? {
+        return try {
+            val appInfo = packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+
+            // Try to load description from CharSequence
+            val description = appInfo.loadDescription(packageManager)
+            if (description != null && description.isNotEmpty()) {
+                return description.toString().trim()
+            }
+
+            // Fallback: return null if no description available
+            null
+        } catch (e: Exception) {
+            // Description not available or error reading
+            null
         }
     }
 

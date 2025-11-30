@@ -14,7 +14,7 @@ import app.lawnchair.data.category.entities.CustomCategory
  * - App categorization data (which apps belong to which categories)
  * - Custom category definitions (user-created categories with colors and ordering)
  *
- * Database version: 1
+ * Database version: 2 (added reasoning field to AppCategory)
  * Export schema: false (disabled for development, will enable for production)
  */
 @Database(
@@ -22,7 +22,7 @@ import app.lawnchair.data.category.entities.CustomCategory
         AppCategory::class,
         CustomCategory::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class CategoryDatabase : RoomDatabase() {

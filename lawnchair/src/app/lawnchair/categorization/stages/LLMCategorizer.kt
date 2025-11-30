@@ -91,7 +91,7 @@ class LLMCategorizer(
                 val result = provider.categorizeApp(
                     appName = appInfo.label,
                     appPackage = appInfo.packageName,
-                    appDescription = null, // TODO: Add description from metadata provider
+                    appDescription = appInfo.description,
                     availableCategories = categoryNames,
                 )
 
@@ -111,6 +111,7 @@ class LLMCategorizer(
                     confidence = result.confidence,
                     source = AppCategory.SOURCE_LLM,
                     isUserOverride = false,
+                    reasoning = result.reasoning,
                 )
 
                 categoryDao.insertAppCategory(appCategory)
@@ -247,7 +248,7 @@ class LLMCategorizer(
                             AppBatchInfo(
                                 packageName = app.packageName,
                                 appName = app.label,
-                                appDescription = null,
+                                appDescription = app.description,
                             )
                         }
 
@@ -300,9 +301,29 @@ class LLMCategorizer(
                                 confidence = result.confidence,
                                 source = AppCategory.SOURCE_LLM,
                                 isUserOverride = false,
+                                reasoning = result.reasoning,
                             )
                             categoryDao.insertAppCategory(appCategory)
                             categorizedCount++
+
+                            // Update progress immediately after each app
+                            onProgress?.invoke(
+                                CategorizationProgress(
+                                    isRunning = true,
+                                    currentStage = "LLM Categorization",
+                                    processedCount = categorizedCount,
+                                    totalCount = apps.size,
+                                    currentBatch = currentBatchIndex,
+                                    totalBatches = totalBatches,
+                                    batchSize = batchSize,
+                                    currentProvider = primary.name,
+                                    estimatedTimeMs = calculateEstimatedTime(
+                                        currentBatchIndex,
+                                        totalBatches,
+                                        startTime,
+                                    ),
+                                ),
+                            )
 
                             android.util.Log.d(
                                 TAG,

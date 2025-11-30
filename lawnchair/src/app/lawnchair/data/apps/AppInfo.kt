@@ -10,10 +10,12 @@ package app.lawnchair.data.apps
  * @property label User-visible app name
  * @property category Android system category (API 26+), null if not set
  * @property installedTime Installation timestamp (milliseconds since epoch)
+ * @property description App description from metadata (null if not available)
  */
 data class AppInfo(
     val packageName: String,
     val label: String,
     val category: Int?,
     val installedTime: Long,
+    val description: String? = null,
 )

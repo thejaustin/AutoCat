@@ -16,6 +16,7 @@ import androidx.room.PrimaryKey
  * @property source The categorization source: "built-in", "rule", "ml", or "user"
  * @property isUserOverride If true, prevents automatic re-categorization
  * @property lastUpdated Timestamp of last categorization update (milliseconds since epoch)
+ * @property reasoning LLM explanation for why the app was categorized (null for non-LLM sources)
  */
 @Entity(tableName = "app_categories")
 data class AppCategory(
@@ -37,6 +38,9 @@ data class AppCategory(
 
     @ColumnInfo(name = "last_updated")
     val lastUpdated: Long = System.currentTimeMillis(),
+
+    @ColumnInfo(name = "reasoning")
+    val reasoning: String? = null,
 ) {
     companion object {
         const val SOURCE_BUILT_IN = "built-in"
