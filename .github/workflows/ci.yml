@@ -30,10 +30,22 @@ jobs:
   build-debug-apk:
     runs-on: ubuntu-latest
     continue-on-error: true
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           submodules: true
+          fetch-depth: 1
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-ccache
+          max-size: 2G
       - uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
@@ -52,7 +64,11 @@ jobs:
             echo "${{ secrets.KEYSTORE }}" | base64 --decode > ${{ github.workspace }}/key.jks
           fi
       - name: Build debug APK
-        run: ./gradlew assembleLawnWithQuickstepGithubDebug
+        run: |
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./gradlew assembleLawnWithQuickstepGithubDebug --parallel --build-cache
+        env:
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
       - name: Upload artifact
         uses: actions/upload-artifact@v5
         with:
