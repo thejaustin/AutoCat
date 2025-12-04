@@ -67,6 +67,11 @@ fun ExperimentalFeaturesPreferences(
                 label = stringResource(R.string.show_deck_layout),
                 description = stringResource(R.string.show_deck_layout_description),
             )
+            SwitchPreference(
+                adapter = prefs.autoCatDevMode.getAdapter(),
+                label = "AutoCat Developer Mode",
+                description = "Show detailed diagnostics and error logs in categorization screens",
+            )
 
             val context = LocalContext.current
             val enableWallpaperBlur = prefs.enableWallpaperBlur.getAdapter()
