@@ -332,25 +332,6 @@ class LLMCategorizer(
                             categoryDao.insertAppCategory(appCategory)
                             categorizedCount++
 
-                            // Update progress immediately after each app
-                            onProgress?.invoke(
-                                CategorizationProgress(
-                                    isRunning = true,
-                                    currentStage = "LLM Categorization",
-                                    processedCount = categorizedCount,
-                                    totalCount = apps.size,
-                                    currentBatch = currentBatchIndex,
-                                    totalBatches = totalBatches,
-                                    batchSize = batchSize,
-                                    currentProvider = primary.name,
-                                    estimatedTimeMs = calculateEstimatedTime(
-                                        currentBatchIndex,
-                                        totalBatches,
-                                        startTime,
-                                    ),
-                                ),
-                            )
-
                             android.util.Log.d(
                                 TAG,
                                 "Batch: $packageName → ${result.category} (${result.confidence})",
