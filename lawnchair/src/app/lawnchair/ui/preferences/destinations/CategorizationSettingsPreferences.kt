@@ -1,20 +1,18 @@
 package app.lawnchair.ui.preferences.destinations
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,8 +22,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.CategorizationManager
+import app.lawnchair.data.category.CategoryDatabase
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
@@ -34,7 +34,9 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun CategorizationSettingsPreferences(
@@ -45,6 +47,7 @@ fun CategorizationSettingsPreferences(
     val scope = rememberCoroutineScope()
     val categorizationManager = remember { CategorizationManager.getInstance(context) }
     val progress by categorizationManager.progress.collectAsState()
+    val categoryDao = remember { CategoryDatabase.getInstance(context).categoryDao() }
     var categorizationStatus by remember { mutableStateOf("") }
 
     PreferenceScaffold(
@@ -240,6 +243,111 @@ fun CategorizationSettingsPreferences(
                                     MaterialTheme.colorScheme.onSurface
                                 },
                             )
+                        }
+
+                        // Developer Diagnostics (only when dev mode enabled)
+                        if (prefs.autoCatDevMode.get()) {
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            var showDiagnostics by remember { mutableStateOf(false) }
+
+                            OutlinedButton(
+                                onClick = { showDiagnostics = !showDiagnostics },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Icon(
+                                    imageVector = if (showDiagnostics) {
+                                        Icons.Default.ExpandLess
+                                    } else {
+                                        Icons.Default.ExpandMore
+                                    },
+                                    contentDescription = null,
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(if (showDiagnostics) "Hide Diagnostics" else "Show Diagnostics")
+                            }
+
+                            if (showDiagnostics) {
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    shape = MaterialTheme.shapes.medium,
+                                ) {
+                                    Column(modifier = Modifier.padding(12.dp)) {
+                                        Text(
+                                            text = "🔧 Developer Diagnostics",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                        )
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        // Current Progress Stats
+                                        Text(
+                                            text = "Current Progress:",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                        Text(
+                                            text = "• Stage: ${progress.currentStage}\n" +
+                                                "• Processed: ${progress.processedCount}/${progress.totalCount}\n" +
+                                                "• Batch: ${progress.currentBatch}/${progress.totalBatches}\n" +
+                                                "• Provider: ${progress.currentProvider ?: "N/A"}\n" +
+                                                "• Batch Size: ${progress.batchSize}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                        )
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        // Database Stats
+                                        var dbStats by remember { mutableStateOf("Loading...") }
+                                        LaunchedEffect(Unit) {
+                                            withContext(Dispatchers.IO) {
+                                                val totalCategorized = categoryDao.getAllAppCategories().size
+                                                val userOverrides = categoryDao.getUserOverriddenApps().size
+                                                val llmCategorized = categoryDao.getAppsBySource("llm").size
+                                                val builtInCategorized = categoryDao.getAppsBySource("built-in").size
+
+                                                dbStats = "• Total categorized: $totalCategorized\n" +
+                                                    "• LLM categorized: $llmCategorized\n" +
+                                                    "• Built-in categorized: $builtInCategorized\n" +
+                                                    "• User overrides: $userOverrides"
+                                            }
+                                        }
+
+                                        Text(
+                                            text = "Database Stats:",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                        Text(
+                                            text = dbStats,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                        )
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        // Settings Info
+                                        Text(
+                                            text = "Settings:",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                        Text(
+                                            text = "• Batching: ${if (prefs.llmEnableBatching.get()) "Enabled" else "Disabled"}\n" +
+                                                "• Batch size: ${if (prefs.llmBatchSize.get() == 0) "Auto" else prefs.llmBatchSize.get()}\n" +
+                                                "• Folder sync: ${if (prefs.autoCatSyncFolders.get()) "Enabled" else "Disabled"}\n" +
+                                                "• Provider: ${prefs.llmProviderPreference.get()}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                        )
+                                    }
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
