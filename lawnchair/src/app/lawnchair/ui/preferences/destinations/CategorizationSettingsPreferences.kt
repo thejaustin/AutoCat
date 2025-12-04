@@ -1,10 +1,14 @@
 package app.lawnchair.ui.preferences.destinations
 
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,18 +16,32 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,20 +52,38 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategorizationManager
+import app.lawnchair.categorization.CategoryFolderSyncService
 import app.lawnchair.categorization.importer.SmartLauncherImporter
 import app.lawnchair.categorization.importer.SmartLauncherImporter.ImportResult
+import app.lawnchair.categorization.llm.ClaudeProvider
+import app.lawnchair.categorization.llm.GoogleAIProvider
+import app.lawnchair.categorization.llm.ModelRegistry
+import app.lawnchair.categorization.llm.OpenAIProvider
+import app.lawnchair.categorization.llm.PerplexityProvider
+import app.lawnchair.categorization.llm.SuggestedCategory
+import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.category.CategoryDatabase
+import app.lawnchair.data.category.entities.AppCategory
+import app.lawnchair.data.category.entities.CustomCategory
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import app.lawnchair.ui.preferences.components.controls.ListPreference
+import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
+import app.lawnchair.ui.preferences.components.controls.TextPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -63,7 +99,29 @@ fun CategorizationSettingsPreferences(
     val categorizationManager = remember { CategorizationManager.getInstance(context) }
     val progress by categorizationManager.progress.collectAsState()
     val categoryDao = remember { CategoryDatabase.getInstance(context).categoryDao() }
+    val packageManager = context.packageManager
+    val folderSyncService = remember { CategoryFolderSyncService(context) }
+    val appProvider = remember { AutoCatAppProvider.getInstance(context) }
+
     var categorizationStatus by remember { mutableStateOf("") }
+    var testStatus by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+
+    // Category management state
+    var categories by remember { mutableStateOf<List<CustomCategory>>(emptyList()) }
+    var showAddCategoryDialog by remember { mutableStateOf(false) }
+    var editingCategory by remember { mutableStateOf<CustomCategory?>(null) }
+    var showSuggestionsDialog by remember { mutableStateOf(false) }
+    var suggestedCategories by remember { mutableStateOf<List<SuggestedCategory>>(emptyList()) }
+    var isLoadingSuggestions by remember { mutableStateOf(false) }
+    var suggestionsError by remember { mutableStateOf<String?>(null) }
+    var suggestionsProvider by remember { mutableStateOf<String?>(null) }
+    var successMessage by remember { mutableStateOf<String?>(null) }
+
+    // App categorization state
+    var categorizations by remember { mutableStateOf<List<AppCategory>>(emptyList()) }
+    var groupedCategories by remember { mutableStateOf<Map<String, List<AppCategory>>>(emptyMap()) }
+    var expandedCategories by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var editingApp by remember { mutableStateOf<AppCategory?>(null) }
 
     val slImportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -81,13 +139,498 @@ fun CategorizationSettingsPreferences(
         }
     }
 
+    // Load data
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            categories = categoryDao.getAllCustomCategories()
+            categorizations = categoryDao.getAllAppCategories()
+            groupedCategories = categorizations.groupBy { it.category }
+        }
+    }
+
     PreferenceScaffold(
-        label = "Categorization Settings",
+        label = "Categorization",
         modifier = modifier,
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
         PreferenceLazyColumn(it) {
-            // Batch Processing Settings
+            // ===== MANAGE CATEGORIES SECTION =====
+            item {
+                PreferenceGroup(heading = "Manage Categories") {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Create custom categories for organizing your apps. The LLM will learn to auto-assign apps to these categories.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
+            // Category list
+            items(categories, key = { it.id }) { category ->
+                CategoryItem(
+                    category = category,
+                    onEdit = { editingCategory = it },
+                    onDelete = {
+                        scope.launch {
+                            categoryDao.deleteCustomCategory(it)
+                            categories = categoryDao.getAllCustomCategories()
+                            categorizations = categoryDao.getAllAppCategories()
+                            groupedCategories = categorizations.groupBy { cat -> cat.category }
+                        }
+                    },
+                )
+            }
+
+            // Category management buttons
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(onClick = { showAddCategoryDialog = true }) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Category")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Add Category")
+                    }
+
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                isLoadingSuggestions = true
+                                suggestionsError = null
+                                successMessage = null
+                                try {
+                                    val prefManager = preferenceManager()
+                                    val preferredProviderId = prefManager.llmProviderPreference.get()
+
+                                    val googleProvider = GoogleAIProvider(context)
+                                    val allProviderMap = mapOf(
+                                        "google_ai" to googleProvider,
+                                        "claude" to ClaudeProvider(context),
+                                        "openai" to OpenAIProvider(context),
+                                        "perplexity" to PerplexityProvider(context),
+                                    )
+
+                                    val primary = allProviderMap[preferredProviderId] ?: googleProvider
+                                    val fallbacks = allProviderMap.values.filter { provider -> provider.name != primary.name }
+                                    val providers = listOf(primary) + fallbacks
+
+                                    val metadataProvider = AppMetadataProvider(context)
+                                    val installedApps = metadataProvider.getInstalledApps()
+
+                                    if (installedApps.isEmpty()) {
+                                        suggestionsError = "No apps found to analyze"
+                                        return@launch
+                                    }
+
+                                    val appNames = installedApps.map { app -> app.label }
+                                    val existingCategories = categories.map { cat -> cat.name }
+
+                                    var lastError: Exception? = null
+                                    for (provider in providers) {
+                                        try {
+                                            if (!provider.isAvailable()) continue
+
+                                            suggestedCategories = provider.suggestCategories(
+                                                installedApps = appNames,
+                                                existingCategories = existingCategories,
+                                                maxSuggestions = 5,
+                                            )
+
+                                            if (suggestedCategories.isEmpty()) {
+                                                suggestionsError = "No new categories suggested. You may already have all the useful categories for your apps!"
+                                            } else {
+                                                suggestionsProvider = provider.name
+                                                showSuggestionsDialog = true
+                                            }
+                                            return@launch
+                                        } catch (e: Exception) {
+                                            lastError = e
+                                        }
+                                    }
+
+                                    suggestionsError = "All LLM providers failed. Please configure at least one API key in LLM Settings.\nLast error: ${lastError?.message}"
+                                } catch (e: Exception) {
+                                    suggestionsError = "Error: ${e.message}"
+                                } finally {
+                                    isLoadingSuggestions = false
+                                }
+                            }
+                        },
+                        enabled = !isLoadingSuggestions,
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "AI Suggestions")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(if (isLoadingSuggestions) "Analyzing..." else "Get AI Suggestions")
+                    }
+
+                    if (suggestionsError != null) {
+                        Text(
+                            text = suggestionsError!!,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    }
+
+                    if (successMessage != null) {
+                        Text(
+                            text = successMessage!!,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    }
+                }
+            }
+
+            // ===== APP CATEGORIZATIONS SECTION =====
+            item {
+                PreferenceGroup(heading = "App Categorizations") {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "View and override app categorizations grouped by category. Tap a category to expand and see apps. Changes help improve future categorization.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
+            // Grouped categorizations by category
+            groupedCategories.forEach { (categoryName, apps) ->
+                item(key = "category_$categoryName") {
+                    CategoryGroupHeader(
+                        categoryName = categoryName,
+                        appCount = apps.size,
+                        isExpanded = expandedCategories.contains(categoryName),
+                        onToggleExpanded = {
+                            expandedCategories = if (expandedCategories.contains(categoryName)) {
+                                expandedCategories - categoryName
+                            } else {
+                                expandedCategories + categoryName
+                            }
+                        },
+                    )
+                }
+
+                // Show apps when expanded
+                if (expandedCategories.contains(categoryName)) {
+                    items(apps, key = { app -> app.packageName }) { appCategory ->
+                        AppCategorizationItem(
+                            appCategory = appCategory,
+                            packageManager = packageManager,
+                            onEditClick = { editingApp = appCategory },
+                        )
+                    }
+                }
+            }
+
+            // ===== LLM SETTINGS SECTION =====
+            item {
+                PreferenceGroup(heading = "LLM Providers") {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Configure LLM providers for intelligent app categorization. AutoCat uses AI to automatically assign apps to your custom categories.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
+            // Provider Selection
+            item {
+                PreferenceGroup {
+                    ListPreference(
+                        adapter = prefs.llmProviderPreference.getAdapter(),
+                        label = "Preferred LLM Provider",
+                        entries = listOf(
+                            ListPreferenceEntry(
+                                value = "google_ai",
+                                label = { "Google AI (Gemini 2.0 Flash)" },
+                            ),
+                            ListPreferenceEntry(
+                                value = "claude",
+                                label = { "Anthropic Claude 3.5" },
+                            ),
+                            ListPreferenceEntry(
+                                value = "openai",
+                                label = { "OpenAI GPT" },
+                            ),
+                            ListPreferenceEntry(
+                                value = "perplexity",
+                                label = { "Perplexity (Llama 3.1)" },
+                            ),
+                        ),
+                    )
+                }
+            }
+
+            // Google AI Configuration
+            item {
+                PreferenceGroup(heading = "Google AI (Gemini) - Free Tier") {
+                    TextPreference(
+                        adapter = prefs.llmGoogleAIKey.getAdapter(),
+                        label = "Google AI API Key ${if (prefs.llmGoogleAIKey.get().isNotEmpty()) "✓" else ""}",
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ListPreference(
+                        adapter = prefs.llmGoogleAIModel.getAdapter(),
+                        label = "Gemini Model",
+                        entries = ModelRegistry.getAvailableModels("google_ai").map { model ->
+                            ListPreferenceEntry(
+                                value = model.id,
+                                label = { "${model.displayName} - ${model.speedTier.name}" },
+                            )
+                        },
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                val provider = GoogleAIProvider(context)
+                                val result = provider.testConnection()
+                                testStatus = testStatus + (
+                                    "google_ai" to if (result.success) {
+                                        "✅ Connected (${result.latencyMs}ms)"
+                                    } else {
+                                        "❌ ${result.message}"
+                                    }
+                                    )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    ) {
+                        Text("Test Google AI Connection")
+                    }
+
+                    testStatus["google_ai"]?.let { status ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = status,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (status.startsWith("✅")) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.error
+                            },
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Get your free API key at ai.google.dev/gemini-api",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
+            }
+
+            // Claude Configuration
+            item {
+                PreferenceGroup(heading = "Anthropic Claude") {
+                    TextPreference(
+                        adapter = prefs.llmClaudeKey.getAdapter(),
+                        label = "Claude API Key ${if (prefs.llmClaudeKey.get().isNotEmpty()) "✓" else ""}",
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ListPreference(
+                        adapter = prefs.llmClaudeModel.getAdapter(),
+                        label = "Claude Model",
+                        entries = ModelRegistry.getAvailableModels("claude").map { model ->
+                            ListPreferenceEntry(
+                                value = model.id,
+                                label = { "${model.displayName} - ${model.costTier.name}" },
+                            )
+                        },
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                val provider = ClaudeProvider(context)
+                                val result = provider.testConnection()
+                                testStatus = testStatus + (
+                                    "claude" to if (result.success) {
+                                        "✅ Connected (${result.latencyMs}ms)"
+                                    } else {
+                                        "❌ ${result.message}"
+                                    }
+                                    )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    ) {
+                        Text("Test Claude Connection")
+                    }
+
+                    testStatus["claude"]?.let { status ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = status,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (status.startsWith("✅")) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.error
+                            },
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    }
+                }
+            }
+
+            // OpenAI Configuration
+            item {
+                PreferenceGroup(heading = "OpenAI (ChatGPT)") {
+                    TextPreference(
+                        adapter = prefs.llmOpenAIKey.getAdapter(),
+                        label = "OpenAI API Key ${if (prefs.llmOpenAIKey.get().isNotEmpty()) "✓" else ""}",
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ListPreference(
+                        adapter = prefs.llmOpenAIModel.getAdapter(),
+                        label = "OpenAI Model",
+                        entries = ModelRegistry.getAvailableModels("openai").map { model ->
+                            ListPreferenceEntry(
+                                value = model.id,
+                                label = { "${model.displayName} - ${model.costTier.name}" },
+                            )
+                        },
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                val provider = OpenAIProvider(context)
+                                val result = provider.testConnection()
+                                testStatus = testStatus + (
+                                    "openai" to if (result.success) {
+                                        "✅ Connected (${result.latencyMs}ms)"
+                                    } else {
+                                        "❌ ${result.message}"
+                                    }
+                                    )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    ) {
+                        Text("Test OpenAI Connection")
+                    }
+
+                    testStatus["openai"]?.let { status ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = status,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (status.startsWith("✅")) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.error
+                            },
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    }
+                }
+            }
+
+            // Perplexity Configuration
+            item {
+                PreferenceGroup(heading = "Perplexity") {
+                    TextPreference(
+                        adapter = prefs.llmPerplexityKey.getAdapter(),
+                        label = "Perplexity API Key ${if (prefs.llmPerplexityKey.get().isNotEmpty()) "✓" else ""}",
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ListPreference(
+                        adapter = prefs.llmPerplexityModel.getAdapter(),
+                        label = "Perplexity Model",
+                        entries = ModelRegistry.getAvailableModels("perplexity").map { model ->
+                            ListPreferenceEntry(
+                                value = model.id,
+                                label = { "${model.displayName} - ${model.qualityTier.name}" },
+                            )
+                        },
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                val provider = PerplexityProvider(context)
+                                val result = provider.testConnection()
+                                testStatus = testStatus + (
+                                    "perplexity" to if (result.success) {
+                                        "✅ Connected (${result.latencyMs}ms)"
+                                    } else {
+                                        "❌ ${result.message}"
+                                    }
+                                    )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    ) {
+                        Text("Test Perplexity Connection")
+                    }
+
+                    testStatus["perplexity"]?.let { status ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = status,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (status.startsWith("✅")) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.error
+                            },
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Get your API key at docs.perplexity.ai. If you get a 401 error, verify your API key is correct and active.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    )
+                }
+            }
+
+            // ===== PERFORMANCE SETTINGS SECTION =====
             item {
                 PreferenceGroup(heading = "Performance") {
                     SwitchPreference(
@@ -152,7 +695,7 @@ fun CategorizationSettingsPreferences(
                 }
             }
 
-            // Re-categorize Action (at bottom)
+            // ===== ACTIONS SECTION =====
             item {
                 PreferenceGroup(heading = "Actions") {
                     Column(
@@ -166,6 +709,9 @@ fun CategorizationSettingsPreferences(
                                 scope.launch {
                                     try {
                                         categorizationManager.recategorizeAll()
+                                        categories = categoryDao.getAllCustomCategories()
+                                        categorizations = categoryDao.getAllAppCategories()
+                                        groupedCategories = categorizations.groupBy { cat -> cat.category }
                                         categorizationStatus = "✅ Categorization complete! Check your app drawer."
                                     } catch (e: Exception) {
                                         categorizationStatus = "❌ Error: ${e.message}"
@@ -180,7 +726,6 @@ fun CategorizationSettingsPreferences(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Import Smart Launcher Backup
                         OutlinedButton(
                             onClick = {
                                 slImportLauncher.launch("*/*")
@@ -228,7 +773,6 @@ fun CategorizationSettingsPreferences(
                                 )
                             }
 
-                            // Show batch progress if available
                             if (progress.batchProgressText != null) {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Row(
@@ -288,7 +832,7 @@ fun CategorizationSettingsPreferences(
                             )
                         }
 
-                        // Developer Diagnostics (only when dev mode enabled)
+                        // Developer Diagnostics
                         if (prefs.autoCatDevMode.get()) {
                             Spacer(modifier = Modifier.height(16.dp))
 
@@ -327,7 +871,6 @@ fun CategorizationSettingsPreferences(
 
                                         Spacer(modifier = Modifier.height(8.dp))
 
-                                        // Current Progress Stats
                                         Text(
                                             text = "Current Progress:",
                                             style = MaterialTheme.typography.labelMedium,
@@ -345,7 +888,6 @@ fun CategorizationSettingsPreferences(
 
                                         Spacer(modifier = Modifier.height(8.dp))
 
-                                        // Database Stats
                                         var dbStats by remember { mutableStateOf("Loading...") }
                                         LaunchedEffect(Unit) {
                                             withContext(Dispatchers.IO) {
@@ -374,7 +916,6 @@ fun CategorizationSettingsPreferences(
 
                                         Spacer(modifier = Modifier.height(8.dp))
 
-                                        // Settings Info
                                         Text(
                                             text = "Settings:",
                                             style = MaterialTheme.typography.labelMedium,
@@ -407,5 +948,566 @@ fun CategorizationSettingsPreferences(
                 }
             }
         }
+    }
+
+    // Category Add/Edit Dialog
+    if (showAddCategoryDialog || editingCategory != null) {
+        CategoryDialog(
+            category = editingCategory,
+            onDismiss = {
+                showAddCategoryDialog = false
+                editingCategory = null
+            },
+            onSave = { name, color ->
+                scope.launch {
+                    if (editingCategory != null) {
+                        categoryDao.updateCustomCategory(
+                            editingCategory!!.copy(
+                                name = name,
+                                colorHex = color,
+                            ),
+                        )
+                        successMessage = "✓ Category '$name' updated"
+                    } else {
+                        val maxSortOrder = categories.maxOfOrNull { cat -> cat.sortOrder } ?: 0
+                        categoryDao.insertCustomCategory(
+                            CustomCategory(
+                                name = name,
+                                colorHex = color,
+                                sortOrder = maxSortOrder + 1,
+                                isVisible = true,
+                            ),
+                        )
+                        successMessage = "✓ Category '$name' created! Use 'Re-categorize All Apps' to assign apps."
+                    }
+                    categories = categoryDao.getAllCustomCategories()
+                    categorizations = categoryDao.getAllAppCategories()
+                    groupedCategories = categorizations.groupBy { cat -> cat.category }
+                    appProvider.refreshCache()
+                    showAddCategoryDialog = false
+                    editingCategory = null
+                    suggestionsError = null
+                }
+            },
+        )
+    }
+
+    // Suggestions Dialog
+    if (showSuggestionsDialog) {
+        SuggestionsDialog(
+            suggestions = suggestedCategories,
+            providerName = suggestionsProvider,
+            onDismiss = { showSuggestionsDialog = false },
+            onAddCategory = { suggestion ->
+                scope.launch {
+                    val maxSortOrder = categories.maxOfOrNull { cat -> cat.sortOrder } ?: 0
+                    categoryDao.insertCustomCategory(
+                        CustomCategory(
+                            name = suggestion.name,
+                            colorHex = "#4CAF50",
+                            sortOrder = maxSortOrder + 1,
+                        ),
+                    )
+                    categories = categoryDao.getAllCustomCategories()
+                    categorizations = categoryDao.getAllAppCategories()
+                    groupedCategories = categorizations.groupBy { cat -> cat.category }
+                    appProvider.refreshCache()
+
+                    successMessage = "✓ Added '${suggestion.name}' category! Use 'Re-categorize All Apps' to assign apps."
+                    suggestionsError = null
+                }
+            },
+        )
+    }
+
+    // App Edit Dialog
+    editingApp?.let { app ->
+        CategoryOverrideDialog(
+            appCategory = app,
+            availableCategories = categories.filter { it.isVisible },
+            packageManager = packageManager,
+            onDismiss = { editingApp = null },
+            onSave = { newCategory ->
+                scope.launch(Dispatchers.IO) {
+                    val updated = app.copy(
+                        category = newCategory,
+                        isUserOverride = true,
+                        source = AppCategory.SOURCE_USER,
+                        confidence = 1.0f,
+                        lastUpdated = System.currentTimeMillis(),
+                    )
+                    categoryDao.insertAppCategory(updated)
+
+                    categories = categoryDao.getAllCustomCategories()
+                    categorizations = categoryDao.getAllAppCategories()
+                    groupedCategories = categorizations.groupBy { cat -> cat.category }
+
+                    if (folderSyncService.isSyncEnabled()) {
+                        val allCategories = categoryDao.getAllAppCategories()
+                        val categorizationMap = allCategories.associate { cat -> cat.packageName to cat.category }
+                        folderSyncService.syncCategoriesToFolders(categorizationMap)
+                    }
+
+                    appProvider.refreshCache()
+                    editingApp = null
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun CategoryItem(
+    category: CustomCategory,
+    onEdit: (CustomCategory) -> Unit,
+    onDelete: (CustomCategory) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onEdit(category) }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(
+                        color = parseColor(category.colorHex),
+                        shape = CircleShape,
+                    ),
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = category.name,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+
+        Row {
+            IconButton(onClick = { onEdit(category) }) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+            IconButton(onClick = { onDelete(category) }) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryDialog(
+    category: CustomCategory?,
+    onDismiss: () -> Unit,
+    onSave: (String, String) -> Unit,
+) {
+    var name by remember { mutableStateOf(category?.name ?: "") }
+    var colorHex by remember { mutableStateOf(category?.colorHex ?: "#4CAF50") }
+
+    val predefinedColors = listOf(
+        "#4CAF50" to "Green",
+        "#2196F3" to "Blue",
+        "#FF9800" to "Orange",
+        "#E91E63" to "Pink",
+        "#9C27B0" to "Purple",
+        "#00BCD4" to "Cyan",
+        "#FF5722" to "Red",
+        "#9E9E9E" to "Gray",
+        "#FFC107" to "Amber",
+        "#3F51B5" to "Indigo",
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (category == null) "Add Category" else "Edit Category") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Category Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                Text("Color", style = MaterialTheme.typography.labelMedium)
+                Spacer(modifier = Modifier.padding(4.dp))
+
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    predefinedColors.chunked(5).forEach { row ->
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            row.forEach { (color, _) ->
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .background(
+                                            color = parseColor(color),
+                                            shape = CircleShape,
+                                        )
+                                        .clickable { colorHex = color },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    if (colorHex == color) {
+                                        Icon(
+                                            Icons.Default.Add,
+                                            contentDescription = "Selected",
+                                            tint = Color.White,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(name, colorHex) },
+                enabled = name.isNotBlank(),
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+    )
+}
+
+@Composable
+private fun SuggestionsDialog(
+    suggestions: List<SuggestedCategory>,
+    providerName: String?,
+    onDismiss: () -> Unit,
+    onAddCategory: (SuggestedCategory) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Column {
+                Text("AI Category Suggestions")
+                if (providerName != null) {
+                    Text(
+                        text = "Powered by $providerName",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "Based on your installed apps, here are some suggested categories:",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+
+                if (suggestions.isEmpty()) {
+                    Text(
+                        text = "No suggestions available. Make sure you have enough apps installed.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    suggestions.forEach { suggestion ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = suggestion.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                TextButton(onClick = { onAddCategory(suggestion) }) {
+                                    Text("Add")
+                                }
+                            }
+
+                            Text(
+                                text = suggestion.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+
+                            if (suggestion.exampleApps.isNotEmpty()) {
+                                Text(
+                                    text = "Examples: ${suggestion.exampleApps.take(3).joinToString(", ")}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(top = 2.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close")
+            }
+        },
+    )
+}
+
+@Composable
+private fun CategoryGroupHeader(
+    categoryName: String,
+    appCount: Int,
+    isExpanded: Boolean,
+    onToggleExpanded: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggleExpanded)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = MaterialTheme.shapes.small,
+            )
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = categoryName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = "$appCount ${if (appCount == 1) "app" else "apps"}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        Icon(
+            imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+            contentDescription = if (isExpanded) "Collapse" else "Expand",
+            tint = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
+@Composable
+private fun AppCategorizationItem(
+    appCategory: AppCategory,
+    packageManager: PackageManager,
+    onEditClick: () -> Unit,
+) {
+    val appName = remember(appCategory.packageName) {
+        try {
+            val appInfo = packageManager.getApplicationInfo(appCategory.packageName, 0)
+            appInfo.loadLabel(packageManager).toString()
+        } catch (e: Exception) {
+            appCategory.packageName
+        }
+    }
+
+    val appIcon = remember(appCategory.packageName) {
+        try {
+            packageManager.getApplicationIcon(appCategory.packageName)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onEditClick)
+            .padding(horizontal = 32.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (appIcon != null) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(appIcon)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = appName,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (appCategory.isUserOverride) {
+                    Text(
+                        text = "Override",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                }
+
+                Text(
+                    text = "${(appCategory.confidence * 100).toInt()}%",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            if (!appCategory.reasoning.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = appCategory.reasoning,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontStyle = FontStyle.Italic,
+                )
+            }
+        }
+
+        IconButton(onClick = onEditClick) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Edit category",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CategoryOverrideDialog(
+    appCategory: AppCategory,
+    availableCategories: List<CustomCategory>,
+    packageManager: PackageManager,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
+    val appName = remember(appCategory.packageName) {
+        try {
+            val appInfo = packageManager.getApplicationInfo(appCategory.packageName, 0)
+            appInfo.loadLabel(packageManager).toString()
+        } catch (e: Exception) {
+            appCategory.packageName
+        }
+    }
+
+    var selectedCategory by remember { mutableStateOf(appCategory.category) }
+    var expanded by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text("Change Category")
+        },
+        text = {
+            Column {
+                Text(
+                    text = "Change category for $appName",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                ) {
+                    OutlinedTextField(
+                        value = selectedCategory,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Category") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                    ) {
+                        availableCategories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category.name) },
+                                onClick = {
+                                    selectedCategory = category.name
+                                    expanded = false
+                                },
+                            )
+                        }
+                    }
+                }
+
+                if (!appCategory.reasoning.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Current reasoning:",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = appCategory.reasoning,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontStyle = FontStyle.Italic,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(selectedCategory) },
+                enabled = selectedCategory != appCategory.category,
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+    )
+}
+
+private fun parseColor(hex: String): Color {
+    return try {
+        Color(android.graphics.Color.parseColor(hex))
+    } catch (e: Exception) {
+        Color.Gray
     }
 }
