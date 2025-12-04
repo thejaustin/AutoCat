@@ -28,6 +28,8 @@ on:
 
 jobs:
   build-debug-apk:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     continue-on-error: true
     timeout-minutes: 20
