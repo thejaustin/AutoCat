@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
 import app.lawnchair.data.category.CategoryDatabase
 import app.lawnchair.data.category.entities.AppCategory
+import app.lawnchair.data.category.entities.CustomCategory
 import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
@@ -31,20 +32,29 @@ class SmartLauncherImporter(private val context: Context) {
                 // 2. Try to extract DB from Zip (assuming .slbk structure)
                 var dbFileToUse = tempZipFile
                 var foundInZip = false
+                val iconsDir = File(context.filesDir, "imported_icons").apply { mkdirs() }
 
                 try {
+                    // First pass: Extract DB
                     ZipInputStream(tempZipFile.inputStream()).use { zipIn ->
                         var entry: ZipEntry? = zipIn.nextEntry
                         while (entry != null) {
                             if (entry.name.endsWith("ginlemon.flower.db")) {
-                                // Extract this file
                                 FileOutputStream(tempDbFile).use { output ->
                                     zipIn.copyTo(output)
                                 }
                                 foundInZip = true
                                 dbFileToUse = tempDbFile
-                                break
+                            } 
+                            // Extract icons/images
+                            else if (entry.name.startsWith("icons/") || entry.name.endsWith(".png") || entry.name.endsWith(".jpg")) {
+                                val iconFile = File(iconsDir, entry.name)
+                                iconFile.parentFile?.mkdirs()
+                                FileOutputStream(iconFile).use { output ->
+                                    zipIn.copyTo(output)
+                                }
                             }
+                            
                             zipIn.closeEntry()
                             entry = zipIn.nextEntry
                         }
@@ -84,18 +94,70 @@ class SmartLauncherImporter(private val context: Context) {
                 }
                 catCursor.close()
 
-                // 5. Load Folders (id -> label)
-                val folderMap = mutableMapOf<Int, String>()
-                // Folders are DrawerItems with NULL packageName
-                val folderCursor = slDb.rawQuery("SELECT id, label FROM DrawerItem WHERE packageName IS NULL", null)
+                // 5. Load Folders (id -> label, parentId, icon)
+                data class FolderItem(val id: Int, val label: String, val parentId: Int, val icon: String?)
+                val folderMap = mutableMapOf<Int, FolderItem>()
+                
+                // Try to get columns, handle if they don't exist
+                val folderColumns = try {
+                    val cursor = slDb.rawQuery("PRAGMA table_info(DrawerItem)", null)
+                    val names = mutableListOf<String>()
+                    if (cursor.moveToFirst()) {
+                        do {
+                            names.add(cursor.getString(1)) // name column
+                        } while (cursor.moveToNext())
+                    }
+                    cursor.close()
+                    names
+                } catch (e: Exception) {
+                    listOf("id", "label") // Fallback
+                }
+
+                val hasParentId = folderColumns.contains("parentId")
+                val hasIcon = folderColumns.contains("icon")
+                
+                val query = StringBuilder("SELECT id, label")
+                if (hasParentId) query.append(", parentId")
+                if (hasIcon) query.append(", icon")
+                query.append(" FROM DrawerItem WHERE packageName IS NULL")
+
+                val folderCursor = slDb.rawQuery(query.toString(), null)
                 if (folderCursor.moveToFirst()) {
                     do {
                         val id = folderCursor.getInt(0)
                         val label = folderCursor.getString(1) ?: "Folder $id"
-                        folderMap[id] = label
+                        val parentId = if (hasParentId) folderCursor.getInt(2) else 0
+                        // Icon index depends on whether parentId was selected
+                        val iconIndex = if (hasParentId) 3 else 2
+                        val iconRaw = if (hasIcon && !folderCursor.isNull(iconIndex)) folderCursor.getString(iconIndex) else null
+                        
+                        // Resolve icon path if it exists
+                        val iconPath = if (iconRaw != null) {
+                            val file = File(iconsDir, iconRaw)
+                            if (file.exists()) file.absolutePath else iconRaw
+                        } else null
+                        
+                        folderMap[id] = FolderItem(id, label, parentId, iconPath)
                     } while (folderCursor.moveToNext())
                 }
                 folderCursor.close()
+
+                // Helper to build full category path
+                fun getCategoryPath(folderId: Int): String {
+                    val item = folderMap[folderId] ?: return "Uncategorized"
+                    // Prevent infinite recursion if cycle exists
+                    val visited = mutableSetOf<Int>()
+                    var current = item
+                    var path = item.label
+                    
+                    while (current.parentId != 0 && folderMap.containsKey(current.parentId)) {
+                        if (!visited.add(current.id)) break // Cycle detected
+                        val parent = folderMap[current.parentId]!!
+                        path = "${parent.label} > $path"
+                        current = parent
+                    }
+                    return path
+                }
 
                 // 6. Load Apps and Map them
                 val appsToImport = mutableListOf<AppCategory>()
@@ -109,13 +171,18 @@ class SmartLauncherImporter(private val context: Context) {
                         val categoryId = appCursor.getString(1)
                         val packageName = appCursor.getString(2)
 
-                        // Determine Target Category Name
-                        val targetCategory = if (folderMap.containsKey(parentId)) {
-                            // It's in a folder -> Use Folder Name
-                            folderMap[parentId]!!
+                        // Determine Target Category Name and Icon
+                        var targetCategory = "Uncategorized"
+                        var targetIcon: String? = null
+
+                        if (folderMap.containsKey(parentId)) {
+                            // It's in a folder -> Use Full Folder Path
+                            targetCategory = getCategoryPath(parentId)
+                            // Use the immediate folder's icon
+                            targetIcon = folderMap[parentId]?.icon
                         } else {
                             // It's in the root of a category -> Use Category Name
-                            categoryMap[categoryId] ?: "Uncategorized"
+                            targetCategory = categoryMap[categoryId] ?: "Uncategorized"
                         }
 
                         // Create AppCategory entity
@@ -137,9 +204,48 @@ class SmartLauncherImporter(private val context: Context) {
                 appCursor.close()
                 slDb.close()
 
+                val categoryDao = CategoryDatabase.getInstance(context).categoryDao()
+
+                // 6.5 Ensure all used categories exist in CustomCategory table
+                // Now including icon support
+                val uniqueCategories = appsToImport.map { it.category }.distinct()
+                val existingCategories = categoryDao.getAllCustomCategories()
+                var nextSortOrder = existingCategories.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
+                
+                // Helper to pick a random default color
+                val defaultColors = listOf(
+                    CustomCategory.COLOR_GAMES,
+                    CustomCategory.COLOR_SOCIAL,
+                    CustomCategory.COLOR_PRODUCTIVITY,
+                    CustomCategory.COLOR_TOOLS,
+                    CustomCategory.COLOR_ENTERTAINMENT,
+                    CustomCategory.COLOR_PHOTOGRAPHY,
+                    CustomCategory.COLOR_COMMUNICATION
+                )
+
+                for (categoryName in uniqueCategories) {
+                    val exists = existingCategories.any { it.name.equals(categoryName, ignoreCase = true) }
+                    if (!exists) {
+                        // Find an icon for this category from our imported apps/folders
+                        // We find the first folder that matches this category name (suffix)
+                        // This is an approximation, as category name is a path now
+                        // But usually the icon belongs to the leaf folder
+                        val matchingFolder = folderMap.values.find { getCategoryPath(it.id) == categoryName }
+                        
+                        val newCategory = CustomCategory(
+                            name = categoryName,
+                            colorHex = defaultColors.random(),
+                            sortOrder = nextSortOrder++,
+                            isVisible = true,
+                            icon = matchingFolder?.icon
+                        )
+                        categoryDao.insertCustomCategory(newCategory)
+                        android.util.Log.d("SmartLauncherImporter", "Created new custom category: $categoryName (icon: ${newCategory.icon})")
+                    }
+                }
+
                 // 7. Batch Insert into AutoCat Database
                 if (appsToImport.isNotEmpty()) {
-                    val categoryDao = CategoryDatabase.getInstance(context).categoryDao()
                     appsToImport.forEach { categoryDao.insertAppCategory(it) }
                 }
 

@@ -13,6 +13,7 @@ data class FolderInfoEntity(
     val hide: Boolean = false,
     val rank: Int = 0,
     val timestamp: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = "NULL") val icon: String? = null,
 )
 
 @Entity(

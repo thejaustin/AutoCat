@@ -35,6 +35,9 @@ data class CustomCategory(
     @ColumnInfo(name = "is_visible")
     val isVisible: Boolean = true,
 
+    @ColumnInfo(name = "icon")
+    val icon: String? = null,
+
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
 ) {

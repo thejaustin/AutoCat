@@ -1,24 +1,49 @@
 package app.lawnchair.ui.preferences.destinations
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.GoogleAIProvider
+import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.categorization.llm.ModelRegistry
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
@@ -41,6 +66,9 @@ fun LLMSettingsPreferences(
     val prefs = preferenceManager()
     val scope = rememberCoroutineScope()
     var testStatus by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    
+    val categorizationManager = remember { CategorizationManager.getInstance(context) }
+    val progress by categorizationManager.progress.collectAsState()
 
     PreferenceScaffold(
         label = "LLM Settings",
@@ -342,6 +370,157 @@ fun LLMSettingsPreferences(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )
+                }
+            }
+
+            // Operations Section
+            item {
+                PreferenceGroup(heading = "Categorization Operations") {
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                categorizationManager.recategorizeAll()
+                            }
+                        },
+                        enabled = !progress.isRunning,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    ) {
+                        Text(if (progress.isRunning) "Processing..." else "Re-categorize All Apps")
+                    }
+                    
+                    AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
+                        CategorizationStatus(progress)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CategorizationStatus(progress: app.lawnchair.categorization.CategorizationProgress) {
+    val logs = remember { mutableStateListOf<LLMLogger.LogEntry>() }
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(Unit) {
+        LLMLogger.logFlow.collect { log ->
+            logs.add(log)
+            if (logs.size > 100) logs.removeFirst()
+            listState.animateScrollToItem(logs.size - 1)
+        }
+    }
+    
+    // Animate progress bar
+    val progressAnimated by animateFloatAsState(
+        targetValue = progress.progressPercentage,
+        label = "ProgressAnimation"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .height(300.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        ),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = progress.currentStage,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                if (progress.isRunning) {
+                    Text(
+                        text = "${(progress.progressPercentage * 100).toInt()}%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LinearProgressIndicator(
+                progress = { progressAnimated },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp)),
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "Processed: ${progress.processedCount}/${progress.totalCount}",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                progress.batchProgressText?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+            
+            if (progress.estimatedTimeMs > 0) {
+                 Text(
+                    text = "Est. time: ${progress.estimatedTimeMs / 1000}s",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text(
+                text = "Live Logs",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .background(Color(0xFF1E1E1E), RoundedCornerShape(8.dp))
+                    .padding(8.dp),
+            ) {
+                LazyColumn(state = listState) {
+                    items(logs) { log ->
+                        val color = when (log.level) {
+                            LLMLogger.LogLevel.ERROR -> Color(0xFFFF6B6B)
+                            LLMLogger.LogLevel.WARNING -> Color(0xFFFFD93D)
+                            LLMLogger.LogLevel.DEBUG -> Color(0xFF888888)
+                            else -> Color(0xFF4ECDC4)
+                        }
+                        
+                        Text(
+                            text = "> ${log.message}",
+                            color = color,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 10.sp,
+                            ),
+                            modifier = Modifier.padding(vertical = 2.dp),
+                        )
+                    }
                 }
             }
         }

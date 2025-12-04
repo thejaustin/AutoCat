@@ -130,9 +130,25 @@ class CategoryFolderSyncService(
                     .groupBy { it.componentName!!.packageName }
             }
 
+            // Build icon map
+            val customCategories = app.lawnchair.data.category.CategoryDatabase.getInstance(context).categoryDao().getAllCustomCategories()
+            val categoryIconMap = customCategories.associate { it.name to it.icon }
+
             // Create/update folder for each category (FAST - parallel friendly)
             appsByCategory.forEach { (category, packageNames) ->
                 val folderName = getFolderName(category)
+                val folderIcon = categoryIconMap[category]
+                
+                // Skip creating folders for top-level categories if they match the tab name (optional preference?)
+                // For now, we create folders for *nested* items ("Games > Puzzle" -> "Puzzle" folder)
+                // And top-level items ("Games" -> "Games" folder)
+                // If user wants "Games" tab to have "Puzzle" folder + loose apps, 
+                // we should ONLY create folder if it is a sub-category.
+                val isSubCategory = category.contains(" > ")
+                if (!isSubCategory) {
+                    // Skip creating folders for root categories (they are the tabs themselves)
+                    return@forEach
+                }
 
                 LLMLogger.logDebug(
                     provider = "CategoryFolderSync",
@@ -141,6 +157,7 @@ class CategoryFolderSyncService(
                     details = mapOf(
                         "category" to category,
                         "appCount" to packageNames.size,
+                        "icon" to (folderIcon ?: "none")
                     ),
                 )
 
@@ -164,6 +181,7 @@ class CategoryFolderSyncService(
                             folderInfoId = existingFolder.id,
                             title = folderName,
                             appInfos = apps,
+                            icon = folderIcon
                         )
                         android.util.Log.d(TAG, "Updated drawer folder: $folderName (${apps.size} apps)")
                     } else {
@@ -190,6 +208,7 @@ class CategoryFolderSyncService(
                                 folderInfoId = folderId,
                                 title = folderName,
                                 appInfos = apps,
+                                icon = folderIcon
                             )
                             android.util.Log.d(TAG, "Created drawer folder: $folderName (${apps.size} apps)")
                             foldersCreated++
@@ -290,9 +309,10 @@ class CategoryFolderSyncService(
 
     /**
      * Gets the folder name for a category.
+     * Extracts the last part of a nested category (e.g. "Games > Puzzle" -> "Puzzle").
      */
     private fun getFolderName(category: String): String {
-        return category
+        return category.substringAfterLast(" > ")
     }
 
     /**

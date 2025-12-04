@@ -31,9 +31,12 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Looper;
 import android.util.AttributeSet;
@@ -88,6 +91,7 @@ import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.FloatingIconViewCompanion;
 import com.android.launcher3.widget.PendingAddShortcutInfo;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -117,6 +121,8 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
 
     PreviewBackground mBackground = new PreviewBackground(getContext());
     private boolean mBackgroundIsVisible = true;
+    
+    private Drawable mCustomIcon = null;
 
     FolderGridOrganizer mPreviewVerifier;
     ClippedFolderIconLayoutRule mPreviewLayoutRule;
@@ -236,8 +242,32 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         icon.updatePreviewItems(false);
 
         folderInfo.addListener(icon);
+        
+        icon.loadCustomIcon();
 
         return icon;
+    }
+    
+    private void loadCustomIcon() {
+        if (mInfo != null && mInfo.icon != null) {
+            Executors.MODEL_EXECUTOR.post(() -> {
+                try {
+                    File file = new File(mInfo.icon);
+                    if (file.exists()) {
+                        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                        if (bitmap != null) {
+                            final Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                            post(() -> {
+                                mCustomIcon = drawable;
+                                invalidate();
+                            });
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
     }
 
     public void animateBgShadowAndStroke() {
@@ -620,10 +650,19 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         if (!mBackground.drawingDelegated()) {
             mBackground.drawBackground(canvas);
         }
-
-        if (mCurrentPreviewItems.isEmpty() && !mAnimating) return;
-
-        mPreviewItemManager.draw(canvas);
+        
+        // Draw custom icon if available, otherwise draw preview items
+        if (mCustomIcon != null) {
+            Rect bounds = new Rect();
+            mBackground.getBounds(bounds);
+            // Add some padding to match style
+            int padding = bounds.width() / 6;
+            mCustomIcon.setBounds(bounds.left + padding, bounds.top + padding, bounds.right - padding, bounds.bottom - padding);
+            mCustomIcon.draw(canvas);
+        } else {
+            if (mCurrentPreviewItems.isEmpty() && !mAnimating) return;
+            mPreviewItemManager.draw(canvas);
+        }
 
         if (!mBackground.drawingDelegated()) {
             mBackground.drawBackgroundStroke(canvas);

@@ -35,9 +35,9 @@ class FolderService(val context: Context) : SafeCloseable {
         }
     }
 
-    suspend fun updateFolderWithItems(folderInfoId: Int, title: String, appInfos: List<AppInfo>) = withContext(Dispatchers.IO) {
+    suspend fun updateFolderWithItems(folderInfoId: Int, title: String, appInfos: List<AppInfo>, icon: String? = null) = withContext(Dispatchers.IO) {
         folderDao.insertFolderWithItems(
-            FolderInfoEntity(id = folderInfoId, title = title),
+            FolderInfoEntity(id = folderInfoId, title = title, icon = icon),
             appInfos.map {
                 it.toEntity(folderInfoId)
             }.toList(),
@@ -68,6 +68,7 @@ class FolderService(val context: Context) : SafeCloseable {
                 // if no id, launcher automatically creates an id for this
                 if (hasId) id = folderWithItems.folder.id
                 title = folderWithItems.folder.title
+                icon = folderWithItems.folder.icon
             }
 
             folderWithItems.items.forEach { itemEntity ->

@@ -97,6 +97,7 @@ public class FolderInfo extends CollectionInfo {
     public static final String EXTRA_FOLDER_SUGGESTIONS = "suggest";
 
     public int options;
+    public String icon = null;
 
     public FolderNameInfos suggestedFolderNames;
 

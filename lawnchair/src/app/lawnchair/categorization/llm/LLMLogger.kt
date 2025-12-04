@@ -6,6 +6,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 
 /**
  * Centralized logging system for LLM provider operations.
@@ -18,6 +24,14 @@ object LLMLogger {
     private const val MAX_LOG_ENTRIES = 200
     private val logBuffer = ConcurrentLinkedQueue<LogEntry>()
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
+
+    // Expose logs as a flow for real-time UI updates
+    private val _logFlow = kotlinx.coroutines.flow.MutableSharedFlow<LogEntry>(
+        replay = MAX_LOG_ENTRIES,
+        extraBufferCapacity = 50,
+        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+    )
+    val logFlow = _logFlow.asSharedFlow()
 
     enum class LogLevel {
         DEBUG,
@@ -198,6 +212,11 @@ object LLMLogger {
         // Trim buffer if too large
         while (logBuffer.size > MAX_LOG_ENTRIES) {
             logBuffer.poll()
+        }
+
+        // Emit to flow
+        CoroutineScope(Dispatchers.IO).launch {
+            _logFlow.emit(entry)
         }
 
         // Also log to Android logcat

@@ -59,13 +59,23 @@ class CategoryTabsManager(private val context: Context) {
             android.util.Log.d(TAG, "  - ${category.name} (id: ${category.id}, visible: ${category.isVisible}, sortOrder: ${category.sortOrder})")
         }
 
-        // Add a tab for each visible category
-        categories.forEach { category ->
+        // Group categories: only create tabs for top-level categories
+        val topLevelCategories = categories
+            .map { it.name.split(" > ").first() }
+            .distinct()
+            .mapNotNull { name -> categories.find { it.name == name } ?: categories.find { it.name.startsWith("$name >") }?.copy(name = name) }
+
+        android.util.Log.d(TAG, "getTabs: Found ${topLevelCategories.size} top-level categories from ${categories.size} total")
+
+        // Add a tab for each top-level category
+        topLevelCategories.forEach { category ->
+            // Use the top-level name
+            val name = category.name.split(" > ").first()
             tabs.add(
                 TabInfo(
-                    id = "category_${category.id}",
-                    name = category.name,
-                    category = category.name,
+                    id = "category_${category.id}", // Use ID of the representative category
+                    name = name,
+                    category = name, // This will be used as a prefix match
                     colorHex = category.colorHex,
                 ),
             )
