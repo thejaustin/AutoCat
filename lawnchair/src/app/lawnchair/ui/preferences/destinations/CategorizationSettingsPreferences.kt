@@ -205,8 +205,7 @@ fun CategorizationSettingsPreferences(
                                 suggestionsError = null
                                 successMessage = null
                                 try {
-                                    val prefManager = preferenceManager()
-                                    val preferredProviderId = prefManager.llmProviderPreference.get()
+                                    val preferredProviderId = prefs.llmProviderPreference.get()
 
                                     val googleProvider = GoogleAIProvider(context)
                                     val allProviderMap = mapOf(
