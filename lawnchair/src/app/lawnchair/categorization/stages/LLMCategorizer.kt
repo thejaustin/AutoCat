@@ -2,6 +2,7 @@ package app.lawnchair.categorization.stages
 
 import android.content.Context
 import app.lawnchair.categorization.CategorizationProgress
+import app.lawnchair.categorization.learning.UserCorrectionLearner
 import app.lawnchair.categorization.llm.AppBatchInfo
 import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.GoogleAIProvider
@@ -49,6 +50,9 @@ class LLMCategorizer(
         "perplexity" to PerplexityProvider(context),
     )
 
+    // User correction learner for improving accuracy
+    private val learner = UserCorrectionLearner.getInstance(context, categoryDao)
+
     /**
      * Attempts to categorize an app using LLM analysis with fallback support.
      *
@@ -67,6 +71,28 @@ class LLMCategorizer(
         }
 
         val categoryNames = customCategories.map { it.name }
+
+        // Check if we have a strong learned hint for this app
+        val hint = learner.getHintForPackage(appInfo.packageName)
+        if (hint != null && categoryNames.contains(hint.category)) {
+            // Apply learned categorization directly (skip LLM)
+            val appCategory = AppCategory(
+                packageName = appInfo.packageName,
+                category = hint.category,
+                confidence = hint.confidence,
+                source = AppCategory.SOURCE_LLM,
+                isUserOverride = false,
+                reasoning = "Based on ${hint.sampleCount} previous user corrections for similar apps",
+            )
+            categoryDao.insertAppCategory(appCategory)
+
+            android.util.Log.d(
+                TAG,
+                "Applied learned hint for ${appInfo.packageName}: ${hint.category} " +
+                    "(confidence: ${hint.confidence}, pattern: ${hint.pattern})",
+            )
+            return true
+        }
 
         // Get user's preferred provider
         val prefManager = PreferenceManager.getInstance(context)
