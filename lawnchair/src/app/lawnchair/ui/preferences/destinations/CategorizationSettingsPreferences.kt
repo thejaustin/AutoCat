@@ -38,6 +38,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import app.lawnchair.categorization.importer.SmartLauncherImporter
+import app.lawnchair.categorization.importer.SmartLauncherImporter.ImportResult
+
 @Composable
 fun CategorizationSettingsPreferences(
     modifier: Modifier = Modifier,
@@ -49,6 +55,22 @@ fun CategorizationSettingsPreferences(
     val progress by categorizationManager.progress.collectAsState()
     val categoryDao = remember { CategoryDatabase.getInstance(context).categoryDao() }
     var categorizationStatus by remember { mutableStateOf("") }
+
+    val slImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            categorizationStatus = "Importing..."
+            scope.launch {
+                val importer = SmartLauncherImporter(context)
+                val result = importer.importFromUri(uri)
+                categorizationStatus = when (result) {
+                    is ImportResult.Success -> "✅ Imported ${result.count} apps from Smart Launcher!"
+                    is ImportResult.Error -> "❌ Import failed: ${result.message}"
+                }
+            }
+        }
+    }
 
     PreferenceScaffold(
         label = "Categorization Settings",
@@ -145,6 +167,18 @@ fun CategorizationSettingsPreferences(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(if (progress.isRunning) "Categorizing..." else "Re-categorize All Apps")
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Import Smart Launcher Backup
+                        OutlinedButton(
+                            onClick = {
+                                slImportLauncher.launch("*/*")
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("Import from Smart Launcher Backup (.slbk)")
                         }
 
                         // Progress indicator
