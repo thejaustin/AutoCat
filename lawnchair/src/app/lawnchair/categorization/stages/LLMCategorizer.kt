@@ -233,12 +233,19 @@ class LLMCategorizer(
         }
 
         var categorizedCount = 0
+        var failedBatches = 0
+        var totalApiCalls = 0
 
         // Calculate total batches for progress tracking
         val batches = apps.chunked(batchSize)
         val totalBatches = batches.size
         var currentBatchIndex = 0
         val startTime = System.currentTimeMillis()
+
+        android.util.Log.d(
+            TAG,
+            "Starting batch categorization: ${apps.size} apps, $totalBatches batches of ~$batchSize apps",
+        )
 
         // Process batches in parallel chunks to maximize throughput
         // while respecting rate limits
@@ -280,45 +287,63 @@ class LLMCategorizer(
 
                         // Try providers in order with retry logic
                         var batchSuccess = false
+                        var lastError: String? = null
+
                         for (provider in allProviders) {
-                            if (!provider.isAvailable()) continue
+                            if (!provider.isAvailable()) {
+                                android.util.Log.d(
+                                    TAG,
+                                    "Batch $batchIndex: Skipping ${provider.name} (not available)",
+                                )
+                                continue
+                            }
 
                             // Retry with exponential backoff
+                            val batchStartTime = System.currentTimeMillis()
                             val apiResults = retryWithBackoff(
                                 maxRetries = MAX_RETRIES,
                                 initialDelayMs = INITIAL_RETRY_DELAY_MS,
                             ) {
                                 android.util.Log.d(
                                     TAG,
-                                    "Batch $batchIndex categorizing ${batch.size} apps with ${provider.name}",
+                                    "Batch $batchIndex/$totalBatches: Categorizing ${batch.size} apps with ${provider.name}",
                                 )
                                 provider.categorizeAppBatch(batchInfo, categoryNames)
                             }
+                            val batchDuration = System.currentTimeMillis() - batchStartTime
 
                             // If retry succeeded, return results
                             if (apiResults != null) {
                                 batchSuccess = true
-                                return@async apiResults to batch.size
-                            } else {
-                                android.util.Log.w(
+                                android.util.Log.d(
                                     TAG,
-                                    "${provider.name} failed for batch $batchIndex after $MAX_RETRIES retries",
+                                    "Batch $batchIndex: SUCCESS with ${provider.name} " +
+                                        "(${apiResults.size} results in ${batchDuration}ms)",
                                 )
+                                return@async Triple(apiResults, batch.size, true)
+                            } else {
+                                lastError = "${provider.name} failed after $MAX_RETRIES retries"
+                                android.util.Log.w(TAG, "Batch $batchIndex: $lastError")
                             }
                         }
 
                         if (!batchSuccess) {
-                            android.util.Log.e(TAG, "All providers failed for batch $batchIndex")
+                            android.util.Log.e(
+                                TAG,
+                                "Batch $batchIndex: FAILED - All providers exhausted. Last error: $lastError",
+                            )
                         }
 
-                        return@async null to 0
+                        return@async Triple(null, 0, false)
                     }
                 }.awaitAll()
             }
 
             // Process results from parallel batches
-            results.forEach { (apiResults, _) ->
-                if (apiResults != null) {
+            results.forEach { (apiResults, batchSize, success) ->
+                totalApiCalls++
+
+                if (success && apiResults != null) {
                     apiResults.forEach { (packageName, result) ->
                         if (result.confidence >= MIN_CONFIDENCE) {
                             val appCategory = AppCategory(
@@ -334,10 +359,12 @@ class LLMCategorizer(
 
                             android.util.Log.d(
                                 TAG,
-                                "Batch: $packageName → ${result.category} (${result.confidence})",
+                                "Saved: $packageName → ${result.category} (${result.confidence})",
                             )
                         }
                     }
+                } else {
+                    failedBatches++
                 }
             }
 
@@ -365,6 +392,21 @@ class LLMCategorizer(
                 kotlinx.coroutines.delay(RATE_LIMIT_DELAY_MS)
             }
         }
+
+        // Log final summary
+        val totalDuration = System.currentTimeMillis() - startTime
+        val successRate = if (totalApiCalls > 0) {
+            ((totalApiCalls - failedBatches).toFloat() / totalApiCalls * 100).toInt()
+        } else {
+            0
+        }
+
+        android.util.Log.d(
+            TAG,
+            "Batch categorization complete: $categorizedCount/${apps.size} apps categorized " +
+                "($successRate% batch success rate, $failedBatches/$totalBatches batches failed, " +
+                "duration: ${totalDuration / 1000}s)",
+        )
 
         return categorizedCount
     }
