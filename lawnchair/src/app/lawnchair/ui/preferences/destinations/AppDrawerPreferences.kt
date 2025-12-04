@@ -92,6 +92,11 @@ fun AppDrawerPreferences(
                 destination = app.lawnchair.ui.preferences.navigation.AppDrawerManageCategories,
             )
             NavigationActionPreference(
+                label = "App Categorizations",
+                subtitle = "View and override app assignments",
+                destination = app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations,
+            )
+            NavigationActionPreference(
                 label = "LLM Settings",
                 subtitle = "Configure AI for auto-categorization",
                 destination = app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings,

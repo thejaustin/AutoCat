@@ -21,6 +21,7 @@ import app.lawnchair.ui.preferences.about.acknowledgements.Acknowledgements
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreferenceModelList
 import app.lawnchair.ui.preferences.components.colorpreference.ColorSelection
 import app.lawnchair.ui.preferences.components.search.SearchProviderPreferenceScreen
+import app.lawnchair.ui.preferences.destinations.AppCategorizationListPreferences
 import app.lawnchair.ui.preferences.destinations.AppDrawerFoldersPreference
 import app.lawnchair.ui.preferences.destinations.AppDrawerPreferences
 import app.lawnchair.ui.preferences.destinations.CategoryManagementPreferences
@@ -120,6 +121,7 @@ fun PreferenceNavigation(
         composable<AppDrawerHiddenApps> { HiddenAppsPreferences() }
         composable<AppDrawerManageCategories> { CategoryManagementPreferences() }
         composable<AppDrawerLLMSettings> { LLMSettingsPreferences() }
+        composable<AppDrawerAppCategorizations> { AppCategorizationListPreferences() }
         composable<AppDrawerAppListToFolder> { backStackEntry ->
             val args = backStackEntry.arguments!!
             val folderInfoId = args.getInt("id")
