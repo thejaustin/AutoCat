@@ -268,11 +268,7 @@ fun CategoryManagementPreferences(
                         )
                         android.util.Log.d("CategoryManagement", "Category created with ID: $categoryId")
 
-                        successMessage = "✓ Category '$name' created! Recategorizing apps..."
-
-                        // Trigger recategorization so LLM can assign apps to the new category
-                        // This runs in background and won't block the UI
-                        categorizationManager.recategorizeAll()
+                        successMessage = "✓ Category '$name' created! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
                     }
                     categories = categoryDao.getAllCustomCategories()
                     android.util.Log.d("CategoryManagement", "Total categories after save: ${categories.size}")
@@ -307,11 +303,8 @@ fun CategoryManagementPreferences(
                     categories = categoryDao.getAllCustomCategories()
                     appProvider.refreshCache()
 
-                    successMessage = "✓ Added '${suggestion.name}' category! Recategorizing apps..."
+                    successMessage = "✓ Added '${suggestion.name}' category! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
                     suggestionsError = null
-
-                    // Trigger recategorization
-                    categorizationManager.recategorizeAll()
                 }
             },
         )

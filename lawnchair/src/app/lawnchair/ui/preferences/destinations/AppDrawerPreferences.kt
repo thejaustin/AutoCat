@@ -97,8 +97,13 @@ fun AppDrawerPreferences(
                 destination = app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations,
             )
             NavigationActionPreference(
+                label = "Categorization Settings",
+                subtitle = "Configure performance and re-categorize apps",
+                destination = app.lawnchair.ui.preferences.navigation.AppDrawerCategorizationSettings,
+            )
+            NavigationActionPreference(
                 label = "LLM Settings",
-                subtitle = "Configure AI for auto-categorization",
+                subtitle = "Configure AI providers and API keys",
                 destination = app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings,
             )
             SearchBarPreference(SearchRoute.DRAWER_SEARCH, showLabel = false)

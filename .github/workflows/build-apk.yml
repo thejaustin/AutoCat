@@ -10,12 +10,21 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # Fail fast if build hangs
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         submodules: recursive
+        fetch-depth: 1  # Shallow clone for faster checkout
+
+    - name: Free disk space
+      run: |
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        df -h
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -24,13 +33,68 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    # Setup ccache for native code compilation
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ runner.os }}-ccache
+        max-size: 2G
+
+    # Cache Gradle wrapper and dependencies
+    - name: Cache Gradle wrapper
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/wrapper
+          ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    # Cache Kotlin compiler
+    - name: Cache Kotlin compiler
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.kotlin
+        key: ${{ runner.os }}-kotlin-${{ hashFiles('**/*.gradle*') }}
+        restore-keys: |
+          ${{ runner.os }}-kotlin-
+
+    # Cache build outputs for incremental builds
+    - name: Cache build outputs
+      uses: actions/cache@v4
+      with:
+        path: |
+          */build
+          .gradle
+        key: ${{ runner.os }}-build-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-build-
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    # Pre-download dependencies
+    - name: Download dependencies
+      run: ./gradlew dependencies --no-daemon --quiet || true
+
     - name: Build debug APK with Gradle
-      run: ./gradlew assembleLawnWithQuickstepGithubDebug --no-daemon --stacktrace
+      run: |
+        export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+        ./gradlew assembleLawnWithQuickstepGithubDebug \
+          --no-daemon \
+          --parallel \
+          --build-cache \
+          --configuration-cache \
+          --max-workers=4 \
+          -Dorg.gradle.caching=true \
+          -Dkotlin.compiler.execution.strategy=in-process \
+          -Dkotlin.incremental=true \
+          --stacktrace
       env:
-        GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m"
+        GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g -XX:+UseParallelGC -XX:ParallelGCThreads=4"
+        CCACHE_DIR: ${{ github.workspace }}/.ccache
 
     - name: Upload APK as artifact
       uses: actions/upload-artifact@v4

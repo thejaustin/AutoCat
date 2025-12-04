@@ -152,6 +152,9 @@ class PreferenceManager private constructor(private val context: Context) :
     // AutoCat: Developer mode
     val autoCatDevMode = BoolPref("pref_autoCatDevMode", false, {})
 
+    // AutoCat: Rate limiting
+    val autoCatEnableRateLimiting = BoolPref("pref_autoCatEnableRateLimiting", false, {})
+
     val recentsActionScreenshot = BoolPref("pref_recentsActionScreenshot", !isOnePlusStock)
     val recentsActionShare = BoolPref("pref_recentsActionShare", isOnePlusStock)
     val recentsActionLens = BoolPref("pref_recentsActionLens", true)

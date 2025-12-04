@@ -387,8 +387,9 @@ class LLMCategorizer(
                 ),
             )
 
-            // Rate limiting between chunks (not individual batches)
-            if (batchChunk.size == PARALLEL_BATCH_LIMIT) {
+            // Rate limiting between chunks (if enabled)
+            val prefManager = PreferenceManager.getInstance(context)
+            if (prefManager.autoCatEnableRateLimiting.get() && batchChunk.size == PARALLEL_BATCH_LIMIT) {
                 kotlinx.coroutines.delay(RATE_LIMIT_DELAY_MS)
             }
         }
@@ -504,14 +505,16 @@ class LLMCategorizer(
         // Minimum confidence to accept LLM categorization
         private const val MIN_CONFIDENCE = 0.7f
 
-        // Delay between API calls to respect rate limits (4 seconds = 15/min)
-        private const val RATE_LIMIT_DELAY_MS = 4000L
+        // Delay between API calls to respect rate limits (1 second between chunks)
+        // Most LLM APIs allow 60+ requests/min, so 1s is safe for parallel processing
+        private const val RATE_LIMIT_DELAY_MS = 1000L
 
         // Retry configuration
         private const val MAX_RETRIES = 3
         private const val INITIAL_RETRY_DELAY_MS = 1000L // 1 second, doubles each retry
 
         // Parallel processing configuration
-        private const val PARALLEL_BATCH_LIMIT = 3 // Process 3 batches concurrently
+        // Process 4 batches concurrently for faster throughput
+        private const val PARALLEL_BATCH_LIMIT = 4
     }
 }
