@@ -1,5 +1,8 @@
 package app.lawnchair.ui.preferences.destinations
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -25,6 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.CategorizationManager
+import app.lawnchair.categorization.importer.SmartLauncherImporter
+import app.lawnchair.categorization.importer.SmartLauncherImporter.ImportResult
 import app.lawnchair.data.category.CategoryDatabase
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
@@ -37,12 +42,6 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import app.lawnchair.categorization.importer.SmartLauncherImporter
-import app.lawnchair.categorization.importer.SmartLauncherImporter.ImportResult
 
 @Composable
 fun CategorizationSettingsPreferences(
@@ -57,7 +56,7 @@ fun CategorizationSettingsPreferences(
     var categorizationStatus by remember { mutableStateOf("") }
 
     val slImportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.GetContent(),
     ) { uri: Uri? ->
         if (uri != null) {
             categorizationStatus = "Importing..."

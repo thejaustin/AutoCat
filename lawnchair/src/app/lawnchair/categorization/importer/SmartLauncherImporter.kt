@@ -56,7 +56,7 @@ class SmartLauncherImporter(private val context: Context) {
 
                 // If we processed a zip but didn't find the DB
                 if (tempZipFile.name.endsWith(".slbk") && !foundInZip && !dbFileToUse.exists()) {
-                     return@withContext ImportResult.Error("Could not find database in backup file")
+                    return@withContext ImportResult.Error("Could not find database in backup file")
                 }
 
                 // 3. Open Database
@@ -64,7 +64,7 @@ class SmartLauncherImporter(private val context: Context) {
                     SQLiteDatabase.openDatabase(
                         dbFileToUse.absolutePath,
                         null,
-                        SQLiteDatabase.OPEN_READONLY
+                        SQLiteDatabase.OPEN_READONLY,
                     )
                 } catch (e: Exception) {
                     return@withContext ImportResult.Error("Invalid database format: ${e.message}")
@@ -100,9 +100,9 @@ class SmartLauncherImporter(private val context: Context) {
                 // 6. Load Apps and Map them
                 val appsToImport = mutableListOf<AppCategory>()
                 val appCursor = slDb.rawQuery("SELECT parentId, categoryId, packageName FROM DrawerItem WHERE packageName IS NOT NULL", null)
-                
+
                 var importedCount = 0
-                
+
                 if (appCursor.moveToFirst()) {
                     do {
                         val parentId = appCursor.getInt(0)
@@ -128,7 +128,7 @@ class SmartLauncherImporter(private val context: Context) {
                             source = "import_sl", // Special source tag
                             isUserOverride = true,
                             reasoning = "Imported from Smart Launcher Backup",
-                            lastUpdated = System.currentTimeMillis()
+                            lastUpdated = System.currentTimeMillis(),
                         )
                         appsToImport.add(appCategory)
                         importedCount++
@@ -148,7 +148,6 @@ class SmartLauncherImporter(private val context: Context) {
                 tempDbFile.delete()
 
                 return@withContext ImportResult.Success(importedCount)
-
             } catch (e: Exception) {
                 e.printStackTrace()
                 return@withContext ImportResult.Error("Import failed: ${e.message}")
