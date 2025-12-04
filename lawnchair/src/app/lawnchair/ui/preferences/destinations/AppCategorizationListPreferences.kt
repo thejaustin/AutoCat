@@ -37,6 +37,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.lawnchair.categorization.AutoCatAppProvider
+import app.lawnchair.categorization.CategoryFolderSyncService
 import app.lawnchair.data.category.CategoryDatabase
 import app.lawnchair.data.category.entities.AppCategory
 import app.lawnchair.data.category.entities.CustomCategory
@@ -58,6 +60,8 @@ fun AppCategorizationListPreferences(
     val database = remember { CategoryDatabase.getInstance(context) }
     val categoryDao = database.categoryDao()
     val packageManager = context.packageManager
+    val folderSyncService = remember { CategoryFolderSyncService(context) }
+    val appProvider = remember { AutoCatAppProvider.getInstance(context) }
 
     var categorizations by remember { mutableStateOf<List<AppCategory>>(emptyList()) }
     var availableCategories by remember { mutableStateOf<List<CustomCategory>>(emptyList()) }
@@ -118,6 +122,21 @@ fun AppCategorizationListPreferences(
 
                     // Reload categorizations
                     categorizations = categoryDao.getAllAppCategories()
+
+                    // Sync to folders if enabled
+                    if (folderSyncService.isSyncEnabled()) {
+                        android.util.Log.d("AppCategorizationList", "Syncing updated categorization to folders")
+
+                        val allCategories = categoryDao.getAllAppCategories()
+                        val categorizationMap = allCategories.associate { it.packageName to it.category }
+
+                        folderSyncService.syncCategoriesToFolders(categorizationMap)
+                        android.util.Log.d("AppCategorizationList", "Folder sync complete")
+                    }
+
+                    // Refresh app provider cache
+                    appProvider.refreshCache()
+
                     editingApp = null
                 }
             },
