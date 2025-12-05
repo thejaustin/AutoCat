@@ -7,6 +7,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import app.lawnchair.categorization.AutoCatAppProvider
+import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.flowerpot.Flowerpot
@@ -47,6 +48,7 @@ class LawnchairAlphabeticalAppsList<T>(
     private val folderOrder = FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get())
     private val potsManager = Flowerpot.Manager.getInstance(context)
     private val autoCatProvider = AutoCatAppProvider.getInstance(context)
+    private val categoryTabsController = CategoryTabsController.getInstance(context)
 
     init {
         context.launcher.deviceProfile.inv.addOnChangeListener(this)
@@ -88,20 +90,47 @@ class LawnchairAlphabeticalAppsList<T>(
         // Show app drawer folders only on main profile, to prevent state complexity
         if (isWorkOrPrivateSpace(appList)) return super.addAppsWithSections(appList, position)
 
+        // Check if category tabs are enabled
+        val usingCategoryTabs = categoryTabsController.shouldShowTabs(context)
+        val currentTabCategory = if (usingCategoryTabs) {
+            categoryTabsController.getCategoryForTab(categoryTabsController.getCurrentTab())
+        } else {
+            null
+        }
+
         if (!drawerListDefault) {
             // Use AutoCat database categorization
             val categorizedApps = autoCatProvider.categorizeApps(appList)
-            categorizedApps.forEach { (category, apps) ->
-                if (apps.size == 1) {
-                    mAdapterItems.add(AdapterItem.asApp(apps.first()))
-                } else {
-                    val folderInfo = FolderInfo().apply {
-                        title = category
-                        apps.forEach { add(it) }
+
+            // If using tabs, filter to only show current tab's category
+            val appsToShow = if (usingCategoryTabs && currentTabCategory != null) {
+                // Show only apps from the current category tab
+                categorizedApps.filter { it.key == currentTabCategory }
+            } else {
+                // Show all categories (either tabs disabled or "All Apps" tab selected)
+                categorizedApps
+            }
+
+            appsToShow.forEach { (category, apps) ->
+                if (usingCategoryTabs) {
+                    // In tab mode, show apps directly (no category folders since tabs handle that)
+                    apps.forEach { app ->
+                        mAdapterItems.add(AdapterItem.asApp(app))
+                        position++
                     }
-                    mAdapterItems.add(AdapterItem.asFolder(folderInfo))
+                } else {
+                    // In folder mode, group apps into category folders
+                    if (apps.size == 1) {
+                        mAdapterItems.add(AdapterItem.asApp(apps.first()))
+                    } else {
+                        val folderInfo = FolderInfo().apply {
+                            title = category
+                            apps.forEach { add(it) }
+                        }
+                        mAdapterItems.add(AdapterItem.asFolder(folderInfo))
+                    }
+                    position++
                 }
-                position++
             }
         } else {
             folderList.forEach { folder ->

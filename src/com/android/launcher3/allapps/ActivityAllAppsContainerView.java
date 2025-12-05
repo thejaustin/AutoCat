@@ -105,6 +105,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import app.lawnchair.allapps.LawnchairAlphabeticalAppsList;
+import app.lawnchair.categorization.CategoryTabsController;
 import app.lawnchair.font.FontManager;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
@@ -602,6 +603,18 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         // protection.
         mHeader.setActiveRV(currentActivePage);
         mWorkManager.onActivePageChanged(currentActivePage);
+
+        // Update category tab controller if using category tabs
+        try {
+            CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
+            if (controller.shouldShowTabs(getContext())) {
+                controller.setCurrentTab(currentActivePage);
+                // Refresh the adapter to show apps for the new category
+                rebindAdapters();
+            }
+        } catch (Exception e) {
+            // Ignore errors in category tab handling
+        }
     }
 
     protected void rebindAdapters() {
@@ -1327,10 +1340,22 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     }
 
     /**
-     * Returns true if the container has work apps.
+     * Returns true if the container has work apps or category tabs are enabled.
      */
     public boolean shouldShowTabs() {
-        return mHasWorkApps;
+        // Check for work apps (original behavior)
+        if (mHasWorkApps) {
+            return true;
+        }
+
+        // Check for category tabs
+        try {
+            CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
+            return controller.shouldShowTabs(getContext());
+        } catch (Exception e) {
+            // Fallback to original behavior if category tabs fail
+            return false;
+        }
     }
 
     // Used by tests only
