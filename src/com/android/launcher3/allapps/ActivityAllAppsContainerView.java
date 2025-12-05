@@ -798,9 +798,16 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             boolean usingCategoryTabs = controller.shouldShowTabs(getContext()) && !mHasWorkApps;
 
             View personalWorkTabs = mHeader.findViewById(com.android.launcher3.R.id.tabs);
-            CategoryTabStrip categoryTabStrip = (CategoryTabStrip) mHeader.findViewById(
-                getResources().getIdentifier("category_tabs", "id", getContext().getPackageName())
-            );
+
+            // Find CategoryTabStrip by iterating children (since it's in an include)
+            CategoryTabStrip categoryTabStrip = null;
+            for (int i = 0; i < mHeader.getChildCount(); i++) {
+                View child = mHeader.getChildAt(i);
+                if (child instanceof CategoryTabStrip) {
+                    categoryTabStrip = (CategoryTabStrip) child;
+                    break;
+                }
+            }
 
             if (usingCategoryTabs && categoryTabStrip != null) {
                 // Show category tabs, hide work/personal tabs
