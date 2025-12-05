@@ -1278,17 +1278,17 @@ private fun CategoryGroupHeader(
     categoryName: String,
     appCount: Int,
     isExpanded: Boolean,
-    onToggleExpanded: () -> Unit,
+    onToggleExpand: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onToggleExpanded)
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .background(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = MaterialTheme.shapes.small,
             )
+            .clickable(onClick = onToggleExpand)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,

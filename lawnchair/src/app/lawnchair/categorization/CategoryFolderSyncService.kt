@@ -138,11 +138,11 @@ class CategoryFolderSyncService(
             appsByCategory.forEach { (category, packageNames) ->
                 val folderName = getFolderName(category)
                 val folderIcon = categoryIconMap[category]
-                
+
                 // Skip creating folders for top-level categories if they match the tab name (optional preference?)
                 // For now, we create folders for *nested* items ("Games > Puzzle" -> "Puzzle" folder)
                 // And top-level items ("Games" -> "Games" folder)
-                // If user wants "Games" tab to have "Puzzle" folder + loose apps, 
+                // If user wants "Games" tab to have "Puzzle" folder + loose apps,
                 // we should ONLY create folder if it is a sub-category.
                 val isSubCategory = category.contains(" > ")
                 if (!isSubCategory) {
@@ -157,7 +157,7 @@ class CategoryFolderSyncService(
                     details = mapOf(
                         "category" to category,
                         "appCount" to packageNames.size,
-                        "icon" to (folderIcon ?: "none")
+                        "icon" to (folderIcon ?: "none"),
                     ),
                 )
 
@@ -181,7 +181,7 @@ class CategoryFolderSyncService(
                             folderInfoId = existingFolder.id,
                             title = folderName,
                             appInfos = apps,
-                            icon = folderIcon
+                            icon = folderIcon,
                         )
                         android.util.Log.d(TAG, "Updated drawer folder: $folderName (${apps.size} apps)")
                     } else {
@@ -208,7 +208,7 @@ class CategoryFolderSyncService(
                                 folderInfoId = folderId,
                                 title = folderName,
                                 appInfos = apps,
-                                icon = folderIcon
+                                icon = folderIcon,
                             )
                             android.util.Log.d(TAG, "Created drawer folder: $folderName (${apps.size} apps)")
                             foldersCreated++

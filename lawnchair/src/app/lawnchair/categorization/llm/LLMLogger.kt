@@ -29,7 +29,7 @@ object LLMLogger {
     private val _logFlow = kotlinx.coroutines.flow.MutableSharedFlow<LogEntry>(
         replay = MAX_LOG_ENTRIES,
         extraBufferCapacity = 50,
-        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST,
     )
     val logFlow = _logFlow.asSharedFlow()
 

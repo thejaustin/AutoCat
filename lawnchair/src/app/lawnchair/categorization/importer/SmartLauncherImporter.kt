@@ -45,7 +45,7 @@ class SmartLauncherImporter(private val context: Context) {
                                 }
                                 foundInZip = true
                                 dbFileToUse = tempDbFile
-                            } 
+                            }
                             // Extract icons/images
                             else if (entry.name.startsWith("icons/") || entry.name.endsWith(".png") || entry.name.endsWith(".jpg")) {
                                 val iconFile = File(iconsDir, entry.name)
@@ -54,7 +54,7 @@ class SmartLauncherImporter(private val context: Context) {
                                     zipIn.copyTo(output)
                                 }
                             }
-                            
+
                             zipIn.closeEntry()
                             entry = zipIn.nextEntry
                         }
@@ -97,7 +97,7 @@ class SmartLauncherImporter(private val context: Context) {
                 // 5. Load Folders (id -> label, parentId, icon)
                 data class FolderItem(val id: Int, val label: String, val parentId: Int, val icon: String?)
                 val folderMap = mutableMapOf<Int, FolderItem>()
-                
+
                 // Try to get columns, handle if they don't exist
                 val folderColumns = try {
                     val cursor = slDb.rawQuery("PRAGMA table_info(DrawerItem)", null)
@@ -115,7 +115,7 @@ class SmartLauncherImporter(private val context: Context) {
 
                 val hasParentId = folderColumns.contains("parentId")
                 val hasIcon = folderColumns.contains("icon")
-                
+
                 val query = StringBuilder("SELECT id, label")
                 if (hasParentId) query.append(", parentId")
                 if (hasIcon) query.append(", icon")
@@ -130,13 +130,15 @@ class SmartLauncherImporter(private val context: Context) {
                         // Icon index depends on whether parentId was selected
                         val iconIndex = if (hasParentId) 3 else 2
                         val iconRaw = if (hasIcon && !folderCursor.isNull(iconIndex)) folderCursor.getString(iconIndex) else null
-                        
+
                         // Resolve icon path if it exists
                         val iconPath = if (iconRaw != null) {
                             val file = File(iconsDir, iconRaw)
                             if (file.exists()) file.absolutePath else iconRaw
-                        } else null
-                        
+                        } else {
+                            null
+                        }
+
                         folderMap[id] = FolderItem(id, label, parentId, iconPath)
                     } while (folderCursor.moveToNext())
                 }
@@ -149,7 +151,7 @@ class SmartLauncherImporter(private val context: Context) {
                     val visited = mutableSetOf<Int>()
                     var current = item
                     var path = item.label
-                    
+
                     while (current.parentId != 0 && folderMap.containsKey(current.parentId)) {
                         if (!visited.add(current.id)) break // Cycle detected
                         val parent = folderMap[current.parentId]!!
@@ -211,7 +213,7 @@ class SmartLauncherImporter(private val context: Context) {
                 val uniqueCategories = appsToImport.map { it.category }.distinct()
                 val existingCategories = categoryDao.getAllCustomCategories()
                 var nextSortOrder = existingCategories.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
-                
+
                 // Helper to pick a random default color
                 val defaultColors = listOf(
                     CustomCategory.COLOR_GAMES,
@@ -220,7 +222,7 @@ class SmartLauncherImporter(private val context: Context) {
                     CustomCategory.COLOR_TOOLS,
                     CustomCategory.COLOR_ENTERTAINMENT,
                     CustomCategory.COLOR_PHOTOGRAPHY,
-                    CustomCategory.COLOR_COMMUNICATION
+                    CustomCategory.COLOR_COMMUNICATION,
                 )
 
                 for (categoryName in uniqueCategories) {
@@ -231,13 +233,13 @@ class SmartLauncherImporter(private val context: Context) {
                         // This is an approximation, as category name is a path now
                         // But usually the icon belongs to the leaf folder
                         val matchingFolder = folderMap.values.find { getCategoryPath(it.id) == categoryName }
-                        
+
                         val newCategory = CustomCategory(
                             name = categoryName,
                             colorHex = defaultColors.random(),
                             sortOrder = nextSortOrder++,
                             isVisible = true,
-                            icon = matchingFolder?.icon
+                            icon = matchingFolder?.icon,
                         )
                         categoryDao.insertCustomCategory(newCategory)
                         android.util.Log.d("SmartLauncherImporter", "Created new custom category: $categoryName (icon: ${newCategory.icon})")

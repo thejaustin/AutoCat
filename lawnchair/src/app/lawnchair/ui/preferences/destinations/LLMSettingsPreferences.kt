@@ -66,7 +66,7 @@ fun LLMSettingsPreferences(
     val prefs = preferenceManager()
     val scope = rememberCoroutineScope()
     var testStatus by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    
+
     val categorizationManager = remember { CategorizationManager.getInstance(context) }
     val progress by categorizationManager.progress.collectAsState()
 
@@ -389,7 +389,7 @@ fun LLMSettingsPreferences(
                     ) {
                         Text(if (progress.isRunning) "Processing..." else "Re-categorize All Apps")
                     }
-                    
+
                     AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
                         CategorizationStatus(progress)
                     }
@@ -400,7 +400,10 @@ fun LLMSettingsPreferences(
 }
 
 @Composable
-fun CategorizationStatus(progress: app.lawnchair.categorization.CategorizationProgress) {
+fun CategorizationStatus(
+    progress: app.lawnchair.categorization.CategorizationProgress,
+    modifier: Modifier = Modifier,
+) {
     val logs = remember { mutableStateListOf<LLMLogger.LogEntry>() }
     val listState = rememberLazyListState()
 
@@ -411,11 +414,11 @@ fun CategorizationStatus(progress: app.lawnchair.categorization.CategorizationPr
             listState.animateScrollToItem(logs.size - 1)
         }
     }
-    
+
     // Animate progress bar
     val progressAnimated by animateFloatAsState(
         targetValue = progress.progressPercentage,
-        label = "ProgressAnimation"
+        label = "ProgressAnimation",
     )
 
     Card(
@@ -476,9 +479,9 @@ fun CategorizationStatus(progress: app.lawnchair.categorization.CategorizationPr
                     )
                 }
             }
-            
+
             if (progress.estimatedTimeMs > 0) {
-                 Text(
+                Text(
                     text = "Est. time: ${progress.estimatedTimeMs / 1000}s",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -486,13 +489,13 @@ fun CategorizationStatus(progress: app.lawnchair.categorization.CategorizationPr
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Text(
                 text = "Live Logs",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            
+
             Spacer(modifier = Modifier.height(4.dp))
 
             Box(
@@ -510,7 +513,7 @@ fun CategorizationStatus(progress: app.lawnchair.categorization.CategorizationPr
                             LLMLogger.LogLevel.DEBUG -> Color(0xFF888888)
                             else -> Color(0xFF4ECDC4)
                         }
-                        
+
                         Text(
                             text = "> ${log.message}",
                             color = color,
