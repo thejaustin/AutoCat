@@ -23,7 +23,7 @@ class CategoryTabsController private constructor(private val context: Context) {
 
     companion object {
         @JvmField
-        val INSTANCE = MainThreadInitializedObject(::CategoryTabsController)
+        val INSTANCE = MainThreadInitializedObject<CategoryTabsController>(::CategoryTabsController)
 
         const val TAB_ALL = "All Apps"
         const val TAB_ALL_INDEX = 0
