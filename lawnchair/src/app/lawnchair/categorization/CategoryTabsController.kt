@@ -6,9 +6,11 @@ import androidx.lifecycle.MutableLiveData
 import app.lawnchair.data.category.CategoryDatabase
 import app.lawnchair.data.category.entities.CustomCategory
 import com.android.launcher3.util.MainThreadInitializedObject
+import com.android.launcher3.util.SafeCloseable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +21,7 @@ import kotlinx.coroutines.withContext
  * Controller for managing category tabs in the app drawer.
  * Provides dynamic tabs based on user-defined categories.
  */
-class CategoryTabsController private constructor(private val context: Context) {
+class CategoryTabsController private constructor(private val context: Context) : SafeCloseable {
 
     companion object {
         @JvmField
@@ -139,5 +141,9 @@ class CategoryTabsController private constructor(private val context: Context) {
      */
     fun shouldShowTabs(context: Context): Boolean {
         return areTabsEnabled(context) && _categories.value.isNotEmpty()
+    }
+
+    override fun close() {
+        scope.cancel()
     }
 }
