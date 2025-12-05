@@ -149,6 +149,9 @@ class PreferenceManager private constructor(private val context: Context) :
     // AutoCat: Folder sync settings
     val autoCatSyncFolders = BoolPref("pref_autoCatSyncFolders", true, {})
 
+    // AutoCat: Category tabs in app drawer
+    val autoCatUseTabs = BoolPref("pref_autoCatUseTabs", false, recreate)
+
     // AutoCat: Developer mode
     val autoCatDevMode = BoolPref("pref_autoCatDevMode", false, {})
 

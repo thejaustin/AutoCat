@@ -167,6 +167,14 @@ fun CategorizationSettingsPreferences(
             item {
                 PreferenceGroup(heading = "Settings") {
                     SwitchPreference(
+                        adapter = prefs.autoCatUseTabs.getAdapter(),
+                        label = "Use Category Tabs",
+                        description = "Show categories as tabs in app drawer (like Smart Launcher). Apps are organized by category with folders still available within each tab.",
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    SwitchPreference(
                         adapter = prefs.llmEnableBatching.getAdapter(),
                         label = "Batch Processing",
                         description = "Process multiple apps per API call (20x faster, 68% token savings)",
