@@ -4,6 +4,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -26,8 +27,11 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -64,7 +68,6 @@ import app.lawnchair.categorization.importer.SmartLauncherImporter
 import app.lawnchair.categorization.importer.SmartLauncherImporter.ImportResult
 import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.GoogleAIProvider
-import app.lawnchair.categorization.llm.ModelRegistry
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.categorization.llm.SuggestedCategory
@@ -75,8 +78,7 @@ import app.lawnchair.data.category.entities.CustomCategory
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
-import app.lawnchair.ui.preferences.components.controls.ListPreference
-import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
+import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.controls.TextPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
@@ -94,6 +96,7 @@ fun CategorizationSettingsPreferences(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val navController = LocalNavController.current
     val prefs = preferenceManager()
     val scope = rememberCoroutineScope()
     val categorizationManager = remember { CategorizationManager.getInstance(context) }
@@ -104,7 +107,6 @@ fun CategorizationSettingsPreferences(
     val appProvider = remember { AutoCatAppProvider.getInstance(context) }
 
     var categorizationStatus by remember { mutableStateOf("") }
-    var testStatus by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
     // Category management state
     var categories by remember { mutableStateOf<List<CustomCategory>>(emptyList()) }
@@ -149,17 +151,93 @@ fun CategorizationSettingsPreferences(
     }
 
     PreferenceScaffold(
-        label = "Categorization",
+        label = "App Categorization",
         modifier = modifier,
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
         PreferenceLazyColumn(it) {
+            // ===== QUICK ACTIONS SECTION =====
+            item {
+                PreferenceGroup(heading = "Quick Actions") {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Button(
+                            onClick = {
+                                categorizationStatus = ""
+                                scope.launch {
+                                    try {
+                                        categorizationManager.recategorizeAll()
+                                        categories = categoryDao.getAllCustomCategories()
+                                        categorizations = categoryDao.getAllAppCategories()
+                                        groupedCategories = categorizations.groupBy { cat -> cat.category }
+                                        categorizationStatus = "✅ Categorization complete! Check your app drawer."
+                                    } catch (e: Exception) {
+                                        categorizationStatus = "❌ Error: ${e.message}"
+                                    }
+                                }
+                            },
+                            enabled = !progress.isRunning,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(if (progress.isRunning) "Categorizing..." else "Categorize All Apps")
+                        }
+
+                        OutlinedButton(
+                            onClick = { navController.navigate("llmSettings") },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(Icons.Default.Settings, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("LLM Provider Settings")
+                        }
+
+                        OutlinedButton(
+                            onClick = { slImportLauncher.launch("*/*") },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("Import from Smart Launcher (.slbk)")
+                        }
+
+                        // Progress indicator
+                        AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
+                            CategorizationProgress(progress)
+                        }
+
+                        // Status message
+                        if (categorizationStatus.isNotEmpty()) {
+                            Text(
+                                text = categorizationStatus,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = when {
+                                    categorizationStatus.startsWith("✅") -> MaterialTheme.colorScheme.primary
+                                    categorizationStatus.startsWith("❌") -> MaterialTheme.colorScheme.error
+                                    else -> MaterialTheme.colorScheme.onSurface
+                                },
+                            )
+                        }
+
+                        Text(
+                            text = "This will categorize all apps using LLM and built-in rules. " +
+                                "${if (prefs.llmEnableBatching.get()) "Batch processing enabled for faster categorization. " else ""}" +
+                                "${if (prefs.autoCatSyncFolders.get()) "Folders will be created automatically. " else ""}" +
+                                "Only apps without user overrides will be re-categorized.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
             // ===== MANAGE CATEGORIES SECTION =====
             item {
-                PreferenceGroup(heading = "Manage Categories") {
+                PreferenceGroup(heading = "Categories") {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Create custom categories for organizing your apps. The LLM will learn to auto-assign apps to these categories.",
+                            text = "Create custom categories for organizing your apps. The LLM will automatically assign apps to these categories.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -290,10 +368,10 @@ fun CategorizationSettingsPreferences(
 
             // ===== APP CATEGORIZATIONS SECTION =====
             item {
-                PreferenceGroup(heading = "App Categorizations") {
+                PreferenceGroup(heading = "Review & Override") {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "View and override app categorizations grouped by category. Tap a category to expand and see apps. Changes help improve future categorization.",
+                            text = "View and manually override app categorizations. Tap a category to expand and see apps. Your changes help improve future categorization.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -330,311 +408,12 @@ fun CategorizationSettingsPreferences(
                 }
             }
 
-            // ===== LLM SETTINGS SECTION =====
+            // ===== SETTINGS SECTION =====
             item {
-                PreferenceGroup(heading = "LLM Providers") {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Configure LLM providers for intelligent app categorization. AutoCat uses AI to automatically assign apps to your custom categories.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-
-            // Provider Selection
-            item {
-                PreferenceGroup {
-                    ListPreference(
-                        adapter = prefs.llmProviderPreference.getAdapter(),
-                        label = "Preferred LLM Provider",
-                        entries = listOf(
-                            ListPreferenceEntry(
-                                value = "google_ai",
-                                label = { "Google AI (Gemini 2.0 Flash)" },
-                            ),
-                            ListPreferenceEntry(
-                                value = "claude",
-                                label = { "Anthropic Claude 3.5" },
-                            ),
-                            ListPreferenceEntry(
-                                value = "openai",
-                                label = { "OpenAI GPT" },
-                            ),
-                            ListPreferenceEntry(
-                                value = "perplexity",
-                                label = { "Perplexity (Llama 3.1)" },
-                            ),
-                        ),
-                    )
-                }
-            }
-
-            // Google AI Configuration
-            item {
-                PreferenceGroup(heading = "Google AI (Gemini) - Free Tier") {
-                    TextPreference(
-                        adapter = prefs.llmGoogleAIKey.getAdapter(),
-                        label = "Google AI API Key ${if (prefs.llmGoogleAIKey.get().isNotEmpty()) "✓" else ""}",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ListPreference(
-                        adapter = prefs.llmGoogleAIModel.getAdapter(),
-                        label = "Gemini Model",
-                        entries = ModelRegistry.getAvailableModels("google_ai").map { model ->
-                            ListPreferenceEntry(
-                                value = model.id,
-                                label = { "${model.displayName} - ${model.speedTier.name}" },
-                            )
-                        },
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                val provider = GoogleAIProvider(context)
-                                val result = provider.testConnection()
-                                testStatus = testStatus + (
-                                    "google_ai" to if (result.success) {
-                                        "✅ Connected (${result.latencyMs}ms)"
-                                    } else {
-                                        "❌ ${result.message}"
-                                    }
-                                    )
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    ) {
-                        Text("Test Google AI Connection")
-                    }
-
-                    testStatus["google_ai"]?.let { status ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = status,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (status.startsWith("✅")) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            },
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Get your free API key at ai.google.dev/gemini-api",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                    )
-                }
-            }
-
-            // Claude Configuration
-            item {
-                PreferenceGroup(heading = "Anthropic Claude") {
-                    TextPreference(
-                        adapter = prefs.llmClaudeKey.getAdapter(),
-                        label = "Claude API Key ${if (prefs.llmClaudeKey.get().isNotEmpty()) "✓" else ""}",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ListPreference(
-                        adapter = prefs.llmClaudeModel.getAdapter(),
-                        label = "Claude Model",
-                        entries = ModelRegistry.getAvailableModels("claude").map { model ->
-                            ListPreferenceEntry(
-                                value = model.id,
-                                label = { "${model.displayName} - ${model.costTier.name}" },
-                            )
-                        },
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                val provider = ClaudeProvider(context)
-                                val result = provider.testConnection()
-                                testStatus = testStatus + (
-                                    "claude" to if (result.success) {
-                                        "✅ Connected (${result.latencyMs}ms)"
-                                    } else {
-                                        "❌ ${result.message}"
-                                    }
-                                    )
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    ) {
-                        Text("Test Claude Connection")
-                    }
-
-                    testStatus["claude"]?.let { status ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = status,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (status.startsWith("✅")) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            },
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
-                    }
-                }
-            }
-
-            // OpenAI Configuration
-            item {
-                PreferenceGroup(heading = "OpenAI (ChatGPT)") {
-                    TextPreference(
-                        adapter = prefs.llmOpenAIKey.getAdapter(),
-                        label = "OpenAI API Key ${if (prefs.llmOpenAIKey.get().isNotEmpty()) "✓" else ""}",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ListPreference(
-                        adapter = prefs.llmOpenAIModel.getAdapter(),
-                        label = "OpenAI Model",
-                        entries = ModelRegistry.getAvailableModels("openai").map { model ->
-                            ListPreferenceEntry(
-                                value = model.id,
-                                label = { "${model.displayName} - ${model.costTier.name}" },
-                            )
-                        },
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                val provider = OpenAIProvider(context)
-                                val result = provider.testConnection()
-                                testStatus = testStatus + (
-                                    "openai" to if (result.success) {
-                                        "✅ Connected (${result.latencyMs}ms)"
-                                    } else {
-                                        "❌ ${result.message}"
-                                    }
-                                    )
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    ) {
-                        Text("Test OpenAI Connection")
-                    }
-
-                    testStatus["openai"]?.let { status ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = status,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (status.startsWith("✅")) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            },
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
-                    }
-                }
-            }
-
-            // Perplexity Configuration
-            item {
-                PreferenceGroup(heading = "Perplexity") {
-                    TextPreference(
-                        adapter = prefs.llmPerplexityKey.getAdapter(),
-                        label = "Perplexity API Key ${if (prefs.llmPerplexityKey.get().isNotEmpty()) "✓" else ""}",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ListPreference(
-                        adapter = prefs.llmPerplexityModel.getAdapter(),
-                        label = "Perplexity Model",
-                        entries = ModelRegistry.getAvailableModels("perplexity").map { model ->
-                            ListPreferenceEntry(
-                                value = model.id,
-                                label = { "${model.displayName} - ${model.qualityTier.name}" },
-                            )
-                        },
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                val provider = PerplexityProvider(context)
-                                val result = provider.testConnection()
-                                testStatus = testStatus + (
-                                    "perplexity" to if (result.success) {
-                                        "✅ Connected (${result.latencyMs}ms)"
-                                    } else {
-                                        "❌ ${result.message}"
-                                    }
-                                    )
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    ) {
-                        Text("Test Perplexity Connection")
-                    }
-
-                    testStatus["perplexity"]?.let { status ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = status,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (status.startsWith("✅")) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            },
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Get your API key at docs.perplexity.ai. If you get a 401 error, verify your API key is correct and active.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                    )
-                }
-            }
-
-            // ===== PERFORMANCE SETTINGS SECTION =====
-            item {
-                PreferenceGroup(heading = "Performance") {
+                PreferenceGroup(heading = "Settings") {
                     SwitchPreference(
                         adapter = prefs.llmEnableBatching.getAdapter(),
-                        label = "Enable Batch Processing",
+                        label = "Batch Processing",
                         description = "Process multiple apps per API call (20x faster, 68% token savings)",
                     )
 
@@ -687,262 +466,117 @@ fun CategorizationSettingsPreferences(
 
                     SwitchPreference(
                         adapter = prefs.autoCatEnableRateLimiting.getAdapter(),
-                        label = "Enable Rate Limiting",
+                        label = "Rate Limiting",
                         description = "Add 1-second delay between batches. Recommended for Google AI (free tier). " +
                             "Disable for faster categorization with Perplexity, Claude, or OpenAI.",
                     )
                 }
             }
 
-            // ===== ACTIONS SECTION =====
-            item {
-                PreferenceGroup(heading = "Actions") {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                    ) {
-                        Button(
-                            onClick = {
-                                categorizationStatus = ""
-                                scope.launch {
-                                    try {
-                                        categorizationManager.recategorizeAll()
-                                        categories = categoryDao.getAllCustomCategories()
-                                        categorizations = categoryDao.getAllAppCategories()
-                                        groupedCategories = categorizations.groupBy { cat -> cat.category }
-                                        categorizationStatus = "✅ Categorization complete! Check your app drawer."
-                                    } catch (e: Exception) {
-                                        categorizationStatus = "❌ Error: ${e.message}"
-                                    }
-                                }
-                            },
-                            enabled = !progress.isRunning,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(if (progress.isRunning) "Categorizing..." else "Re-categorize All Apps")
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
+            // ===== DEVELOPER DIAGNOSTICS (if enabled) =====
+            if (prefs.autoCatDevMode.get()) {
+                item {
+                    PreferenceGroup(heading = "Developer Diagnostics") {
+                        var showDiagnostics by remember { mutableStateOf(false) }
 
                         OutlinedButton(
-                            onClick = {
-                                slImportLauncher.launch("*/*")
-                            },
-                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { showDiagnostics = !showDiagnostics },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
                         ) {
-                            Text("Import from Smart Launcher Backup (.slbk)")
+                            Icon(
+                                imageVector = if (showDiagnostics) {
+                                    Icons.Default.ExpandLess
+                                } else {
+                                    Icons.Default.ExpandMore
+                                },
+                                contentDescription = null,
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(if (showDiagnostics) "Hide Diagnostics" else "Show Diagnostics")
                         }
 
-                        // Progress indicator
-                        if (progress.isRunning) {
-                            Spacer(modifier = Modifier.height(16.dp))
+                        if (showDiagnostics) {
+                            Spacer(modifier = Modifier.height(12.dp))
 
-                            val animatedProgress by animateFloatAsState(
-                                targetValue = progress.progressPercentage,
-                                animationSpec = tween(durationMillis = 300),
-                                label = "progress",
-                            )
-
-                            LinearProgressIndicator(
-                                progress = { animatedProgress },
+                            Surface(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(8.dp),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            )
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
+                                    .padding(horizontal = 16.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = MaterialTheme.shapes.medium,
                             ) {
-                                Text(
-                                    text = "Stage: ${progress.currentStage}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                Text(
-                                    text = "${progress.processedCount} / ${progress.totalCount}",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-
-                            if (progress.batchProgressText != null) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
                                     Text(
-                                        text = progress.batchProgressText!!,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        text = "🔧 Developer Diagnostics",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
                                     )
 
-                                    if (progress.currentProvider != null) {
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "• ${progress.currentProvider}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
 
-                                    if (progress.estimatedTimeMs > 0) {
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        val seconds = (progress.estimatedTimeMs / 1000).toInt()
-                                        Text(
-                                            text = "• ~${seconds}s remaining",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
-                                }
-                            }
+                                    Text(
+                                        text = "Current Progress:",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                    Text(
+                                        text = "• Stage: ${progress.currentStage}\n" +
+                                            "• Processed: ${progress.processedCount}/${progress.totalCount}\n" +
+                                            "• Batch: ${progress.currentBatch}/${progress.totalBatches}\n" +
+                                            "• Provider: ${progress.currentProvider ?: "N/A"}\n" +
+                                            "• Batch Size: ${progress.batchSize}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                    )
 
-                            if (progress.currentAppName != null) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Processing: ${progress.currentAppName}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
+                                    Spacer(modifier = Modifier.height(8.dp))
 
-                        // Status message
-                        if (categorizationStatus.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = categorizationStatus,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (categorizationStatus.startsWith("✅")) {
-                                    MaterialTheme.colorScheme.primary
-                                } else if (categorizationStatus.startsWith("❌")) {
-                                    MaterialTheme.colorScheme.error
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface
-                                },
-                            )
-                        }
+                                    var dbStats by remember { mutableStateOf("Loading...") }
+                                    LaunchedEffect(Unit) {
+                                        withContext(Dispatchers.IO) {
+                                            val totalCategorized = categoryDao.getAllAppCategories().size
+                                            val userOverrides = categoryDao.getUserOverriddenApps().size
+                                            val llmCategorized = categoryDao.getAppsBySource("llm").size
+                                            val builtInCategorized = categoryDao.getAppsBySource("built-in").size
 
-                        // Developer Diagnostics
-                        if (prefs.autoCatDevMode.get()) {
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            var showDiagnostics by remember { mutableStateOf(false) }
-
-                            OutlinedButton(
-                                onClick = { showDiagnostics = !showDiagnostics },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Icon(
-                                    imageVector = if (showDiagnostics) {
-                                        Icons.Default.ExpandLess
-                                    } else {
-                                        Icons.Default.ExpandMore
-                                    },
-                                    contentDescription = null,
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(if (showDiagnostics) "Hide Diagnostics" else "Show Diagnostics")
-                            }
-
-                            if (showDiagnostics) {
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    color = MaterialTheme.colorScheme.surfaceVariant,
-                                    shape = MaterialTheme.shapes.medium,
-                                ) {
-                                    Column(modifier = Modifier.padding(12.dp)) {
-                                        Text(
-                                            text = "🔧 Developer Diagnostics",
-                                            style = MaterialTheme.typography.titleSmall,
-                                            fontWeight = FontWeight.Bold,
-                                        )
-
-                                        Spacer(modifier = Modifier.height(8.dp))
-
-                                        Text(
-                                            text = "Current Progress:",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.primary,
-                                        )
-                                        Text(
-                                            text = "• Stage: ${progress.currentStage}\n" +
-                                                "• Processed: ${progress.processedCount}/${progress.totalCount}\n" +
-                                                "• Batch: ${progress.currentBatch}/${progress.totalBatches}\n" +
-                                                "• Provider: ${progress.currentProvider ?: "N/A"}\n" +
-                                                "• Batch Size: ${progress.batchSize}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                                        )
-
-                                        Spacer(modifier = Modifier.height(8.dp))
-
-                                        var dbStats by remember { mutableStateOf("Loading...") }
-                                        LaunchedEffect(Unit) {
-                                            withContext(Dispatchers.IO) {
-                                                val totalCategorized = categoryDao.getAllAppCategories().size
-                                                val userOverrides = categoryDao.getUserOverriddenApps().size
-                                                val llmCategorized = categoryDao.getAppsBySource("llm").size
-                                                val builtInCategorized = categoryDao.getAppsBySource("built-in").size
-
-                                                dbStats = "• Total categorized: $totalCategorized\n" +
-                                                    "• LLM categorized: $llmCategorized\n" +
-                                                    "• Built-in categorized: $builtInCategorized\n" +
-                                                    "• User overrides: $userOverrides"
-                                            }
+                                            dbStats = "• Total categorized: $totalCategorized\n" +
+                                                "• LLM categorized: $llmCategorized\n" +
+                                                "• Built-in categorized: $builtInCategorized\n" +
+                                                "• User overrides: $userOverrides"
                                         }
-
-                                        Text(
-                                            text = "Database Stats:",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.primary,
-                                        )
-                                        Text(
-                                            text = dbStats,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                                        )
-
-                                        Spacer(modifier = Modifier.height(8.dp))
-
-                                        Text(
-                                            text = "Settings:",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.primary,
-                                        )
-                                        Text(
-                                            text = "• Batching: ${if (prefs.llmEnableBatching.get()) "Enabled" else "Disabled"}\n" +
-                                                "• Batch size: ${if (prefs.llmBatchSize.get() == 0) "Auto" else prefs.llmBatchSize.get()}\n" +
-                                                "• Folder sync: ${if (prefs.autoCatSyncFolders.get()) "Enabled" else "Disabled"}\n" +
-                                                "• Provider: ${prefs.llmProviderPreference.get()}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                                        )
                                     }
+
+                                    Text(
+                                        text = "Database Stats:",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                    Text(
+                                        text = dbStats,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                    )
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    Text(
+                                        text = "Settings:",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                    Text(
+                                        text = "• Batching: ${if (prefs.llmEnableBatching.get()) "Enabled" else "Disabled"}\n" +
+                                            "• Batch size: ${if (prefs.llmBatchSize.get() == 0) "Auto" else prefs.llmBatchSize.get()}\n" +
+                                            "• Folder sync: ${if (prefs.autoCatSyncFolders.get()) "Enabled" else "Disabled"}\n" +
+                                            "• Provider: ${prefs.llmProviderPreference.get()}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                    )
                                 }
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            text = "This will re-categorize all apps using LLM (custom categories) and built-in (fallback). " +
-                                "${if (prefs.llmEnableBatching.get()) "Batch processing enabled for 20x faster categorization! " else ""}" +
-                                "${if (prefs.autoCatSyncFolders.get()) "Folders will be created automatically. " else ""}" +
-                                "Only apps without user overrides will be re-categorized.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
                     }
                 }
             }
@@ -977,7 +611,7 @@ fun CategorizationSettingsPreferences(
                                 isVisible = true,
                             ),
                         )
-                        successMessage = "✓ Category '$name' created! Use 'Re-categorize All Apps' to assign apps."
+                        successMessage = "✓ Category '$name' created! Use 'Categorize All Apps' to assign apps."
                     }
                     categories = categoryDao.getAllCustomCategories()
                     categorizations = categoryDao.getAllAppCategories()
@@ -1012,7 +646,7 @@ fun CategorizationSettingsPreferences(
                     groupedCategories = categorizations.groupBy { cat -> cat.category }
                     appProvider.refreshCache()
 
-                    successMessage = "✓ Added '${suggestion.name}' category! Use 'Re-categorize All Apps' to assign apps."
+                    successMessage = "✓ Added '${suggestion.name}' category! Use 'Categorize All Apps' to assign apps."
                     suggestionsError = null
                 }
             },
@@ -1052,6 +686,96 @@ fun CategorizationSettingsPreferences(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun CategorizationProgress(progress: app.lawnchair.categorization.CategorizationProgress) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            val animatedProgress by animateFloatAsState(
+                targetValue = progress.progressPercentage,
+                animationSpec = tween(durationMillis = 300),
+                label = "progress",
+            )
+
+            LinearProgressIndicator(
+                progress = { animatedProgress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Stage: ${progress.currentStage}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = "${progress.processedCount} / ${progress.totalCount}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+
+            if (progress.batchProgressText != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = progress.batchProgressText!!,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+
+                    if (progress.currentProvider != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "• ${progress.currentProvider}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    if (progress.estimatedTimeMs > 0) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        val seconds = (progress.estimatedTimeMs / 1000).toInt()
+                        Text(
+                            text = "• ~${seconds}s remaining",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+
+            if (progress.currentAppName != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Processing: ${progress.currentAppName}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 
