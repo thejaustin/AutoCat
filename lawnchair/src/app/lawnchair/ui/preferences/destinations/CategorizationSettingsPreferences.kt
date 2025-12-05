@@ -308,7 +308,7 @@ fun CategorizationSettingsPreferences(
                         categoryName = categoryName,
                         appCount = apps.size,
                         isExpanded = expandedCategories.contains(categoryName),
-                        onToggleExpanded = {
+                        onToggleExpand = {
                             expandedCategories = if (expandedCategories.contains(categoryName)) {
                                 expandedCategories - categoryName
                             } else {
