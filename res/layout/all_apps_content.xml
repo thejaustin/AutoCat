@@ -43,6 +43,8 @@
 
         <include layout="@layout/all_apps_personal_work_tabs" />
 
+        <include layout="@layout/all_apps_category_tabs" />
+
     </com.android.launcher3.allapps.FloatingHeaderView>
 
     <include layout="@layout/all_apps_fast_scroller" />

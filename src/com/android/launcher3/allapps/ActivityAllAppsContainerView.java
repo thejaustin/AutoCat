@@ -104,6 +104,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import app.lawnchair.allapps.CategoryTabStrip;
 import app.lawnchair.allapps.LawnchairAlphabeticalAppsList;
 import app.lawnchair.categorization.CategoryTabsController;
 import app.lawnchair.font.FontManager;
@@ -790,6 +791,46 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         var hideHeader = PreferenceExtensionsKt.firstBlocking(pref2.getHideAppDrawerSearchBar());
         mHeader.setVisibility(hideHeader ? View.GONE : View.VISIBLE);
         boolean tabsHidden = !mUsingTabs;
+
+        // Setup appropriate tab strip based on mode
+        try {
+            CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
+            boolean usingCategoryTabs = controller.shouldShowTabs(getContext()) && !mHasWorkApps;
+
+            View personalWorkTabs = mHeader.findViewById(com.android.launcher3.R.id.tabs);
+            CategoryTabStrip categoryTabStrip = (CategoryTabStrip) mHeader.findViewById(
+                getResources().getIdentifier("category_tabs", "id", getContext().getPackageName())
+            );
+
+            if (usingCategoryTabs && categoryTabStrip != null) {
+                // Show category tabs, hide work/personal tabs
+                if (personalWorkTabs != null) {
+                    personalWorkTabs.setVisibility(View.GONE);
+                }
+                categoryTabStrip.setVisibility(View.VISIBLE);
+                categoryTabStrip.setupTabs();
+                categoryTabStrip.setOnActivePageChangedListener(
+                    new CategoryTabStrip.OnActivePageChangedListener() {
+                        @Override
+                        public void onActivePageChanged(int activePage) {
+                            ActivityAllAppsContainerView.this.onActivePageChanged(activePage);
+                        }
+                    }
+                );
+            } else {
+                // Show work/personal tabs (or hide if no tabs), hide category tabs
+                if (personalWorkTabs != null) {
+                    personalWorkTabs.setVisibility(tabsHidden ? View.GONE : View.VISIBLE);
+                }
+                if (categoryTabStrip != null) {
+                    categoryTabStrip.setVisibility(View.GONE);
+                }
+            }
+        } catch (Exception e) {
+            // Fallback to original behavior
+            Log.e("AllAppsContainer", "Error setting up category tabs", e);
+        }
+
         mHeader.setup(
                 mAH.get(AdapterHolder.MAIN).mRecyclerView,
                 mAH.get(AdapterHolder.WORK).mRecyclerView,
