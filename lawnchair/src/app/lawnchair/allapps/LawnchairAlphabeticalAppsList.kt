@@ -49,6 +49,7 @@ class LawnchairAlphabeticalAppsList<T>(
     private val potsManager = Flowerpot.Manager.getInstance(context)
     private val autoCatProvider = AutoCatAppProvider.getInstance(context)
     private val categoryTabsController = CategoryTabsController.getInstance(context)
+    private var cachedCategorizedApps: Map<String, Map<String, List<AppInfo>>>? = null
 
     init {
         context.launcher.deviceProfile.inv.addOnChangeListener(this)
@@ -61,6 +62,11 @@ class LawnchairAlphabeticalAppsList<T>(
             Log.w(TAG, "Failed to initialize hidden apps", t)
         }
         observeFolders()
+    }
+
+    override fun onAppsUpdated() {
+        super.onAppsUpdated()
+        cachedCategorizedApps = autoCatProvider.categorizeApps(appsStore.apps.toList())
     }
 
     private fun observeFolders() {
@@ -116,7 +122,7 @@ class LawnchairAlphabeticalAppsList<T>(
 
         if (!drawerListDefault) {
             // Use AutoCat database categorization
-            val categorizedApps = autoCatProvider.categorizeApps(appList)
+            val categorizedApps = cachedCategorizedApps ?: autoCatProvider.categorizeApps(appList)
 
             // If using tabs, filter to only show current tab's category
             val appsToShow = if (usingCategoryTabs && currentTabCategory != null) {

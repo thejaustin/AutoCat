@@ -847,7 +847,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                             mAppsUpdateRunnable = () -> {
                                 // Refresh the relevant adapter
                                 if (mAH.get(safePage) != null && mAH.get(safePage).mAppsList != null) {
-                                    mAH.get(safePage).mAppsList.onAppsUpdated();
+                                    // Use updateAdapterItems() instead of onAppsUpdated() to avoid re-sorting the entire list
+                                    mAH.get(safePage).mAppsList.updateAdapterItems();
                                 }
                             };
                             mAppsUpdateHandler.postDelayed(mAppsUpdateRunnable, 100);
