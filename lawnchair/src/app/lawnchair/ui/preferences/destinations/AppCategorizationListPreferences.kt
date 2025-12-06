@@ -20,6 +20,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -70,6 +71,7 @@ fun AppCategorizationListPreferences(
     var availableCategories by remember { mutableStateOf<List<CustomCategory>>(emptyList()) }
     var editingApp by remember { mutableStateOf<AppCategory?>(null) }
     var expandedCategories by remember { mutableStateOf(setOf<String>()) }
+    var filterMode by remember { mutableStateOf(FilterMode.ALL) }
 
     // Load categorizations and available categories
     LaunchedEffect(Unit) {
@@ -79,8 +81,16 @@ fun AppCategorizationListPreferences(
         }
     }
 
-    val groupedApps = remember(categorizations) {
-        categorizations.groupBy { it.category }.toSortedMap()
+    val filteredCategorizations = remember(categorizations, filterMode) {
+        when (filterMode) {
+            FilterMode.ALL -> categorizations
+            FilterMode.UNCATEGORIZED -> categorizations.filter { it.category == "Other" }
+            FilterMode.UNFOLDERED -> categorizations.filter { it.category != "Other" && it.subCategory.isNullOrBlank() }
+        }
+    }
+
+    val groupedApps = remember(filteredCategorizations) {
+        filteredCategorizations.groupBy { it.category }.toSortedMap()
     }
 
     PreferenceScaffold(
@@ -96,6 +106,27 @@ fun AppCategorizationListPreferences(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Filters
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = filterMode == FilterMode.ALL,
+                            onClick = { filterMode = FilterMode.ALL },
+                            label = { Text("All") },
+                        )
+                        FilterChip(
+                            selected = filterMode == FilterMode.UNCATEGORIZED,
+                            onClick = { filterMode = FilterMode.UNCATEGORIZED },
+                            label = { Text("Uncategorized") },
+                        )
+                        FilterChip(
+                            selected = filterMode == FilterMode.UNFOLDERED,
+                            onClick = { filterMode = FilterMode.UNFOLDERED },
+                            label = { Text("Unfoldered") },
+                        )
+                    }
                 }
             }
 
@@ -104,7 +135,7 @@ fun AppCategorizationListPreferences(
                     CategoryHeader(
                         category = category,
                         count = apps.size,
-                        expanded = expandedCategories.contains(category),
+                        expanded = expandedCategories.contains(category) || filterMode != FilterMode.ALL,
                         onClick = {
                             expandedCategories = if (expandedCategories.contains(category)) {
                                 expandedCategories - category
@@ -115,10 +146,8 @@ fun AppCategorizationListPreferences(
                     )
                 }
 
-                if (expandedCategories.contains(category)) {
+                if (expandedCategories.contains(category) || filterMode != FilterMode.ALL) {
                     items(apps, key = { it.packageName }) { appCategory ->
-                        // Wrap item in Surface to match group look if needed, or just list them
-                        // Using a Surface background for items to distinguish from header
                         Surface(
                             color = preferenceGroupColor(),
                             modifier = Modifier.padding(horizontal = 16.dp),
@@ -130,7 +159,6 @@ fun AppCategorizationListPreferences(
                             )
                         }
                     }
-                    // Add a small spacer after the group
                     item { Spacer(modifier = Modifier.height(8.dp)) }
                 }
             }
@@ -144,11 +172,12 @@ fun AppCategorizationListPreferences(
             availableCategories = availableCategories,
             packageManager = packageManager,
             onDismiss = { editingApp = null },
-            onSave = { newCategory ->
+            onSave = { newCategory, newSubCategory ->
                 scope.launch(Dispatchers.IO) {
                     // Update categorization with user override flag
                     val updated = app.copy(
                         category = newCategory,
+                        subCategory = newSubCategory,
                         isUserOverride = true,
                         source = AppCategory.SOURCE_USER,
                         confidence = 1.0f,
@@ -161,13 +190,9 @@ fun AppCategorizationListPreferences(
 
                     // Sync to folders if enabled
                     if (folderSyncService.isSyncEnabled()) {
-                        android.util.Log.d("AppCategorizationList", "Syncing updated categorization to folders")
-
                         val allCategories = categoryDao.getAllAppCategories()
                         val categorizationMap = allCategories.associate { it.packageName to it.category }
-
                         folderSyncService.syncCategoriesToFolders(categorizationMap)
-                        android.util.Log.d("AppCategorizationList", "Folder sync complete")
                     }
 
                     // Refresh app provider cache
@@ -178,6 +203,12 @@ fun AppCategorizationListPreferences(
             },
         )
     }
+}
+
+private enum class FilterMode {
+    ALL,
+    UNCATEGORIZED,
+    UNFOLDERED,
 }
 
 @Composable
@@ -286,6 +317,14 @@ private fun AppCategorizationItem(
                     color = MaterialTheme.colorScheme.primary,
                 )
 
+                if (!appCategory.subCategory.isNullOrBlank()) {
+                    Text(
+                        text = "• ${appCategory.subCategory}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
                 if (appCategory.isUserOverride) {
                     Text(
                         text = "• Override",
@@ -293,12 +332,6 @@ private fun AppCategorizationItem(
                         color = MaterialTheme.colorScheme.secondary,
                     )
                 }
-
-                Text(
-                    text = "• ${(appCategory.confidence * 100).toInt()}%",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
 
             // Show reasoning if available
@@ -331,7 +364,7 @@ private fun CategoryOverrideDialog(
     availableCategories: List<CustomCategory>,
     packageManager: PackageManager,
     onDismiss: () -> Unit,
-    onSave: (String) -> Unit,
+    onSave: (String, String?) -> Unit,
 ) {
     val appName = remember(appCategory.packageName) {
         try {
@@ -343,6 +376,7 @@ private fun CategoryOverrideDialog(
     }
 
     var selectedCategory by remember { mutableStateOf(appCategory.category) }
+    var subCategory by remember { mutableStateOf(appCategory.subCategory ?: "") }
     var expanded by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -353,7 +387,7 @@ private fun CategoryOverrideDialog(
         text = {
             Column {
                 Text(
-                    text = "Change category for $appName",
+                    text = "Change categorization for $appName",
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
@@ -393,6 +427,17 @@ private fun CategoryOverrideDialog(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Subcategory (Folder) input
+                OutlinedTextField(
+                    value = subCategory,
+                    onValueChange = { subCategory = it },
+                    label = { Text("Folder / Subcategory (Optional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+
                 // Show current reasoning if available
                 if (!appCategory.reasoning.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(16.dp))
@@ -412,8 +457,12 @@ private fun CategoryOverrideDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onSave(selectedCategory) },
-                enabled = selectedCategory != appCategory.category,
+                onClick = {
+                    onSave(
+                        selectedCategory,
+                        subCategory.takeIf { it.isNotBlank() },
+                    )
+                },
             ) {
                 Text("Save")
             }
