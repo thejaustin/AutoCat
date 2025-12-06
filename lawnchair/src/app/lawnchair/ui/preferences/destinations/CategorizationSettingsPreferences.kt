@@ -68,6 +68,7 @@ fun CategorizationSettingsPreferences(
                         CategoryTabsController.getInstance(context).refresh()
                         "✅ Imported ${result.count} apps from Smart Launcher!"
                     }
+
                     is ImportResult.Error -> "❌ Import failed: ${result.message}"
                 }
             }
