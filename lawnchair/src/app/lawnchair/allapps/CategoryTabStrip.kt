@@ -132,19 +132,18 @@ class CategoryTabStrip @JvmOverloads constructor(
             fontManager.setCustomFont(this, R.id.font_body_medium)
 
             // Tab dimensions
-            val height = resources.getDimensionPixelSize(R.dimen.all_apps_header_pill_height)
+            val buttonMargin = resources.getDimensionPixelSize(R.dimen.all_apps_tabs_button_horizontal_padding)
             val horizontalPadding = resources.getDimensionPixelSize(R.dimen.dynamic_grid_edge_margin)
-            val verticalPadding = height / 4
 
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-                height,
+                LinearLayout.LayoutParams.MATCH_PARENT,
             ).apply {
-                marginStart = if (index == 0) 0 else horizontalPadding / 2
-                marginEnd = horizontalPadding / 2
+                marginStart = if (index == 0) 0 else buttonMargin
+                marginEnd = 0
             }
 
-            setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding)
+            setPadding(horizontalPadding, 0, horizontalPadding, 0)
             minWidth = resources.getDimensionPixelSize(R.dimen.all_apps_header_pill_height) * 2
 
             // Click listener
