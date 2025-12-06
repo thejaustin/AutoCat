@@ -166,11 +166,34 @@ fun CategorizationSettingsPreferences(
             // ===== SETTINGS =====
             item {
                 PreferenceGroup(heading = "Settings") {
+                    val useTabs by prefs.autoCatUseTabs.getAdapter().state
+
                     SwitchPreference(
                         adapter = prefs.autoCatUseTabs.getAdapter(),
                         label = "Use Category Tabs",
                         description = "Show categories as tabs in app drawer (like Smart Launcher). Apps are organized by category with folders still available within each tab.",
                     )
+
+                    // Show work apps options only when category tabs are enabled
+                    AnimatedVisibility(visible = useTabs) {
+                        Column {
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            SwitchPreference(
+                                adapter = prefs.hideWorkApps.getAdapter(),
+                                label = "Hide Work Apps",
+                                description = "Hide work profile apps from the app drawer (except on Work tab if enabled)",
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            SwitchPreference(
+                                adapter = prefs.showWorkTab.getAdapter(),
+                                label = "Show Work Tab",
+                                description = "Add a dedicated Work tab at the end to show only work profile apps",
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(8.dp))
 

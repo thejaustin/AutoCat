@@ -28,6 +28,7 @@ class CategoryTabsController private constructor(private val context: Context) :
         val INSTANCE = MainThreadInitializedObject<CategoryTabsController>(::CategoryTabsController)
 
         const val TAB_ALL = "All Apps"
+        const val TAB_WORK = "Work"
         const val TAB_ALL_INDEX = 0
 
         @JvmStatic
@@ -73,6 +74,13 @@ class CategoryTabsController private constructor(private val context: Context) :
     private fun updateTabNames(cats: List<CustomCategory>) {
         val names = mutableListOf(TAB_ALL)
         names.addAll(cats.map { it.name })
+
+        // Add Work tab at the end if enabled
+        val prefs = app.lawnchair.preferences.PreferenceManager.getInstance(context)
+        if (prefs.showWorkTab.get()) {
+            names.add(TAB_WORK)
+        }
+
         _tabNames.value = names
     }
 
@@ -112,15 +120,30 @@ class CategoryTabsController private constructor(private val context: Context) :
     /**
      * Get the category name for a given tab index.
      * Returns null for "All Apps" tab.
+     * Returns TAB_WORK constant for Work tab.
      */
     fun getCategoryForTab(tabIndex: Int): String? {
         return if (tabIndex == TAB_ALL_INDEX) {
             null // "All Apps" shows everything
+        } else if (isWorkTab(tabIndex)) {
+            TAB_WORK // Special marker for work tab
         } else if (tabIndex > 0 && tabIndex <= _categories.value.size) {
             _categories.value[tabIndex - 1].name
         } else {
             null
         }
+    }
+
+    /**
+     * Check if the given tab index is the Work tab.
+     */
+    fun isWorkTab(tabIndex: Int): Boolean {
+        val prefs = app.lawnchair.preferences.PreferenceManager.getInstance(context)
+        if (!prefs.showWorkTab.get()) return false
+
+        // Work tab is always the last tab
+        val workTabIndex = _tabNames.value.size - 1
+        return tabIndex == workTabIndex && _tabNames.value.getOrNull(workTabIndex) == TAB_WORK
     }
 
     /**
@@ -137,10 +160,11 @@ class CategoryTabsController private constructor(private val context: Context) :
     fun getTabCount(): Int = _tabNames.value.size
 
     /**
-     * Check if we should show tabs (have categories and tabs are enabled).
+     * Check if we should show tabs (tabs are enabled in settings).
+     * Always shows at minimum "All Apps" tab when enabled, even with no categories.
      */
     fun shouldShowTabs(context: Context): Boolean {
-        return areTabsEnabled(context) && _categories.value.isNotEmpty()
+        return areTabsEnabled(context)
     }
 
     override fun close() {

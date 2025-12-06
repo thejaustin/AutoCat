@@ -87,15 +87,31 @@ class LawnchairAlphabeticalAppsList<T>(
         filteredList.clear()
         var position = startPosition
 
-        // Show app drawer folders only on main profile, to prevent state complexity
-        if (isWorkOrPrivateSpace(appList)) return super.addAppsWithSections(appList, position)
-
         // Check if category tabs are enabled
         val usingCategoryTabs = categoryTabsController.shouldShowTabs(context)
         val currentTabCategory = if (usingCategoryTabs) {
             categoryTabsController.getCategoryForTab(categoryTabsController.getCurrentTab())
         } else {
             null
+        }
+
+        // When using category tabs, handle work apps differently
+        val isWorkProfile = isWorkOrPrivateSpace(appList)
+        if (isWorkProfile && usingCategoryTabs) {
+            // Check if this is the Work tab
+            if (currentTabCategory == CategoryTabsController.TAB_WORK) {
+                // Show only work apps on Work tab
+                return super.addAppsWithSections(appList, position)
+            }
+
+            // Check if work apps should be hidden
+            if (prefs.hideWorkApps.get()) {
+                return position // Skip work apps
+            }
+            // Otherwise, fall through to mix work apps with personal apps
+        } else if (isWorkProfile) {
+            // Not using category tabs - use default work profile behavior
+            return super.addAppsWithSections(appList, position)
         }
 
         if (!drawerListDefault) {

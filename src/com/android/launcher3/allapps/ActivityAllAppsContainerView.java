@@ -795,7 +795,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         // Setup appropriate tab strip based on mode
         try {
             CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
-            boolean usingCategoryTabs = controller.shouldShowTabs(getContext()) && !mHasWorkApps;
+            // Category tabs take priority when enabled (they replace personal/work tabs)
+            boolean usingCategoryTabs = controller.shouldShowTabs(getContext());
 
             View personalWorkTabs = mHeader.findViewById(com.android.launcher3.R.id.tabs);
 
@@ -1388,22 +1389,22 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     }
 
     /**
-     * Returns true if the container has work apps or category tabs are enabled.
+     * Returns true if tabs should be shown (either category tabs or work apps tabs).
+     * Category tabs take priority when enabled - they replace personal/work tabs.
      */
     public boolean shouldShowTabs() {
-        // Check for work apps (original behavior)
-        if (mHasWorkApps) {
-            return true;
-        }
-
-        // Check for category tabs
+        // Check for category tabs first (they take priority)
         try {
             CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
-            return controller.shouldShowTabs(getContext());
+            if (controller.shouldShowTabs(getContext())) {
+                return true; // Use category tabs, not work tabs
+            }
         } catch (Exception e) {
-            // Fallback to original behavior if category tabs fail
-            return false;
+            // Continue to check work apps if category tabs fail
         }
+
+        // Fall back to work apps tabs only if category tabs are disabled
+        return mHasWorkApps;
     }
 
     // Used by tests only
