@@ -11,9 +11,15 @@ import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.font.FontManager
 import app.lawnchair.theme.color.tokens.ColorStateListTokens
 import app.lawnchair.theme.drawable.DrawableTokens
+import com.android.launcher3.DeviceProfile
 import com.android.launcher3.R
 import com.android.launcher3.pageindicators.PageIndicator
 import com.android.launcher3.util.Themes
+import com.android.launcher3.views.ActivityContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 /**
  * Scrollable tab strip for category tabs in app drawer.
@@ -37,12 +43,17 @@ class CategoryTabStrip @JvmOverloads constructor(
     private var onActivePageChangedListener: OnActivePageChangedListener? = null
     private var lastActivePage = 0
     private val tabs = mutableListOf<Button>()
+    private var job: Job? = null
 
     init {
+        // Fill viewport to allow centering when content is smaller than width
+        isFillViewport = true
+
         // Create the container for tabs
         tabContainer = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
+            // Center tabs if they don't fill the screen
+            gravity = Gravity.CENTER
             val padding = resources.getDimensionPixelSize(R.dimen.all_apps_header_pill_height) / 4
             setPadding(padding, 0, padding, 0)
         }
@@ -57,6 +68,31 @@ class CategoryTabStrip @JvmOverloads constructor(
         // Smooth scrolling
         isSmoothScrollingEnabled = true
         isHorizontalScrollBarEnabled = false
+    }
+
+        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            // Emulate PersonalWorkSlidingTabStrip alignment logic
+            val size = MeasureSpec.getSize(widthMeasureSpec)
+            val activityContext = ActivityContext.lookupContext(context) as ActivityContext
+            val grid = activityContext.deviceProfile
+            val iconPadding = size / grid.numShownAllAppsColumns - grid.allAppsIconSizePx
+            val newWidth = size - iconPadding
+            
+            val newWidthMeasureSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY)
+            super.onMeasure(newWidthMeasureSpec, heightMeasureSpec)
+        }
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        job = CoroutineScope(Dispatchers.Main).launch {
+            categoryController.tabNames.collect {
+                setupTabs()
+            }
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        job?.cancel()
     }
 
     /**
@@ -78,10 +114,11 @@ class CategoryTabStrip @JvmOverloads constructor(
     }
 
     private fun createTab(label: String, index: Int): Button {
-        return Button(context).apply {
+        return Button(context, null, android.R.attr.borderlessButtonStyle).apply {
             text = label
             isAllCaps = false
             setAllCaps(false)
+            textSize = 14f
 
             // Apply theming
             background = DrawableTokens.AllAppsTabsBackground.resolve(context)

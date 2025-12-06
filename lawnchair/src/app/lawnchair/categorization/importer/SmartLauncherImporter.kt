@@ -144,23 +144,6 @@ class SmartLauncherImporter(private val context: Context) {
                 }
                 folderCursor.close()
 
-                // Helper to build full category path
-                fun getCategoryPath(folderId: Int): String {
-                    val item = folderMap[folderId] ?: return "Uncategorized"
-                    // Prevent infinite recursion if cycle exists
-                    val visited = mutableSetOf<Int>()
-                    var current = item
-                    var path = item.label
-
-                    while (current.parentId != 0 && folderMap.containsKey(current.parentId)) {
-                        if (!visited.add(current.id)) break // Cycle detected
-                        val parent = folderMap[current.parentId]!!
-                        path = "${parent.label} > $path"
-                        current = parent
-                    }
-                    return path
-                }
-
                 // 6. Load Apps and Map them
                 val appsToImport = mutableListOf<AppCategory>()
                 val appCursor = slDb.rawQuery("SELECT parentId, categoryId, packageName FROM DrawerItem WHERE packageName IS NOT NULL", null)
@@ -173,18 +156,18 @@ class SmartLauncherImporter(private val context: Context) {
                         val categoryId = appCursor.getString(1)
                         val packageName = appCursor.getString(2)
 
-                        // Determine Target Category Name and Icon
-                        var targetCategory = "Uncategorized"
+                        // Determine Target Category Name (Tab)
+                        val targetCategory = categoryMap[categoryId] ?: "Uncategorized"
+
+                        // Determine Sub-Category (Folder)
+                        var targetSubCategory: String? = null
                         var targetIcon: String? = null
 
-                        if (folderMap.containsKey(parentId)) {
-                            // It's in a folder -> Use Full Folder Path
-                            targetCategory = getCategoryPath(parentId)
-                            // Use the immediate folder's icon
-                            targetIcon = folderMap[parentId]?.icon
-                        } else {
-                            // It's in the root of a category -> Use Category Name
-                            targetCategory = categoryMap[categoryId] ?: "Uncategorized"
+                        if (parentId != 0 && folderMap.containsKey(parentId)) {
+                            val folder = folderMap[parentId]!!
+                            targetSubCategory = folder.label
+                            // Use the folder's icon
+                            targetIcon = folder.icon
                         }
 
                         // Create AppCategory entity
@@ -193,6 +176,7 @@ class SmartLauncherImporter(private val context: Context) {
                         val appCategory = AppCategory(
                             packageName = packageName,
                             category = targetCategory,
+                            subCategory = targetSubCategory,
                             confidence = 1.0f,
                             source = "import_sl", // Special source tag
                             isUserOverride = true,
@@ -209,7 +193,6 @@ class SmartLauncherImporter(private val context: Context) {
                 val categoryDao = CategoryDatabase.getInstance(context).categoryDao()
 
                 // 6.5 Ensure all used categories exist in CustomCategory table
-                // Now including icon support
                 val uniqueCategories = appsToImport.map { it.category }.distinct()
                 val existingCategories = categoryDao.getAllCustomCategories()
                 var nextSortOrder = existingCategories.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
@@ -228,11 +211,9 @@ class SmartLauncherImporter(private val context: Context) {
                 for (categoryName in uniqueCategories) {
                     val exists = existingCategories.any { it.name.equals(categoryName, ignoreCase = true) }
                     if (!exists) {
-                        // Find an icon for this category from our imported apps/folders
-                        // We find the first folder that matches this category name (suffix)
-                        // This is an approximation, as category name is a path now
-                        // But usually the icon belongs to the leaf folder
-                        val matchingFolder = folderMap.values.find { getCategoryPath(it.id) == categoryName }
+                        // Try to find an icon? For now, leave null or use default.
+                        // We could check if there's a folder with the same name to steal its icon.
+                        val matchingFolder = folderMap.values.find { it.label.equals(categoryName, ignoreCase = true) }
 
                         val newCategory = CustomCategory(
                             name = categoryName,
@@ -242,7 +223,7 @@ class SmartLauncherImporter(private val context: Context) {
                             icon = matchingFolder?.icon,
                         )
                         categoryDao.insertCustomCategory(newCategory)
-                        android.util.Log.d("SmartLauncherImporter", "Created new custom category: $categoryName (icon: ${newCategory.icon})")
+                        android.util.Log.d("SmartLauncherImporter", "Created new custom category: $categoryName")
                     }
                 }
 
