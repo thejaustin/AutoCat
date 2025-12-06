@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.List
-import androidx.compose.material.icons.rounded.SmartToy
+import androidx.compose.material.icons.rounded.Psychology
+import androidx.compose.material.icons.rounded.ViewList
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -156,7 +156,7 @@ fun CategorizationSettingsPreferences(
                         label = "Categories",
                         subtitle = "Create and manage custom categories for your apps",
                         destination = AppDrawerManageCategories,
-                        icon = Icons.Rounded.List,
+                        icon = Icons.Rounded.ViewList,
                     )
 
                     NavigationActionPreference(
@@ -170,7 +170,7 @@ fun CategorizationSettingsPreferences(
                         label = "LLM Provider Settings",
                         subtitle = "Configure AI providers and test connections",
                         destination = AppDrawerLLMSettings,
-                        icon = Icons.Rounded.SmartToy,
+                        icon = Icons.Rounded.Psychology,
                     )
                 }
             }

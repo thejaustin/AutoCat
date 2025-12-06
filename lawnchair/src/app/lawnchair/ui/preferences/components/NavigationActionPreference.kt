@@ -42,14 +42,16 @@ fun NavigationActionPreference(
         modifier = modifier.clickable { navController.navigate(route = destination) },
         title = { Text(text = label) },
         description = { subtitle?.let { Text(text = it) } },
-        startWidget = {
-            icon?.let {
+        startWidget = if (icon != null) {
+            {
                 Icon(
-                    imageVector = it,
+                    imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        } else {
+            null
         },
         endWidget = endWidget,
     )
