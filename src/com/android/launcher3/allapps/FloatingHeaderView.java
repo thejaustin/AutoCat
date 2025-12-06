@@ -289,7 +289,15 @@ public class FloatingHeaderView extends LinearLayout implements
             return;
         }
         mMaxTranslation += mFloatingRowsHeight;
-        if (!mTabsHidden) {
+
+        // If using category tabs, calculate their height and add it to mMaxTranslation.
+        // The mTabsHidden flag is true when category tabs are active, so we handle it separately.
+        if (mUseCategoryTabs && mCategoryTabs != null) {
+            int categoryTabsHeight = getResources().getDimensionPixelSize(R.dimen.all_apps_header_pill_height);
+            mMaxTranslation += categoryTabsHeight
+                    + mTabsAdditionalPaddingBottom
+                    + getResources().getDimensionPixelSize(R.dimen.all_apps_tabs_margin_top);
+        } else if (!mTabsHidden) {
             mMaxTranslation += mTabsAdditionalPaddingBottom
                     + getResources().getDimensionPixelSize(R.dimen.all_apps_tabs_margin_top);
         }
@@ -500,6 +508,10 @@ public class FloatingHeaderView extends LinearLayout implements
      * expected header protection height.
      */
     int getPeripheralProtectionHeight(boolean expected) {
+        if (mUseCategoryTabs && mCategoryTabs != null) {
+            // When using category tabs, its height contributes to the protection.
+            return mCategoryTabs.getMeasuredHeight() + getPaddingBottom();
+        }
         if (expected) {
             return getTabLayout().getBottom() - getPaddingTop() + getPaddingBottom()
                     - mMaxTranslation;

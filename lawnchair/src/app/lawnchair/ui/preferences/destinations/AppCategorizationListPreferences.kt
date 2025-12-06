@@ -88,6 +88,8 @@ fun AppCategorizationListPreferences(
             FilterMode.ALL -> categorizations
             FilterMode.UNCATEGORIZED -> categorizations.filter { it.category == "Other" }
             FilterMode.UNFOLDERED -> categorizations.filter { it.category != "Other" && it.subCategory.isNullOrBlank() }
+            FilterMode.LLM_SORTED -> categorizations.filter { it.source == AppCategory.SOURCE_LLM || it.source == AppCategory.SOURCE_ML }
+            FilterMode.SLBK_SORTED -> categorizations.filter { it.source == AppCategory.SOURCE_BUILT_IN || it.source == AppCategory.SOURCE_RULE }
         }
     }
 
@@ -127,6 +129,16 @@ fun AppCategorizationListPreferences(
                             selected = filterMode == FilterMode.UNFOLDERED,
                             onClick = { filterMode = FilterMode.UNFOLDERED },
                             label = { Text("Unfoldered") },
+                        )
+                        FilterChip(
+                            selected = filterMode == FilterMode.LLM_SORTED,
+                            onClick = { filterMode = FilterMode.LLM_SORTED },
+                            label = { Text("LLM Sorted") },
+                        )
+                        FilterChip(
+                            selected = filterMode == FilterMode.SLBK_SORTED,
+                            onClick = { filterMode = FilterMode.SLBK_SORTED },
+                            label = { Text("SLBK Sorted") },
                         )
                     }
                 }
@@ -203,6 +215,20 @@ fun AppCategorizationListPreferences(
                     editingApp = null
                 }
             },
+            onAutoCategorize = { packageName ->
+                scope.launch(Dispatchers.IO) {
+                    appProvider.categorizeNewApp(packageName)
+                    // Reload categorizations after auto-categorization
+                    categorizations = categoryDao.getAllAppCategories()
+                    // Sync to folders if enabled
+                    if (folderSyncService.isSyncEnabled()) {
+                        val allCategories = categoryDao.getAllAppCategories()
+                        val categorizationMap = allCategories.associate { it.packageName to it.category }
+                        folderSyncService.syncCategoriesToFolders(categorizationMap)
+                    }
+                    editingApp = null // Dismiss the dialog
+                }
+            },
         )
     }
 }
@@ -211,6 +237,8 @@ private enum class FilterMode {
     ALL,
     UNCATEGORIZED,
     UNFOLDERED,
+    LLM_SORTED,
+    SLBK_SORTED,
 }
 
 @Composable
@@ -367,6 +395,7 @@ private fun CategoryOverrideDialog(
     packageManager: PackageManager,
     onDismiss: () -> Unit,
     onSave: (String, String?) -> Unit,
+    onAutoCategorize: (String) -> Unit, // New parameter
 ) {
     val appName = remember(appCategory.packageName) {
         try {
@@ -380,6 +409,10 @@ private fun CategoryOverrideDialog(
     var selectedCategory by remember { mutableStateOf(appCategory.category) }
     var subCategory by remember { mutableStateOf(appCategory.subCategory ?: "") }
     var expanded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        expanded = false
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -458,15 +491,32 @@ private fun CategoryOverrideDialog(
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = {
-                    onSave(
-                        selectedCategory,
-                        subCategory.takeIf { it.isNotBlank() },
-                    )
-                },
-            ) {
-                Text("Save")
+            Row {
+                // Auto Categorize button (conditional)
+                if (appCategory.source != AppCategory.SOURCE_LLM &&
+                    appCategory.source != AppCategory.SOURCE_ML &&
+                    !appCategory.isUserOverride
+                ) {
+                    TextButton(
+                        onClick = {
+                            onAutoCategorize(appCategory.packageName)
+                            onDismiss() // Dismiss dialog after triggering auto-categorization
+                        },
+                    ) {
+                        Text("Auto Categorize")
+                    }
+                }
+
+                TextButton(
+                    onClick = {
+                        onSave(
+                            selectedCategory,
+                            subCategory.takeIf { it.isNotBlank() },
+                        )
+                    },
+                ) {
+                    Text("Save")
+                }
             }
         },
         dismissButton = {
