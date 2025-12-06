@@ -591,6 +591,9 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         return mIsSearching;
     }
 
+    private final android.os.Handler mAppsUpdateHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable mAppsUpdateRunnable;
+
     @Override
     public void onActivePageChanged(int currentActivePage) {
         if (mSearchTransitionController.isRunning()) {
@@ -604,18 +607,6 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         // protection.
         mHeader.setActiveRV(currentActivePage);
         mWorkManager.onActivePageChanged(currentActivePage);
-
-        // Update category tab controller if using category tabs
-        try {
-            CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
-            if (controller.shouldShowTabs(getContext())) {
-                controller.setCurrentTab(currentActivePage);
-                // Refresh the adapter to show apps for the new category
-                rebindAdapters();
-            }
-        } catch (Exception e) {
-            // Ignore errors in category tab handling
-        }
     }
 
     protected void rebindAdapters() {
@@ -833,20 +824,33 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                     new CategoryTabStrip.OnActivePageChangedListener() {
                         @Override
                         public void onActivePageChanged(int activePage) {
-                            ActivityAllAppsContainerView.this.onActivePageChanged(activePage);
-                            
                             // Update controller
-                            CategoryTabsController.getInstance(ActivityAllAppsContainerView.this.getContext()).setCurrentTab(activePage);
+                            CategoryTabsController controller = CategoryTabsController.getInstance(ActivityAllAppsContainerView.this.getContext());
+                            controller.setCurrentTab(activePage);
                             
-                            // Refresh MAIN adapter to re-filter
-                            if (mAH.get(AdapterHolder.MAIN) != null && mAH.get(AdapterHolder.MAIN).mAppsList != null) {
-                                mAH.get(AdapterHolder.MAIN).mAppsList.onAppsUpdated();
+                            boolean isWorkTab = controller.isWorkTab(activePage);
+                            int safePage = isWorkTab ? AdapterHolder.WORK : AdapterHolder.MAIN;
+                            
+                            // Update the container state safely
+                            ActivityAllAppsContainerView.this.onActivePageChanged(safePage);
+                            
+                            // If we have a ViewPager, sync it (optional, but keeps state consistent)
+                            if (mViewPager != null) {
+                                mViewPager.setCurrentPage(safePage);
                             }
                             
-                            // If we have a Work adapter, might want to update that too
-                            if (mAH.get(AdapterHolder.WORK) != null && mAH.get(AdapterHolder.WORK).mAppsList != null) {
-                                mAH.get(AdapterHolder.WORK).mAppsList.onAppsUpdated();
+                            // Debounce the adapter update to prevent crashes on rapid switching
+                            if (mAppsUpdateRunnable != null) {
+                                mAppsUpdateHandler.removeCallbacks(mAppsUpdateRunnable);
                             }
+                            
+                            mAppsUpdateRunnable = () -> {
+                                // Refresh the relevant adapter
+                                if (mAH.get(safePage) != null && mAH.get(safePage).mAppsList != null) {
+                                    mAH.get(safePage).mAppsList.onAppsUpdated();
+                                }
+                            };
+                            mAppsUpdateHandler.postDelayed(mAppsUpdateRunnable, 100);
                         }
                     }
                 );

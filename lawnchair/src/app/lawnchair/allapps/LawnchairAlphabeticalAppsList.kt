@@ -127,21 +127,32 @@ class LawnchairAlphabeticalAppsList<T>(
                 categorizedApps
             }
 
-            appsToShow.forEach { (category, apps) ->
+            appsToShow.forEach { (category, subCategories) ->
                 if (usingCategoryTabs) {
-                    // In tab mode, show apps directly (no category folders since tabs handle that)
-                    apps.forEach { app ->
-                        mAdapterItems.add(AdapterItem.asApp(app))
-                        position++
+                    // In tab mode, show apps. If subcategory exists, put in folder.
+                    subCategories.forEach { (subCategory, apps) ->
+                        if (subCategory.isNotEmpty()) {
+                            val folderInfo = FolderInfo()
+                            folderInfo.title = subCategory
+                            apps.forEach { app -> folderInfo.add(app) }
+                            mAdapterItems.add(AdapterItem.asFolder(folderInfo))
+                        } else {
+                            apps.forEach { app ->
+                                mAdapterItems.add(AdapterItem.asApp(app))
+                                position++
+                            }
+                        }
                     }
                 } else {
-                    // In folder mode, group apps into category folders
-                    if (apps.size == 1) {
-                        mAdapterItems.add(AdapterItem.asApp(apps.first()))
+                    // In folder mode, group all apps in this category into one folder (flatten subcategories)
+                    val allAppsInCategory = subCategories.values.flatten()
+
+                    if (allAppsInCategory.size == 1) {
+                        mAdapterItems.add(AdapterItem.asApp(allAppsInCategory.first()))
                     } else {
                         val folderInfo = FolderInfo().apply {
                             title = category
-                            apps.forEach { add(it) }
+                            allAppsInCategory.forEach { add(it) }
                         }
                         mAdapterItems.add(AdapterItem.asFolder(folderInfo))
                     }

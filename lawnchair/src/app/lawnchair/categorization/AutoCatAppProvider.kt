@@ -24,8 +24,10 @@ class AutoCatAppProvider(private val context: Context) {
     private val database = CategoryDatabase.getInstance(context)
     private val categoryDao = database.categoryDao()
 
-    // In-memory cache of app categories (packageName -> categoryName)
-    private val categoryCache = ConcurrentHashMap<String, String>()
+    private data class CategoryInfo(val category: String, val subCategory: String?)
+
+    // In-memory cache of app categories (packageName -> CategoryInfo)
+    private val categoryCache = ConcurrentHashMap<String, CategoryInfo>()
 
     // Coroutine scope for async cache updates
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -49,7 +51,7 @@ class AutoCatAppProvider(private val context: Context) {
                 val appCategories = categoryDao.getAllAppCategories()
                 categoryCache.clear()
                 appCategories.forEach { appCategory ->
-                    categoryCache[appCategory.packageName] = appCategory.category
+                    categoryCache[appCategory.packageName] = CategoryInfo(appCategory.category, appCategory.subCategory)
                 }
                 cacheInitialized = true
                 Log.d(TAG, "Cache initialized with ${categoryCache.size} categorized apps")
@@ -73,11 +75,12 @@ class AutoCatAppProvider(private val context: Context) {
      *
      * @param packageName Package name of the app
      * @param category Category name, or null to remove from cache
+     * @param subCategory Subcategory name, or null
      */
-    fun updateCacheForApp(packageName: String, category: String?) {
+    fun updateCacheForApp(packageName: String, category: String?, subCategory: String? = null) {
         if (category != null) {
-            categoryCache[packageName] = category
-            Log.d(TAG, "Cache updated: $packageName -> $category")
+            categoryCache[packageName] = CategoryInfo(category, subCategory)
+            Log.d(TAG, "Cache updated: $packageName -> $category / $subCategory")
         } else {
             categoryCache.remove(packageName)
             Log.d(TAG, "Cache entry removed: $packageName")
@@ -89,22 +92,26 @@ class AutoCatAppProvider(private val context: Context) {
      * Uses in-memory cache for fast lookups, avoiding database queries.
      *
      * @param appList List of all apps to categorize
-     * @return Map of category name to list of apps in that category
+     * @return Map of Category -> (SubCategory -> List<AppInfo>)
+     *         SubCategory key is "" (empty string) if no subcategory exists.
      */
-    fun categorizeApps(appList: List<AppInfo?>?): Map<String, List<AppInfo>> {
+    fun categorizeApps(appList: List<AppInfo?>?): Map<String, Map<String, List<AppInfo>>> {
         if (appList.isNullOrEmpty()) return emptyMap()
 
         val validApps = appList.filterNotNull()
-        val categorizedApps = mutableMapOf<String, MutableList<AppInfo>>()
+        // Map<Category, MutableMap<SubCategory, MutableList<AppInfo>>>
+        val categorizedApps = mutableMapOf<String, MutableMap<String, MutableList<AppInfo>>>()
         val uncategorizedApps = mutableListOf<AppInfo>()
 
         // Use cached categories (fast in-memory lookup)
         validApps.forEach { app ->
             val packageName = app.componentName?.packageName
-            val category = packageName?.let { categoryCache[it] }
+            val catInfo = packageName?.let { categoryCache[it] }
 
-            if (category != null) {
-                categorizedApps.getOrPut(category) { mutableListOf() }.add(app)
+            if (catInfo != null) {
+                val subMap = categorizedApps.getOrPut(catInfo.category) { mutableMapOf() }
+                val subCatKey = catInfo.subCategory ?: ""
+                subMap.getOrPut(subCatKey) { mutableListOf() }.add(app)
             } else {
                 uncategorizedApps.add(app)
             }
@@ -112,11 +119,14 @@ class AutoCatAppProvider(private val context: Context) {
 
         // Add uncategorized apps to "Other" category if any exist
         if (uncategorizedApps.isNotEmpty()) {
-            categorizedApps["Other"] = uncategorizedApps
+            val otherMap = categorizedApps.getOrPut("Other") { mutableMapOf() }
+            otherMap.getOrPut("") { mutableListOf() }.addAll(uncategorizedApps)
         }
 
-        // Sort categories alphabetically
-        return categorizedApps.toSortedMap()
+        // Sort categories alphabetically, and subcategories alphabetically
+        return categorizedApps.toSortedMap().mapValues { entry ->
+            entry.value.toSortedMap()
+        }
     }
 
     /**
