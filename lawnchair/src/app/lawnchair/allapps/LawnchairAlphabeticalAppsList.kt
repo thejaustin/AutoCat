@@ -140,6 +140,10 @@ class LawnchairAlphabeticalAppsList<T>(
                         if (subCategory.isNotEmpty()) {
                             val folderInfo = FolderInfo()
                             folderInfo.title = subCategory
+                            val iconPath = autoCatProvider.getSubCategoryIcon(category, subCategory)
+                            if (iconPath != null) {
+                                folderInfo.icon = iconPath
+                            }
                             apps.forEach { app -> folderInfo.add(app) }
                             mAdapterItems.add(AdapterItem.asFolder(folderInfo))
                         } else {

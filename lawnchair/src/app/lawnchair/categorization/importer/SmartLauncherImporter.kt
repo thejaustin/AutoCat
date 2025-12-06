@@ -150,6 +150,9 @@ class SmartLauncherImporter(private val context: Context) {
 
                 var importedCount = 0
 
+                val provider = app.lawnchair.categorization.AutoCatAppProvider.getInstance(context)
+                val processedIcons = mutableSetOf<String>()
+
                 if (appCursor.moveToFirst()) {
                     do {
                         val parentId = appCursor.getInt(0)
@@ -168,6 +171,13 @@ class SmartLauncherImporter(private val context: Context) {
                             targetSubCategory = folder.label
                             // Use the folder's icon
                             targetIcon = folder.icon
+
+                            if (targetIcon != null) {
+                                val key = "$targetCategory|$targetSubCategory"
+                                if (processedIcons.add(key)) {
+                                    provider.saveSubCategoryIcon(targetCategory, targetSubCategory, targetIcon)
+                                }
+                            }
                         }
 
                         // Create AppCategory entity

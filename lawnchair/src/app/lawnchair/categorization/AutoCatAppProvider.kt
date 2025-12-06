@@ -29,6 +29,10 @@ class AutoCatAppProvider(private val context: Context) {
     // In-memory cache of app categories (packageName -> CategoryInfo)
     private val categoryCache = ConcurrentHashMap<String, CategoryInfo>()
 
+    // Cache for subcategory icons (Category|SubCategory -> IconPath)
+    private val subCategoryIcons = ConcurrentHashMap<String, String>()
+    private val iconsFile by lazy { java.io.File(context.filesDir, "subcategory_icons.json") }
+
     // Coroutine scope for async cache updates
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -39,6 +43,7 @@ class AutoCatAppProvider(private val context: Context) {
     init {
         // Initialize cache asynchronously on startup
         initializeCache()
+        loadSubCategoryIcons()
     }
 
     /**
@@ -59,6 +64,45 @@ class AutoCatAppProvider(private val context: Context) {
                 Log.e(TAG, "Failed to initialize category cache", e)
             }
         }
+    }
+
+    private fun loadSubCategoryIcons() {
+        scope.launch {
+            try {
+                if (iconsFile.exists()) {
+                    val jsonStr = iconsFile.readText()
+                    val json = org.json.JSONObject(jsonStr)
+                    val keys = json.keys()
+                    while (keys.hasNext()) {
+                        val key = keys.next()
+                        subCategoryIcons[key] = json.getString(key)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load subcategory icons", e)
+            }
+        }
+    }
+
+    fun saveSubCategoryIcon(category: String, subCategory: String, iconPath: String) {
+        val key = "$category|$subCategory"
+        subCategoryIcons[key] = iconPath
+
+        scope.launch {
+            try {
+                val json = org.json.JSONObject()
+                subCategoryIcons.forEach { (k, v) ->
+                    json.put(k, v)
+                }
+                iconsFile.writeText(json.toString())
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to save subcategory icons", e)
+            }
+        }
+    }
+
+    fun getSubCategoryIcon(category: String, subCategory: String): String? {
+        return subCategoryIcons["$category|$subCategory"]
     }
 
     /**
