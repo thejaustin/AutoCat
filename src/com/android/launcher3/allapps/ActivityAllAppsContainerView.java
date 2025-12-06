@@ -834,6 +834,19 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                         @Override
                         public void onActivePageChanged(int activePage) {
                             ActivityAllAppsContainerView.this.onActivePageChanged(activePage);
+                            
+                            // Update controller
+                            CategoryTabsController.getInstance(ActivityAllAppsContainerView.this.getContext()).setCurrentTab(activePage);
+                            
+                            // Refresh MAIN adapter to re-filter
+                            if (mAH.get(AdapterHolder.MAIN) != null && mAH.get(AdapterHolder.MAIN).mAppsList != null) {
+                                mAH.get(AdapterHolder.MAIN).mAppsList.onAppsUpdated();
+                            }
+                            
+                            // If we have a Work adapter, might want to update that too
+                            if (mAH.get(AdapterHolder.WORK) != null && mAH.get(AdapterHolder.WORK).mAppsList != null) {
+                                mAH.get(AdapterHolder.WORK).mAppsList.onAppsUpdated();
+                            }
                         }
                     }
                 );
