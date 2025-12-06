@@ -135,23 +135,23 @@ class LawnchairAlphabeticalAppsList<T>(
 
             appsToShow.forEach { (category, subCategories) ->
                 if (usingCategoryTabs) {
-                    // In tab mode, show apps. If subcategory exists, put in folder.
-                    subCategories.forEach { (subCategory, apps) ->
-                        if (subCategory.isNotEmpty()) {
-                            val folderInfo = FolderInfo()
-                            folderInfo.title = subCategory
-                            val iconPath = autoCatProvider.getSubCategoryIcon(category, subCategory)
-                            if (iconPath != null) {
-                                folderInfo.icon = iconPath
-                            }
-                            apps.forEach { app -> folderInfo.add(app) }
-                            mAdapterItems.add(AdapterItem.asFolder(folderInfo))
-                        } else {
-                            apps.forEach { app ->
-                                mAdapterItems.add(AdapterItem.asApp(app))
-                                position++
-                            }
+                    // 1. Folders (Subcategories) first
+                    subCategories.filterKeys { it.isNotEmpty() }.forEach { (subCategory, apps) ->
+                        val folderInfo = FolderInfo()
+                        folderInfo.title = subCategory
+                        val iconPath = autoCatProvider.getSubCategoryIcon(category, subCategory)
+                        if (iconPath != null) {
+                            folderInfo.icon = iconPath
                         }
+                        apps.forEach { app -> folderInfo.add(app) }
+                        mAdapterItems.add(AdapterItem.asFolder(folderInfo))
+                        position++
+                    }
+
+                    // 2. Apps (No subcategory) second
+                    subCategories[""]?.forEach { app ->
+                        mAdapterItems.add(AdapterItem.asApp(app))
+                        position++
                     }
                 } else {
                     // In folder mode, group all apps in this category into one folder (flatten subcategories)
