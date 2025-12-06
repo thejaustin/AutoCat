@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.CategorizationManager
+import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.categorization.importer.SmartLauncherImporter
 import app.lawnchair.categorization.importer.SmartLauncherImporter.ImportResult
 import app.lawnchair.data.category.CategoryDatabase
@@ -63,7 +64,10 @@ fun CategorizationSettingsPreferences(
                 val importer = SmartLauncherImporter(context)
                 val result = importer.importFromUri(uri)
                 categorizationStatus = when (result) {
-                    is ImportResult.Success -> "✅ Imported ${result.count} apps from Smart Launcher!"
+                    is ImportResult.Success -> {
+                        CategoryTabsController.getInstance(context).refresh()
+                        "✅ Imported ${result.count} apps from Smart Launcher!"
+                    }
                     is ImportResult.Error -> "❌ Import failed: ${result.message}"
                 }
             }

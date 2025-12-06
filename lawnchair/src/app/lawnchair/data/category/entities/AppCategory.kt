@@ -27,6 +27,9 @@ data class AppCategory(
     @ColumnInfo(name = "category")
     val category: String,
 
+    @ColumnInfo(name = "sub_category")
+    val subCategory: String? = null,
+
     @ColumnInfo(name = "confidence")
     val confidence: Float,
 
