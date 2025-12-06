@@ -793,11 +793,28 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         boolean tabsHidden = !mUsingTabs;
 
         // Setup appropriate tab strip based on mode
+        boolean usingCategoryTabs = false;
         try {
             CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
-            // Category tabs take priority when enabled (they replace personal/work tabs)
-            boolean usingCategoryTabs = controller.shouldShowTabs(getContext());
+            usingCategoryTabs = controller.shouldShowTabs(getContext());
+        } catch (Exception e) {
+            Log.e("AllAppsContainer", "Error checking category tabs", e);
+        }
 
+        if (usingCategoryTabs) {
+            tabsHidden = false; // Always show tabs if categories are enabled
+        }
+        
+        mHeader.setUsingCategoryTabs(usingCategoryTabs);
+
+        mHeader.setup(
+                mAH.get(AdapterHolder.MAIN).mRecyclerView,
+                mAH.get(AdapterHolder.WORK).mRecyclerView,
+                (SearchRecyclerView) mAH.get(SEARCH).mRecyclerView,
+                getCurrentPage(),
+                tabsHidden);
+
+        try {
             View personalWorkTabs = mHeader.findViewById(com.android.launcher3.R.id.tabs);
 
             // Find CategoryTabStrip by iterating children (since it's in an include)
@@ -811,11 +828,6 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             }
 
             if (usingCategoryTabs && categoryTabStrip != null) {
-                // Show category tabs, hide work/personal tabs
-                if (personalWorkTabs != null) {
-                    personalWorkTabs.setVisibility(View.GONE);
-                }
-                categoryTabStrip.setVisibility(View.VISIBLE);
                 categoryTabStrip.setupTabs();
                 categoryTabStrip.setOnActivePageChangedListener(
                     new CategoryTabStrip.OnActivePageChangedListener() {
@@ -825,26 +837,10 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                         }
                     }
                 );
-            } else {
-                // Show work/personal tabs (or hide if no tabs), hide category tabs
-                if (personalWorkTabs != null) {
-                    personalWorkTabs.setVisibility(tabsHidden ? View.GONE : View.VISIBLE);
-                }
-                if (categoryTabStrip != null) {
-                    categoryTabStrip.setVisibility(View.GONE);
-                }
             }
         } catch (Exception e) {
-            // Fallback to original behavior
             Log.e("AllAppsContainer", "Error setting up category tabs", e);
         }
-
-        mHeader.setup(
-                mAH.get(AdapterHolder.MAIN).mRecyclerView,
-                mAH.get(AdapterHolder.WORK).mRecyclerView,
-                (SearchRecyclerView) mAH.get(SEARCH).mRecyclerView,
-                getCurrentPage(),
-                tabsHidden);
 
         int padding = mHeader.getMaxTranslation();
         mAH.forEach(adapterHolder -> {

@@ -118,6 +118,9 @@ public class FloatingHeaderView extends LinearLayout implements
 
     private final PreferenceManager2 pref2;
 
+    private View mCategoryTabs;
+    private boolean mUseCategoryTabs;
+
     public FloatingHeaderView(@NonNull Context context) {
         this(context, null);
     }
@@ -135,6 +138,7 @@ public class FloatingHeaderView extends LinearLayout implements
     protected void onFinishInflate() {
         super.onFinishInflate();
         mTabLayout = findViewById(R.id.tabs);
+        mCategoryTabs = findViewWithTag("category_tabs");
 
         // Find all floating header rows.
         ArrayList<FloatingHeaderRow> rows = new ArrayList<>();
@@ -161,6 +165,10 @@ public class FloatingHeaderView extends LinearLayout implements
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         PluginManagerWrapper.INSTANCE.get(getContext()).removePluginListener(this);
+    }
+
+    public void setUsingCategoryTabs(boolean use) {
+        mUseCategoryTabs = use;
     }
 
     private void recreateAllRowsArray() {
@@ -261,7 +269,17 @@ public class FloatingHeaderView extends LinearLayout implements
 
     /** Update tab visibility to the given state, only if tabs are active (work profile exists). */
     void maybeSetTabVisibility(int visibility) {
-        mTabLayout.setVisibility(mTabsHidden ? GONE : visibility);
+        if (mUseCategoryTabs) {
+            mTabLayout.setVisibility(GONE);
+            if (mCategoryTabs != null) {
+                mCategoryTabs.setVisibility(mTabsHidden ? GONE : visibility);
+            }
+        } else {
+            mTabLayout.setVisibility(mTabsHidden ? GONE : visibility);
+            if (mCategoryTabs != null) {
+                mCategoryTabs.setVisibility(GONE);
+            }
+        }
     }
 
     private void updateExpectedHeight() {
@@ -332,6 +350,9 @@ public class FloatingHeaderView extends LinearLayout implements
         }
 
         mTabLayout.setTranslationY(mTranslationY);
+        if (mCategoryTabs != null) {
+            mCategoryTabs.setTranslationY(mTranslationY);
+        }
 
         int clipTop = getPaddingTop() - mTabsAdditionalPaddingTop;
         if (mTabsHidden) {
