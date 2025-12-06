@@ -4,9 +4,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import app.lawnchair.categorization.stages.LLMCategorizer
-import app.lawnchair.data.category.CategoryDatabase
 import app.lawnchair.data.apps.AppInfo
-import android.util.Log
+import app.lawnchair.data.category.CategoryDatabase
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -205,7 +204,7 @@ class AutoCatAppProvider(private val context: Context) {
                     label = packageManager.getApplicationLabel(applicationInfo).toString(),
                     category = applicationInfo.category.takeIf { it != -1 }, // -1 means undefined
                     installedTime = packageManager.getPackageInfo(packageName, 0).firstInstallTime,
-                    description = null // Description not easily available from PackageManager, can be fetched if needed
+                    description = null, // Description not easily available from PackageManager, can be fetched if needed
                 )
 
                 // Categorize using LLMCategorizer
