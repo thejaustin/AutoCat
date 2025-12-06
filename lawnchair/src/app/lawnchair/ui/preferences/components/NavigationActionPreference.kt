@@ -17,9 +17,12 @@
 package app.lawnchair.ui.preferences.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
@@ -30,6 +33,7 @@ fun NavigationActionPreference(
     destination: PreferenceRoute,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    icon: ImageVector? = null,
     endWidget: (@Composable () -> Unit)? = null,
 ) {
     val navController = LocalNavController.current
@@ -38,6 +42,15 @@ fun NavigationActionPreference(
         modifier = modifier.clickable { navController.navigate(route = destination) },
         title = { Text(text = label) },
         description = { subtitle?.let { Text(text = it) } },
+        startWidget = {
+            icon?.let {
+                Icon(
+                    imageVector = it,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
         endWidget = endWidget,
     )
 }

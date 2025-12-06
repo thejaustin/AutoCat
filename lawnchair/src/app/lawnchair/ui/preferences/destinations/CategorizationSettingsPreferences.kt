@@ -10,6 +10,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.List
+import androidx.compose.material.icons.rounded.SmartToy
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -152,31 +156,34 @@ fun CategorizationSettingsPreferences(
                         label = "Categories",
                         subtitle = "Create and manage custom categories for your apps",
                         destination = AppDrawerManageCategories,
+                        icon = Icons.Rounded.List,
                     )
 
                     NavigationActionPreference(
                         label = "Review & Override",
                         subtitle = "View and manually override app categorizations",
                         destination = AppDrawerAppCategorizations,
+                        icon = Icons.Rounded.Edit,
                     )
 
                     NavigationActionPreference(
                         label = "LLM Provider Settings",
                         subtitle = "Configure AI providers and test connections",
                         destination = AppDrawerLLMSettings,
+                        icon = Icons.Rounded.SmartToy,
                     )
                 }
             }
 
-            // ===== SETTINGS =====
+            // ===== DISPLAY OPTIONS =====
             item {
-                PreferenceGroup(heading = "Settings") {
+                PreferenceGroup(heading = "Display Options") {
                     val useTabs by prefs.autoCatUseTabs.getAdapter().state
 
                     SwitchPreference(
                         adapter = prefs.autoCatUseTabs.getAdapter(),
                         label = "Use Category Tabs",
-                        description = "Show categories as tabs in app drawer (like Smart Launcher). Apps are organized by category with folders still available within each tab.",
+                        description = "Show categories as tabs in app drawer. Apps are organized by category.",
                     )
 
                     // Show work apps options only when category tabs are enabled
@@ -199,13 +206,16 @@ fun CategorizationSettingsPreferences(
                             )
                         }
                     }
+                }
+            }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
+            // ===== BEHAVIOR & PERFORMANCE =====
+            item {
+                PreferenceGroup(heading = "Behavior & Performance") {
                     SwitchPreference(
                         adapter = prefs.llmEnableBatching.getAdapter(),
                         label = "Batch Processing",
-                        description = "Process multiple apps per API call (20x faster, 68% token savings)",
+                        description = "Process multiple apps per API call (20x faster)",
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -213,7 +223,7 @@ fun CategorizationSettingsPreferences(
                     SwitchPreference(
                         adapter = prefs.autoCatSyncFolders.getAdapter(),
                         label = "Sync to App Drawer Folders",
-                        description = "Automatically create folders in app drawer for each category",
+                        description = "Automatically create folders in app drawer for each category (if tabs are disabled)",
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -221,7 +231,7 @@ fun CategorizationSettingsPreferences(
                     SwitchPreference(
                         adapter = prefs.autoCatEnableRateLimiting.getAdapter(),
                         label = "Rate Limiting",
-                        description = "Add 1-second delay between batches. Recommended for Google AI free tier.",
+                        description = "Add 1-second delay between batches. Recommended for free tier APIs.",
                     )
                 }
             }
