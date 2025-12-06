@@ -1,7 +1,9 @@
 package app.lawnchair.categorization
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
+import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.data.category.CategoryDatabase
 import com.android.launcher3.model.data.AppInfo
 import java.util.concurrent.ConcurrentHashMap
@@ -23,6 +25,8 @@ class AutoCatAppProvider(private val context: Context) {
 
     private val database = CategoryDatabase.getInstance(context)
     private val categoryDao = database.categoryDao()
+    private val llmCategorizer = LLMCategorizer(context, categoryDao)
+    private val packageManager = context.packageManager
 
     private data class CategoryInfo(val category: String, val subCategory: String?)
 
@@ -182,6 +186,33 @@ class AutoCatAppProvider(private val context: Context) {
     fun getCategoryColor(categoryName: String): String? {
         return runBlocking {
             categoryDao.getCustomCategoryByName(categoryName)?.colorHex
+        }
+    }
+
+    /**
+     * Categorizes a single new app using the LLM categorizer and updates the cache.
+     *
+     * @param packageName The package name of the app to categorize.
+     */
+    suspend fun categorizeNewApp(packageName: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                // Fetch AppInfo for the given package name
+                val appInfo = AppInfo().apply {
+                    componentName = packageManager.getLaunchIntentForPackage(packageName)?.component
+                    label = packageManager.getApplicationLabel(
+                        packageManager.getApplicationInfo(packageName, 0),
+                    ).toString()
+                    this.packageName = packageName
+                }
+
+                // Categorize using LLMCategorizer
+                llmCategorizer.categorize(appInfo)
+                refreshCache()
+                Log.d(TAG, "Successfully categorized and cached new app: $packageName")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to categorize new app: $packageName", e)
+            }
         }
     }
 
