@@ -1,6 +1,5 @@
 package app.lawnchair.ui.preferences.destinations
 
-import android.content.pm.PackageManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,6 +13,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -45,6 +47,7 @@ import app.lawnchair.data.category.entities.CustomCategory
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
+import app.lawnchair.ui.theme.preferenceGroupColor
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.Dispatchers
@@ -66,6 +69,7 @@ fun AppCategorizationListPreferences(
     var categorizations by remember { mutableStateOf<List<AppCategory>>(emptyList()) }
     var availableCategories by remember { mutableStateOf<List<CustomCategory>>(emptyList()) }
     var editingApp by remember { mutableStateOf<AppCategory?>(null) }
+    var expandedCategories by remember { mutableStateOf(setOf<String>()) }
 
     // Load categorizations and available categories
     LaunchedEffect(Unit) {
@@ -73,6 +77,10 @@ fun AppCategorizationListPreferences(
             categorizations = categoryDao.getAllAppCategories()
             availableCategories = categoryDao.getVisibleCustomCategories()
         }
+    }
+
+    val groupedApps = remember(categorizations) {
+        categorizations.groupBy { it.category }.toSortedMap()
     }
 
     PreferenceScaffold(
@@ -91,12 +99,40 @@ fun AppCategorizationListPreferences(
                 }
             }
 
-            items(categorizations, key = { it.packageName }) { appCategory ->
-                AppCategorizationItem(
-                    appCategory = appCategory,
-                    packageManager = packageManager,
-                    onEditClick = { editingApp = appCategory },
-                )
+            groupedApps.forEach { (category, apps) ->
+                item(contentType = "CategoryHeader") {
+                    CategoryHeader(
+                        category = category,
+                        count = apps.size,
+                        expanded = expandedCategories.contains(category),
+                        onClick = {
+                            expandedCategories = if (expandedCategories.contains(category)) {
+                                expandedCategories - category
+                            } else {
+                                expandedCategories + category
+                            }
+                        },
+                    )
+                }
+
+                if (expandedCategories.contains(category)) {
+                    items(apps, key = { it.packageName }) { appCategory ->
+                        // Wrap item in Surface to match group look if needed, or just list them
+                        // Using a Surface background for items to distinguish from header
+                        Surface(
+                            color = preferenceGroupColor(),
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        ) {
+                            AppCategorizationItem(
+                                appCategory = appCategory,
+                                packageManager = packageManager,
+                                onEditClick = { editingApp = appCategory },
+                            )
+                        }
+                    }
+                    // Add a small spacer after the group
+                    item { Spacer(modifier = Modifier.height(8.dp)) }
+                }
             }
         }
     }
@@ -141,6 +177,47 @@ fun AppCategorizationListPreferences(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun CategoryHeader(
+    category: String,
+    count: Int,
+    expanded: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column {
+                Text(
+                    text = category,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = "$count apps",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expanded) "Collapse" else "Expand",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
