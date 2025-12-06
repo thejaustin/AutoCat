@@ -1,12 +1,17 @@
 package app.lawnchair.allapps
 
+import android.app.AlertDialog
 import android.content.Context
 import android.graphics.drawable.RippleDrawable
 import android.util.AttributeSet
 import android.view.Gravity
+import android.view.Menu
+import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.font.FontManager
 import app.lawnchair.theme.color.tokens.ColorStateListTokens
@@ -150,7 +155,69 @@ class CategoryTabStrip @JvmOverloads constructor(
             setOnClickListener {
                 setActiveMarker(index)
             }
+
+            // Long click listener for Edit/Delete
+            setOnLongClickListener {
+                showTabOptions(this, label)
+                true
+            }
         }
+    }
+
+    private fun showTabOptions(view: View, categoryName: String) {
+        if (categoryName == CategoryTabsController.TAB_ALL || categoryName == CategoryTabsController.TAB_WORK) {
+            return
+        }
+
+        val popup = PopupMenu(context, view)
+        popup.menu.add(Menu.NONE, 1, 1, "Rename")
+        popup.menu.add(Menu.NONE, 2, 2, "Delete")
+
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                1 -> {
+                    showRenameDialog(categoryName)
+                    true
+                }
+
+                2 -> {
+                    showDeleteDialog(categoryName)
+                    true
+                }
+
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
+    private fun showRenameDialog(oldName: String) {
+        val input = EditText(context)
+        input.setText(oldName)
+        input.setSelectAllOnFocus(true)
+
+        AlertDialog.Builder(context)
+            .setTitle("Rename Category")
+            .setView(input)
+            .setPositiveButton("Save") { _, _ ->
+                val newName = input.text.toString().trim()
+                if (newName.isNotEmpty() && newName != oldName) {
+                    categoryController.renameCategory(oldName, newName)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showDeleteDialog(categoryName: String) {
+        AlertDialog.Builder(context)
+            .setTitle("Delete Category")
+            .setMessage("Are you sure you want to delete '$categoryName'? Apps will be moved to 'Other'.")
+            .setPositiveButton("Delete") { _, _ ->
+                categoryController.deleteCategory(categoryName)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     override fun setActiveMarker(activePage: Int) {

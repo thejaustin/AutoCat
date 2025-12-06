@@ -167,6 +167,40 @@ class CategoryTabsController private constructor(private val context: Context) :
         return areTabsEnabled(context)
     }
 
+    /**
+     * Rename a custom category.
+     */
+    fun renameCategory(oldName: String, newName: String) {
+        if (oldName == TAB_ALL || oldName == TAB_WORK) return
+
+        scope.launch(Dispatchers.IO) {
+            val category = categoryDao.getCustomCategoryByName(oldName)
+            if (category != null) {
+                categoryDao.updateCustomCategory(category.copy(name = newName))
+                categoryDao.updateAppCategoryName(oldName, newName)
+                loadCategories()
+                AutoCatAppProvider.getInstance(context).refreshCache()
+            }
+        }
+    }
+
+    /**
+     * Delete a custom category.
+     */
+    fun deleteCategory(categoryName: String) {
+        if (categoryName == TAB_ALL || categoryName == TAB_WORK) return
+
+        scope.launch(Dispatchers.IO) {
+            val category = categoryDao.getCustomCategoryByName(categoryName)
+            if (category != null) {
+                categoryDao.deleteCustomCategory(category)
+                categoryDao.resetAppCategoriesForDeletedCategory(categoryName)
+                loadCategories()
+                AutoCatAppProvider.getInstance(context).refreshCache()
+            }
+        }
+    }
+
     override fun close() {
         scope.cancel()
     }

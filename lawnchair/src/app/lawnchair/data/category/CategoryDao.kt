@@ -115,6 +115,20 @@ interface CategoryDao {
     @Query("DELETE FROM app_categories WHERE package_name IN (:packageNames)")
     suspend fun deleteAppsByPackageNames(packageNames: List<String>)
 
+    /**
+     * Updates the category name for all apps in a specific category.
+     * Used when renaming a custom category.
+     */
+    @Query("UPDATE app_categories SET category = :newName WHERE category = :oldName")
+    suspend fun updateAppCategoryName(oldName: String, newName: String)
+
+    /**
+     * Resets the category to 'Other' for all apps in a specific category.
+     * Used when deleting a custom category.
+     */
+    @Query("UPDATE app_categories SET category = 'Other' WHERE category = :categoryName")
+    suspend fun resetAppCategoriesForDeletedCategory(categoryName: String)
+
     // ==================== CustomCategory Operations ====================
 
     /**
