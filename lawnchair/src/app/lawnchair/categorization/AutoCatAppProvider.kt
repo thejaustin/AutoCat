@@ -5,13 +5,14 @@ import android.content.pm.PackageManager
 import android.util.Log
 import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.data.category.CategoryDatabase
-import com.android.launcher3.model.data.AppInfo
+import app.lawnchair.data.apps.AppInfo
+import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 /**
  * Provides categorized app lists from AutoCat database.
@@ -198,13 +199,14 @@ class AutoCatAppProvider(private val context: Context) {
         withContext(Dispatchers.IO) {
             try {
                 // Fetch AppInfo for the given package name
-                val appInfo = AppInfo().apply {
-                    componentName = packageManager.getLaunchIntentForPackage(packageName)?.component
-                    label = packageManager.getApplicationLabel(
-                        packageManager.getApplicationInfo(packageName, 0),
-                    ).toString()
-                    this.packageName = packageName
-                }
+                val applicationInfo = packageManager.getApplicationInfo(packageName, 0)
+                val appInfo = AppInfo(
+                    packageName = packageName,
+                    label = packageManager.getApplicationLabel(applicationInfo).toString(),
+                    category = applicationInfo.category.takeIf { it != -1 }, // -1 means undefined
+                    installedTime = packageManager.getPackageInfo(packageName, 0).firstInstallTime,
+                    description = null // Description not easily available from PackageManager, can be fetched if needed
+                )
 
                 // Categorize using LLMCategorizer
                 llmCategorizer.categorize(appInfo)
