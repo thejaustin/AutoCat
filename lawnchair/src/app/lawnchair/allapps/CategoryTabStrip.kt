@@ -91,8 +91,15 @@ class CategoryTabStrip @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         job = CoroutineScope(Dispatchers.Main).launch {
-            categoryController.tabNames.collect {
-                setupTabs()
+            launch {
+                categoryController.tabNames.collect {
+                    setupTabs()
+                }
+            }
+            launch {
+                categoryController.currentTabIndex.collect { index ->
+                    setActiveMarker(index)
+                }
             }
         }
     }

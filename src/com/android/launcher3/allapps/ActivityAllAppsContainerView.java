@@ -186,6 +186,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     protected SearchUiManager mSearchUiManager;
     protected boolean mUsingTabs;
     protected RecyclerViewFastScroller mTouchHandler;
+    private android.view.GestureDetector mCategorySwipeDetector;
 
     /**
      * {@code true} when rendered view is in search state instead of the scroll
@@ -313,6 +314,37 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             addView(mSearchContainer);
         }
         mSearchUiManager = (SearchUiManager) mSearchContainer;
+
+        mCategorySwipeDetector = new android.view.GestureDetector(getContext(), new android.view.GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent e) { return false; } // Don't consume down
+            
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                try {
+                    if (Math.abs(velocityX) > Math.abs(velocityY) && Math.abs(velocityX) > 2000) {
+                        CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
+                        if (controller.shouldShowTabs(getContext())) {
+                            int current = controller.getCurrentTab();
+                            int count = controller.getTabCount();
+                            if (velocityX < 0) { // Left swipe (next)
+                                if (current < count - 1) {
+                                    controller.setCurrentTab(current + 1);
+                                    MAIN_EXECUTOR.getHandler().post(() -> rebindAdapters()); 
+                                }
+                            } else { // Right swipe (prev)
+                                if (current > 0) {
+                                    controller.setCurrentTab(current - 1);
+                                    MAIN_EXECUTOR.getHandler().post(() -> rebindAdapters());
+                                }
+                            }
+                            return true;
+                        }
+                    }
+                } catch (Exception e) {}
+                return false;
+            }
+        });
     }
 
     @Override
@@ -1192,6 +1224,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if (mCategorySwipeDetector != null) mCategorySwipeDetector.onTouchEvent(ev);
         // The AllAppsContainerView houses the QSB and is hence visible from the
         // Workspace
         // Overview states. We shouldn't intercept for the scrubber in these cases.
@@ -1217,6 +1250,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+        if (mCategorySwipeDetector != null) mCategorySwipeDetector.onTouchEvent(ev);
         if (!isInAllApps()) {
             return false;
         }
@@ -1411,7 +1445,10 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         try {
             CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
             if (controller.shouldShowTabs(getContext())) {
-                return true; // Use category tabs, not work tabs
+                // If using category tabs, we DO NOT want the standard ViewPager (which is hardcoded for Personal/Work).
+                // We want a single RecyclerView that we filter.
+                // So we return false here to prevent AllAppsPagedView from being inflated.
+                return false; 
             }
         } catch (Exception e) {
             // Continue to check work apps if category tabs fail
