@@ -56,14 +56,16 @@ class LawnchairAlphabeticalAppsList<T>(
 // ... other imports ...
 
     private fun app.lawnchair.data.apps.AppInfo.toLauncherAppInfo(): com.android.launcher3.model.data.AppInfo {
-        val launcherActivityInfo = context.packageManager.getLaunchIntentForPackage(this.packageName)
-        val componentName = launcherActivityInfo?.component ?: ComponentName(this.packageName, "com.android.fallback.FallbackActivity") // Fallback
-        val intent = launcherActivityInfo?.let { Intent(Intent.ACTION_MAIN).setComponent(it.component) } ?: Intent() // Fallback intent
+        val launchIntent = context.packageManager.getLaunchIntentForPackage(this.packageName)
+        val componentName: ComponentName = launchIntent?.component ?: ComponentName(this.packageName, "com.android.fallback.FallbackActivity")
+        val intent: Intent = launchIntent ?: Intent(Intent.ACTION_MAIN).setPackage(this.packageName)
+        intent.addCategory(Intent.CATEGORY_LAUNCHER)
+
         return com.android.launcher3.model.data.AppInfo(
             componentName,
             this.label as CharSequence,
             android.os.UserHandle.CURRENT,
-            intent,
+            intent
         )
     }
 
