@@ -51,8 +51,6 @@ class LawnchairAlphabeticalAppsList<T>(
     private val categoryTabsController = CategoryTabsController.getInstance(context)
     private var cachedCategorizedApps: Map<String, Map<String, List<app.lawnchair.data.apps.AppInfo>>>? = null
 
-
-
 // ... other imports ...
 
     private fun app.lawnchair.data.apps.AppInfo.toLauncherAppInfo(): com.android.launcher3.model.data.AppInfo {

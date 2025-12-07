@@ -2,7 +2,6 @@ package app.lawnchair.categorization
 
 import android.content.Context
 import android.content.pm.PackageManager
-import kotlinx.coroutines.runBlocking
 import android.util.Log
 import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.data.apps.AppInfo
@@ -11,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
