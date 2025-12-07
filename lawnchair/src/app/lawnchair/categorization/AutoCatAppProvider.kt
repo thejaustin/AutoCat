@@ -2,6 +2,7 @@ package app.lawnchair.categorization
 
 import android.content.Context
 import android.content.pm.PackageManager
+import kotlinx.coroutines.runBlocking
 import android.util.Log
 import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.data.apps.AppInfo
@@ -10,7 +11,9 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 /**
@@ -143,7 +146,7 @@ class AutoCatAppProvider(private val context: Context) {
      * @return Map of Category -> (SubCategory -> List<AppInfo>)
      *         SubCategory key is "" (empty string) if no subcategory exists.
      */
-    fun categorizeApps(appList: List<AppInfo?>?): Map<String, Map<String, List<AppInfo>>> {
+    fun categorizeApps(appList: List<app.lawnchair.data.apps.AppInfo?>?): Map<String, Map<String, List<AppInfo>>> {
         if (appList.isNullOrEmpty()) return emptyMap()
 
         val validApps = appList.filterNotNull()
@@ -153,8 +156,7 @@ class AutoCatAppProvider(private val context: Context) {
 
         // Use cached categories (fast in-memory lookup)
         validApps.forEach { app ->
-            val packageName = app.componentName?.packageName
-            val catInfo = packageName?.let { categoryCache[it] }
+            val catInfo = app.packageName?.let { categoryCache[it] }
 
             if (catInfo != null) {
                 val subMap = categorizedApps.getOrPut(catInfo.category) { mutableMapOf() }
@@ -204,7 +206,7 @@ class AutoCatAppProvider(private val context: Context) {
                     label = packageManager.getApplicationLabel(applicationInfo).toString(),
                     category = applicationInfo.category.takeIf { it != -1 }, // -1 means undefined
                     installedTime = packageManager.getPackageInfo(packageName, 0).firstInstallTime,
-                    description = null, // Description not easily available from PackageManager, can be fetched if needed
+                    description = null,
                 )
 
                 // Categorize using LLMCategorizer
