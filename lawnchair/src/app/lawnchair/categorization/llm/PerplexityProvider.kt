@@ -394,19 +394,38 @@ class PerplexityProvider(
         )
     }
 
+    /**
+     * Sanitizes user input to prevent prompt injection attacks.
+     * Removes control characters, limits length, and escapes special characters.
+     */
+    private fun sanitizeInput(text: String): String {
+        return text
+            .replace("\"", "\\\"") // Escape quotes
+            .replace("\n", " ") // Remove newlines
+            .replace("\r", " ") // Remove carriage returns
+            .replace("\t", " ") // Remove tabs
+            .take(200) // Limit length to prevent token overflow
+            .trim()
+    }
+
     private fun buildPrompt(
         appName: String,
         appPackage: String,
         appDescription: String?,
         availableCategories: List<String>,
     ): String {
-        val descriptionText = appDescription?.let { "\nDescription: $it" } ?: ""
+        // Sanitize all user-controlled inputs
+        val safeAppName = sanitizeInput(appName)
+        val safeAppPackage = sanitizeInput(appPackage)
+        val safeDescription = appDescription?.let { sanitizeInput(it) }
+
+        val descriptionText = safeDescription?.let { "\nDescription: $it" } ?: ""
 
         return """
 You are an expert at categorizing Android apps. Given an app's information, choose the BEST matching category from the provided list.
 
-App Name: $appName
-Package: $appPackage$descriptionText
+App Name: $safeAppName
+Package: $safeAppPackage$descriptionText
 
 Available Categories:
 ${availableCategories.joinToString("\n") { "- $it" }}
@@ -474,8 +493,12 @@ Respond ONLY in this JSON format:
         availableCategories: List<String>,
     ): String {
         val appsText = apps.joinToString("\n") { app ->
-            val desc = app.appDescription?.let { " | Description: $it" } ?: ""
-            "- ${app.appName} (${app.packageName})$desc"
+            // Sanitize all app inputs to prevent injection
+            val safeName = sanitizeInput(app.appName)
+            val safePackage = sanitizeInput(app.packageName)
+            val safeDesc = app.appDescription?.let { sanitizeInput(it) }
+            val desc = safeDesc?.let { " | Description: $it" } ?: ""
+            "- $safeName ($safePackage)$desc"
         }
 
         return """
