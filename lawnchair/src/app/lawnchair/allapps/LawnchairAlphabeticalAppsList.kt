@@ -65,7 +65,7 @@ class LawnchairAlphabeticalAppsList<T>(
             componentName,
             this.label as CharSequence,
             android.os.UserHandle.CURRENT,
-            intent
+            intent,
         )
     }
 
