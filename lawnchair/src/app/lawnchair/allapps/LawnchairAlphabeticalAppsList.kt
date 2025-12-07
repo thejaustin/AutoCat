@@ -53,12 +53,30 @@ class LawnchairAlphabeticalAppsList<T>(
 
 // ... other imports ...
 
+
+
+// ... other imports ...
+
     private fun app.lawnchair.data.apps.AppInfo.toLauncherAppInfo(): com.android.launcher3.model.data.AppInfo {
         val launcherActivityInfo = context.packageManager.getLaunchIntentForPackage(this.packageName)
-        val componentName = launcherActivityInfo?.component ?: ComponentName(this.packageName, "") // Fallback if no launch activity
-        val launcherAppInfo = com.android.launcher3.model.data.AppInfo(componentName, UserHandle.CURRENT)
-        launcherAppInfo.title = this.label
-        return launcherAppInfo
+        val componentName = launcherActivityInfo?.component ?: ComponentName(this.packageName, "com.android.fallback.FallbackActivity") // Fallback
+        val intent = launcherActivityInfo?.let { Intent(Intent.ACTION_MAIN).setComponent(it.component) } ?: Intent() // Fallback intent
+        return com.android.launcher3.model.data.AppInfo(
+            componentName,
+            this.label as CharSequence,
+            android.os.UserHandle.CURRENT,
+            intent
+        )
+    }
+
+    private fun com.android.launcher3.model.data.AppInfo.toAutoCatAppInfo(): app.lawnchair.data.apps.AppInfo {
+        return app.lawnchair.data.apps.AppInfo(
+            packageName = this.componentName.packageName,
+            label = this.title.toString(),
+            category = null, // Can't easily get from Launcher3 AppInfo, use null
+            installedTime = 0L, // Can't easily get from Launcher3 AppInfo, use default
+            description = null // Can't easily get from Launcher3 AppInfo, use null
+        )
     }
 
     init {
@@ -132,7 +150,7 @@ class LawnchairAlphabeticalAppsList<T>(
 
         if (!drawerListDefault) {
             // Use AutoCat database categorization
-            val categorizedApps = cachedCategorizedApps ?: autoCatProvider.categorizeApps(appList)
+            val categorizedApps = cachedCategorizedApps ?: autoCatProvider.categorizeApps(appList.map { it?.toAutoCatAppInfo() })
 
             // If using tabs, filter to only show current tab's category
             val appsToShow = if (usingCategoryTabs && currentTabCategory != null) {
@@ -195,7 +213,7 @@ class LawnchairAlphabeticalAppsList<T>(
                 position++
             }
             val remainingApps = appList.filterNot { app -> filteredList.contains(app) && prefs.folderApps.get() }
-            position = super.addAppsWithSections(remainingApps, position)
+            position = super.addAppsWithSections(remainingApps as List<com.android.launcher3.model.data.AppInfo?>, position)
         }
 
         return position
