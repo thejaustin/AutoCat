@@ -521,6 +521,8 @@ Respond ONLY in this JSON format:
         val connection = url.openConnection() as HttpURLConnection
 
         try {
+            connection.connectTimeout = 30000 // 30 seconds
+            connection.readTimeout = 60000 // 60 seconds
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")
             connection.setRequestProperty("x-api-key", effectiveApiKey)

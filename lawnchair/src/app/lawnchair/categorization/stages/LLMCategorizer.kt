@@ -442,7 +442,6 @@ class LLMCategorizer(
         initialDelayMs: Long,
         operation: suspend () -> T,
     ): T? {
-        var currentDelay = initialDelayMs
         var lastException: Exception? = null
 
         repeat(maxRetries) { attempt ->
@@ -451,12 +450,13 @@ class LLMCategorizer(
             } catch (e: Exception) {
                 lastException = e
                 if (attempt < maxRetries - 1) {
+                    // True exponential backoff: delay = initialDelay * 2^attempt
+                    val currentDelay = (initialDelayMs * 2.0.pow(attempt.toDouble())).toLong()
                     android.util.Log.w(
                         TAG,
                         "Attempt ${attempt + 1}/$maxRetries failed, retrying in ${currentDelay}ms: ${e.message}",
                     )
                     delay(currentDelay)
-                    currentDelay = (currentDelay * 2.0.pow(1.0)).toLong() // Exponential backoff
                 }
             }
         }
