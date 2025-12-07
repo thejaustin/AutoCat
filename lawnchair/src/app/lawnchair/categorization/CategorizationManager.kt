@@ -94,8 +94,10 @@ class CategorizationManager(private val context: Context) {
             )
 
             // Stage 2: Built-in categorizer for remaining apps (FALLBACK)
+            // Fetch all categories in one query to avoid N+1 problem
+            val allCategories = categoryDao.getAllAppCategories().associateBy { it.packageName }
             val uncategorizedApps = apps.filter { app ->
-                categoryDao.getAppCategory(app.packageName) == null
+                !allCategories.containsKey(app.packageName)
             }
 
             if (uncategorizedApps.isNotEmpty()) {
@@ -168,8 +170,10 @@ class CategorizationManager(private val context: Context) {
             )
 
             // Get uncategorized apps for built-in stage (FALLBACK)
+            // Fetch all categories in one query to avoid N+1 problem
+            val allCategories = categoryDao.getAllAppCategories().associateBy { it.packageName }
             val uncategorizedApps = apps.filter { app ->
-                categoryDao.getAppCategory(app.packageName) == null
+                !allCategories.containsKey(app.packageName)
             }
 
             if (uncategorizedApps.isNotEmpty()) {
