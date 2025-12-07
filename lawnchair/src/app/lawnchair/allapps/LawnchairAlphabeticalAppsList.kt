@@ -49,7 +49,19 @@ class LawnchairAlphabeticalAppsList<T>(
     private val potsManager = Flowerpot.Manager.getInstance(context)
     private val autoCatProvider = AutoCatAppProvider.getInstance(context)
     private val categoryTabsController = CategoryTabsController.getInstance(context)
-    private var cachedCategorizedApps: Map<String, Map<String, List<AppInfo>>>? = null
+    private var cachedCategorizedApps: Map<String, Map<String, List<app.lawnchair.data.apps.AppInfo>>>? = null
+
+
+
+// ... other imports ...
+
+    private fun app.lawnchair.data.apps.AppInfo.toLauncherAppInfo(): com.android.launcher3.model.data.AppInfo {
+        val launcherActivityInfo = context.packageManager.getLaunchIntentForPackage(this.packageName)
+        val componentName = launcherActivityInfo?.component ?: ComponentName(this.packageName, "") // Fallback if no launch activity
+        val launcherAppInfo = com.android.launcher3.model.data.AppInfo(componentName, UserHandle.CURRENT)
+        launcherAppInfo.title = this.label
+        return launcherAppInfo
+    }
 
     init {
         context.launcher.deviceProfile.inv.addOnChangeListener(this)
@@ -143,14 +155,14 @@ class LawnchairAlphabeticalAppsList<T>(
                         if (iconPath != null) {
                             folderInfo.icon = iconPath
                         }
-                        apps.forEach { app -> folderInfo.add(app) }
+                        apps.forEach { app -> folderInfo.add(app.toLauncherAppInfo()) }
                         mAdapterItems.add(AdapterItem.asFolder(folderInfo))
                         position++
                     }
 
                     // 2. Apps (No subcategory) second
                     subCategories[""]?.forEach { app ->
-                        mAdapterItems.add(AdapterItem.asApp(app))
+                        mAdapterItems.add(AdapterItem.asApp(app.toLauncherAppInfo()))
                         position++
                     }
                 } else {
@@ -158,11 +170,11 @@ class LawnchairAlphabeticalAppsList<T>(
                     val allAppsInCategory = subCategories.values.flatten()
 
                     if (allAppsInCategory.size == 1) {
-                        mAdapterItems.add(AdapterItem.asApp(allAppsInCategory.first()))
+                        mAdapterItems.add(AdapterItem.asApp(allAppsInCategory.first().toLauncherAppInfo()))
                     } else {
                         val folderInfo = FolderInfo().apply {
                             title = category
-                            allAppsInCategory.forEach { add(it) }
+                            allAppsInCategory.forEach { add(it.toLauncherAppInfo()) }
                         }
                         mAdapterItems.add(AdapterItem.asFolder(folderInfo))
                     }
