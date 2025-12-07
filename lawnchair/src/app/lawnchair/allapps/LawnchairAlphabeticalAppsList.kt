@@ -53,8 +53,6 @@ class LawnchairAlphabeticalAppsList<T>(
 
 // ... other imports ...
 
-
-
 // ... other imports ...
 
     private fun app.lawnchair.data.apps.AppInfo.toLauncherAppInfo(): com.android.launcher3.model.data.AppInfo {
@@ -65,7 +63,7 @@ class LawnchairAlphabeticalAppsList<T>(
             componentName,
             this.label as CharSequence,
             android.os.UserHandle.CURRENT,
-            intent
+            intent,
         )
     }
 
@@ -75,7 +73,7 @@ class LawnchairAlphabeticalAppsList<T>(
             label = this.title.toString(),
             category = null, // Can't easily get from Launcher3 AppInfo, use null
             installedTime = 0L, // Can't easily get from Launcher3 AppInfo, use default
-            description = null // Can't easily get from Launcher3 AppInfo, use null
+            description = null, // Can't easily get from Launcher3 AppInfo, use null
         )
     }
 
