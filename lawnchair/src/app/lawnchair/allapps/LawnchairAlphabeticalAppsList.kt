@@ -1,6 +1,8 @@
 package app.lawnchair.allapps
 
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
@@ -37,6 +39,10 @@ class LawnchairAlphabeticalAppsList<T>(
     OnIDPChangeListener
     where T : Context, T : ActivityContext {
 
+    companion object {
+        private const val TAG = "LawnchairAlphabeticalAppsList"
+    }
+
     private var hiddenApps: Set<String> = setOf()
     private val prefs2 = PreferenceManager2.getInstance(context)
     private val prefs = PreferenceManager.getInstance(context)
@@ -50,10 +56,6 @@ class LawnchairAlphabeticalAppsList<T>(
     private val autoCatProvider = AutoCatAppProvider.getInstance(context)
     private val categoryTabsController = CategoryTabsController.getInstance(context)
     private var cachedCategorizedApps: Map<String, Map<String, List<app.lawnchair.data.apps.AppInfo>>>? = null
-
-// ... other imports ...
-
-// ... other imports ...
 
     private fun app.lawnchair.data.apps.AppInfo.toLauncherAppInfo(): com.android.launcher3.model.data.AppInfo {
         val launchIntent = context.packageManager.getLaunchIntentForPackage(this.packageName)
@@ -70,7 +72,7 @@ class LawnchairAlphabeticalAppsList<T>(
 
     private fun com.android.launcher3.model.data.AppInfo.toAutoCatAppInfo(): app.lawnchair.data.apps.AppInfo {
         return app.lawnchair.data.apps.AppInfo(
-            packageName = this.componentName.packageName,
+            packageName = this.componentName?.packageName ?: "",
             label = this.title.toString(),
             category = null, // Can't easily get from Launcher3 AppInfo, use null
             installedTime = 0L, // Can't easily get from Launcher3 AppInfo, use default
@@ -93,7 +95,7 @@ class LawnchairAlphabeticalAppsList<T>(
 
     override fun onAppsUpdated() {
         super.onAppsUpdated()
-        cachedCategorizedApps = autoCatProvider.categorizeApps(appsStore.apps.toList())
+        cachedCategorizedApps = autoCatProvider.categorizeApps(appsStore.apps.map { it.toAutoCatAppInfo() })
     }
 
     private fun observeFolders() {
