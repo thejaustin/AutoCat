@@ -168,22 +168,77 @@ class FolderAutoSortService(private val context: Context) {
 
         unsortedApps.forEach { (tabName, apps) ->
             if (apps.isNotEmpty()) {
+                android.util.Log.d(TAG, "Processing ${apps.size} unsorted apps in '$tabName' tab")
+
                 val suggestions = suggestFolderGroupings(tabName, apps)
 
+                android.util.Log.d(TAG, "Got ${suggestions.size} folder suggestions for '$tabName' tab")
+
                 suggestions.forEach { suggestion ->
-                    // Create the folder
-                    // Note: We need to implement folder creation with the existing FolderService
-                    // For now, this is a placeholder
-                    totalFoldersCreated++
-                    totalAppsSorted += suggestion.apps.size
+                    try {
+                        // Convert package names to AppInfo objects
+                        val appInfos = getAppInfosFromPackageNames(suggestion.packageNames, apps)
+
+                        if (appInfos.size >= 2) {
+                            // Only create folder if we have at least 2 apps
+                            createFolder(suggestion.name, appInfos)
+
+                            totalFoldersCreated++
+                            totalAppsSorted += appInfos.size
+
+                            android.util.Log.d(
+                                TAG,
+                                "Created folder '${suggestion.name}' with ${appInfos.size} apps",
+                            )
+                        } else {
+                            android.util.Log.w(
+                                TAG,
+                                "Skipping folder '${suggestion.name}' - only ${appInfos.size} apps found",
+                            )
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e(TAG, "Error creating folder '${suggestion.name}'", e)
+                    }
                 }
             }
         }
+
+        android.util.Log.d(
+            TAG,
+            "Auto-sort complete: $totalFoldersCreated folders created, $totalAppsSorted apps sorted",
+        )
 
         AutoSortResult(
             foldersCreated = totalFoldersCreated,
             appsSorted = totalAppsSorted,
             tabsProcessed = unsortedApps.size,
+        )
+    }
+
+    /**
+     * Gets AppInfo objects from package names.
+     */
+    private fun getAppInfosFromPackageNames(
+        packageNames: List<String>,
+        availableApps: List<AppInfo>,
+    ): List<AppInfo> {
+        val appsByPackage = availableApps.associateBy { it.componentName.packageName }
+        return packageNames.mapNotNull { appsByPackage[it] }
+    }
+
+    /**
+     * Creates a folder with the given apps.
+     */
+    private suspend fun createFolder(
+        folderName: String,
+        apps: List<AppInfo>,
+    ) {
+        // Use 0 for the folder ID - Room will auto-generate a new ID
+        folderService.updateFolderWithItems(
+            folderInfoId = 0,
+            title = folderName,
+            appInfos = apps,
+            icon = null,
         )
     }
 }
