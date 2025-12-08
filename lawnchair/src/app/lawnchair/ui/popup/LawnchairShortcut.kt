@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import app.lawnchair.LawnchairLauncher
 import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.data.tab.TabDatabase
+import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.override.CustomizeAppDialog
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.views.ComposeBottomSheet
@@ -293,11 +294,11 @@ class LawnchairShortcut {
                     // Update category in database with user override
                     CoroutineScope(Dispatchers.IO).launch {
                         categoryDao.insertAppCategory(
-                            app.lawnchair.data.tab.AppTab(
+                            AppTab(
                                 packageName = packageName,
                                 category = selectedCategory.name,
                                 confidence = 1.0f,
-                                source = app.lawnchair.data.tab.AppTab.SOURCE_USER,
+                                source = AppTab.SOURCE_USER,
                                 isUserOverride = true,
                             ),
                         )

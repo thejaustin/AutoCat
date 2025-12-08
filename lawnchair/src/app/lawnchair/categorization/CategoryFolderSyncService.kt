@@ -3,6 +3,7 @@ package app.lawnchair.categorization
 import android.content.Context
 import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.data.folder.service.FolderService
+import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.ReloadHelper
 import com.android.launcher3.model.data.AppInfo
@@ -131,7 +132,7 @@ class CategoryFolderSyncService(
             }
 
             // Build icon map
-            val customTabs = app.lawnchair.data.tab.TabDatabase.getInstance(context).categoryDao().getAllCustomCategories()
+            val customTabs = TabDatabase.getInstance(context).categoryDao().getAllCustomCategories()
             val categoryIconMap = customTabs.associate { it.name to it.icon }
 
             // Create/update folder for each category (FAST - parallel friendly)
