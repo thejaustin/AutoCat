@@ -293,17 +293,13 @@ class LawnchairShortcut {
                     // Update category in database with user override
                     CoroutineScope(Dispatchers.IO).launch {
                         categoryDao.insertAppCategory(
-                            com.android.launcher3.model.data.AppInfo().apply {
-                                componentName = mItemInfo.targetComponent
-                            }.let {
-                                app.lawnchair.data.tab.AppTab(
-                                    packageName = packageName,
-                                    category = selectedCategory.name,
-                                    confidence = 1.0f,
-                                    source = app.lawnchair.data.tab.AppTab.SOURCE_USER,
-                                    isUserOverride = true,
-                                )
-                            },
+                            app.lawnchair.data.tab.AppTab(
+                                packageName = packageName,
+                                category = selectedCategory.name,
+                                confidence = 1.0f,
+                                source = app.lawnchair.data.tab.AppTab.SOURCE_USER,
+                                isUserOverride = true,
+                            ),
                         )
 
                         // Refresh the app drawer on main thread

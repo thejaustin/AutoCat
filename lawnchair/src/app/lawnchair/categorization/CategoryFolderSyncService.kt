@@ -131,7 +131,7 @@ class CategoryFolderSyncService(
             }
 
             // Build icon map
-            val customTabs = app.lawnchair.data.tab.TabDatabase.getInstance(context).categoryDao().getAllCustomTabs()
+            val customTabs = app.lawnchair.data.tab.TabDatabase.getInstance(context).categoryDao().getAllCustomCategories()
             val categoryIconMap = customTabs.associate { it.name to it.icon }
 
             // Create/update folder for each category (FAST - parallel friendly)
