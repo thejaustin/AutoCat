@@ -49,6 +49,16 @@ data class AppBatchInfo(
 )
 
 /**
+ * Suggested folder with grouped apps
+ */
+data class SuggestedFolder(
+    val name: String,
+    val description: String,
+    val packageNames: List<String>,
+    val confidence: Float,
+)
+
+/**
  * Abstract interface for LLM providers used in app categorization.
  *
  * Implementations provide different LLM backends (Google AI, Claude, OpenAI, etc.)
@@ -130,6 +140,22 @@ interface LLMProvider {
         existingCategories: List<String>,
         maxSuggestions: Int = 5,
     ): List<SuggestedCategory>
+
+    /**
+     * Analyzes apps within a tab and suggests logical folder groupings.
+     *
+     * Used for auto-organizing imported apps (e.g., from Smart Launcher) that have
+     * tab assignments but aren't organized into folders yet.
+     *
+     * @param tabName The tab/category these apps belong to
+     * @param apps List of app info to organize into folders
+     * @return List of suggested folders with app groupings
+     * @throws LLMException if suggestion fails
+     */
+    suspend fun suggestFolders(
+        tabName: String,
+        apps: List<AppBatchInfo>,
+    ): List<SuggestedFolder>
 }
 
 /**

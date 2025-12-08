@@ -311,6 +311,15 @@ class ClaudeProvider(
         }
     }
 
+    override suspend fun suggestFolders(
+        tabName: String,
+        apps: List<AppBatchInfo>,
+    ): List<SuggestedFolder> = withContext(Dispatchers.IO) {
+        // TODO: Implement folder suggestions for Claude
+        // For now, return empty list - GoogleAI provider has full implementation
+        throw LLMException("Folder suggestions not yet implemented for Claude provider")
+    }
+
     /**
      * Calls Claude API with automatic model fallback.
      * Tries the preferred model first, then falls back to other available models if it fails.

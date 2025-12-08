@@ -311,6 +311,15 @@ class PerplexityProvider(
         }
     }
 
+    override suspend fun suggestFolders(
+        tabName: String,
+        apps: List<AppBatchInfo>,
+    ): List<SuggestedFolder> = withContext(Dispatchers.IO) {
+        // TODO: Implement folder suggestions for Perplexity
+        // For now, throw exception - GoogleAI provider has full implementation
+        throw LLMException("Folder suggestions not yet implemented for Perplexity provider")
+    }
+
     /**
      * Calls Perplexity API with automatic model fallback.
      * Tries the preferred model first, then falls back to other available models if it fails.
