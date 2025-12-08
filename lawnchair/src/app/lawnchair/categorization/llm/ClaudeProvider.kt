@@ -315,9 +315,45 @@ class ClaudeProvider(
         tabName: String,
         apps: List<AppBatchInfo>,
     ): List<SuggestedFolder> = withContext(Dispatchers.IO) {
-        // TODO: Implement folder suggestions for Claude
-        // For now, return empty list - GoogleAI provider has full implementation
-        throw LLMException("Folder suggestions not yet implemented for Claude provider")
+        try {
+            LLMLogger.logDebug(
+                provider = name,
+                operation = "SUGGEST_FOLDERS",
+                message = "Suggesting folders for ${apps.size} apps in '$tabName' tab",
+                details = mapOf(
+                    "appsCount" to apps.size,
+                    "tabName" to tabName,
+                    "model" to effectiveModel,
+                ),
+            )
+
+            val prompt = buildFolderSuggestionPrompt(tabName, apps)
+            val response = callClaudeAPIWithFallback(prompt)
+            val suggestions = parseFolderSuggestionResponse(response)
+
+            LLMLogger.logInfo(
+                provider = name,
+                operation = "SUGGEST_FOLDERS",
+                message = "Successfully generated ${suggestions.size} folder suggestions",
+                details = mapOf(
+                    "foldersCount" to suggestions.size,
+                    "tabName" to tabName,
+                ),
+            )
+
+            suggestions
+        } catch (e: Exception) {
+            LLMLogger.logError(
+                provider = name,
+                operation = "SUGGEST_FOLDERS",
+                error = e,
+                context = mapOf(
+                    "appsCount" to apps.size,
+                    "tabName" to tabName,
+                ),
+            )
+            throw LLMException("Claude folder suggestion failed: ${e.message}", e)
+        }
     }
 
     /**
@@ -489,6 +525,46 @@ Respond ONLY in this JSON format:
       "name": "Category Name",
       "description": "Brief description of what belongs here",
       "exampleApps": ["App 1", "App 2", "App 3"],
+      "confidence": 0.85
+    }
+  ]
+}
+        """.trimIndent()
+    }
+
+    private fun buildFolderSuggestionPrompt(
+        tabName: String,
+        apps: List<AppBatchInfo>,
+    ): String {
+        val appsText = apps.take(50).joinToString("\n") { app ->
+            val safeName = sanitizeInput(app.appName)
+            val safePackage = sanitizeInput(app.packageName)
+            val safeDesc = app.appDescription?.let { sanitizeInput(it) }
+            val desc = safeDesc?.let { " | Description: $it" } ?: ""
+            "- $safeName ($safePackage)$desc"
+        }
+
+        return """
+You are an expert at organizing Android apps into folders. Analyze these apps from the "$tabName" tab and suggest logical folder groupings.
+
+Apps to organize:
+$appsText
+
+Instructions:
+1. Analyze the apps and identify 3-8 logical sub-groups
+2. Each folder should contain 2-8 apps (not too granular, not too broad)
+3. Folder names should be concise and specific (2-3 words)
+4. Consider app purpose, functionality, and user intent
+5. Provide a brief description for each folder
+6. Only suggest folders, do NOT categorize individual apps
+
+Respond ONLY in this JSON format:
+{
+  "folders": [
+    {
+      "name": "Folder Name",
+      "description": "Brief description of what belongs here",
+      "packageNames": ["com.package1", "com.package2", "com.package3"],
       "confidence": 0.85
     }
   ]
@@ -688,6 +764,41 @@ Respond ONLY in this JSON format:
             }
         } catch (e: Exception) {
             throw LLMException("Failed to parse Claude suggestion response: ${e.message}", e)
+        }
+    }
+
+    private fun parseFolderSuggestionResponse(responseJson: String): List<SuggestedFolder> {
+        try {
+            val response = JSONObject(responseJson)
+            val content = response.getJSONArray("content")
+                .getJSONObject(0)
+                .getString("text")
+
+            // Extract JSON from markdown code blocks if present
+            val jsonText = content
+                .replace("```json", "")
+                .replace("```", "")
+                .trim()
+
+            val result = JSONObject(jsonText)
+            val foldersArray = result.getJSONArray("folders")
+
+            return (0 until foldersArray.length()).map { i ->
+                val folderObj = foldersArray.getJSONObject(i)
+                val packageNamesArray = folderObj.getJSONArray("packageNames")
+                val packageNames = (0 until packageNamesArray.length()).map { j ->
+                    packageNamesArray.getString(j)
+                }
+
+                SuggestedFolder(
+                    name = folderObj.getString("name"),
+                    description = folderObj.getString("description"),
+                    packageNames = packageNames,
+                    confidence = folderObj.getDouble("confidence").toFloat().coerceIn(0f, 1f),
+                )
+            }
+        } catch (e: Exception) {
+            throw LLMException("Failed to parse Claude folder suggestion response: ${e.message}", e)
         }
     }
 
