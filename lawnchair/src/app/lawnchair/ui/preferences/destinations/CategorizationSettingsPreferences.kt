@@ -70,7 +70,11 @@ fun CategorizationSettingsPreferences(
                 categorizationStatus = when (result) {
                     is ImportResult.Success -> {
                         CategoryTabsController.getInstance(context).refresh()
-                        "✅ Imported ${result.count} apps from Smart Launcher!"
+                        
+                        // Auto-sort apps into folders
+                        val sortResult = app.lawnchair.categorization.FolderAutoSortService.getInstance(context).autoSortAll()
+                        
+                        "✅ Imported ${result.count} apps. Created ${sortResult.foldersCreated} folders with ${sortResult.appsSorted} apps."
                     }
 
                     is ImportResult.Error -> "❌ Import failed: ${result.message}"
@@ -117,6 +121,24 @@ fun CategorizationSettingsPreferences(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text("Import from Smart Launcher (.slbk)")
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                categorizationStatus = "Organizing folders..."
+                                scope.launch {
+                                    try {
+                                        val sortResult = app.lawnchair.categorization.FolderAutoSortService.getInstance(context).autoSortAll()
+                                        categorizationStatus = "✅ Created ${sortResult.foldersCreated} folders with ${sortResult.appsSorted} apps."
+                                        CategoryTabsController.getInstance(context).refresh()
+                                    } catch (e: Exception) {
+                                        categorizationStatus = "❌ Error organizing folders: ${e.message}"
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("Auto-organize Folders")
                         }
 
                         // Progress indicator
