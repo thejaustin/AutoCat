@@ -1,12 +1,13 @@
 package app.lawnchair.categorization
 
 import android.content.Context
+import android.content.pm.LauncherApps
 import app.lawnchair.categorization.llm.AppBatchInfo
 import app.lawnchair.categorization.llm.GoogleAIProvider
 import app.lawnchair.categorization.llm.LLMException
 import app.lawnchair.categorization.llm.LLMProvider
+import app.lawnchair.categorization.llm.SuggestedFolder
 import app.lawnchair.data.Converters
-import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.folder.FolderInfoEntity
 import app.lawnchair.data.folder.FolderItemEntity
 import app.lawnchair.data.folder.service.FolderDao
@@ -14,7 +15,9 @@ import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.data.tab.TabDao
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.preferences.PreferenceManager
+import com.android.launcher3.AppFilter
 import com.android.launcher3.model.data.AppInfo
+import com.android.launcher3.pm.UserCache
 import com.android.launcher3.util.ComponentKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -39,7 +42,9 @@ class FolderAutoSortService(private val context: Context) {
     private val tabDatabase = TabDatabase.getInstance(context)
     private val tabDao: TabDao = tabDatabase.categoryDao()
     private val folderService = FolderService.INSTANCE.get(context)
-    private val metadataProvider = AppMetadataProvider(context)
+    private val launcherApps = context.getSystemService(LauncherApps::class.java)
+    private val userCache = UserCache.INSTANCE.get(context)
+    private val appFilter = AppFilter(context)
     private val converters = Converters()
 
     // LLM providers for folder suggestions
@@ -78,7 +83,7 @@ class FolderAutoSortService(private val context: Context) {
             val appsInFolders = mutableSetOf<String>()
 
             existingFolders.forEach { folder ->
-                folder.contents.forEach { item ->
+                folder.getContents().forEach { item ->
                     if (item is AppInfo) {
                         val componentKey = converters.fromComponentKey(item.toComponentKey())
                         if (componentKey != null) {
@@ -88,14 +93,29 @@ class FolderAutoSortService(private val context: Context) {
                 }
             }
 
+            // Build map of all installed apps
+            val allInstalledApps = if (launcherApps != null) {
+                userCache.userProfiles.flatMap { userHandle ->
+                    launcherApps.getActivityList(null, userHandle)
+                        .filter { appFilter.shouldShowApp(it.componentName) }
+                        .map { AppInfo(context, it, userHandle) }
+                }
+            } else {
+                emptyList()
+            }
+
+            val appsByPackage = allInstalledApps
+                .groupBy { it.componentName?.packageName }
+                .filterKeys { it != null }
+
             // Group unsorted apps by tab
             val unsortedByTab = mutableMapOf<String, MutableList<AppInfo>>()
 
             appsWithTabs.forEach { appTab ->
                 // Get AppInfo for this package
-                val appInfo = metadataProvider.getAppInfo(appTab.packageName)
+                val appsForPackage = appsByPackage[appTab.packageName] ?: emptyList()
 
-                if (appInfo != null) {
+                appsForPackage.forEach { appInfo ->
                     val componentKey = converters.fromComponentKey(appInfo.toComponentKey())
 
                     // Check if app is NOT in any folder
@@ -140,12 +160,14 @@ class FolderAutoSortService(private val context: Context) {
             }
 
             // Convert AppInfo to AppBatchInfo for LLM
-            val appBatch = apps.map { app ->
-                AppBatchInfo(
-                    packageName = app.componentName.packageName,
-                    appName = app.title.toString(),
-                    appDescription = null, // We don't have descriptions for launcher apps yet
-                )
+            val appBatch = apps.mapNotNull { app ->
+                app.componentName?.let { componentName ->
+                    AppBatchInfo(
+                        packageName = componentName.packageName,
+                        appName = app.title.toString(),
+                        appDescription = null, // We don't have descriptions for launcher apps yet
+                    )
+                }
             }
 
             // Call LLM provider's suggestFolders method
@@ -222,8 +244,10 @@ class FolderAutoSortService(private val context: Context) {
         packageNames: List<String>,
         availableApps: List<AppInfo>,
     ): List<AppInfo> {
-        val appsByPackage = availableApps.associateBy { it.componentName.packageName }
-        return packageNames.mapNotNull { appsByPackage[it] }
+        val appsByPackage = availableApps
+            .filter { it.componentName != null }
+            .groupBy { it.componentName!!.packageName }
+        return packageNames.flatMap { appsByPackage[it] ?: emptyList() }
     }
 
     /**

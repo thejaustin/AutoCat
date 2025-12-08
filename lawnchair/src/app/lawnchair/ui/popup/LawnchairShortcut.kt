@@ -296,11 +296,11 @@ class LawnchairShortcut {
                             com.android.launcher3.model.data.AppInfo().apply {
                                 componentName = mItemInfo.targetComponent
                             }.let {
-                                app.lawnchair.data.category.entities.AppTab(
+                                app.lawnchair.data.tab.AppTab(
                                     packageName = packageName,
                                     category = selectedCategory.name,
                                     confidence = 1.0f,
-                                    source = app.lawnchair.data.category.entities.AppTab.SOURCE_USER,
+                                    source = app.lawnchair.data.tab.AppTab.SOURCE_USER,
                                     isUserOverride = true,
                                 )
                             },
