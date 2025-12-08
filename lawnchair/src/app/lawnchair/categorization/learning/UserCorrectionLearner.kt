@@ -1,8 +1,8 @@
 package app.lawnchair.categorization.learning
 
 import android.content.Context
-import app.lawnchair.data.category.CategoryDao
-import app.lawnchair.data.category.entities.AppCategory
+import app.lawnchair.data.tab.TabDao
+import app.lawnchair.data.tab.entities.AppTab
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
  */
 class UserCorrectionLearner(
     private val context: Context,
-    private val categoryDao: CategoryDao,
+    private val categoryDao: TabDao,
 ) {
 
     /**
@@ -193,7 +193,7 @@ class UserCorrectionLearner(
         @Volatile
         private var instance: UserCorrectionLearner? = null
 
-        fun getInstance(context: Context, categoryDao: CategoryDao): UserCorrectionLearner {
+        fun getInstance(context: Context, categoryDao: TabDao): UserCorrectionLearner {
             return instance ?: synchronized(this) {
                 instance ?: UserCorrectionLearner(context, categoryDao).also { instance = it }
             }

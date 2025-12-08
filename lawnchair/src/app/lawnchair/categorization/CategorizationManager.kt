@@ -4,7 +4,7 @@ import android.content.Context
 import app.lawnchair.categorization.stages.BuiltInCategorizer
 import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.data.apps.AppMetadataProvider
-import app.lawnchair.data.category.CategoryDatabase
+import app.lawnchair.data.tab.TabDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,7 +55,7 @@ data class CategorizationProgress(
  */
 class CategorizationManager(private val context: Context) {
 
-    private val database = CategoryDatabase.getInstance(context)
+    private val database = TabDatabase.getInstance(context)
     private val categoryDao = database.categoryDao()
     private val metadataProvider = AppMetadataProvider(context)
     private val builtInCategorizer = BuiltInCategorizer(categoryDao)

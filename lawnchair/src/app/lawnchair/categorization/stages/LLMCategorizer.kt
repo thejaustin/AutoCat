@@ -11,8 +11,8 @@ import app.lawnchair.categorization.llm.LLMProvider
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.data.apps.AppInfo
-import app.lawnchair.data.category.CategoryDao
-import app.lawnchair.data.category.entities.AppCategory
+import app.lawnchair.data.tab.TabDao
+import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.preferences.PreferenceManager
 import kotlin.math.min
 import kotlin.math.pow
@@ -38,7 +38,7 @@ import kotlinx.coroutines.delay
  */
 class LLMCategorizer(
     private val context: Context,
-    private val categoryDao: CategoryDao,
+    private val categoryDao: TabDao,
 ) {
 
     // Initialize providers once to avoid overhead in loops
@@ -76,11 +76,11 @@ class LLMCategorizer(
         val hint = learner.getHintForPackage(appInfo.packageName)
         if (hint != null && categoryNames.contains(hint.category)) {
             // Apply learned categorization directly (skip LLM)
-            val appCategory = AppCategory(
+            val appCategory = AppTab(
                 packageName = appInfo.packageName,
                 category = hint.category,
                 confidence = hint.confidence,
-                source = AppCategory.SOURCE_LLM,
+                source = AppTab.SOURCE_LLM,
                 isUserOverride = false,
                 reasoning = "Based on ${hint.sampleCount} previous user corrections for similar apps",
             )
@@ -131,11 +131,11 @@ class LLMCategorizer(
                 }
 
                 // Save to database
-                val appCategory = AppCategory(
+                val appCategory = AppTab(
                     packageName = appInfo.packageName,
                     category = result.category,
                     confidence = result.confidence,
-                    source = AppCategory.SOURCE_LLM,
+                    source = AppTab.SOURCE_LLM,
                     isUserOverride = false,
                     reasoning = result.reasoning,
                 )
@@ -346,11 +346,11 @@ class LLMCategorizer(
                 if (success && apiResults != null) {
                     apiResults.forEach { (packageName, result) ->
                         if (result.confidence >= MIN_CONFIDENCE) {
-                            val appCategory = AppCategory(
+                            val appCategory = AppTab(
                                 packageName = packageName,
                                 category = result.category,
                                 confidence = result.confidence,
-                                source = AppCategory.SOURCE_LLM,
+                                source = AppTab.SOURCE_LLM,
                                 isUserOverride = false,
                                 reasoning = result.reasoning,
                             )

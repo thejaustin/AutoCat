@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.unit.dp
 import app.lawnchair.LawnchairLauncher
 import app.lawnchair.categorization.CategorizationManager
-import app.lawnchair.data.category.CategoryDatabase
+import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.override.CustomizeAppDialog
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.views.ComposeBottomSheet
@@ -263,7 +263,7 @@ class LawnchairShortcut {
             val packageName = mItemInfo.targetComponent?.packageName ?: return
 
             // Get all visible categories from database
-            val database = CategoryDatabase.getInstance(context)
+            val database = TabDatabase.getInstance(context)
             val categoryDao = database.categoryDao()
 
             val categories = runBlocking {
@@ -296,11 +296,11 @@ class LawnchairShortcut {
                             com.android.launcher3.model.data.AppInfo().apply {
                                 componentName = mItemInfo.targetComponent
                             }.let {
-                                app.lawnchair.data.category.entities.AppCategory(
+                                app.lawnchair.data.category.entities.AppTab(
                                     packageName = packageName,
                                     category = selectedCategory.name,
                                     confidence = 1.0f,
-                                    source = app.lawnchair.data.category.entities.AppCategory.SOURCE_USER,
+                                    source = app.lawnchair.data.category.entities.AppTab.SOURCE_USER,
                                     isUserOverride = true,
                                 )
                             },

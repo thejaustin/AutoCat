@@ -1,25 +1,25 @@
-package app.lawnchair.data.category.entities
+package app.lawnchair.data.tab.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * Represents the categorization information for an installed app.
+ * Represents the tab assignment information for an installed app.
  *
- * This entity stores how an app has been categorized through the auto-categorization
- * pipeline (built-in, rule-based, ML) or via user override.
+ * This entity stores how an app has been assigned to a tab through the auto-categorization
+ * pipeline (built-in, rule-based, LLM) or via user override.
  *
  * @property packageName The unique package identifier for the app
- * @property category The category name (e.g., "Games", "Social", "Tools")
+ * @property category The tab name (e.g., "Games", "Social", "Tools") - stored as "category" for DB compatibility
  * @property confidence Confidence score from categorization (0.0 - 1.0)
- * @property source The categorization source: "built-in", "rule", "ml", or "user"
+ * @property source The categorization source: "built-in", "rule", "ml", "llm", or "user"
  * @property isUserOverride If true, prevents automatic re-categorization
  * @property lastUpdated Timestamp of last categorization update (milliseconds since epoch)
  * @property reasoning LLM explanation for why the app was categorized (null for non-LLM sources)
  */
 @Entity(tableName = "app_categories")
-data class AppCategory(
+data class AppTab(
     @PrimaryKey
     @ColumnInfo(name = "package_name")
     val packageName: String,

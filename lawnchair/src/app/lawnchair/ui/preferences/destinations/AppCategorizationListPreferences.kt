@@ -43,9 +43,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategoryFolderSyncService
-import app.lawnchair.data.category.CategoryDatabase
-import app.lawnchair.data.category.entities.AppCategory
-import app.lawnchair.data.category.entities.CustomCategory
+import app.lawnchair.data.tab.TabDatabase
+import app.lawnchair.data.tab.entities.AppTab
+import app.lawnchair.data.tab.entities.CustomTab
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
@@ -63,15 +63,15 @@ fun AppCategorizationListPreferences(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val database = remember { CategoryDatabase.getInstance(context) }
+    val database = remember { TabDatabase.getInstance(context) }
     val categoryDao = database.categoryDao()
     val packageManager = context.packageManager
     val folderSyncService = remember { CategoryFolderSyncService(context) }
     val appProvider = remember { AutoCatAppProvider.getInstance(context) }
 
-    var categorizations by remember { mutableStateOf<List<AppCategory>>(emptyList()) }
-    var availableCategories by remember { mutableStateOf<List<CustomCategory>>(emptyList()) }
-    var editingApp by remember { mutableStateOf<AppCategory?>(null) }
+    var categorizations by remember { mutableStateOf<List<AppTab>>(emptyList()) }
+    var availableCategories by remember { mutableStateOf<List<CustomTab>>(emptyList()) }
+    var editingApp by remember { mutableStateOf<AppTab?>(null) }
     var expandedCategories by remember { mutableStateOf(setOf<String>()) }
     var filterMode by remember { mutableStateOf(FilterMode.ALL) }
 
@@ -88,8 +88,8 @@ fun AppCategorizationListPreferences(
             FilterMode.ALL -> categorizations
             FilterMode.UNCATEGORIZED -> categorizations.filter { it.category == "Other" }
             FilterMode.UNFOLDERED -> categorizations.filter { it.category != "Other" && it.subCategory.isNullOrBlank() }
-            FilterMode.LLM_SORTED -> categorizations.filter { it.source == AppCategory.SOURCE_LLM || it.source == AppCategory.SOURCE_ML }
-            FilterMode.SLBK_SORTED -> categorizations.filter { it.source == AppCategory.SOURCE_BUILT_IN || it.source == AppCategory.SOURCE_RULE }
+            FilterMode.LLM_SORTED -> categorizations.filter { it.source == AppTab.SOURCE_LLM || it.source == AppTab.SOURCE_ML }
+            FilterMode.SLBK_SORTED -> categorizations.filter { it.source == AppTab.SOURCE_BUILT_IN || it.source == AppTab.SOURCE_RULE }
         }
     }
 
@@ -193,7 +193,7 @@ fun AppCategorizationListPreferences(
                         category = newCategory,
                         subCategory = newSubCategory,
                         isUserOverride = true,
-                        source = AppCategory.SOURCE_USER,
+                        source = AppTab.SOURCE_USER,
                         confidence = 1.0f,
                         lastUpdated = System.currentTimeMillis(),
                     )
@@ -284,7 +284,7 @@ private fun CategoryHeader(
 
 @Composable
 private fun AppCategorizationItem(
-    appCategory: AppCategory,
+    appCategory: AppTab,
     packageManager: PackageManager,
     onEditClick: () -> Unit,
 ) {
@@ -390,8 +390,8 @@ private fun AppCategorizationItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryOverrideDialog(
-    appCategory: AppCategory,
-    availableCategories: List<CustomCategory>,
+    appCategory: AppTab,
+    availableCategories: List<CustomTab>,
     packageManager: PackageManager,
     onDismiss: () -> Unit,
     onSave: (String, String?) -> Unit,
@@ -493,8 +493,8 @@ private fun CategoryOverrideDialog(
         confirmButton = {
             Row {
                 // Auto Categorize button (conditional)
-                if (appCategory.source != AppCategory.SOURCE_LLM &&
-                    appCategory.source != AppCategory.SOURCE_ML &&
+                if (appCategory.source != AppTab.SOURCE_LLM &&
+                    appCategory.source != AppTab.SOURCE_ML &&
                     !appCategory.isUserOverride
                 ) {
                     TextButton(

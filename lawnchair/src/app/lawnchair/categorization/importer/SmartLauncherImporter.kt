@@ -3,9 +3,9 @@ package app.lawnchair.categorization.importer
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
-import app.lawnchair.data.category.CategoryDatabase
-import app.lawnchair.data.category.entities.AppCategory
-import app.lawnchair.data.category.entities.CustomCategory
+import app.lawnchair.data.tab.TabDatabase
+import app.lawnchair.data.tab.entities.AppTab
+import app.lawnchair.data.tab.entities.CustomTab
 import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
@@ -145,7 +145,7 @@ class SmartLauncherImporter(private val context: Context) {
                 folderCursor.close()
 
                 // 6. Load Apps and Map them
-                val appsToImport = mutableListOf<AppCategory>()
+                val appsToImport = mutableListOf<AppTab>()
                 val appCursor = slDb.rawQuery("SELECT parentId, categoryId, packageName FROM DrawerItem WHERE packageName IS NOT NULL", null)
 
                 var importedCount = 0
@@ -180,10 +180,10 @@ class SmartLauncherImporter(private val context: Context) {
                             }
                         }
 
-                        // Create AppCategory entity
+                        // Create AppTab entity
                         // Source is 'manual' to take precedence over 'llm' or 'built-in'
                         // isUserOverride = true ensures it sticks
-                        val appCategory = AppCategory(
+                        val appCategory = AppTab(
                             packageName = packageName,
                             category = targetCategory,
                             subCategory = targetSubCategory,
@@ -200,22 +200,22 @@ class SmartLauncherImporter(private val context: Context) {
                 appCursor.close()
                 slDb.close()
 
-                val categoryDao = CategoryDatabase.getInstance(context).categoryDao()
+                val categoryDao = TabDatabase.getInstance(context).categoryDao()
 
-                // 6.5 Ensure all used categories exist in CustomCategory table
+                // 6.5 Ensure all used categories exist in CustomTab table
                 val uniqueCategories = appsToImport.map { it.category }.distinct()
                 val existingCategories = categoryDao.getAllCustomCategories()
                 var nextSortOrder = existingCategories.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
 
                 // Helper to pick a random default color
                 val defaultColors = listOf(
-                    CustomCategory.COLOR_GAMES,
-                    CustomCategory.COLOR_SOCIAL,
-                    CustomCategory.COLOR_PRODUCTIVITY,
-                    CustomCategory.COLOR_TOOLS,
-                    CustomCategory.COLOR_ENTERTAINMENT,
-                    CustomCategory.COLOR_PHOTOGRAPHY,
-                    CustomCategory.COLOR_COMMUNICATION,
+                    CustomTab.COLOR_GAMES,
+                    CustomTab.COLOR_SOCIAL,
+                    CustomTab.COLOR_PRODUCTIVITY,
+                    CustomTab.COLOR_TOOLS,
+                    CustomTab.COLOR_ENTERTAINMENT,
+                    CustomTab.COLOR_PHOTOGRAPHY,
+                    CustomTab.COLOR_COMMUNICATION,
                 )
 
                 for (categoryName in uniqueCategories) {
@@ -225,7 +225,7 @@ class SmartLauncherImporter(private val context: Context) {
                         // We could check if there's a folder with the same name to steal its icon.
                         val matchingFolder = folderMap.values.find { it.label.equals(categoryName, ignoreCase = true) }
 
-                        val newCategory = CustomCategory(
+                        val newCategory = CustomTab(
                             name = categoryName,
                             colorHex = defaultColors.random(),
                             sortOrder = nextSortOrder++,

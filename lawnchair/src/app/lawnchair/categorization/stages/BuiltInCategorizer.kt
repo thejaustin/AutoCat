@@ -2,8 +2,8 @@ package app.lawnchair.categorization.stages
 
 import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.apps.AppMetadataProvider
-import app.lawnchair.data.category.CategoryDao
-import app.lawnchair.data.category.entities.AppCategory
+import app.lawnchair.data.tab.TabDao
+import app.lawnchair.data.tab.entities.AppTab
 
 /**
  * First stage categorizer that uses Android's built-in app categories.
@@ -17,7 +17,7 @@ import app.lawnchair.data.category.entities.AppCategory
  * - Navigation, Productivity, and more
  */
 class BuiltInCategorizer(
-    private val categoryDao: CategoryDao,
+    private val categoryDao: TabDao,
 ) {
 
     /**
@@ -30,11 +30,11 @@ class BuiltInCategorizer(
         val categoryName = AppMetadataProvider.getCategoryName(appInfo.category)
             ?: return false
 
-        val appCategory = AppCategory(
+        val appCategory = AppTab(
             packageName = appInfo.packageName,
             category = categoryName,
             confidence = CONFIDENCE_BUILT_IN,
-            source = AppCategory.SOURCE_BUILT_IN,
+            source = AppTab.SOURCE_BUILT_IN,
             isUserOverride = false,
         )
 

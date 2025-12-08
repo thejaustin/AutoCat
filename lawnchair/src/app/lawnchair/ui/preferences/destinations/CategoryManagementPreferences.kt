@@ -46,8 +46,8 @@ import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.categorization.llm.SuggestedCategory
 import app.lawnchair.data.apps.AppMetadataProvider
-import app.lawnchair.data.category.CategoryDatabase
-import app.lawnchair.data.category.entities.CustomCategory
+import app.lawnchair.data.tab.TabDatabase
+import app.lawnchair.data.tab.entities.CustomTab
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
@@ -59,14 +59,14 @@ fun CategoryManagementPreferences(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val database = remember { CategoryDatabase.getInstance(context) }
+    val database = remember { TabDatabase.getInstance(context) }
     val categoryDao = database.categoryDao()
     val categorizationManager = remember { CategorizationManager.getInstance(context) }
     val appProvider = remember { AutoCatAppProvider.getInstance(context) }
 
-    var categories by remember { mutableStateOf<List<CustomCategory>>(emptyList()) }
+    var categories by remember { mutableStateOf<List<CustomTab>>(emptyList()) }
     var showAddDialog by remember { mutableStateOf(false) }
-    var editingCategory by remember { mutableStateOf<CustomCategory?>(null) }
+    var editingCategory by remember { mutableStateOf<CustomTab?>(null) }
     var showSuggestionsDialog by remember { mutableStateOf(false) }
     var suggestedCategories by remember { mutableStateOf<List<SuggestedCategory>>(emptyList()) }
     var isLoadingSuggestions by remember { mutableStateOf(false) }
@@ -259,7 +259,7 @@ fun CategoryManagementPreferences(
                         val maxSortOrder = categories.maxOfOrNull { it.sortOrder } ?: 0
                         android.util.Log.d("CategoryManagement", "Creating new category: $name, sortOrder: ${maxSortOrder + 1}, isVisible: true")
                         val categoryId = categoryDao.insertCustomCategory(
-                            CustomCategory(
+                            CustomTab(
                                 name = name,
                                 colorHex = color,
                                 sortOrder = maxSortOrder + 1,
@@ -294,7 +294,7 @@ fun CategoryManagementPreferences(
                 scope.launch {
                     val maxSortOrder = categories.maxOfOrNull { it.sortOrder } ?: 0
                     categoryDao.insertCustomCategory(
-                        CustomCategory(
+                        CustomTab(
                             name = suggestion.name,
                             colorHex = "#4CAF50", // Default green color
                             sortOrder = maxSortOrder + 1,
@@ -313,9 +313,9 @@ fun CategoryManagementPreferences(
 
 @Composable
 private fun CategoryItem(
-    category: CustomCategory,
-    onEdit: (CustomCategory) -> Unit,
-    onDelete: (CustomCategory) -> Unit,
+    category: CustomTab,
+    onEdit: (CustomTab) -> Unit,
+    onDelete: (CustomTab) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -362,7 +362,7 @@ private fun CategoryItem(
 
 @Composable
 private fun CategoryDialog(
-    category: CustomCategory?,
+    category: CustomTab?,
     onDismiss: () -> Unit,
     onSave: (String, String) -> Unit,
 ) {

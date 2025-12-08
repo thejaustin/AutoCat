@@ -1,54 +1,54 @@
-package app.lawnchair.data.category
+package app.lawnchair.data.tab
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import app.lawnchair.data.category.entities.AppCategory
-import app.lawnchair.data.category.entities.CustomCategory
+import app.lawnchair.data.tab.entities.AppTab
+import app.lawnchair.data.tab.entities.CustomTab
 
 /**
- * Room database for app categorization and custom category management.
+ * Room database for app tab assignments and custom tab management.
  *
  * This database stores:
- * - App categorization data (which apps belong to which categories)
- * - Custom category definitions (user-created categories with colors and ordering)
+ * - App tab assignments (which apps belong to which tabs)
+ * - Custom tab definitions (user-created tabs with colors and ordering)
  *
- * Database version: 2 (added reasoning field to AppCategory)
+ * Database version: 4
  * Export schema: false (disabled for development, will enable for production)
  */
 @Database(
     entities = [
-        AppCategory::class,
-        CustomCategory::class,
+        AppTab::class,
+        CustomTab::class,
     ],
     version = 4,
     exportSchema = false,
 )
-abstract class CategoryDatabase : RoomDatabase() {
+abstract class TabDatabase : RoomDatabase() {
 
     /**
-     * Provides access to category-related data operations.
+     * Provides access to tab-related data operations.
      */
-    abstract fun categoryDao(): CategoryDao
+    abstract fun categoryDao(): TabDao
 
     companion object {
         private const val DATABASE_NAME = "category_database"
 
         @Volatile
-        private var instance: CategoryDatabase? = null
+        private var instance: TabDatabase? = null
 
         /**
-         * Gets the singleton instance of CategoryDatabase.
+         * Gets the singleton instance of TabDatabase.
          *
          * Uses double-checked locking to ensure thread-safe singleton creation.
          * The database is created with fallback to destructive migration for
          * development purposes.
          *
          * @param context Application context
-         * @return Singleton CategoryDatabase instance
+         * @return Singleton TabDatabase instance
          */
-        fun getInstance(context: Context): CategoryDatabase {
+        fun getInstance(context: Context): TabDatabase {
             return instance ?: synchronized(this) {
                 instance ?: buildDatabase(context).also { instance = it }
             }
@@ -57,22 +57,22 @@ abstract class CategoryDatabase : RoomDatabase() {
         /**
          * Builds the Room database instance with appropriate configuration.
          */
-        private fun buildDatabase(context: Context): CategoryDatabase {
+        private fun buildDatabase(context: Context): TabDatabase {
             return Room.databaseBuilder(
                 context.applicationContext,
-                CategoryDatabase::class.java,
+                TabDatabase::class.java,
                 DATABASE_NAME,
             )
                 // For development: destroy and rebuild on schema changes
                 // TODO: Replace with proper migrations before production release
                 // dropAllTables = true: all tables will be dropped on migration failure
                 .fallbackToDestructiveMigration(dropAllTables = true)
-                // Initialize default categories on first run
+                // Initialize default tabs on first run
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                         super.onCreate(db)
-                        // Default categories will be initialized on first DAO access
-                        // via CategoryDao.initializeDefaultCategoriesIfNeeded()
+                        // Default tabs will be initialized on first DAO access
+                        // via TabDao.initializeDefaultCategoriesIfNeeded()
                     }
                 })
                 .build()

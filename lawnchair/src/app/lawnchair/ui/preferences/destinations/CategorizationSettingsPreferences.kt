@@ -32,7 +32,7 @@ import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.categorization.importer.SmartLauncherImporter
 import app.lawnchair.categorization.importer.SmartLauncherImporter.ImportResult
-import app.lawnchair.data.category.CategoryDatabase
+import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
@@ -55,7 +55,7 @@ fun CategorizationSettingsPreferences(
     val scope = rememberCoroutineScope()
     val categorizationManager = remember { CategorizationManager.getInstance(context) }
     val progress by categorizationManager.progress.collectAsState()
-    val categoryDao = remember { CategoryDatabase.getInstance(context).categoryDao() }
+    val categoryDao = remember { TabDatabase.getInstance(context).categoryDao() }
 
     var categorizationStatus by remember { mutableStateOf("") }
 

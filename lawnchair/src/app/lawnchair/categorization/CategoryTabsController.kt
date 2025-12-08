@@ -3,8 +3,8 @@ package app.lawnchair.categorization
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import app.lawnchair.data.category.CategoryDatabase
-import app.lawnchair.data.category.entities.CustomCategory
+import app.lawnchair.data.tab.TabDatabase
+import app.lawnchair.data.tab.entities.CustomTab
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import kotlinx.coroutines.CoroutineScope
@@ -37,11 +37,11 @@ class CategoryTabsController private constructor(private val context: Context) :
         }
     }
 
-    private val categoryDao = CategoryDatabase.getInstance(context).categoryDao()
+    private val categoryDao = TabDatabase.getInstance(context).categoryDao()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val _categories = MutableStateFlow<List<CustomCategory>>(emptyList())
-    val categories: StateFlow<List<CustomCategory>> = _categories.asStateFlow()
+    private val _categories = MutableStateFlow<List<CustomTab>>(emptyList())
+    val categories: StateFlow<List<CustomTab>> = _categories.asStateFlow()
 
     private val _currentTabIndex = MutableStateFlow(TAB_ALL_INDEX)
     val currentTabIndex: StateFlow<Int> = _currentTabIndex.asStateFlow()
@@ -71,7 +71,7 @@ class CategoryTabsController private constructor(private val context: Context) :
         }
     }
 
-    private fun updateTabNames(cats: List<CustomCategory>) {
+    private fun updateTabNames(cats: List<CustomTab>) {
         val names = mutableListOf(TAB_ALL)
         names.addAll(cats.map { it.name })
 

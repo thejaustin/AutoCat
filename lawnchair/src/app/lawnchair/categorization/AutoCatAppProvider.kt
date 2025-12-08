@@ -5,7 +5,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.data.apps.AppInfo
-import app.lawnchair.data.category.CategoryDatabase
+import app.lawnchair.data.tab.TabDatabase
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +24,7 @@ import kotlinx.coroutines.withContext
  */
 class AutoCatAppProvider(private val context: Context) {
 
-    private val database = CategoryDatabase.getInstance(context)
+    private val database = TabDatabase.getInstance(context)
     private val categoryDao = database.categoryDao()
     private val llmCategorizer = LLMCategorizer(context, categoryDao)
     private val packageManager = context.packageManager

@@ -1,8 +1,8 @@
 package app.lawnchair.categorization
 
 import android.content.Context
-import app.lawnchair.data.category.CategoryDatabase
-import app.lawnchair.data.category.entities.CustomCategory
+import app.lawnchair.data.tab.TabDatabase
+import app.lawnchair.data.tab.entities.CustomTab
 import app.lawnchair.preferences.PreferenceManager
 import kotlinx.coroutines.runBlocking
 
@@ -14,7 +14,7 @@ import kotlinx.coroutines.runBlocking
  */
 class CategoryTabsManager(private val context: Context) {
 
-    private val database = CategoryDatabase.getInstance(context)
+    private val database = TabDatabase.getInstance(context)
     private val categoryDao = database.categoryDao()
     private val prefs = PreferenceManager.getInstance(context)
 
