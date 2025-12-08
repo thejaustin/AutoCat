@@ -70,10 +70,10 @@ fun CategorizationSettingsPreferences(
                 categorizationStatus = when (result) {
                     is ImportResult.Success -> {
                         CategoryTabsController.getInstance(context).refresh()
-                        
+
                         // Auto-sort apps into folders
                         val sortResult = app.lawnchair.categorization.FolderAutoSortService.getInstance(context).autoSortAll()
-                        
+
                         "✅ Imported ${result.count} apps. Created ${sortResult.foldersCreated} folders with ${sortResult.appsSorted} apps."
                     }
 
