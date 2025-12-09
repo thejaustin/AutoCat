@@ -57,17 +57,22 @@ class LawnchairAlphabeticalAppsList<T>(
     private val categoryTabsController = CategoryTabsController.getInstance(context)
     private var cachedCategorizedApps: Map<String, Map<String, List<app.lawnchair.data.apps.AppInfo>>>? = null
 
-    private fun app.lawnchair.data.apps.AppInfo.toLauncherAppInfo(): com.android.launcher3.model.data.AppInfo {
-        val launchIntent = context.packageManager.getLaunchIntentForPackage(this.packageName)
-        val componentName = launchIntent?.component ?: ComponentName(this.packageName, "com.android.fallback.FallbackActivity")
-        val intent = launchIntent?.let { Intent(it) } ?: Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setPackage(this.packageName)
+    private fun app.lawnchair.data.apps.AppInfo.toLauncherAppInfo(): com.android.launcher3.model.data.AppInfo? {
+        // Get proper LauncherActivityInfo from LauncherApps service
+        val launcherApps = context.getSystemService(android.content.pm.LauncherApps::class.java)
 
-        return com.android.launcher3.model.data.AppInfo(
-            componentName,
-            this.label as CharSequence,
-            android.os.UserHandle.CURRENT,
-            intent,
-        )
+        // Try to find the launcher activity for this package
+        val userHandle = android.os.UserHandle.CURRENT
+        val activities = launcherApps?.getActivityList(this.packageName, userHandle)
+
+        if (activities.isNullOrEmpty()) {
+            Log.w(TAG, "No launcher activities found for package: ${this.packageName}")
+            return null
+        }
+
+        // Use the first launcher activity to create AppInfo properly with proper icon loading
+        val launcherActivityInfo = activities[0]
+        return com.android.launcher3.model.data.AppInfo(context, launcherActivityInfo, userHandle)
     }
 
     private fun com.android.launcher3.model.data.AppInfo.toAutoCatAppInfo(): app.lawnchair.data.apps.AppInfo {
@@ -172,30 +177,39 @@ class LawnchairAlphabeticalAppsList<T>(
                         if (iconPath != null) {
                             folderInfo.icon = iconPath
                         }
-                        apps.forEach { app -> folderInfo.add(app.toLauncherAppInfo()) }
+                        apps.forEach { app ->
+                            app.toLauncherAppInfo()?.let { folderInfo.add(it) }
+                        }
                         mAdapterItems.add(AdapterItem.asFolder(folderInfo))
                         position++
                     }
 
                     // 2. Apps (No subcategory) second
                     subCategories[""]?.forEach { app ->
-                        mAdapterItems.add(AdapterItem.asApp(app.toLauncherAppInfo()))
-                        position++
+                        app.toLauncherAppInfo()?.let {
+                            mAdapterItems.add(AdapterItem.asApp(it))
+                            position++
+                        }
                     }
                 } else {
                     // In folder mode, group all apps in this category into one folder (flatten subcategories)
                     val allAppsInCategory = subCategories.values.flatten()
 
                     if (allAppsInCategory.size == 1) {
-                        mAdapterItems.add(AdapterItem.asApp(allAppsInCategory.first().toLauncherAppInfo()))
+                        allAppsInCategory.first().toLauncherAppInfo()?.let {
+                            mAdapterItems.add(AdapterItem.asApp(it))
+                            position++
+                        }
                     } else {
                         val folderInfo = FolderInfo().apply {
                             title = category
-                            allAppsInCategory.forEach { add(it.toLauncherAppInfo()) }
+                            allAppsInCategory.forEach { app ->
+                                app.toLauncherAppInfo()?.let { add(it) }
+                            }
                         }
                         mAdapterItems.add(AdapterItem.asFolder(folderInfo))
+                        position++
                     }
-                    position++
                 }
             }
         } else {
