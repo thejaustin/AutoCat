@@ -123,7 +123,7 @@ class LawnchairAlphabeticalAppsList<T>(
 
     override fun addAppsWithSections(appList: List<AppInfo?>?, startPosition: Int): Int {
         if (appList.isNullOrEmpty()) return startPosition
-        
+
         filteredList.clear()
         var position = startPosition
 
@@ -156,75 +156,74 @@ class LawnchairAlphabeticalAppsList<T>(
 
         // Use AutoCat database categorization for filtering
         val categorizedApps = cachedCategorizedApps ?: autoCatProvider.categorizeApps(appList.map { it?.toAutoCatAppInfo() })
-        
+
         // Unified Folder System: Use persistent folders as primary source
         var folders = folderList.toList()
-        
+
         // Fallback: If no folders exist yet and we are supposed to use tabs (e.g. first run), create temp ones
         if (folders.isEmpty() && (usingAppTabs || !prefs.drawerList.get())) {
-             val tempFolders = mutableListOf<FolderInfo>()
-             categorizedApps.forEach { (tabName, subCategories) ->
-                 val allAppsInTab = subCategories.values.flatten()
-                 if (allAppsInTab.size > 1) {
-                     val folderInfo = FolderInfo().apply {
-                         title = tabName
-                         allAppsInCategory.forEach { app -> app.toLauncherAppInfo()?.let { add(it) } }
-                     }
-                     tempFolders.add(folderInfo)
-                 }
-             }
-             folders = tempFolders
+            val tempFolders = mutableListOf<FolderInfo>()
+            categorizedApps.forEach { (tabName, subCategories) ->
+                val allAppsInTab = subCategories.values.flatten()
+                if (allAppsInTab.size > 1) {
+                    val folderInfo = FolderInfo().apply {
+                        title = tabName
+                        allAppsInCategory.forEach { app -> app.toLauncherAppInfo()?.let { add(it) } }
+                    }
+                    tempFolders.add(folderInfo)
+                }
+            }
+            folders = tempFolders
         }
 
         if (usingAppTabs && currentTabName != null) {
-             // We are in a specific tab: Filter folders and apps
-             
-             // 1. Folders that belong to this tab
-             val subCategories = categorizedApps[currentTabName]?.keys ?: emptySet()
-             
-             folders.forEach { folder ->
-                 val folderTitle = folder.title.toString()
-                 if (subCategories.contains(folderTitle)) {
-                     // This folder is a subcategory (e.g. "Puzzle" in "Games")
-                     // Create a copy for display
-                     val displayFolder = FolderInfo().apply {
-                         title = folder.title
-                         icon = folder.icon
-                         folder.getContents().forEach { add(it) }
-                     }
-                     mAdapterItems.add(AdapterItem.asFolder(displayFolder))
-                     
-                     // Mark apps as shown
-                     folder.getContents().forEach { item -> 
-                         if (item is AppInfo) filteredList.add(item)
-                     }
-                     position++
-                 } else if (folderTitle == currentTabName) {
-                     // This folder IS the tab (e.g. "Games")
-                     // "Explode" it: show its contents as apps
-                     folder.getContents().forEach { item ->
-                         if (item is AppInfo) {
-                             mAdapterItems.add(AdapterItem.asApp(item))
-                             filteredList.add(item)
-                             position++
-                         }
-                     }
-                 }
-             }
-             
-             // 2. Apps in this tab that were not in matched folders
-             val allAppsInTab = categorizedApps[currentTabName]?.values?.flatten() ?: emptyList()
-             allAppsInTab.forEach { app ->
-                 val launcherApp = app.toLauncherAppInfo()
-                 // Check if we haven't shown this app yet
-                 // Note: filteredList contains apps shown via folders. 
-                 // We also need to check if we already added it via "Explode" above.
-                 if (launcherApp != null && !filteredList.contains(launcherApp)) {
-                     mAdapterItems.add(AdapterItem.asApp(launcherApp))
-                     position++
-                 }
-             }
-             
+            // We are in a specific tab: Filter folders and apps
+
+            // 1. Folders that belong to this tab
+            val subCategories = categorizedApps[currentTabName]?.keys ?: emptySet()
+
+            folders.forEach { folder ->
+                val folderTitle = folder.title.toString()
+                if (subCategories.contains(folderTitle)) {
+                    // This folder is a subcategory (e.g. "Puzzle" in "Games")
+                    // Create a copy for display
+                    val displayFolder = FolderInfo().apply {
+                        title = folder.title
+                        icon = folder.icon
+                        folder.getContents().forEach { add(it) }
+                    }
+                    mAdapterItems.add(AdapterItem.asFolder(displayFolder))
+
+                    // Mark apps as shown
+                    folder.getContents().forEach { item ->
+                        if (item is AppInfo) filteredList.add(item)
+                    }
+                    position++
+                } else if (folderTitle == currentTabName) {
+                    // This folder IS the tab (e.g. "Games")
+                    // "Explode" it: show its contents as apps
+                    folder.getContents().forEach { item ->
+                        if (item is AppInfo) {
+                            mAdapterItems.add(AdapterItem.asApp(item))
+                            filteredList.add(item)
+                            position++
+                        }
+                    }
+                }
+            }
+
+            // 2. Apps in this tab that were not in matched folders
+            val allAppsInTab = categorizedApps[currentTabName]?.values?.flatten() ?: emptyList()
+            allAppsInTab.forEach { app ->
+                val launcherApp = app.toLauncherAppInfo()
+                // Check if we haven't shown this app yet
+                // Note: filteredList contains apps shown via folders.
+                // We also need to check if we already added it via "Explode" above.
+                if (launcherApp != null && !filteredList.contains(launcherApp)) {
+                    mAdapterItems.add(AdapterItem.asApp(launcherApp))
+                    position++
+                }
+            }
         } else {
             // All Apps Mode (Unified List)
             folders.forEach { folder ->
@@ -235,7 +234,7 @@ class LawnchairAlphabeticalAppsList<T>(
                         folder.getContents().forEach { add(it) }
                     }
                     mAdapterItems.add(AdapterItem.asFolder(folderInfo))
-                    
+
                     folder.getContents().forEach { app ->
                         if (app is AppInfo) {
                             // If prefs.folderApps.get() is true (Hide apps in folders), add to filteredList
@@ -252,7 +251,7 @@ class LawnchairAlphabeticalAppsList<T>(
                     position++
                 }
             }
-            
+
             // Add remaining apps
             val remainingApps = appList.filterNot { app -> filteredList.contains(app) }
             position = super.addAppsWithSections(remainingApps as List<com.android.launcher3.model.data.AppInfo?>, position)

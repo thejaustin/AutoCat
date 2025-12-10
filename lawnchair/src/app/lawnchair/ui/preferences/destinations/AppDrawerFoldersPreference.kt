@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.lawnchair.categorization.CategoryFolderSyncService
 import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.preferences.getAdapter
@@ -52,6 +54,7 @@ import app.lawnchair.ui.util.bottomSheetHandler
 import app.lawnchair.util.appsState
 import com.android.launcher3.R
 import com.android.launcher3.model.data.FolderInfo
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppDrawerFolderPreferenceItem(
@@ -71,10 +74,6 @@ fun AppDrawerFolderPreferenceItem(
         )
     }
 }
-
-import app.lawnchair.categorization.CategoryFolderSyncService
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 
 @Composable
 fun AppDrawerFoldersPreference(
@@ -112,7 +111,7 @@ fun AppDrawerFoldersPreference(
                 CategoryFolderSyncService.getInstance(context).onFolderDeleted(
                     folderId = it.id,
                     tabName = it.title.toString(),
-                    removeTabs = true
+                    removeTabs = true,
                 )
             }
         },

@@ -71,7 +71,7 @@ sealed class GestureHandlerConfig {
     data object OpenFolder : Simple(R.string.gesture_handler_open_folder, { context ->
         // This handler needs specific context (the folder info) which isn't available in the generic factory.
         // However, we can create a generic handler that looks for the folder info in the triggering view's tag.
-        app.lawnchair.gestures.handlers.OpenFolderGestureHandler(context) 
+        app.lawnchair.gestures.handlers.OpenFolderGestureHandler(context)
     })
 
     @Serializable

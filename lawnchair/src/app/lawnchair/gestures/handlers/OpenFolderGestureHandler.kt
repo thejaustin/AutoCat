@@ -10,19 +10,19 @@ class OpenFolderGestureHandler(context: Context) : GestureHandler(context) {
     override suspend fun onTrigger(launcher: LawnchairLauncher) {
         // Fallback or do nothing if no item info
     }
-    
+
     override suspend fun onTrigger(launcher: LawnchairLauncher, itemInfo: Any?) {
         if (!launcher.isStarted || itemInfo !is FolderInfo) return
-        
+
         val workspace = launcher.workspace
-        val folderIcon = workspace.getFirstMatch { info, view -> 
-            info == itemInfo && view is FolderIcon 
+        val folderIcon = workspace.getFirstMatch { info, view ->
+            info == itemInfo && view is FolderIcon
         } as? FolderIcon
-        
+
         if (folderIcon != null) {
-            folderIcon.post { 
+            folderIcon.post {
                 if (!folderIcon.folder.isOpen) {
-                    folderIcon.folder.animateOpen() 
+                    folderIcon.folder.animateOpen()
                 }
             }
         }

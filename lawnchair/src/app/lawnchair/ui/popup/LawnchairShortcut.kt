@@ -10,6 +10,8 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherActivityInfo
 import android.content.pm.LauncherApps
 import android.content.pm.SuspendDialogInfo
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.UserHandle
 import android.util.Log
@@ -40,14 +42,12 @@ import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.PackageManagerHelper
 import com.patrykmichalik.opto.core.firstBlocking
+import java.io.File
 import java.net.URISyntaxException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
-import java.io.File
 
 class LawnchairShortcut {
 
@@ -162,7 +162,7 @@ class LawnchairShortcut {
                     e.printStackTrace()
                 }
             }
-            
+
             if (icon == null) {
                 icon = try {
                     launcher.getDrawable(R.drawable.ic_folder)
@@ -170,7 +170,7 @@ class LawnchairShortcut {
                     android.graphics.drawable.ColorDrawable(android.graphics.Color.GRAY)
                 }
             }
-            
+
             val defaultTitle = folderInfo.title?.toString() ?: ""
 
             AbstractFloatingView.closeAllOpenViews(launcher)

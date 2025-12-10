@@ -64,6 +64,7 @@ interface TabDao {
      * Gets all apps with tab assignments.
      */
     @Query("SELECT * FROM app_categories ORDER BY tab_name, package_name")
+    suspend fun getAllAppCategories(): List<AppTab>
 
     /**
      * Observes all apps with tab assignments with reactive updates.

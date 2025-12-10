@@ -1,6 +1,7 @@
 package app.lawnchair.override
 
 import android.app.Activity
+import android.content.ComponentName
 import android.graphics.drawable.Drawable
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -9,20 +10,22 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.android.launcher3.model.data.FolderInfo
-import app.lawnchair.ui.preferences.PreferenceActivity
-import app.lawnchair.ui.preferences.navigation.SelectFolderIcon
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.data.folder.service.FolderService
-import app.lawnchair.ui.preferences.components.controls.SwitchPreference
+import app.lawnchair.gestures.config.GestureHandlerConfig
+import app.lawnchair.gestures.type.GestureType
+import app.lawnchair.preferences2.preferenceManager2
+import app.lawnchair.ui.preferences.PreferenceActivity
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
+import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.navigation.SelectApp
+import app.lawnchair.ui.preferences.navigation.SelectFolderIcon
 import app.lawnchair.ui.util.App
 import app.lawnchair.ui.util.apps
 import app.lawnchair.ui.util.appsState
@@ -31,11 +34,6 @@ import com.android.launcher3.R
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.util.ComponentKey
 import kotlinx.coroutines.launch
-import android.content.ComponentName
-
-import app.lawnchair.gestures.config.GestureHandlerConfig
-import app.lawnchair.gestures.type.GestureType
-import app.lawnchair.preferences2.preferenceManager2
 
 @Composable
 fun CustomizeFolderDialog(

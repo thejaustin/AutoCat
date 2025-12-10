@@ -305,11 +305,11 @@ class CategoryFolderSyncService(
             // Remove all AppTab entries for this tab
             val dao = TabDatabase.getInstance(context).categoryDao()
             val apps = dao.getAppsByTab(tabName)
-            
+
             if (apps.isNotEmpty()) {
                 dao.deleteAppsByPackageNames(apps.map { it.packageName })
             }
-            
+
             android.util.Log.d(TAG, "Removed tab assignments for: $tabName")
         } else {
             android.util.Log.d(TAG, "Folder deleted but tab assignments preserved")
@@ -321,7 +321,7 @@ class CategoryFolderSyncService(
      */
     suspend fun onFolderItemsChanged(folderId: Int, tabName: String, newAppPackages: List<String>) {
         val dao = TabDatabase.getInstance(context).categoryDao()
-        
+
         // Update AppTab table to match folder contents
         val existingApps = dao.getAppsByTab(tabName).map { it.packageName }
 
@@ -336,9 +336,9 @@ class CategoryFolderSyncService(
                     packageName = packageName,
                     tabName = tabName,
                     confidence = 1.0f,
-                    source = app.lawnchair.data.tab.entities.AppTab.SOURCE_USER,  // User manually assigned
-                    isUserOverride = true
-                )
+                    source = app.lawnchair.data.tab.entities.AppTab.SOURCE_USER, // User manually assigned
+                    isUserOverride = true,
+                ),
             )
         }
 

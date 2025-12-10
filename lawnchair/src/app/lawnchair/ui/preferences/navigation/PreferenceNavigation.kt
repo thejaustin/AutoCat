@@ -49,17 +49,15 @@ import app.lawnchair.ui.preferences.destinations.PreferencesDashboard
 import app.lawnchair.ui.preferences.destinations.QuickstepPreferences
 import app.lawnchair.ui.preferences.destinations.SearchPreferences
 import app.lawnchair.ui.preferences.destinations.SearchProviderPreferences
+import app.lawnchair.ui.preferences.destinations.SelectAppPreference
 import app.lawnchair.ui.preferences.destinations.SelectAppsForDrawerFolder
+import app.lawnchair.ui.preferences.destinations.SelectFolderIconPreference
 import app.lawnchair.ui.preferences.destinations.SelectIconPreference
 import app.lawnchair.ui.preferences.destinations.SmartspacePreferences
 import com.android.launcher3.util.ComponentKey
 import soup.compose.material.motion.animation.materialSharedAxisXIn
 import soup.compose.material.motion.animation.materialSharedAxisXOut
 import soup.compose.material.motion.animation.rememberSlideDistance
-
-import app.lawnchair.ui.preferences.destinations.SelectFolderIconPreference
-
-import app.lawnchair.ui.preferences.destinations.SelectAppPreference
 
 @Composable
 fun PreferenceNavigation(

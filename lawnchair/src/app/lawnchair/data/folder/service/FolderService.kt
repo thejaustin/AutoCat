@@ -1,8 +1,10 @@
 ﻿package app.lawnchair.data.folder.service
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.LauncherApps
 import android.util.Log
+import app.lawnchair.categorization.CategoryFolderSyncService
 import app.lawnchair.data.AppDatabase
 import app.lawnchair.data.Converters
 import app.lawnchair.data.folder.FolderInfoEntity
@@ -18,9 +20,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-
-import android.content.ComponentName
-import app.lawnchair.categorization.CategoryFolderSyncService
 
 class FolderService(val context: Context) : SafeCloseable {
 
@@ -49,17 +48,19 @@ class FolderService(val context: Context) : SafeCloseable {
         CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
             folderId = folderInfoId,
             categoryName = title,
-            newAppPackages = appInfos.mapNotNull { it.componentName?.packageName }
+            newAppPackages = appInfos.mapNotNull { it.componentName?.packageName },
         )
     }
 
     suspend fun saveFolderInfo(folderInfo: FolderInfo) = withContext(Dispatchers.IO) {
-        folderDao.insertFolder(FolderInfoEntity(
-            title = folderInfo.title.toString(),
-            icon = folderInfo.icon,
-            coverMode = folderInfo.coverMode,
-            coverAppComponent = folderInfo.coverApp?.flattenToString()
-        ))
+        folderDao.insertFolder(
+            FolderInfoEntity(
+                title = folderInfo.title.toString(),
+                icon = folderInfo.icon,
+                coverMode = folderInfo.coverMode,
+                coverAppComponent = folderInfo.coverApp?.flattenToString(),
+            ),
+        )
     }
 
     suspend fun updateFolderInfo(folderInfo: FolderInfo, hide: Boolean = false) = withContext(Dispatchers.IO) {
@@ -77,7 +78,7 @@ class FolderService(val context: Context) : SafeCloseable {
             CategoryFolderSyncService.getInstance(context).onFolderDeleted(
                 folderId = id,
                 categoryName = folder.title.toString(),
-                removeCategories = false // Don't delete categories by default when folder is deleted
+                removeCategories = false, // Don't delete categories by default when folder is deleted
             )
         }
         folderDao.deleteFolder(id)

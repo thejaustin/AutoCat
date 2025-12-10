@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -26,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.lawnchair.categorization.CategoryFolderSyncService
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
@@ -40,9 +42,6 @@ import app.lawnchair.util.appsState
 import com.android.launcher3.R
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
-
-import app.lawnchair.categorization.CategoryFolderSyncService
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -111,13 +110,13 @@ fun SelectAppsForDrawerFolder(
                             folderInfo?.title.toString(),
                             newSet.toList(),
                         )
-                        
+
                         // Bidirectional sync
                         scope.launch {
                             CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
                                 folderId = folderInfoId,
                                 categoryName = folderInfo?.title.toString(),
-                                newAppPackages = newSet.mapNotNull { it.targetPackage }
+                                newAppPackages = newSet.mapNotNull { it.targetPackage },
                             )
                         }
                     },
@@ -166,13 +165,13 @@ fun SelectAppsForDrawerFolder(
                                                 folderInfo?.title.toString(),
                                                 newSet.filterIsInstance<AppInfo>().toList(),
                                             )
-                                            
+
                                             // Bidirectional sync
                                             scope.launch {
                                                 CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
                                                     folderId = folderInfoId,
                                                     categoryName = folderInfo?.title.toString(),
-                                                    newAppPackages = newSet.mapNotNull { it.targetPackage }
+                                                    newAppPackages = newSet.mapNotNull { it.targetPackage },
                                                 )
                                             }
                                         },

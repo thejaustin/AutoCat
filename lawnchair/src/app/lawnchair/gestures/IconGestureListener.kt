@@ -28,10 +28,10 @@ class IconGestureListener(
 
         // Special handling for Folder Cover Mode
         if (cmp is com.android.launcher3.model.data.FolderInfo && cmp.coverMode && gestureType == GestureType.SWIPE_UP) {
-             context.launcher.lifecycleScope.launch {
-                 app.lawnchair.gestures.handlers.OpenFolderGestureHandler(context).onTrigger(context.launcher, cmp)
-             }
-             return
+            context.launcher.lifecycleScope.launch {
+                app.lawnchair.gestures.handlers.OpenFolderGestureHandler(context).onTrigger(context.launcher, cmp)
+            }
+            return
         }
 
         cmp?.componentKey?.let {

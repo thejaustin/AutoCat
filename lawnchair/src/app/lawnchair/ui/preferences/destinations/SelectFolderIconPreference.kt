@@ -1,8 +1,8 @@
 package app.lawnchair.ui.preferences.destinations
 
 import android.app.Activity
-import android.graphics.Bitmap
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.lawnchair.icons.IconPackProvider
 import app.lawnchair.icons.IconPickerItem
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.LocalPreferenceInteractor
@@ -22,15 +23,14 @@ import app.lawnchair.ui.preferences.components.layout.preferenceGroupItems
 import app.lawnchair.ui.preferences.navigation.IconPicker
 import app.lawnchair.ui.util.OnResult
 import com.android.launcher3.LauncherAppState
+import com.android.launcher3.LauncherSettings
 import com.android.launcher3.R
+import com.android.launcher3.icons.GraphicsUtils
 import com.android.launcher3.model.data.FolderInfo
-import kotlinx.coroutines.launch
+import com.android.launcher3.util.ContentWriter
 import java.io.File
 import java.io.FileOutputStream
-import com.android.launcher3.LauncherSettings
-import app.lawnchair.icons.IconPackProvider
-import com.android.launcher3.util.ContentWriter
-import com.android.launcher3.icons.GraphicsUtils
+import kotlinx.coroutines.launch
 
 @Composable
 fun SelectFolderIconPreference(folderId: Int) {
@@ -51,11 +51,11 @@ fun SelectFolderIconPreference(folderId: Int) {
                 val iconDrawable = iconPack.getIcon(item.toIconEntry(), 0)
                 if (iconDrawable != null) {
                     val iconBitmap = if (iconDrawable.intrinsicWidth <= 0 || iconDrawable.intrinsicHeight <= 0) {
-                        Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888) 
+                        Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
                     } else {
                         iconDrawable.toBitmap()
                     }
-                    
+
                     val iconFile = File(context.cacheDir, "folder_icon_$folderId")
                     try {
                         FileOutputStream(iconFile).use { out ->
@@ -63,14 +63,14 @@ fun SelectFolderIconPreference(folderId: Int) {
                         }
                         if (folderInfo != null) {
                             folderInfo.icon = iconFile.absolutePath
-                            
+
                             val contentWriter = ContentWriter(context)
                             contentWriter.put(LauncherSettings.Favorites.ICON, GraphicsUtils.flattenBitmap(iconBitmap))
                             val dbController = launcherAppState.model.modelDbController
-                            
+
                             val values = contentWriter.getValues(context)
                             dbController.update(LauncherSettings.Favorites.TABLE_NAME, values, "_id = ?", arrayOf(folderId.toString()))
-                            
+
                             launcherAppState.reloadIcons()
                         }
                     } catch (e: Exception) {
@@ -95,16 +95,16 @@ fun SelectFolderIconPreference(folderId: Int) {
                     label = stringResource(id = R.string.icon_picker_reset_to_default),
                     onClick = {
                         scope.launch {
-                             if (folderInfo != null) {
+                            if (folderInfo != null) {
                                 folderInfo.icon = null
-                                
+
                                 val values = android.content.ContentValues()
                                 values.putNull(LauncherSettings.Favorites.ICON)
                                 val dbController = launcherAppState.model.modelDbController
                                 dbController.update(LauncherSettings.Favorites.TABLE_NAME, values, "_id = ?", arrayOf(folderId.toString()))
-                                
+
                                 launcherAppState.reloadIcons()
-                             }
+                            }
                             (context as Activity).let {
                                 it.setResult(Activity.RESULT_OK)
                                 it.finish()

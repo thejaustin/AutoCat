@@ -26,7 +26,7 @@ fun SelectAppPreference(requestId: Int) {
         // When an app is selected, send the ComponentName back to the caller
         (context as Activity).setResult(
             Activity.RESULT_OK,
-            android.content.Intent().putExtra("component_name", selectedComponentKey.componentName.flattenToString())
+            android.content.Intent().putExtra("component_name", selectedComponentKey.componentName.flattenToString()),
         )
         (context as Activity).finish()
     }
@@ -41,7 +41,7 @@ fun SelectAppPreference(requestId: Int) {
                 onClick = {
                     navController.previousBackStackEntry
                         ?.savedStateHandle
-                        ?.set("component_name_result_${requestId}", ComponentKey(it.componentName!!, it.user))
+                        ?.set("component_name_result_$requestId", ComponentKey(it.componentName!!, it.user))
                     navController.popBackStack()
                 },
             )
