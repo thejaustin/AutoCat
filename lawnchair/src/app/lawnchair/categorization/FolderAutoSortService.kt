@@ -27,7 +27,7 @@ import org.json.JSONObject
 /**
  * Service for automatically sorting apps with tab assignments into folders.
  *
- * This is designed for apps that have category/tab metadata (e.g., from Smart Launcher import)
+ * This is designed for apps that have tab metadata (e.g., from Smart Launcher import)
  * but aren't organized into folders yet. The LLM analyzes these apps and suggests logical
  * folder groupings within each tab.
  *
@@ -120,13 +120,13 @@ class FolderAutoSortService(private val context: Context) {
 
                     // Check if app is NOT in any folder
                     if (componentKey != null && !appsInFolders.contains(componentKey)) {
-                        val tabName = appTab.category
+                        val tabName = appTab.tabName
                         unsortedByTab.getOrPut(tabName) { mutableListOf() }.add(appInfo)
                     }
                 }
             }
 
-            android.util.Log.d(TAG, "Found ${unsortedByTab.values.sumOf { it.size }} unsorted apps across ${unsortedByTab.size} tabs")
+            android.util.Log.d(TAG, "Found ${unsortedByTab.values.sumOf { it.size }} unsorted apps across ${unsortedByTab.size} tab names")
 
             unsortedByTab
         } catch (e: Exception) {
@@ -138,7 +138,7 @@ class FolderAutoSortService(private val context: Context) {
     /**
      * Suggests folder groupings for apps within a tab using LLM.
      *
-     * @param tabName The tab/category name
+     * @param tabName The tab name
      * @param apps List of apps to organize
      * @return List of suggested folders with package names
      */

@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
  * Provides categorized app lists from AutoCat database.
  *
  * This class bridges the AutoCat categorization system with the app drawer UI,
- * grouping apps by their database-assigned categories.
+ * grouping apps by their database-assigned tabs.
  *
  * Uses an in-memory cache to avoid blocking database queries on every app drawer open.
  */
@@ -31,10 +31,10 @@ class AutoCatAppProvider(private val context: Context) {
 
     private data class CategoryInfo(val tabName: String, val subCategory: String?)
 
-    // In-memory cache of app categories (packageName -> CategoryInfo)
+    // In-memory cache of app tabs (packageName -> CategoryInfo)
     private val categoryCache = ConcurrentHashMap<String, CategoryInfo>()
 
-    // Cache for subcategory icons (Category|SubCategory -> IconPath)
+    // Cache for subcategory icons (TabName|SubCategory -> IconPath)
     private val subCategoryIcons = ConcurrentHashMap<String, String>()
     private val iconsFile by lazy { java.io.File(context.filesDir, "subcategory_icons.json") }
 
@@ -53,7 +53,7 @@ class AutoCatAppProvider(private val context: Context) {
 
     /**
      * Initializes the in-memory cache from the database.
-     * Called on provider creation and when categories are updated.
+     * Called on provider creation and when tabs are updated.
      */
     private fun initializeCache() {
         scope.launch {
@@ -66,7 +66,7 @@ class AutoCatAppProvider(private val context: Context) {
                 cacheInitialized = true
                 Log.d(TAG, "Cache initialized with ${categoryCache.size} categorized apps")
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to initialize category cache", e)
+                Log.e(TAG, "Failed to initialize tab cache", e)
             }
         }
     }
@@ -89,8 +89,8 @@ class AutoCatAppProvider(private val context: Context) {
         }
     }
 
-    fun saveSubCategoryIcon(category: String, subCategory: String, iconPath: String) {
-        val key = "$category|$subCategory"
+    fun saveSubCategoryIcon(tabName: String, subCategory: String, iconPath: String) {
+        val key = "$tabName|$subCategory"
         subCategoryIcons[key] = iconPath
 
         scope.launch {
@@ -106,8 +106,8 @@ class AutoCatAppProvider(private val context: Context) {
         }
     }
 
-    fun getSubCategoryIcon(category: String, subCategory: String): String? {
-        return subCategoryIcons["$category|$subCategory"]
+    fun getSubCategoryIcon(tabName: String, subCategory: String): String? {
+        return subCategoryIcons["$tabName|$subCategory"]
     }
 
     /**
@@ -123,7 +123,7 @@ class AutoCatAppProvider(private val context: Context) {
      * Updates cache for a single app without full reload.
      *
      * @param packageName Package name of the app
-     * @param category Category name, or null to remove from cache
+     * @param tabName Tab name, or null to remove from cache
      * @param subCategory Subcategory name, or null
      */
     fun updateCacheForApp(packageName: String, tabName: String?, subCategory: String? = null) {
@@ -141,14 +141,14 @@ class AutoCatAppProvider(private val context: Context) {
      * Uses in-memory cache for fast lookups, avoiding database queries.
      *
      * @param appList List of all apps to categorize
-     * @return Map of Category -> (SubCategory -> List<AppInfo>)
+     * @return Map of TabName -> (SubCategory -> List<AppInfo>)
      *         SubCategory key is "" (empty string) if no subcategory exists.
      */
     fun categorizeApps(appList: List<app.lawnchair.data.apps.AppInfo?>?): Map<String, Map<String, List<AppInfo>>> {
         if (appList.isNullOrEmpty()) return emptyMap()
 
         val validApps = appList.filterNotNull()
-        // Map<Category, MutableMap<SubCategory, MutableList<AppInfo>>>
+        // Map<TabName, MutableMap<SubCategory, MutableList<AppInfo>>>
         val categorizedApps = mutableMapOf<String, MutableMap<String, MutableList<AppInfo>>>()
         val uncategorizedApps = mutableListOf<AppInfo>()
 
@@ -165,13 +165,13 @@ class AutoCatAppProvider(private val context: Context) {
             }
         }
 
-        // Add uncategorized apps to "Other" category if any exist
+        // Add uncategorized apps to "Other" tab if any exist
         if (uncategorizedApps.isNotEmpty()) {
             val otherMap = categorizedApps.getOrPut("Other") { mutableMapOf() }
             otherMap.getOrPut("") { mutableListOf() }.addAll(uncategorizedApps)
         }
 
-        // Sort categories alphabetically, and subcategories alphabetically
+        // Sort tabs alphabetically, and sub-folders alphabetically
         return categorizedApps.toSortedMap().mapValues { entry ->
             entry.value.toSortedMap()
         }

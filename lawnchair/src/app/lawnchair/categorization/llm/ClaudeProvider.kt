@@ -156,7 +156,7 @@ class ClaudeProvider(
         appName: String,
         appPackage: String,
         appDescription: String?,
-        availableCategories: List<String>,
+        availableTabs: List<String>,
     ): CategorizationResult = withContext(Dispatchers.IO) {
         try {
             LLMLogger.logDebug(
@@ -169,17 +169,17 @@ class ClaudeProvider(
                 ),
             )
 
-            val prompt = buildPrompt(appName, appPackage, appDescription, availableCategories)
+            val prompt = buildPrompt(appName, appPackage, appDescription, availableTabs)
             val response = callClaudeAPIWithFallback(prompt)
-            val result = parseResponse(response, availableCategories)
+            val result = parseResponse(response, availableTabs)
 
             LLMLogger.logInfo(
                 provider = name,
                 operation = "CATEGORIZE_APP",
-                message = "Successfully categorized: $appName -> ${result.category}",
+                message = "Successfully categorized: $appName -> ${result.tabName}",
                 details = mapOf(
                     "package" to appPackage,
-                    "category" to result.category,
+                    "tabName" to result.tabName,
                     "confidence" to result.confidence,
                 ),
             )
@@ -201,7 +201,7 @@ class ClaudeProvider(
 
     override suspend fun categorizeAppBatch(
         apps: List<AppBatchInfo>,
-        availableCategories: List<String>,
+        availableTabs: List<String>,
     ): Map<String, CategorizationResult> = withContext(Dispatchers.IO) {
         try {
             LLMLogger.logDebug(
@@ -214,9 +214,9 @@ class ClaudeProvider(
                 ),
             )
 
-            val prompt = buildBatchPrompt(apps, availableCategories)
+            val prompt = buildBatchPrompt(apps, availableTabs)
             val response = callClaudeAPIWithFallback(prompt)
-            val results = parseBatchResponse(response, apps, availableCategories)
+            val results = parseBatchResponse(response, apps, availableTabs)
 
             LLMLogger.logInfo(
                 provider = name,
@@ -248,7 +248,7 @@ class ClaudeProvider(
                         appName = app.appName,
                         appPackage = app.packageName,
                         appDescription = app.appDescription,
-                        availableCategories = availableCategories,
+                        availableTabs = availableTabs,
                     )
                     results[app.packageName] = result
                 } catch (e: Exception) {
@@ -269,7 +269,7 @@ class ClaudeProvider(
 
     override suspend fun suggestCategories(
         installedApps: List<String>,
-        existingCategories: List<String>,
+        existingTabs: List<String>,
         maxSuggestions: Int,
     ): List<SuggestedCategory> = withContext(Dispatchers.IO) {
         try {
@@ -284,7 +284,7 @@ class ClaudeProvider(
                 ),
             )
 
-            val prompt = buildSuggestionPrompt(installedApps, existingCategories, maxSuggestions)
+            val prompt = buildSuggestionPrompt(installedApps, existingTabs, maxSuggestions)
             val response = callClaudeAPIWithFallback(prompt)
             val suggestions = parseSuggestionResponse(response)
 
@@ -482,7 +482,7 @@ class ClaudeProvider(
         appName: String,
         appPackage: String,
         appDescription: String?,
-        availableCategories: List<String>,
+        availableTabs: List<String>,
     ): String {
         // Sanitize all user-controlled inputs
         val safeAppName = sanitizeInput(appName)
@@ -498,7 +498,7 @@ App Name: $safeAppName
 Package: $safeAppPackage$descriptionText
 
 Available Categories:
-${availableCategories.joinToString("\n") { "- $it" }}
+${availableTabs.joinToString("\n") { "- $it" }}
 
 Instructions:
 1. Analyze the app's name, package, and description carefully
@@ -520,12 +520,12 @@ Respond ONLY in this JSON format:
 
     private fun buildSuggestionPrompt(
         installedApps: List<String>,
-        existingCategories: List<String>,
+        existingTabs: List<String>,
         maxSuggestions: Int,
     ): String {
         val appSample = installedApps.take(50).joinToString("\n") { "- $it" }
-        val existingText = if (existingCategories.isNotEmpty()) {
-            "\n\nExisting Categories (do NOT suggest these):\n${existingCategories.joinToString("\n") { "- $it" }}"
+        val existingText = if (existingTabs.isNotEmpty()) {
+            "\n\nExisting Categories (do NOT suggest these):\n${existingTabs.joinToString("\n") { "- $it" }}"
         } else {
             ""
         }
@@ -600,7 +600,7 @@ Respond ONLY in this JSON format:
 
     private fun buildBatchPrompt(
         apps: List<AppBatchInfo>,
-        availableCategories: List<String>,
+        availableTabs: List<String>,
     ): String {
         val appsText = apps.joinToString("\n") { app ->
             // Sanitize all app inputs to prevent injection
@@ -618,7 +618,7 @@ Apps to categorize:
 $appsText
 
 Available Categories:
-${availableCategories.joinToString("\n") { "- $it" }}
+${availableTabs.joinToString("\n") { "- $it" }}
 
 Instructions:
 1. Analyze each app's name, package, and description carefully
@@ -724,7 +724,7 @@ Respond ONLY in this JSON format:
 
     private fun parseResponse(
         responseJson: String,
-        availableCategories: List<String>,
+        availableTabs: List<String>,
     ): CategorizationResult {
         try {
             val response = JSONObject(responseJson)
@@ -742,17 +742,17 @@ Respond ONLY in this JSON format:
             val fixedJsonText = fixMalformedJson(jsonText)
 
             val result = JSONObject(fixedJsonText)
-            val category = result.getString("category")
+            val tabName = result.getString("category") // LLM still returns 'category'
             val confidence = result.getDouble("confidence").toFloat()
             val reasoning = result.optString("reasoning", null)
 
-            // Validate category is in available list
-            if (!availableCategories.contains(category)) {
-                throw LLMException("LLM suggested invalid category: $category")
+            // Validate tabName is in available list
+            if (!availableTabs.contains(tabName)) {
+                throw LLMException("LLM suggested invalid tab: $tabName")
             }
 
             return CategorizationResult(
-                category = category,
+                tabName = tabName,
                 confidence = confidence.coerceIn(0f, 1f),
                 reasoning = reasoning,
             )
@@ -840,7 +840,7 @@ Respond ONLY in this JSON format:
     private fun parseBatchResponse(
         responseJson: String,
         apps: List<AppBatchInfo>,
-        availableCategories: List<String>,
+        availableTabs: List<String>,
     ): Map<String, CategorizationResult> {
         try {
             val response = JSONObject(responseJson)
@@ -855,9 +855,9 @@ Respond ONLY in this JSON format:
                 .trim()
 
             // Apply JSON repair
-            jsonText = fixMalformedJson(jsonText)
+            val fixedJsonText = fixMalformedJson(jsonText)
 
-            val result = JSONObject(jsonText)
+            val result = JSONObject(fixedJsonText)
             val resultsObj = result.getJSONObject("results")
 
             val categorizations = mutableMapOf<String, CategorizationResult>()
@@ -865,14 +865,14 @@ Respond ONLY in this JSON format:
             // Iterate through each package in the results
             resultsObj.keys().forEach { packageName ->
                 val appResult = resultsObj.getJSONObject(packageName)
-                val category = appResult.getString("category")
+                val tabName = appResult.getString("category") // LLM still returns 'category'
                 val confidence = appResult.getDouble("confidence").toFloat()
                 val reasoning = appResult.optString("reasoning", null)
 
-                // Validate category is in available list
-                if (availableCategories.contains(category)) {
+                // Validate tabName is in available list
+                if (availableTabs.contains(tabName)) {
                     categorizations[packageName] = CategorizationResult(
-                        category = category,
+                        tabName = tabName,
                         confidence = confidence.coerceIn(0f, 1f),
                         reasoning = reasoning,
                     )
@@ -880,7 +880,7 @@ Respond ONLY in this JSON format:
                     LLMLogger.logWarning(
                         provider = name,
                         operation = "PARSE_BATCH_RESPONSE",
-                        message = "Invalid category suggested for $packageName: $category",
+                        message = "Invalid tab suggested for $packageName: $tabName",
                     )
                 }
             }

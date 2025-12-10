@@ -69,8 +69,8 @@ fun AppCategorizationListPreferences(
     val folderSyncService = remember { CategoryFolderSyncService(context) }
     val appProvider = remember { AutoCatAppProvider.getInstance(context) }
 
-    var categorizations by remember { mutableStateOf<List<AppTab>>(emptyList()) }
-    var availableCategories by remember { mutableStateOf<List<CustomTab>>(emptyList()) }
+    var appTabs by remember { mutableStateOf<List<AppTab>>(emptyList()) }
+    var availableCustomTabs by remember { mutableStateOf<List<CustomCategoryTab>>(emptyList()) }
     var editingApp by remember { mutableStateOf<AppTab?>(null) }
     var expandedCategories by remember { mutableStateOf(setOf<String>()) }
     var filterMode by remember { mutableStateOf(FilterMode.ALL) }
@@ -78,23 +78,23 @@ fun AppCategorizationListPreferences(
     // Load categorizations and available categories
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            categorizations = categoryDao.getAllAppCategories()
-            availableCategories = categoryDao.getVisibleCustomCategories()
+            appTabs = categoryDao.getAllAppCategories()
+            availableCustomTabs = categoryDao.getAllCustomCategories()
         }
     }
 
-    val filteredCategorizations = remember(categorizations, filterMode) {
+    val filteredAppTabs = remember(appTabs, filterMode) {
         when (filterMode) {
-            FilterMode.ALL -> categorizations
-            FilterMode.UNCATEGORIZED -> categorizations.filter { it.category == "Other" }
-            FilterMode.UNFOLDERED -> categorizations.filter { it.category != "Other" && it.subCategory.isNullOrBlank() }
-            FilterMode.LLM_SORTED -> categorizations.filter { it.source == AppTab.SOURCE_LLM || it.source == AppTab.SOURCE_ML }
-            FilterMode.SLBK_SORTED -> categorizations.filter { it.source == AppTab.SOURCE_BUILT_IN || it.source == AppTab.SOURCE_RULE }
+            FilterMode.ALL -> appTabs
+            FilterMode.UNCATEGORIZED -> appTabs.filter { it.tabName == "Other" }
+            FilterMode.UNFOLDERED -> appTabs.filter { it.tabName != "Other" && it.subCategory.isNullOrBlank() }
+            FilterMode.LLM_SORTED -> appTabs.filter { it.source == AppTab.SOURCE_LLM || it.source == AppTab.SOURCE_ML }
+            FilterMode.SLBK_SORTED -> appTabs.filter { it.source == AppTab.SOURCE_BUILT_IN || it.source == AppTab.SOURCE_RULE }
         }
     }
 
-    val groupedApps = remember(filteredCategorizations) {
-        filteredCategorizations.groupBy { it.category }.toSortedMap()
+    val groupedApps = remember(filteredAppTabs) {
+        filteredAppTabs.groupBy { it.tabName }.toSortedMap()
     }
 
     PreferenceScaffold(
@@ -144,23 +144,23 @@ fun AppCategorizationListPreferences(
                 }
             }
 
-            groupedApps.forEach { (category, apps) ->
+            groupedApps.forEach { (tabName, apps) ->
                 item(contentType = "CategoryHeader") {
                     CategoryHeader(
-                        category = category,
+                        tabName = tabName,
                         count = apps.size,
-                        expanded = expandedCategories.contains(category) || filterMode != FilterMode.ALL,
+                        expanded = expandedCategories.contains(tabName) || filterMode != FilterMode.ALL,
                         onClick = {
-                            expandedCategories = if (expandedCategories.contains(category)) {
-                                expandedCategories - category
+                            expandedCategories = if (expandedCategories.contains(tabName)) {
+                                expandedCategories - tabName
                             } else {
-                                expandedCategories + category
+                                expandedCategories + tabName
                             }
                         },
                     )
                 }
 
-                if (expandedCategories.contains(category) || filterMode != FilterMode.ALL) {
+                if (expandedCategories.contains(tabName) || filterMode != FilterMode.ALL) {
                     items(apps, key = { it.packageName }) { appCategory ->
                         Surface(
                             color = preferenceGroupColor(),
@@ -186,11 +186,11 @@ fun AppCategorizationListPreferences(
             availableCategories = availableCategories,
             packageManager = packageManager,
             onDismiss = { editingApp = null },
-            onSave = { newCategory, newSubCategory ->
+            onSave = { newTabName, newSubCategory ->
                 scope.launch(Dispatchers.IO) {
                     // Update categorization with user override flag
                     val updated = app.copy(
-                        category = newCategory,
+                        tabName = newTabName,
                         subCategory = newSubCategory,
                         isUserOverride = true,
                         source = AppTab.SOURCE_USER,
@@ -200,12 +200,12 @@ fun AppCategorizationListPreferences(
                     categoryDao.insertAppCategory(updated)
 
                     // Reload categorizations
-                    categorizations = categoryDao.getAllAppCategories()
+                    appTabs = categoryDao.getAllAppCategories()
 
                     // Sync to folders if enabled
                     if (folderSyncService.isSyncEnabled()) {
-                        val allCategories = categoryDao.getAllAppCategories()
-                        val categorizationMap = allCategories.associate { it.packageName to it.category }
+                        val allAppTabs = categoryDao.getAllAppCategories()
+                        val categorizationMap = allAppTabs.associate { it.packageName to it.tabName }
                         folderSyncService.syncCategoriesToFolders(categorizationMap)
                     }
 
@@ -219,11 +219,11 @@ fun AppCategorizationListPreferences(
                 scope.launch(Dispatchers.IO) {
                     appProvider.categorizeNewApp(packageName)
                     // Reload categorizations after auto-categorization
-                    categorizations = categoryDao.getAllAppCategories()
+                    appTabs = categoryDao.getAllAppCategories()
                     // Sync to folders if enabled
                     if (folderSyncService.isSyncEnabled()) {
-                        val allCategories = categoryDao.getAllAppCategories()
-                        val categorizationMap = allCategories.associate { it.packageName to it.category }
+                        val allAppTabs = categoryDao.getAllAppCategories()
+                        val categorizationMap = allAppTabs.associate { it.packageName to it.tabName }
                         folderSyncService.syncCategoriesToFolders(categorizationMap)
                     }
                     editingApp = null // Dismiss the dialog
@@ -243,7 +243,7 @@ private enum class FilterMode {
 
 @Composable
 private fun CategoryHeader(
-    category: String,
+    tabName: String,
     count: Int,
     expanded: Boolean,
     onClick: () -> Unit,
@@ -263,7 +263,7 @@ private fun CategoryHeader(
         ) {
             Column {
                 Text(
-                    text = category,
+                    text = tabName,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -342,7 +342,7 @@ private fun AppCategorizationItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = appCategory.category,
+                    text = appCategory.tabName,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -380,7 +380,7 @@ private fun AppCategorizationItem(
         IconButton(onClick = onEditClick) {
             Icon(
                 imageVector = Icons.Default.Edit,
-                contentDescription = "Edit category",
+                contentDescription = "Edit tab",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -391,7 +391,7 @@ private fun AppCategorizationItem(
 @Composable
 private fun CategoryOverrideDialog(
     appCategory: AppTab,
-    availableCategories: List<CustomTab>,
+    availableCustomTabs: List<CustomCategoryTab>,
     packageManager: PackageManager,
     onDismiss: () -> Unit,
     onSave: (String, String?) -> Unit,
@@ -406,7 +406,7 @@ private fun CategoryOverrideDialog(
         }
     }
 
-    var selectedCategory by remember { mutableStateOf(appCategory.category) }
+    var selectedTabName by remember { mutableStateOf(appCategory.tabName) }
     var subCategory by remember { mutableStateOf(appCategory.subCategory ?: "") }
     var expanded by remember { mutableStateOf(false) }
 
@@ -417,7 +417,7 @@ private fun CategoryOverrideDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text("Change Category")
+            Text("Change Tab")
         },
         text = {
             Column {
@@ -428,16 +428,16 @@ private fun CategoryOverrideDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Category dropdown
+                // Tab dropdown
                 ExposedDropdownMenuBox(
                     expanded = expanded,
                     onExpandedChange = { expanded = it },
                 ) {
                     OutlinedTextField(
-                        value = selectedCategory,
+                        value = selectedTabName,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Category") },
+                        label = { Text("Tab") },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                         },
@@ -450,11 +450,11 @@ private fun CategoryOverrideDialog(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
                     ) {
-                        availableCategories.forEach { category ->
+                        availableCustomTabs.forEach { tab ->
                             DropdownMenuItem(
-                                text = { Text(category.name) },
+                                text = { Text(tab.name) },
                                 onClick = {
-                                    selectedCategory = category.name
+                                    selectedTabName = tab.name
                                     expanded = false
                                 },
                             )

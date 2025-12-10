@@ -18,8 +18,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Controller for managing category tabs in the app drawer.
- * Provides dynamic tabs based on user-defined categories.
+ * Controller for managing app tabs in the app drawer.
+ * Provides dynamic tabs based on user-defined tabs.
  */
 class CategoryTabsController private constructor(private val context: Context) : SafeCloseable {
 
@@ -85,7 +85,7 @@ class CategoryTabsController private constructor(private val context: Context) :
     }
 
     /**
-     * Refresh categories from database. Call this after category changes.
+     * Refresh tabs from database. Call this after tab changes.
      */
     fun refresh() {
         loadCategories()
@@ -168,7 +168,7 @@ class CategoryTabsController private constructor(private val context: Context) :
     }
 
     /**
-     * Rename a custom category.
+     * Rename a custom tab.
      */
     fun renameTab(oldTabName: String, newTabName: String) {
         if (oldTabName == TAB_ALL || oldTabName == TAB_WORK) return
@@ -185,7 +185,7 @@ class CategoryTabsController private constructor(private val context: Context) :
     }
 
     /**
-     * Delete a custom category.
+     * Delete a custom tab.
      */
     fun deleteTab(tabName: String) {
         if (tabName == TAB_ALL || tabName == TAB_WORK) return

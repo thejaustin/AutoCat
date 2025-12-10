@@ -28,7 +28,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
- * Scrollable tab strip for category tabs in app drawer.
+ * Scrollable tab strip for app tabs in app drawer.
  * Supports N dynamic tabs unlike PersonalWorkSlidingTabStrip which only supports 2.
  */
 class CategoryTabStrip @JvmOverloads constructor(
@@ -256,7 +256,7 @@ class CategoryTabStrip @JvmOverloads constructor(
     }
 
     override fun setScroll(currentScroll: Int, totalScroll: Int) {
-        // Not used for category tabs
+        // Not used for app tabs
     }
 
     override fun setMarkersCount(numMarkers: Int) {

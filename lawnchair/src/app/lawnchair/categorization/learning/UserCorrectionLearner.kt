@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
  *
  * Analyzes patterns in user-overridden categorizations to:
  * - Identify common miscategorizations
- * - Extract category preferences for package patterns
+ * - Extract tab preferences for package patterns
  * - Generate hints for LLM providers
  *
  * The learner builds a knowledge base from user corrections that can be
@@ -29,7 +29,7 @@ class UserCorrectionLearner(
      * user corrections. These hints can be added to LLM prompts to improve
      * accuracy.
      *
-     * @return Map of package pattern -> category preference with confidence
+     * @return Map of package pattern -> tab preference with confidence
      */
     suspend fun getCategoryHints(): Map<String, CategoryHint> = withContext(Dispatchers.IO) {
         val userOverrides = categoryDao.getUserOverriddenApps()
@@ -45,7 +45,7 @@ class UserCorrectionLearner(
             val packagePrefix = extractPackagePrefix(override.packageName)
             packagePrefixPatterns
                 .getOrPut(packagePrefix) { mutableListOf() }
-                .add(override.category)
+                .add(override.tabName)
         }
 
         // Build hints from patterns with multiple examples
@@ -62,7 +62,7 @@ class UserCorrectionLearner(
                     if (confidence >= MIN_CONFIDENCE_FOR_HINT) {
                         hints[prefix] = CategoryHint(
                             pattern = "$prefix.*",
-                            category = mostCommon.key,
+                            tabName = mostCommon.key,
                             confidence = confidence,
                             sampleCount = categories.size,
                         )
@@ -98,7 +98,7 @@ class UserCorrectionLearner(
             .map { hint ->
                 val confidencePercent = (hint.confidence * 100).toInt()
                 "- Apps from ${hint.pattern.removeSuffix(".*")} tend to be in " +
-                    "${hint.category} ($confidencePercent% confidence, ${hint.sampleCount} samples)"
+                    "${hint.tabName} ($confidencePercent% confidence, ${hint.sampleCount} samples)"
             }
 
         if (hintLines.isEmpty()) {
@@ -211,7 +211,7 @@ class UserCorrectionLearner(
  */
 data class CategoryHint(
     val pattern: String,
-    val category: String,
+    val tabName: String,
     val confidence: Float,
     val sampleCount: Int,
 )

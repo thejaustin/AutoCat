@@ -124,7 +124,7 @@ fun PreferenceNavigation(
 
         composable<AppDrawer> { AppDrawerPreferences() }
         composable<AppDrawerHiddenApps> { HiddenAppsPreferences() }
-        composable<AppDrawerManageCategories> { CategoryManagementPreferences() }
+        composable<AppDrawerManageTabs> { CategoryManagementPreferences() }
         composable<AppDrawerLLMSettings> { LLMSettingsPreferences() }
         composable<AppDrawerAppCategorizations> { AppCategorizationListPreferences() }
         composable<AppDrawerCategorizationSettings> { CategorizationSettingsPreferences() }

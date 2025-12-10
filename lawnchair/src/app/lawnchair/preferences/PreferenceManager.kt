@@ -127,7 +127,7 @@ class PreferenceManager private constructor(private val context: Context) :
     val hideWorkApps = BoolPref("pref_hideWorkApps", false, recreate)
 
     // AutoCat: Category tabs settings
-    val useCategoryTabs = BoolPref("pref_useCategoryTabs", true, recreate)
+    val useAppTabs = BoolPref("pref_useAppTabs", true, recreate)
 
     // AutoCat: LLM API keys
     val llmGoogleAIKey = StringPref("pref_llmGoogleAIKey", "", {})
@@ -149,7 +149,7 @@ class PreferenceManager private constructor(private val context: Context) :
     // AutoCat: Folder sync settings
     val autoCatSyncFolders = BoolPref("pref_autoCatSyncFolders", true, {})
 
-    // AutoCat: Category tabs in app drawer
+    // AutoCat: App tabs in app drawer
     val autoCatUseTabs = BoolPref("pref_autoCatUseTabs", false, recreate)
 
     // AutoCat: Developer mode

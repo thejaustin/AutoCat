@@ -127,7 +127,7 @@ class AppMetadataProvider(private val context: Context) {
 
     companion object {
         /**
-         * Maps Android system categories to AutoCat category names.
+         * Maps Android system categories to AutoCat tab names.
          */
         fun getCategoryName(category: Int?): String? {
             return when (category) {

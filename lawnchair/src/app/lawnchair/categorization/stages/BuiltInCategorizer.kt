@@ -32,7 +32,7 @@ class BuiltInCategorizer(
 
         val appCategory = AppTab(
             packageName = appInfo.packageName,
-            category = categoryName,
+            tabName = categoryName,
             confidence = CONFIDENCE_BUILT_IN,
             source = AppTab.SOURCE_BUILT_IN,
             isUserOverride = false,

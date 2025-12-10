@@ -64,9 +64,9 @@ fun CategoryManagementPreferences(
     val categorizationManager = remember { CategorizationManager.getInstance(context) }
     val appProvider = remember { AutoCatAppProvider.getInstance(context) }
 
-    var categories by remember { mutableStateOf<List<CustomTab>>(emptyList()) }
+    var tabs by remember { mutableStateOf<List<CustomCategoryTab>>(emptyList()) }
     var showAddDialog by remember { mutableStateOf(false) }
-    var editingCategory by remember { mutableStateOf<CustomTab?>(null) }
+    var editingTab by remember { mutableStateOf<CustomCategoryTab?>(null) }
     var showSuggestionsDialog by remember { mutableStateOf(false) }
     var suggestedCategories by remember { mutableStateOf<List<SuggestedCategory>>(emptyList()) }
     var isLoadingSuggestions by remember { mutableStateOf(false) }
@@ -76,11 +76,11 @@ fun CategoryManagementPreferences(
 
     // Load categories
     LaunchedEffect(Unit) {
-        categories = categoryDao.getAllCustomCategories()
+        tabs = categoryDao.getAllCustomCategories()
     }
 
     PreferenceScaffold(
-        label = "Manage Categories",
+        label = "Manage Tabs",
         modifier = modifier,
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
@@ -88,21 +88,21 @@ fun CategoryManagementPreferences(
             item {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Create custom categories for organizing your apps. The LLM will learn to auto-assign apps to these categories.",
+                        text = "Create custom tabs for organizing your apps. The LLM will learn to auto-assign apps to these tabs.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
 
-            items(categories, key = { it.id }) { category ->
+            items(tabs, key = { it.id }) { tab ->
                 CategoryItem(
-                    category = category,
-                    onEdit = { editingCategory = it },
+                    tab = tab,
+                    onEdit = { editingTab = it },
                     onDelete = {
                         scope.launch {
                             categoryDao.deleteCustomCategory(it)
-                            categories = categoryDao.getAllCustomCategories()
+                            tabs = categoryDao.getAllCustomCategories()
                         }
                     },
                 )
@@ -117,9 +117,9 @@ fun CategoryManagementPreferences(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Button(onClick = { showAddDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Category")
+                        Icon(Icons.Default.Add, contentDescription = "Add Tab")
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Add Category")
+                        Text("Add Tab")
                     }
 
                     Button(
@@ -155,7 +155,7 @@ fun CategoryManagementPreferences(
                                     }
 
                                     val appNames = installedApps.map { it.label }
-                                    val existingCategories = categories.map { it.name }
+                                    val existingTabs = tabs.map { it.name }
 
                                     android.util.Log.d("CategoryManagement", "Requesting suggestions for ${appNames.size} apps")
 
@@ -171,14 +171,14 @@ fun CategoryManagementPreferences(
                                             android.util.Log.d("CategoryManagement", "Trying ${provider.name}")
                                             suggestedCategories = provider.suggestCategories(
                                                 installedApps = appNames,
-                                                existingCategories = existingCategories,
+                                                existingTabs = existingTabs,
                                                 maxSuggestions = 5,
                                             )
 
                                             android.util.Log.d("CategoryManagement", "Got ${suggestedCategories.size} suggestions from ${provider.name}")
 
                                             if (suggestedCategories.isEmpty()) {
-                                                suggestionsError = "No new categories suggested. You may already have all the useful categories for your apps!"
+                                                suggestionsError = "No new tabs suggested. You may already have all the useful tabs for your apps!"
                                             } else {
                                                 suggestionsProvider = provider.name
                                                 showSuggestionsDialog = true
@@ -236,48 +236,48 @@ fun CategoryManagementPreferences(
     }
 
     // Add/Edit Dialog
-    if (showAddDialog || editingCategory != null) {
+    if (showAddDialog || editingTab != null) {
         CategoryDialog(
-            category = editingCategory,
+            tab = editingTab,
             onDismiss = {
                 showAddDialog = false
-                editingCategory = null
+                editingTab = null
             },
             onSave = { name, color ->
                 scope.launch {
-                    if (editingCategory != null) {
+                    if (editingTab != null) {
                         // Edit existing
                         categoryDao.updateCustomCategory(
-                            editingCategory!!.copy(
+                            editingTab!!.copy(
                                 name = name,
                                 colorHex = color,
                             ),
                         )
-                        successMessage = "✓ Category '$name' updated"
+                        successMessage = "✓ Tab '$name' updated"
                     } else {
-                        // Add new category
-                        val maxSortOrder = categories.maxOfOrNull { it.sortOrder } ?: 0
-                        android.util.Log.d("CategoryManagement", "Creating new category: $name, sortOrder: ${maxSortOrder + 1}, isVisible: true")
-                        val categoryId = categoryDao.insertCustomCategory(
-                            CustomTab(
+                        // Add new tab
+                        val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
+                        android.util.Log.d("CategoryManagement", "Creating new tab: $name, sortOrder: ${maxSortOrder + 1}, isVisible: true")
+                        val tabId = categoryDao.insertCustomCategory(
+                            CustomCategoryTab(
                                 name = name,
                                 colorHex = color,
                                 sortOrder = maxSortOrder + 1,
                                 isVisible = true,
                             ),
                         )
-                        android.util.Log.d("CategoryManagement", "Category created with ID: $categoryId")
+                        android.util.Log.d("CategoryManagement", "Tab created with ID: $tabId")
 
-                        successMessage = "✓ Category '$name' created! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
+                        successMessage = "✓ Tab '$name' created! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
                     }
-                    categories = categoryDao.getAllCustomCategories()
-                    android.util.Log.d("CategoryManagement", "Total categories after save: ${categories.size}")
-                    categories.forEach { cat ->
-                        android.util.Log.d("CategoryManagement", "  - ${cat.name} (visible: ${cat.isVisible}, sortOrder: ${cat.sortOrder})")
+                    tabs = categoryDao.getAllCustomCategories()
+                    android.util.Log.d("CategoryManagement", "Total tabs after save: ${tabs.size}")
+                    tabs.forEach { t ->
+                        android.util.Log.d("CategoryManagement", "  - ${t.name} (visible: ${t.isVisible}, sortOrder: ${t.sortOrder})")
                     }
                     appProvider.refreshCache()
                     showAddDialog = false
-                    editingCategory = null
+                    editingTab = null
                     suggestionsError = null // Clear any previous errors
                 }
             },
@@ -290,20 +290,20 @@ fun CategoryManagementPreferences(
             suggestions = suggestedCategories,
             providerName = suggestionsProvider,
             onDismiss = { showSuggestionsDialog = false },
-            onAddCategory = { suggestion ->
+            onAddTab = { suggestion ->
                 scope.launch {
-                    val maxSortOrder = categories.maxOfOrNull { it.sortOrder } ?: 0
+                    val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
                     categoryDao.insertCustomCategory(
-                        CustomTab(
+                        CustomCategoryTab(
                             name = suggestion.name,
                             colorHex = "#4CAF50", // Default green color
                             sortOrder = maxSortOrder + 1,
                         ),
                     )
-                    categories = categoryDao.getAllCustomCategories()
+                    tabs = categoryDao.getAllCustomCategories()
                     appProvider.refreshCache()
 
-                    successMessage = "✓ Added '${suggestion.name}' category! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
+                    successMessage = "✓ Added '${suggestion.name}' tab! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
                     suggestionsError = null
                 }
             },
@@ -313,14 +313,14 @@ fun CategoryManagementPreferences(
 
 @Composable
 private fun CategoryItem(
-    category: CustomTab,
-    onEdit: (CustomTab) -> Unit,
-    onDelete: (CustomTab) -> Unit,
+    tab: CustomCategoryTab,
+    onEdit: (CustomCategoryTab) -> Unit,
+    onDelete: (CustomCategoryTab) -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onEdit(category) }
+            .clickable { onEdit(tab) }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -330,26 +330,26 @@ private fun CategoryItem(
                 modifier = Modifier
                     .size(32.dp)
                     .background(
-                        color = parseColor(category.colorHex),
+                        color = parseColor(tab.colorHex),
                         shape = CircleShape,
                     ),
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = category.name,
+                text = tab.name,
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
 
         Row {
-            IconButton(onClick = { onEdit(category) }) {
+            IconButton(onClick = { onEdit(tab) }) {
                 Icon(
                     Icons.Default.Edit,
                     contentDescription = "Edit",
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
-            IconButton(onClick = { onDelete(category) }) {
+            IconButton(onClick = { onDelete(tab) }) {
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = "Delete",
@@ -362,12 +362,12 @@ private fun CategoryItem(
 
 @Composable
 private fun CategoryDialog(
-    category: CustomTab?,
+    tab: CustomCategoryTab?,
     onDismiss: () -> Unit,
     onSave: (String, String) -> Unit,
 ) {
-    var name by remember { mutableStateOf(category?.name ?: "") }
-    var colorHex by remember { mutableStateOf(category?.colorHex ?: "#4CAF50") }
+    var name by remember { mutableStateOf(tab?.name ?: "") }
+    var colorHex by remember { mutableStateOf(tab?.colorHex ?: "#4CAF50") }
 
     val predefinedColors = listOf(
         "#4CAF50" to "Green",
@@ -384,13 +384,13 @@ private fun CategoryDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (category == null) "Add Category" else "Edit Category") },
+        title = { Text(if (tab == null) "Add Tab" else "Edit Tab") },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Category Name") },
+                    label = { Text("Tab Name") },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
@@ -452,13 +452,13 @@ private fun SuggestionsDialog(
     suggestions: List<SuggestedCategory>,
     providerName: String?,
     onDismiss: () -> Unit,
-    onAddCategory: (SuggestedCategory) -> Unit,
+    onAddTab: (SuggestedCategory) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Column {
-                Text("AI Category Suggestions")
+                Text("AI Tab Suggestions")
                 if (providerName != null) {
                     Text(
                         text = "Powered by $providerName",
@@ -471,7 +471,7 @@ private fun SuggestionsDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = "Based on your installed apps, here are some suggested categories:",
+                    text = "Based on your installed apps, here are some suggested tabs:",
                     style = MaterialTheme.typography.bodyMedium,
                 )
 

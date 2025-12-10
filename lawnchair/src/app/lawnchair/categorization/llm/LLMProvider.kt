@@ -8,7 +8,7 @@ package app.lawnchair.categorization.llm
  * @property reasoning Brief explanation of why this category was chosen
  */
 data class CategorizationResult(
-    val category: String,
+    val tabName: String,
     val confidence: Float,
     val reasoning: String?,
 )
@@ -109,7 +109,7 @@ interface LLMProvider {
         appName: String,
         appPackage: String,
         appDescription: String?,
-        availableCategories: List<String>,
+        availableTabs: List<String>,
     ): CategorizationResult
 
     /**
@@ -123,7 +123,7 @@ interface LLMProvider {
      */
     suspend fun categorizeAppBatch(
         apps: List<AppBatchInfo>,
-        availableCategories: List<String>,
+        availableTabs: List<String>,
     ): Map<String, CategorizationResult>
 
     /**
@@ -137,7 +137,7 @@ interface LLMProvider {
      */
     suspend fun suggestCategories(
         installedApps: List<String>,
-        existingCategories: List<String>,
+        existingTabs: List<String>,
         maxSuggestions: Int = 5,
     ): List<SuggestedCategory>
 

@@ -15,10 +15,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 /**
- * Service for syncing app categorizations to app drawer folders.
+ * Service for syncing app tabs to app drawer folders.
  *
  * When enabled, this service automatically creates and maintains folders
- * in the app drawer based on app categories assigned by the categorization system.
+ * in the app drawer based on app tabs assigned by the categorization system.
  *
  * Uses the caddy folder implementation (FolderService + Room DB).
  */
@@ -47,7 +47,7 @@ class CategoryFolderSyncService(
      * Creates folders for each category and adds apps to them.
      * Only affects apps that have been categorized.
      *
-     * @param categorizations Map of package name → category name
+     * @param categorizations Map of package name → tab name
      * @param allApps Optional list of all apps to avoid recreating AppInfo objects
      * @return SyncResult with statistics
      */
@@ -76,20 +76,20 @@ class CategoryFolderSyncService(
                 message = "Starting folder sync for ${categorizations.size} categorizations",
             )
 
-            // Group apps by category, excluding "Other" and system categories
-            val appsByCategory = categorizations.entries
-                .filter { (_, category) ->
-                    // Exclude "Other" category and empty categories
-                    category.isNotEmpty() && category != "Other"
+            // Group apps by tab, excluding "Other" and system categories
+            val appsByTab = categorizations.entries
+                .filter { (_, tabName) ->
+                    // Exclude "Other" tab and empty tab names
+                    tabName.isNotEmpty() && tabName != "Other"
                 }
                 .groupBy(
                     keySelector = { it.value },
                     valueTransform = { it.key },
                 )
 
-            android.util.Log.d(TAG, "Categorizations: ${categorizations.size} total, ${appsByCategory.size} categories")
-            appsByCategory.forEach { (category, packages) ->
-                android.util.Log.d(TAG, "Category '$category': ${packages.size} packages - ${packages.take(3)}" + if (packages.size > 3) "..." else "")
+            android.util.Log.d(TAG, "Categorizations: ${categorizations.size} total, ${appsByTab.size} tabs")
+            appsByTab.forEach { (tabName, packages) ->
+                android.util.Log.d(TAG, "Tab '$tabName': ${packages.size} packages - ${packages.take(3)}" + if (packages.size > 3) "..." else "")
             }
 
             var foldersCreated = 0
@@ -133,19 +133,19 @@ class CategoryFolderSyncService(
 
             // Build icon map
             val customTabs = TabDatabase.getInstance(context).categoryDao().getAllCustomCategories()
-            val categoryIconMap = customTabs.associate { it.name to it.icon }
+            val tabIconMap = customTabs.associate { it.name to it.icon }
 
-            // Create/update folder for each category (FAST - parallel friendly)
-            appsByCategory.forEach { (category, packageNames) ->
-                val folderName = getFolderName(category)
-                val folderIcon = categoryIconMap[category]
+            // Create/update folder for each tab (FAST - parallel friendly)
+            appsByTab.forEach { (tabName, packageNames) ->
+                val folderName = getFolderName(tabName)
+                val folderIcon = tabIconMap[tabName]
 
                 LLMLogger.logDebug(
                     provider = "CategoryFolderSync",
                     operation = "SYNC_DRAWER_FOLDER",
                     message = "Syncing drawer folder: $folderName",
                     details = mapOf(
-                        "category" to category,
+                        "tab" to tabName,
                         "appCount" to packageNames.size,
                         "icon" to (folderIcon ?: "none"),
                     ),
@@ -155,7 +155,7 @@ class CategoryFolderSyncService(
                 val apps = packageNames.flatMap { packageName ->
                     val matchedApps = appsByPackage[packageName] ?: emptyList()
                     if (matchedApps.isEmpty()) {
-                        android.util.Log.w(TAG, "No apps found for package: $packageName in category: $category")
+                        android.util.Log.w(TAG, "No apps found for package: $packageName in tab: $tabName")
                     }
                     matchedApps
                 }
@@ -284,46 +284,46 @@ class CategoryFolderSyncService(
     }
 
     /**
-     * Syncs a single category to a folder.
+     * Syncs a single tab to a folder.
      */
-    suspend fun syncCategoryToFolder(
-        category: String,
+    suspend fun syncTabToFolder(
+        tabName: String,
         packageNames: List<String>,
     ): Boolean = withContext(Dispatchers.IO) {
         if (!isSyncEnabled()) return@withContext false
 
-        val categorizations = packageNames.associateWith { category }
+        val categorizations = packageNames.associateWith { tabName }
         val result = syncCategoriesToFolders(categorizations)
         result.success
     }
 
     /**
-     * When user deletes a folder in settings, optionally remove category assignments
+     * When user deletes a folder in settings, optionally remove tab assignments
      */
-    suspend fun onFolderDeleted(folderId: Int, categoryName: String, removeCategories: Boolean = false) {
-        if (removeCategories) {
-            // Remove all AppCategory entries for this category
+    suspend fun onFolderDeleted(folderId: Int, tabName: String, removeTabs: Boolean = false) {
+        if (removeTabs) {
+            // Remove all AppTab entries for this tab
             val dao = TabDatabase.getInstance(context).categoryDao()
-            val apps = dao.getAppsByCategory(categoryName)
+            val apps = dao.getAppsByTab(tabName)
             
             if (apps.isNotEmpty()) {
                 dao.deleteAppsByPackageNames(apps.map { it.packageName })
             }
             
-            android.util.Log.d(TAG, "Removed category assignments for: $categoryName")
+            android.util.Log.d(TAG, "Removed tab assignments for: $tabName")
         } else {
-            android.util.Log.d(TAG, "Folder deleted but category assignments preserved")
+            android.util.Log.d(TAG, "Folder deleted but tab assignments preserved")
         }
     }
 
     /**
      * When user manually adds/removes apps from a folder, update categories
      */
-    suspend fun onFolderItemsChanged(folderId: Int, categoryName: String, newAppPackages: List<String>) {
+    suspend fun onFolderItemsChanged(folderId: Int, tabName: String, newAppPackages: List<String>) {
         val dao = TabDatabase.getInstance(context).categoryDao()
         
-        // Update AppCategory table to match folder contents
-        val existingApps = dao.getAppsByCategory(categoryName).map { it.packageName }
+        // Update AppTab table to match folder contents
+        val existingApps = dao.getAppsByTab(tabName).map { it.packageName }
 
         // Apps added to folder
         val added = newAppPackages - existingApps.toSet()
@@ -334,7 +334,7 @@ class CategoryFolderSyncService(
             dao.insertAppCategory(
                 app.lawnchair.data.tab.entities.AppTab(
                     packageName = packageName,
-                    category = categoryName,
+                    tabName = tabName,
                     confidence = 1.0f,
                     source = app.lawnchair.data.tab.entities.AppTab.SOURCE_USER,  // User manually assigned
                     isUserOverride = true
@@ -350,11 +350,11 @@ class CategoryFolderSyncService(
     }
 
     /**
-     * Gets the folder name for a category.
-     * Extracts the last part of a nested category (e.g. "Games > Puzzle" -> "Puzzle").
+     * Gets the folder name for a tab.
+     * Extracts the last part of a nested tab (e.g. "Games > Puzzle" -> "Puzzle").
      */
-    private fun getFolderName(category: String): String {
-        return category.substringAfterLast(" > ")
+    private fun getFolderName(tabName: String): String {
+        return tabName.substringAfterLast(" > ")
     }
 
     /**

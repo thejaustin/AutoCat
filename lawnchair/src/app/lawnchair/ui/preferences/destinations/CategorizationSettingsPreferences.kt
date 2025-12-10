@@ -175,8 +175,8 @@ fun CategorizationSettingsPreferences(
             item {
                 PreferenceGroup(heading = "Manage") {
                     NavigationActionPreference(
-                        label = "Categories",
-                        subtitle = "Create and manage custom categories for your apps",
+                        label = "Tabs",
+                        subtitle = "Create and manage custom tabs for your apps",
                         destination = AppDrawerManageCategories,
                         icon = Icons.Rounded.ViewList,
                     )
@@ -204,8 +204,8 @@ fun CategorizationSettingsPreferences(
 
                     SwitchPreference(
                         adapter = prefs.autoCatUseTabs.getAdapter(),
-                        label = "Use Category Tabs",
-                        description = "Show categories as tabs in app drawer. Apps are organized by category.",
+                        label = "Use App Tabs",
+                        description = "Show tabs in app drawer. Apps are organized by tab.",
                     )
 
                     // Show work apps options only when category tabs are enabled
@@ -245,7 +245,7 @@ fun CategorizationSettingsPreferences(
                     SwitchPreference(
                         adapter = prefs.autoCatSyncFolders.getAdapter(),
                         label = "Sync to App Drawer Folders",
-                        description = "Automatically create folders in app drawer for each category (if tabs are disabled)",
+                        description = "Automatically create folders in app drawer for each tab (if tabs are disabled)",
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))

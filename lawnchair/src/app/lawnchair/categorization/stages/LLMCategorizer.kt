@@ -70,25 +70,25 @@ class LLMCategorizer(
             return false
         }
 
-        val categoryNames = customCategories.map { it.name }
+        val tabNames = customCategories.map { it.name }
 
         // Check if we have a strong learned hint for this app
         val hint = learner.getHintForPackage(appInfo.packageName)
-        if (hint != null && categoryNames.contains(hint.category)) {
+        if (hint != null && tabNames.contains(hint.tabName)) {
             // Apply learned categorization directly (skip LLM)
-            val appCategory = AppTab(
+            val appTab = AppTab(
                 packageName = appInfo.packageName,
-                category = hint.category,
+                tabName = hint.tabName,
                 confidence = hint.confidence,
                 source = AppTab.SOURCE_LLM,
                 isUserOverride = false,
                 reasoning = "Based on ${hint.sampleCount} previous user corrections for similar apps",
             )
-            categoryDao.insertAppCategory(appCategory)
+            categoryDao.insertAppCategory(appTab)
 
             android.util.Log.d(
                 TAG,
-                "Applied learned hint for ${appInfo.packageName}: ${hint.category} " +
+                "Applied learned hint for ${appInfo.packageName}: ${hint.tabName} " +
                     "(confidence: ${hint.confidence}, pattern: ${hint.pattern})",
             )
             return true
@@ -118,7 +118,7 @@ class LLMCategorizer(
                     appName = appInfo.label,
                     appPackage = appInfo.packageName,
                     appDescription = appInfo.description,
-                    availableCategories = categoryNames,
+                    availableTabs = tabNames,
                 )
 
                 // Only accept if confidence is above threshold
@@ -131,20 +131,20 @@ class LLMCategorizer(
                 }
 
                 // Save to database
-                val appCategory = AppTab(
+                val appTab = AppTab(
                     packageName = appInfo.packageName,
-                    category = result.category,
+                    tabName = result.tabName,
                     confidence = result.confidence,
                     source = AppTab.SOURCE_LLM,
                     isUserOverride = false,
                     reasoning = result.reasoning,
                 )
 
-                categoryDao.insertAppCategory(appCategory)
+                categoryDao.insertAppCategory(appTab)
 
                 android.util.Log.d(
                     TAG,
-                    "${provider.name} categorized ${appInfo.packageName} as ${result.category} " +
+                    "${provider.name} categorized ${appInfo.packageName} as ${result.tabName} " +
                         "(confidence: ${result.confidence}, reason: ${result.reasoning})",
                 )
 
@@ -203,7 +203,7 @@ class LLMCategorizer(
             return 0
         }
 
-        val categoryNames = customCategories.map { it.name }
+        val tabNames = customCategories.map { it.name }
 
         // Get user's preferred provider
         val prefManager = PreferenceManager.getInstance(context)
@@ -225,7 +225,7 @@ class LLMCategorizer(
                 app.lawnchair.categorization.llm.BatchCalculator.calculateOptimalBatchSize(
                     modelInfo = modelInfo,
                     totalApps = apps.size,
-                    categories = categoryNames,
+                    availableTabs = tabNames,
                 ).batchSize
             }
         } else {
@@ -308,7 +308,7 @@ class LLMCategorizer(
                                     TAG,
                                     "Batch $batchIndex/$totalBatches: Categorizing ${batch.size} apps with ${provider.name}",
                                 )
-                                provider.categorizeAppBatch(batchInfo, categoryNames)
+                                provider.categorizeAppBatch(batchInfo, tabNames)
                             }
                             val batchDuration = System.currentTimeMillis() - batchStartTime
 
@@ -346,20 +346,20 @@ class LLMCategorizer(
                 if (success && apiResults != null) {
                     apiResults.forEach { (packageName, result) ->
                         if (result.confidence >= MIN_CONFIDENCE) {
-                            val appCategory = AppTab(
+                            val appTab = AppTab(
                                 packageName = packageName,
-                                category = result.category,
+                                tabName = result.tabName,
                                 confidence = result.confidence,
                                 source = AppTab.SOURCE_LLM,
                                 isUserOverride = false,
                                 reasoning = result.reasoning,
                             )
-                            categoryDao.insertAppCategory(appCategory)
+                            categoryDao.insertAppCategory(appTab)
                             categorizedCount++
 
                             android.util.Log.d(
                                 TAG,
-                                "Saved: $packageName → ${result.category} (${result.confidence})",
+                                "Saved: $packageName → ${result.tabName} (${result.confidence})",
                             )
                         }
                     }

@@ -97,11 +97,11 @@ class LawnchairShortcut {
             PauseApps(activity, itemInfo, originalView)
         }
 
-        val CHANGE_CATEGORY = SystemShortcut.Factory { activity: LawnchairLauncher, itemInfo: ItemInfo, originalView: View ->
+        val CHANGE_TAB = SystemShortcut.Factory { activity: LawnchairLauncher, itemInfo: ItemInfo, originalView: View ->
             val targetCmp = itemInfo.targetComponent
             val packageName = targetCmp?.packageName ?: return@Factory null
 
-            ChangeCategory(activity, itemInfo, originalView)
+            ChangeTab(activity, itemInfo, originalView)
         }
     }
 
@@ -305,13 +305,13 @@ class LawnchairShortcut {
         }
     }
 
-    class ChangeCategory(
+    class ChangeTab(
         private val launcher: LawnchairLauncher,
         itemInfo: ItemInfo,
         originalView: View,
     ) : SystemShortcut<LawnchairLauncher>(
         R.drawable.ic_palette,
-        R.string.change_category_title,
+        R.string.change_tab_title,
         launcher,
         itemInfo,
         originalView,
@@ -320,40 +320,40 @@ class LawnchairShortcut {
             val context = view.context
             val packageName = mItemInfo.targetComponent?.packageName ?: return
 
-            // Get all visible categories from database
+            // Get all visible tabs from database
             val database = TabDatabase.getInstance(context)
             val categoryDao = database.categoryDao()
 
-            val categories = runBlocking {
+            val tabs = runBlocking {
                 categoryDao.getVisibleCustomCategories()
             }
 
-            if (categories.isEmpty()) {
-                Toast.makeText(context, "No categories available", Toast.LENGTH_SHORT).show()
+            if (tabs.isEmpty()) {
+                Toast.makeText(context, "No tabs available", Toast.LENGTH_SHORT).show()
                 return
             }
 
-            // Get current category
-            val currentCategory = runBlocking {
-                categoryDao.getAppCategory(packageName)?.category
+            // Get current tab
+            val currentTab = runBlocking {
+                categoryDao.getAppCategory(packageName)?.tabName
             }
 
-            // Create category names array for dialog
-            val categoryNames = categories.map { it.name }.toTypedArray()
-            val currentIndex = categoryNames.indexOf(currentCategory).takeIf { it >= 0 } ?: -1
+            // Create tab names array for dialog
+            val tabNames = tabs.map { it.name }.toTypedArray()
+            val currentIndex = tabNames.indexOf(currentTab).takeIf { it >= 0 } ?: -1
 
-            // Show category picker dialog
+            // Show tab picker dialog
             AlertDialog.Builder(context)
-                .setTitle(R.string.change_category_title)
-                .setSingleChoiceItems(categoryNames, currentIndex) { dialog, which ->
-                    val selectedCategory = categories[which]
+                .setTitle(R.string.change_tab_title)
+                .setSingleChoiceItems(tabNames, currentIndex) { dialog, which ->
+                    val selectedTab = tabs[which]
 
-                    // Update category in database with user override
+                    // Update tab in database with user override
                     CoroutineScope(Dispatchers.IO).launch {
                         categoryDao.insertAppCategory(
                             AppTab(
                                 packageName = packageName,
-                                category = selectedCategory.name,
+                                tabName = selectedTab.name,
                                 confidence = 1.0f,
                                 source = AppTab.SOURCE_USER,
                                 isUserOverride = true,
@@ -365,7 +365,7 @@ class LawnchairShortcut {
                             launcher.appsView.activeRecyclerView?.apps?.updateAdapterItems()
                             Toast.makeText(
                                 context,
-                                "Moved to ${selectedCategory.name}",
+                                "Moved to ${selectedTab.name}",
                                 Toast.LENGTH_SHORT,
                             ).show()
                         }

@@ -7,9 +7,9 @@ import app.lawnchair.preferences.PreferenceManager
 import kotlinx.coroutines.runBlocking
 
 /**
- * Manages dynamic category tabs for the app drawer.
+ * Manages dynamic app tabs for the app drawer.
  *
- * Queries the database for visible categories and generates tab configurations
+ * Queries the database for visible tabs and generates tab configurations
  * based on user preferences.
  */
 class CategoryTabsManager(private val context: Context) {
@@ -40,7 +40,7 @@ class CategoryTabsManager(private val context: Context) {
     /**
      * Gets the list of tabs to display in the app drawer.
      *
-     * Returns category tabs from the database, plus "Other" tab for uncategorized apps,
+     * Returns app tabs from the database, plus "Other" tab for uncategorized apps,
      * and optionally the "Work" tab based on preferences.
      *
      * @param hasWorkApps Whether the device has work profile apps
@@ -49,26 +49,26 @@ class CategoryTabsManager(private val context: Context) {
     fun getTabs(hasWorkApps: Boolean): List<TabInfo> {
         val tabs = mutableListOf<TabInfo>()
 
-        // Get visible categories from database (already sorted by sortOrder)
-        val tabs = runBlocking {
+        // Get visible custom tabs from database (already sorted by sortOrder)
+        val customCategoryTabs = runBlocking {
             categoryDao.getVisibleCustomCategories()
         }
 
-        android.util.Log.d(TAG, "getTabs: Found ${tabs.size} visible tabs")
-        tabs.forEach { tab ->
+        android.util.Log.d(TAG, "getTabs: Found ${customCategoryTabs.size} visible custom tabs")
+        customCategoryTabs.forEach { tab ->
             android.util.Log.d(TAG, "  - ${tab.name} (id: ${tab.id}, visible: ${tab.isVisible}, sortOrder: ${tab.sortOrder})")
         }
 
-        // Group categories: only create tabs for top-level categories
-        val topLevelCategories = tabs
+        // Group tabs: only create tabs for top-level tabs
+        val topLevelTabs = customCategoryTabs
             .map { it.name.split(" > ").first() }
             .distinct()
-            .mapNotNull { name -> tabs.find { it.name == name } ?: tabs.find { it.name.startsWith("$name >") }?.copy(name = name) }
+            .mapNotNull { name -> customCategoryTabs.find { it.name == name } ?: customCategoryTabs.find { it.name.startsWith("$name >") }?.copy(name = name) }
 
-        android.util.Log.d(TAG, "getTabs: Found ${topLevelCategories.size} top-level tabs from ${tabs.size} total")
+        android.util.Log.d(TAG, "getTabs: Found ${topLevelTabs.size} top-level tabs from ${customCategoryTabs.size} total")
 
-        // Add a tab for each top-level category
-        topLevelCategories.forEach { tab ->
+        // Add a tab for each top-level tab
+        topLevelTabs.forEach { tab ->
             // Use the top-level name
             val name = tab.name.split(" > ").first()
             tabs.add(
@@ -116,7 +116,7 @@ class CategoryTabsManager(private val context: Context) {
      * @return Index of the tab to show (defaults to first tab)
      */
     fun getDefaultTabIndex(tabs: List<TabInfo>): Int {
-        // Show first category tab by default
+        // Show first tab by default
         return 0
     }
 

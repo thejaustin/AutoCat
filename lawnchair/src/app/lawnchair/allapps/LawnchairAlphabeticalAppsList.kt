@@ -128,16 +128,16 @@ class LawnchairAlphabeticalAppsList<T>(
         var position = startPosition
 
         // Check if category tabs are enabled
-        val usingCategoryTabs = categoryTabsController.shouldShowTabs(context)
-        val currentTabName = if (usingCategoryTabs) {
+        val usingAppTabs = categoryTabsController.shouldShowTabs(context)
+        val currentTabName = if (usingAppTabs) {
             categoryTabsController.getTabNameForTab(categoryTabsController.getCurrentTab())
         } else {
             null
         }
 
-        // When using category tabs, handle work apps differently
+        // When using app tabs, handle work apps differently
         val isWorkProfile = isWorkOrPrivateSpace(appList)
-        if (isWorkProfile && usingCategoryTabs) {
+        if (isWorkProfile && usingAppTabs) {
             // Check if this is the Work tab
             if (currentTabName == CategoryTabsController.TAB_WORK) {
                 // Show only work apps on Work tab
@@ -150,7 +150,7 @@ class LawnchairAlphabeticalAppsList<T>(
             }
             // Otherwise, fall through to mix work apps with personal apps
         } else if (isWorkProfile) {
-            // Not using category tabs - use default work profile behavior
+            // Not using app tabs - use default work profile behavior
             return super.addAppsWithSections(appList, position)
         }
 
@@ -160,12 +160,12 @@ class LawnchairAlphabeticalAppsList<T>(
         // Unified Folder System: Use persistent folders as primary source
         var folders = folderList.toList()
         
-        // Fallback: If no folders exist yet and we are supposed to use categories (e.g. first run), create temp ones
-        if (folders.isEmpty() && (usingCategoryTabs || !prefs.drawerList.get())) {
+        // Fallback: If no folders exist yet and we are supposed to use tabs (e.g. first run), create temp ones
+        if (folders.isEmpty() && (usingAppTabs || !prefs.drawerList.get())) {
              val tempFolders = mutableListOf<FolderInfo>()
              categorizedApps.forEach { (tabName, subCategories) ->
-                 val allAppsInCategory = subCategories.values.flatten()
-                 if (allAppsInCategory.size > 1) {
+                 val allAppsInTab = subCategories.values.flatten()
+                 if (allAppsInTab.size > 1) {
                      val folderInfo = FolderInfo().apply {
                          title = tabName
                          allAppsInCategory.forEach { app -> app.toLauncherAppInfo()?.let { add(it) } }
@@ -176,7 +176,7 @@ class LawnchairAlphabeticalAppsList<T>(
              folders = tempFolders
         }
 
-        if (usingCategoryTabs && currentTabName != null) {
+        if (usingAppTabs && currentTabName != null) {
              // We are in a specific tab: Filter folders and apps
              
              // 1. Folders that belong to this tab
@@ -200,7 +200,7 @@ class LawnchairAlphabeticalAppsList<T>(
                      }
                      position++
                  } else if (folderTitle == currentTabName) {
-                     // This folder IS the category (e.g. "Games")
+                     // This folder IS the tab (e.g. "Games")
                      // "Explode" it: show its contents as apps
                      folder.getContents().forEach { item ->
                          if (item is AppInfo) {
@@ -212,9 +212,9 @@ class LawnchairAlphabeticalAppsList<T>(
                  }
              }
              
-             // 2. Apps in this category that were not in matched folders
-             val allAppsInCategory = categorizedApps[currentTabName]?.values?.flatten() ?: emptyList()
-             allAppsInCategory.forEach { app ->
+             // 2. Apps in this tab that were not in matched folders
+             val allAppsInTab = categorizedApps[currentTabName]?.values?.flatten() ?: emptyList()
+             allAppsInTab.forEach { app ->
                  val launcherApp = app.toLauncherAppInfo()
                  // Check if we haven't shown this app yet
                  // Note: filteredList contains apps shown via folders. 

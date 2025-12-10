@@ -6,9 +6,9 @@ import android.util.Log
 import com.android.launcher3.allapps.AllAppsPagedView
 
 /**
- * Extended AllAppsPagedView that supports dynamic category tabs.
+ * Extended AllAppsPagedView that supports dynamic app tabs.
  * Unlike the standard Personal/Work tabs which are fixed at 2 pages,
- * this supports N pages based on user-defined categories.
+ * this supports N pages based on user-defined tabs.
  */
 class CategoryTabAllAppsPagedView @JvmOverloads constructor(
     context: Context,
@@ -20,27 +20,27 @@ class CategoryTabAllAppsPagedView @JvmOverloads constructor(
         private const val TAG = "CategoryTabAllAppsPagedView"
     }
 
-    private var categoryCount = 0
+    private var tabCount = 0
 
     /**
-     * Set the number of category tabs. This should be called before
+     * Set the number of app tabs. This should be called before
      * setting up the view pager.
      */
-    fun setCategoryCount(count: Int) {
-        if (count != categoryCount) {
-            categoryCount = count
-            Log.d(TAG, "Category count set to: $count")
+    fun setTabCount(count: Int) {
+        if (count != tabCount) {
+            tabCount = count
+            Log.d(TAG, "Tab count set to: $count")
         }
     }
 
     /**
-     * Get the total number of pages (categories).
+     * Get the total number of pages (tabs).
      */
-    fun getCategoryCount(): Int = categoryCount
+    fun getTabCount(): Int = tabCount
 
     override fun getChildCount(): Int {
-        return if (categoryCount > 0) {
-            categoryCount
+        return if (tabCount > 0) {
+            tabCount
         } else {
             super.getChildCount()
         }
