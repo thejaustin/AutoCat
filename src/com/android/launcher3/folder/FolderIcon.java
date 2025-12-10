@@ -96,6 +96,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import app.lawnchair.gestures.IconGestureListener;
+import app.lawnchair.preferences2.PreferenceManager2;
+import com.android.launcher3.LauncherAppState;
+import com.android.launcher3.icons.IconCache;
+import com.android.launcher3.icons.FastBitmapDrawable;
+import android.os.Process;
+import android.content.Intent;
+
 /**
  * An icon that can appear on in the workspace representing an {@link Folder}.
  */
@@ -108,6 +116,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     public FolderInfo mInfo;
 
     private CheckLongPressHelper mLongPressHelper;
+    private IconGestureListener mGestureListener;
 
     static final int DROP_IN_ANIMATION_DURATION = 400;
 
@@ -123,6 +132,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     private boolean mBackgroundIsVisible = true;
     
     private Drawable mCustomIcon = null;
+    private Drawable mCoverAppIcon = null; // Field to hold the cover app's icon
 
     FolderGridOrganizer mPreviewVerifier;
     ClippedFolderIconLayoutRule mPreviewLayoutRule;
@@ -225,6 +235,25 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         icon.mInfo = folderInfo;
         icon.mActivity = activity;
         icon.mDotRenderer = grid.mDotRendererWorkSpace;
+        icon.mGestureListener = new IconGestureListener(icon.getContext(), PreferenceManager2.getInstance(icon.getContext()), folderInfo);
+
+        // Handle cover mode click vs. open folder click
+        if (folderInfo.coverMode && folderInfo.coverApp != null) {
+            icon.setOnClickListener(v -> {
+                try {
+                    Intent launchIntent = new Intent(Intent.ACTION_MAIN);
+                    launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                    launchIntent.setComponent(folderInfo.coverApp);
+                    launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                    activity.startActivity(launchIntent);
+                } catch (Exception e) {
+                    // Log or show toast
+                    e.printStackTrace();
+                }
+            });
+        } else {
+            icon.setOnClickListener(activity.getItemOnClickListener());
+        }
 
         icon.setContentDescription(icon.getAccessiblityTitle(folderInfo.title));
 
@@ -244,6 +273,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         folderInfo.addListener(icon);
         
         icon.loadCustomIcon();
+        icon.loadCoverAppIcon();
 
         return icon;
     }
@@ -269,6 +299,32 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
             });
         }
     }
+
+    private void loadCoverAppIcon() {
+        if (mInfo != null && mInfo.coverMode && mInfo.coverApp != null) {
+            Executors.MODEL_EXECUTOR.post(() -> {
+                try {
+                    // Get the app icon from IconCache
+                    IconCache iconCache = LauncherAppState.getInstance(getContext()).getIconCache();
+                    // Assume UserHandle.CURRENT for simplicity for now, can be refined if needed.
+                    FastBitmapDrawable appIcon = iconCache.getAppIcon(mInfo.coverApp, Process.myUserHandle());
+                    
+                    if (appIcon != null) {
+                        post(() -> {
+                            mCoverAppIcon = appIcon;
+                            invalidate();
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        } else {
+            mCoverAppIcon = null; // Clear if cover mode is off or no app
+            invalidate();
+        }
+    }
+
 
     public void animateBgShadowAndStroke() {
         mBackground.fadeInBackgroundShadow();
@@ -652,7 +708,13 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         }
         
         // Draw custom icon if available, otherwise draw preview items
-        if (mCustomIcon != null) {
+        if (mInfo.coverMode && mCoverAppIcon != null) {
+            Rect bounds = new Rect();
+            mBackground.getBounds(bounds);
+            int padding = bounds.width() / 6; // Add some padding
+            mCoverAppIcon.setBounds(bounds.left + padding, bounds.top + padding, bounds.right - padding, bounds.bottom - padding);
+            mCoverAppIcon.draw(canvas);
+        } else if (mCustomIcon != null) {
             Rect bounds = new Rect();
             mBackground.getBounds(bounds);
             // Add some padding to match style
@@ -733,6 +795,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     @Override
     public void onItemsChanged(boolean animate) {
         updatePreviewItems(animate);
+        loadCoverAppIcon(); // Reload cover icon if folder contents change (might affect default cover app)
         invalidate();
         requestLayout();
     }
@@ -778,10 +841,39 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     public void onTitleChanged(CharSequence title) {
         mFolderName.setText(title);
         setContentDescription(getAccessiblityTitle(title));
+        loadCoverAppIcon(); // Reload cover icon if title changes (might affect default cover app)
+    }
+
+    @Override
+    public void onCoverChanged() {
+        loadCoverAppIcon();
+        invalidate();
+        requestLayout();
+        
+        // Update click listener
+        if (mInfo.coverMode && mInfo.coverApp != null) {
+            setOnClickListener(v -> {
+                try {
+                    android.content.Intent launchIntent = new android.content.Intent(android.content.Intent.ACTION_MAIN);
+                    launchIntent.addCategory(android.content.Intent.CATEGORY_LAUNCHER);
+                    launchIntent.setComponent(mInfo.coverApp);
+                    launchIntent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+                    mActivity.startActivity(launchIntent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        } else {
+            setOnClickListener(mActivity.getItemOnClickListener());
+        }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (mGestureListener != null) {
+            mGestureListener.onTouch(this, event);
+        }
+
         if (event.getAction() == MotionEvent.ACTION_DOWN
                 && shouldIgnoreTouchDown(event.getX(), event.getY())) {
             return false;

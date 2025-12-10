@@ -41,6 +41,10 @@ import com.android.launcher3.R
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
 
+import app.lawnchair.categorization.CategoryFolderSyncService
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+
 @Composable
 fun SelectAppsForDrawerFolder(
     folderInfoId: Int?,
@@ -54,6 +58,7 @@ fun SelectAppsForDrawerFolder(
     }
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val folders by viewModel.folders.collectAsStateWithLifecycle()
     val folderInfo by viewModel.folderInfo.collectAsStateWithLifecycle()
@@ -106,6 +111,15 @@ fun SelectAppsForDrawerFolder(
                             folderInfo?.title.toString(),
                             newSet.toList(),
                         )
+                        
+                        // Bidirectional sync
+                        scope.launch {
+                            CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
+                                folderId = folderInfoId,
+                                categoryName = folderInfo?.title.toString(),
+                                newAppPackages = newSet.mapNotNull { it.targetPackage }
+                            )
+                        }
                     },
                     filterUniqueItems = filterNonUniqueItems,
                     onToggleFilterUniqueItems = {
@@ -152,6 +166,15 @@ fun SelectAppsForDrawerFolder(
                                                 folderInfo?.title.toString(),
                                                 newSet.filterIsInstance<AppInfo>().toList(),
                                             )
+                                            
+                                            // Bidirectional sync
+                                            scope.launch {
+                                                CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
+                                                    folderId = folderInfoId,
+                                                    categoryName = folderInfo?.title.toString(),
+                                                    newAppPackages = newSet.mapNotNull { it.targetPackage }
+                                                )
+                                            }
                                         },
                                     )
                                 },

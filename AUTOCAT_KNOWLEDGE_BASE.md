@@ -37,6 +37,29 @@
 
 ---
 
+## 🚨 Build Policy
+
+> [!CRITICAL]
+> **ALL BUILDS ARE HANDLED BY GITHUB ACTIONS. NEVER BUILD LOCALLY.**
+>
+> This project relies exclusively on CI/CD pipelines for building APKs. Local builds are not supported and should not be attempted.
+>
+> - ❌ Do NOT run `./gradlew assembleDebug` locally
+> - ❌ Do NOT run `./gradlew assembleRelease` locally
+> - ❌ Do NOT attempt to build APKs on device
+> - ✅ All builds happen via GitHub Actions workflows
+> - ✅ APKs are available from GitHub Releases
+
+**Why?**
+- Building on device (Termux) is resource-intensive and unreliable
+- GitHub Actions provides consistent, reproducible builds
+- CI/CD ensures proper testing and quality checks
+- All local build artifacts (`.gradle/`, `build/`) have been removed
+
+**For Contributors**: See `CONTRIBUTING.md` for full build policy details.
+
+---
+
 ## 🚀 Recent Development Session
 
 ### Session Goal
@@ -634,12 +657,13 @@ data class FolderItemEntity(
 
 ### Pre-Release Testing
 
-#### Compilation & Build
-- [ ] Clean build succeeds: `./gradlew clean`
-- [ ] Debug build succeeds: `./gradlew assembleDebug`
-- [ ] Release build succeeds: `./gradlew assembleRelease`
-- [ ] No compilation warnings
-- [ ] Spotless formatting passes: `./gradlew spotlessCheck`
+#### Compilation & Build (GitHub Actions Only)
+> **Note**: All builds are handled by GitHub Actions. Do not run these locally.
+- [ ] Clean build succeeds: `./gradlew clean` (CI only)
+- [ ] Debug build succeeds: `./gradlew assembleDebug` (CI only)
+- [ ] Release build succeeds: `./gradlew assembleRelease` (CI only)
+- [ ] No compilation warnings (CI only)
+- [ ] Spotless formatting passes: `./gradlew spotlessCheck` (safe to run locally)
 
 #### LLM Provider Tests
 - [ ] Google AI: API key validation
@@ -912,17 +936,23 @@ data class FolderItemEntity(
 ## 📝 Notes for Future Sessions
 
 ### Quick Start Commands
+
+> [!WARNING]
+> **Remember: NEVER build locally.** All builds are handled by GitHub Actions.
+> The commands below are for reference only (used by CI/CD).
+
 ```bash
-# Build the project
+# ❌ DO NOT RUN LOCALLY - These commands are for GitHub Actions only
+# Build the project (CI only)
 ./gradlew assembleDebug
 
-# Check for compilation errors
+# Check for compilation errors (CI only)
 ./gradlew compileDebugKotlin
 
-# Run spotless formatting
+# ✅ SAFE TO RUN LOCALLY - Code formatting
 ./gradlew spotlessApply
 
-# List all tasks
+# ✅ SAFE TO RUN LOCALLY - List available tasks
 ./gradlew tasks
 ```
 

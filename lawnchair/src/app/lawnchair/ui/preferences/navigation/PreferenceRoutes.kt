@@ -142,6 +142,16 @@ data class SelectIcon(
     val componentKey: String,
 ) : PreferenceRoute
 
+@Serializable
+data class SelectFolderIcon(
+    val folderId: Int,
+) : PreferenceRoute
+
+@Serializable
+data class SelectApp(
+    val requestId: Int = 0,
+) : PreferenceRoute
+
 // default to empty
 @Serializable
 data class IconPicker(val packageName: String = "") : PreferenceRoute

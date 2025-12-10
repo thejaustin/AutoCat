@@ -67,6 +67,14 @@ sealed class GestureHandlerConfig {
     data object OpenAssistant : Simple(R.string.gesture_handler_open_assistant, ::OpenAssistantHandler)
 
     @Serializable
+    @SerialName("openFolder")
+    data object OpenFolder : Simple(R.string.gesture_handler_open_folder, { context ->
+        // This handler needs specific context (the folder info) which isn't available in the generic factory.
+        // However, we can create a generic handler that looks for the folder info in the triggering view's tag.
+        app.lawnchair.gestures.handlers.OpenFolderGestureHandler(context) 
+    })
+
+    @Serializable
     @SerialName("openApp")
     data class OpenApp(val appName: String, val target: OpenAppTarget) : GestureHandlerConfig() {
         override fun getLabel(context: Context) = context.getString(R.string.gesture_handler_open_app_config, appName)

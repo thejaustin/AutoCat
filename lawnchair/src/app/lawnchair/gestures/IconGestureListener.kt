@@ -26,13 +26,21 @@ class IconGestureListener(
     private fun handleGesture(gestureType: GestureType) {
         Log.d("GESTURE_HANDLER", "Handling gesture: ${gestureType.name}")
 
+        // Special handling for Folder Cover Mode
+        if (cmp is com.android.launcher3.model.data.FolderInfo && cmp.coverMode && gestureType == GestureType.SWIPE_UP) {
+             context.launcher.lifecycleScope.launch {
+                 app.lawnchair.gestures.handlers.OpenFolderGestureHandler(context).onTrigger(context.launcher, cmp)
+             }
+             return
+        }
+
         cmp?.componentKey?.let {
             context.launcher.lifecycleScope.launch {
                 val gesture = prefs.getGestureForApp(it, gestureType).firstOrNull()
                 if (gesture !is GestureHandlerConfig.NoOp) {
                     Log.d("GESTURE_HANDLER", "Triggering gesture: ${gestureType.name}")
                     VibratorWrapper.INSTANCE.get(context.launcher).vibrate(VibratorWrapper.OVERVIEW_HAPTIC)
-                    gesture?.createHandler(context)?.onTrigger(context.launcher)
+                    gesture?.createHandler(context)?.onTrigger(context.launcher, cmp)
                 } else {
                     Log.d("GESTURE_HANDLER", "NoOp gesture, ignoring")
                 }

@@ -51,6 +51,7 @@ import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo
 import com.android.launcher3.widget.WidgetInflater
 import com.android.launcher3.widget.util.WidgetSizes
+import java.io.File
 
 /**
  * This items is used by LoaderTask to process items that have been loaded from the Launcher's DB.
@@ -410,6 +411,19 @@ class WorkspaceItemProcessor(
         } else {
             // An app pair may be inside another folder, so it needs to preserve rank information.
             collection.rank = c.rank
+        }
+
+        val iconBlob = c.iconBlob
+        if (iconBlob != null) {
+            try {
+                val iconFile = File(app.context.cacheDir, "folder_icon_${c.id}")
+                iconFile.writeBytes(iconBlob)
+                if (collection is FolderInfo) {
+                    collection.icon = iconFile.absolutePath
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error saving folder icon", e)
+            }
         }
 
         c.markRestored()

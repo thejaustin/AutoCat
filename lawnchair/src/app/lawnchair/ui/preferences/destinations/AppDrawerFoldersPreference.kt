@@ -72,6 +72,10 @@ fun AppDrawerFolderPreferenceItem(
     }
 }
 
+import app.lawnchair.categorization.CategoryFolderSyncService
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+
 @Composable
 fun AppDrawerFoldersPreference(
     modifier: Modifier = Modifier,
@@ -79,6 +83,8 @@ fun AppDrawerFoldersPreference(
 ) {
     val navController = LocalNavController.current
     val folders by viewModel.folders.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     AppDrawerFoldersPreference(
         modifier = modifier,
@@ -101,6 +107,14 @@ fun AppDrawerFoldersPreference(
         },
         onDeleteFolder = {
             viewModel.deleteFolder(it.id)
+            scope.launch {
+                // Bidirectional sync: Remove category when folder is deleted by user
+                CategoryFolderSyncService.getInstance(context).onFolderDeleted(
+                    folderId = it.id,
+                    categoryName = it.title.toString(),
+                    removeCategories = true
+                )
+            }
         },
     )
 }

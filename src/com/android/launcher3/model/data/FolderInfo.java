@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
+import android.content.ComponentName;
 
 /**
  * Represents a folder containing shortcuts or apps.
@@ -98,6 +99,8 @@ public class FolderInfo extends CollectionInfo {
 
     public int options;
     public String icon = null;
+    public boolean coverMode = false;
+    public ComponentName coverApp = null;
 
     public FolderNameInfos suggestedFolderNames;
 
@@ -197,6 +200,8 @@ public class FolderInfo extends CollectionInfo {
     public void onAddToDatabase(@NonNull ContentWriter writer) {
         super.onAddToDatabase(writer);
         writer.put(LauncherSettings.Favorites.OPTIONS, options);
+        writer.put("coverMode", coverMode);
+        writer.put("coverApp", coverApp != null ? coverApp.flattenToString() : null);
     }
 
     public void addListener(FolderListener listener) {
@@ -222,6 +227,7 @@ public class FolderInfo extends CollectionInfo {
 
         void onTitleChanged(CharSequence title);
 
+        default void onCoverChanged() {}
     }
 
     public boolean hasOption(int optionFlag) {
@@ -300,6 +306,14 @@ public class FolderInfo extends CollectionInfo {
         }
     }
 
+    public void setCover(boolean coverMode, ComponentName coverApp) {
+        this.coverMode = coverMode;
+        this.coverApp = coverApp;
+        for (int i = 0; i < mListeners.size(); i++) {
+            mListeners.get(i).onCoverChanged();
+        }
+    }
+
     /**
      * Returns current state of the current folder label.
      */
@@ -323,6 +337,8 @@ public class FolderInfo extends CollectionInfo {
         super.copyFrom(info);
         if (info instanceof FolderInfo fi) {
             contents.addAll(fi.getContents());
+            this.coverMode = fi.coverMode;
+            this.coverApp = fi.coverApp;
         }
     }
 

@@ -121,6 +121,20 @@ class CategorizationManager(private val context: Context) {
 
             // Refresh cache after categorization
             appProvider.refreshCache()
+
+            // Sync to folders if enabled
+            if (folderSyncService.isSyncEnabled()) {
+                android.util.Log.d(TAG, "Starting folder sync")
+
+                // Fetch all categories in one query to avoid N+1 problem
+                val allCategories = categoryDao.getAllAppCategories()
+                val categorizations = allCategories.associate { it.packageName to it.category }
+
+                // Sync categorizations to folders
+                val syncResult = folderSyncService.syncCategoriesToFolders(categorizations)
+
+                android.util.Log.d(TAG, "Folder sync complete: ${syncResult.message}")
+            }
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Error during categorization", e)
         }

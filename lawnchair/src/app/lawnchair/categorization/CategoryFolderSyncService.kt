@@ -140,17 +140,6 @@ class CategoryFolderSyncService(
                 val folderName = getFolderName(category)
                 val folderIcon = categoryIconMap[category]
 
-                // Skip creating folders for top-level categories if they match the tab name (optional preference?)
-                // For now, we create folders for *nested* items ("Games > Puzzle" -> "Puzzle" folder)
-                // And top-level items ("Games" -> "Games" folder)
-                // If user wants "Games" tab to have "Puzzle" folder + loose apps,
-                // we should ONLY create folder if it is a sub-category.
-                val isSubCategory = category.contains(" > ")
-                if (!isSubCategory) {
-                    // Skip creating folders for root categories (they are the tabs themselves)
-                    return@forEach
-                }
-
                 LLMLogger.logDebug(
                     provider = "CategoryFolderSync",
                     operation = "SYNC_DRAWER_FOLDER",
@@ -306,6 +295,58 @@ class CategoryFolderSyncService(
         val categorizations = packageNames.associateWith { category }
         val result = syncCategoriesToFolders(categorizations)
         result.success
+    }
+
+    /**
+     * When user deletes a folder in settings, optionally remove category assignments
+     */
+    suspend fun onFolderDeleted(folderId: Int, categoryName: String, removeCategories: Boolean = false) {
+        if (removeCategories) {
+            // Remove all AppCategory entries for this category
+            val dao = TabDatabase.getInstance(context).categoryDao()
+            val apps = dao.getAppsByCategory(categoryName)
+            
+            if (apps.isNotEmpty()) {
+                dao.deleteAppsByPackageNames(apps.map { it.packageName })
+            }
+            
+            android.util.Log.d(TAG, "Removed category assignments for: $categoryName")
+        } else {
+            android.util.Log.d(TAG, "Folder deleted but category assignments preserved")
+        }
+    }
+
+    /**
+     * When user manually adds/removes apps from a folder, update categories
+     */
+    suspend fun onFolderItemsChanged(folderId: Int, categoryName: String, newAppPackages: List<String>) {
+        val dao = TabDatabase.getInstance(context).categoryDao()
+        
+        // Update AppCategory table to match folder contents
+        val existingApps = dao.getAppsByCategory(categoryName).map { it.packageName }
+
+        // Apps added to folder
+        val added = newAppPackages - existingApps.toSet()
+        // Apps removed from folder
+        val removed = existingApps - newAppPackages.toSet()
+
+        added.forEach { packageName ->
+            dao.insertAppCategory(
+                app.lawnchair.data.tab.entities.AppTab(
+                    packageName = packageName,
+                    category = categoryName,
+                    confidence = 1.0f,
+                    source = app.lawnchair.data.tab.entities.AppTab.SOURCE_USER,  // User manually assigned
+                    isUserOverride = true
+                )
+            )
+        }
+
+        if (removed.isNotEmpty()) {
+            dao.deleteAppsByPackageNames(removed.toList())
+        }
+
+        android.util.Log.d(TAG, "Folder sync: added ${added.size}, removed ${removed.size} apps")
     }
 
     /**

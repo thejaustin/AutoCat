@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
  * pipeline (built-in, rule-based, LLM) or via user override.
  *
  * @property packageName The unique package identifier for the app
- * @property category The tab name (e.g., "Games", "Social", "Tools") - stored as "category" for DB compatibility
+ * @property tabName The tab name (e.g., "Games", "Social", "Tools")
  * @property confidence Confidence score from categorization (0.0 - 1.0)
  * @property source The categorization source: "built-in", "rule", "ml", "llm", or "user"
  * @property isUserOverride If true, prevents automatic re-categorization
@@ -24,8 +24,8 @@ data class AppTab(
     @ColumnInfo(name = "package_name")
     val packageName: String,
 
-    @ColumnInfo(name = "category")
-    val category: String,
+    @ColumnInfo(name = "tab_name")
+    val tabName: String,
 
     @ColumnInfo(name = "sub_category")
     val subCategory: String? = null,

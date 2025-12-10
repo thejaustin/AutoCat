@@ -8,7 +8,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import app.lawnchair.data.tab.entities.AppTab
-import app.lawnchair.data.tab.entities.CustomTab
+import app.lawnchair.data.tab.entities.CustomCategoryTab
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -63,44 +63,43 @@ interface TabDao {
     /**
      * Gets all apps with tab assignments.
      */
-    @Query("SELECT * FROM app_categories ORDER BY category, package_name")
-    suspend fun getAllAppCategories(): List<AppTab>
+    @Query("SELECT * FROM app_categories ORDER BY tab_name, package_name")
 
     /**
      * Observes all apps with tab assignments with reactive updates.
      */
-    @Query("SELECT * FROM app_categories ORDER BY category, package_name")
+    @Query("SELECT * FROM app_categories ORDER BY tab_name, package_name")
     fun observeAllAppCategories(): Flow<List<AppTab>>
 
     /**
      * Gets all apps in a specific tab.
      */
-    @Query("SELECT * FROM app_categories WHERE category = :categoryName ORDER BY package_name")
-    suspend fun getAppsByCategory(categoryName: String): List<AppTab>
+    @Query("SELECT * FROM app_categories WHERE tab_name = :tabName ORDER BY package_name")
+    suspend fun getAppsByTab(tabName: String): List<AppTab>
 
     /**
      * Observes all apps in a specific tab.
      */
-    @Query("SELECT * FROM app_categories WHERE category = :categoryName ORDER BY package_name")
-    fun observeAppsByCategory(categoryName: String): Flow<List<AppTab>>
+    @Query("SELECT * FROM app_categories WHERE tab_name = :tabName ORDER BY package_name")
+    fun observeAppsByTab(tabName: String): Flow<List<AppTab>>
 
     /**
      * Gets all apps that were categorized by a specific source.
      */
-    @Query("SELECT * FROM app_categories WHERE source = :source ORDER BY category, package_name")
+    @Query("SELECT * FROM app_categories WHERE source = :source ORDER BY tab_name, package_name")
     suspend fun getAppsBySource(source: String): List<AppTab>
 
     /**
      * Gets all apps with user overrides (manually categorized).
      */
-    @Query("SELECT * FROM app_categories WHERE is_user_override = 1 ORDER BY category, package_name")
+    @Query("SELECT * FROM app_categories WHERE is_user_override = 1 ORDER BY tab_name, package_name")
     suspend fun getUserOverriddenApps(): List<AppTab>
 
     /**
      * Gets count of apps in each tab.
      */
-    @Query("SELECT category, COUNT(*) as count FROM app_categories GROUP BY category")
-    suspend fun getCategoryCounts(): List<TabCount>
+    @Query("SELECT tab_name, COUNT(*) as count FROM app_categories GROUP BY tab_name")
+    suspend fun getTabCounts(): List<TabCount>
 
     /**
      * Deletes all app tab assignments that are not user overrides.
@@ -119,15 +118,15 @@ interface TabDao {
      * Updates the tab name for all apps in a specific tab.
      * Used when renaming a custom tab.
      */
-    @Query("UPDATE app_categories SET category = :newName WHERE category = :oldName")
-    suspend fun updateAppCategoryName(oldName: String, newName: String)
+    @Query("UPDATE app_categories SET tab_name = :newTabName WHERE tab_name = :oldTabName")
+    suspend fun updateAppTabName(oldTabName: String, newTabName: String)
 
     /**
      * Resets the tab to 'Other' for all apps in a specific tab.
      * Used when deleting a custom tab.
      */
-    @Query("UPDATE app_categories SET category = 'Other' WHERE category = :categoryName")
-    suspend fun resetAppCategoriesForDeletedCategory(categoryName: String)
+    @Query("UPDATE app_categories SET tab_name = 'Other' WHERE tab_name = :tabName")
+    suspend fun resetAppTabsForDeletedTab(tabName: String)
 
     // ==================== CustomTab Operations ====================
 
@@ -135,61 +134,61 @@ interface TabDao {
      * Inserts a new custom tab.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCustomCategory(customCategory: CustomTab): Long
+    suspend fun insertCustomCategory(customCategory: CustomCategoryTab): Long
 
     /**
      * Inserts multiple custom tabs.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCustomCategories(customCategories: List<CustomTab>)
+    suspend fun insertCustomCategories(customCategories: List<CustomCategoryTab>)
 
     /**
      * Updates an existing custom tab.
      */
     @Update
-    suspend fun updateCustomCategory(customCategory: CustomTab)
+    suspend fun updateCustomCategory(customCategory: CustomCategoryTab)
 
     /**
      * Deletes a custom tab.
      */
     @Delete
-    suspend fun deleteCustomCategory(customCategory: CustomTab)
+    suspend fun deleteCustomCategory(customCategory: CustomCategoryTab)
 
     /**
      * Gets all custom tabs ordered by sort order.
      */
     @Query("SELECT * FROM custom_categories ORDER BY sort_order")
-    suspend fun getAllCustomCategories(): List<CustomTab>
+    suspend fun getAllCustomCategories(): List<CustomCategoryTab>
 
     /**
      * Observes all custom tabs with reactive updates.
      */
     @Query("SELECT * FROM custom_categories ORDER BY sort_order")
-    fun observeAllCustomCategories(): Flow<List<CustomTab>>
+    fun observeAllCustomCategories(): Flow<List<CustomCategoryTab>>
 
     /**
      * Gets only visible custom tabs.
      */
     @Query("SELECT * FROM custom_categories WHERE is_visible = 1 ORDER BY sort_order")
-    suspend fun getVisibleCustomCategories(): List<CustomTab>
+    suspend fun getVisibleCustomCategories(): List<CustomCategoryTab>
 
     /**
      * Observes only visible custom tabs.
      */
     @Query("SELECT * FROM custom_categories WHERE is_visible = 1 ORDER BY sort_order")
-    fun observeVisibleCustomCategories(): Flow<List<CustomTab>>
+    fun observeVisibleCustomCategories(): Flow<List<CustomCategoryTab>>
 
     /**
      * Gets a custom tab by name.
      */
     @Query("SELECT * FROM custom_categories WHERE name = :name LIMIT 1")
-    suspend fun getCustomCategoryByName(name: String): CustomTab?
+    suspend fun getCustomCategoryByName(name: String): CustomCategoryTab?
 
     /**
      * Gets a custom tab by ID.
      */
     @Query("SELECT * FROM custom_categories WHERE id = :id LIMIT 1")
-    suspend fun getCustomCategoryById(id: Int): CustomTab?
+    suspend fun getCustomCategoryById(id: Int): CustomCategoryTab?
 
     /**
      * Updates the visibility of a custom tab.
@@ -219,7 +218,7 @@ interface TabDao {
     suspend fun initializeDefaultCategoriesIfNeeded() {
         val existingCategories = getAllCustomCategories()
         if (existingCategories.isEmpty()) {
-            insertCustomCategories(CustomTab.getDefaultTabs())
+            insertCustomCategories(CustomCategoryTab.getDefaultTabs())
         }
     }
 }

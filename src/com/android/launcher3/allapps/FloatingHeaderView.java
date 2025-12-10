@@ -510,7 +510,13 @@ public class FloatingHeaderView extends LinearLayout implements
     int getPeripheralProtectionHeight(boolean expected) {
         if (mUseCategoryTabs && mCategoryTabs != null) {
             // When using category tabs, its height contributes to the protection.
-            return mCategoryTabs.getMeasuredHeight() + getPaddingBottom();
+            if (expected) {
+                 return mCategoryTabs.getBottom() - getPaddingTop() + getPaddingBottom() - mMaxTranslation;
+            }
+            if (mFloatingRowsCollapsed || !mHeaderCollapsed) {
+                return 0;
+            }
+            return Math.max(0, mCategoryTabs.getBottom() - getPaddingTop() + getPaddingBottom() + mTranslationY);
         }
         if (expected) {
             return getTabLayout().getBottom() - getPaddingTop() + getPaddingBottom()

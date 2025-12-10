@@ -22,16 +22,19 @@ import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.override.CustomizeAppDialog
+import app.lawnchair.override.CustomizeFolderDialog
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.views.ComposeBottomSheet
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.BaseDraggingActivity
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
+import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_TASK
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.model.data.AppInfo as ModelAppInfo
+import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.util.ComponentKey
@@ -42,6 +45,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
+import java.io.File
 
 class LawnchairShortcut {
 
@@ -52,7 +58,11 @@ class LawnchairShortcut {
                 if (PreferenceManager2.getInstance(activity).lockHomeScreen.firstBlocking()) {
                     null
                 } else {
-                    getAppInfo(activity, itemInfo)?.let { Customize(activity, it, itemInfo, originalView) }
+                    if (itemInfo.itemType == ITEM_TYPE_FOLDER) {
+                        CustomizeFolder(activity, itemInfo as FolderInfo, originalView)
+                    } else {
+                        getAppInfo(activity, itemInfo)?.let { Customize(activity, it, itemInfo, originalView) }
+                    }
                 }
             }
 
@@ -126,6 +136,53 @@ class LawnchairShortcut {
             } else {
                 Toast.makeText(launcher, R.string.activity_not_found, Toast.LENGTH_SHORT).show()
                 AbstractFloatingView.closeAllOpenViews(launcher)
+            }
+        }
+    }
+
+    class CustomizeFolder(
+        private val launcher: LawnchairLauncher,
+        private val folderInfo: FolderInfo,
+        originalView: View,
+    ) : SystemShortcut<LawnchairLauncher>(R.drawable.ic_edit, R.string.action_customize, launcher, folderInfo, originalView) {
+
+        @SuppressLint("UseCompatLoadingForDrawables")
+        override fun onClick(v: View) {
+            var icon: Drawable? = null
+            if (folderInfo.icon != null) {
+                try {
+                    val file = File(folderInfo.icon)
+                    if (file.exists()) {
+                        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                        if (bitmap != null) {
+                            icon = BitmapDrawable(launcher.resources, bitmap)
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            
+            if (icon == null) {
+                icon = try {
+                    launcher.getDrawable(R.drawable.ic_folder)
+                } catch (e: Exception) {
+                    android.graphics.drawable.ColorDrawable(android.graphics.Color.GRAY)
+                }
+            }
+            
+            val defaultTitle = folderInfo.title?.toString() ?: ""
+
+            AbstractFloatingView.closeAllOpenViews(launcher)
+            ComposeBottomSheet.show(
+                context = launcher,
+                contentPaddings = PaddingValues(bottom = 64.dp),
+            ) {
+                CustomizeFolderDialog(
+                    icon = icon!!,
+                    defaultTitle = defaultTitle,
+                    folderInfo = folderInfo,
+                ) { close(true) }
             }
         }
     }

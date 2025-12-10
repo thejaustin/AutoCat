@@ -20,6 +20,52 @@ plugins {
     alias(libs.plugins.diffplug.spotless)
 }
 
+// ============================================================================
+// BUILD POLICY ENFORCEMENT
+// ============================================================================
+// This project uses GitHub Actions exclusively for builds.
+// Local builds on device (Termux) are NOT supported and will FAIL.
+// See CONTRIBUTING.md and NEVER_BUILD_LOCALLY.md for details.
+// ============================================================================
+
+def isTermux = System.getenv("PREFIX")?.contains("com.termux") == true
+def isLocalBuild = System.getenv("CI") != "true" && System.getenv("GITHUB_ACTIONS") != "true"
+
+if (isTermux && gradle.startParameter.taskNames.any {
+    it.contains("assemble") ||
+    it.contains("build") ||
+    it.contains("bundle") ||
+    it.contains("install")
+}) {
+    throw new GradleException("""
+    ╔════════════════════════════════════════════════════════════════╗
+    ║                      🚨 BUILD NOT ALLOWED 🚨                    ║
+    ╠════════════════════════════════════════════════════════════════╣
+    ║                                                                ║
+    ║  This project does NOT support local builds on device.        ║
+    ║  ALL BUILDS are handled by GitHub Actions.                    ║
+    ║                                                                ║
+    ║  Reason: Building on Termux is:                               ║
+    ║    • Resource-intensive and slow                              ║
+    ║    • Unreliable (frequent crashes/OOM)                        ║
+    ║    • Unnecessary (CI/CD handles this)                         ║
+    ║                                                                ║
+    ║  To get a build:                                              ║
+    ║    1. Push your changes: git push                             ║
+    ║    2. GitHub Actions will build automatically                 ║
+    ║    3. Download APK from GitHub Releases                       ║
+    ║                                                                ║
+    ║  Safe commands you CAN run:                                   ║
+    ║    ✅ ./gradlew spotlessApply                                 ║
+    ║    ✅ ./gradlew spotlessCheck                                 ║
+    ║    ✅ ./gradlew tasks                                         ║
+    ║                                                                ║
+    ║  See: CONTRIBUTING.md, NEVER_BUILD_LOCALLY.md                 ║
+    ║                                                                ║
+    ╚════════════════════════════════════════════════════════════════╝
+    """)
+}
+
 
 allprojects {
     plugins.withType(AndroidBasePlugin).configureEach {

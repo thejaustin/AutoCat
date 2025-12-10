@@ -58,6 +58,20 @@ interface FolderDao {
     @Query("DELETE FROM Folders WHERE id = :folderId")
     suspend fun deleteFolder(folderId: Int)
 
+    @Query(
+        value = """
+                UPDATE Folders
+                SET coverMode = :coverMode, coverAppComponent = :coverAppComponent, timestamp = :timestamp
+                WHERE id = :folderId
+            """,
+    )
+    suspend fun updateFolderCover(
+        folderId: Int,
+        coverMode: Boolean,
+        coverAppComponent: String?,
+        timestamp: Long = System.currentTimeMillis(),
+    )
+
     @RawQuery
     suspend fun checkpoint(supportSQLiteQuery: SupportSQLiteQuery): Int
 }

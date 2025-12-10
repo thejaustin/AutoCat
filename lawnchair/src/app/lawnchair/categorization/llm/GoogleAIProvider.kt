@@ -757,7 +757,10 @@ Respond ONLY in this JSON format:
                 .replace("```", "")
                 .trim()
 
-            val result = JSONObject(jsonText)
+            // Apply JSON repair
+            val fixedJsonText = fixMalformedJson(jsonText)
+
+            val result = JSONObject(fixedJsonText)
             val category = result.getString("category")
             val confidence = result.getDouble("confidence").toFloat()
             val reasoning = result.optString("reasoning", null)
@@ -921,7 +924,10 @@ Respond ONLY in this JSON format:
                 .replace("```", "")
                 .trim()
 
-            val result = JSONObject(jsonText)
+            // Apply JSON repair
+            val fixedJsonText = fixMalformedJson(jsonText)
+
+            val result = JSONObject(fixedJsonText)
             val resultsObj = result.getJSONObject("results")
 
             val categorizations = mutableMapOf<String, CategorizationResult>()

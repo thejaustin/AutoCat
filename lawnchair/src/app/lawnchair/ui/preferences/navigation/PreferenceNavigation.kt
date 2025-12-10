@@ -57,6 +57,10 @@ import soup.compose.material.motion.animation.materialSharedAxisXIn
 import soup.compose.material.motion.animation.materialSharedAxisXOut
 import soup.compose.material.motion.animation.rememberSlideDistance
 
+import app.lawnchair.ui.preferences.destinations.SelectFolderIconPreference
+
+import app.lawnchair.ui.preferences.destinations.SelectAppPreference
+
 @Composable
 fun PreferenceNavigation(
     navController: NavHostController,
@@ -158,6 +162,14 @@ fun PreferenceNavigation(
             val componentKey = args.componentKey
             val key = ComponentKey.fromString(componentKey)!!
             SelectIconPreference(key)
+        }
+        composable<SelectFolderIcon> { backStackEntry ->
+            val args: SelectFolderIcon = backStackEntry.toRoute()
+            SelectFolderIconPreference(args.folderId)
+        }
+        composable<SelectApp> { backStackEntry ->
+            val args: SelectApp = backStackEntry.toRoute()
+            SelectAppPreference(args.requestId)
         }
         composable<IconPicker> { backStackEntry ->
             val args: IconPicker = backStackEntry.toRoute()

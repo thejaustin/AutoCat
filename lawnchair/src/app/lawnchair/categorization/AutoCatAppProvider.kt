@@ -29,7 +29,7 @@ class AutoCatAppProvider(private val context: Context) {
     private val llmCategorizer = LLMCategorizer(context, categoryDao)
     private val packageManager = context.packageManager
 
-    private data class CategoryInfo(val category: String, val subCategory: String?)
+    private data class CategoryInfo(val tabName: String, val subCategory: String?)
 
     // In-memory cache of app categories (packageName -> CategoryInfo)
     private val categoryCache = ConcurrentHashMap<String, CategoryInfo>()
@@ -61,7 +61,7 @@ class AutoCatAppProvider(private val context: Context) {
                 val appCategories = categoryDao.getAllAppCategories()
                 categoryCache.clear()
                 appCategories.forEach { appCategory ->
-                    categoryCache[appCategory.packageName] = CategoryInfo(appCategory.category, appCategory.subCategory)
+                    categoryCache[appCategory.packageName] = CategoryInfo(appCategory.tabName, appCategory.subCategory)
                 }
                 cacheInitialized = true
                 Log.d(TAG, "Cache initialized with ${categoryCache.size} categorized apps")
@@ -126,10 +126,10 @@ class AutoCatAppProvider(private val context: Context) {
      * @param category Category name, or null to remove from cache
      * @param subCategory Subcategory name, or null
      */
-    fun updateCacheForApp(packageName: String, category: String?, subCategory: String? = null) {
-        if (category != null) {
-            categoryCache[packageName] = CategoryInfo(category, subCategory)
-            Log.d(TAG, "Cache updated: $packageName -> $category / $subCategory")
+    fun updateCacheForApp(packageName: String, tabName: String?, subCategory: String? = null) {
+        if (tabName != null) {
+            categoryCache[packageName] = CategoryInfo(tabName, subCategory)
+            Log.d(TAG, "Cache updated: $packageName -> $tabName / $subCategory")
         } else {
             categoryCache.remove(packageName)
             Log.d(TAG, "Cache entry removed: $packageName")
@@ -157,7 +157,7 @@ class AutoCatAppProvider(private val context: Context) {
             val catInfo = app.packageName?.let { categoryCache[it] }
 
             if (catInfo != null) {
-                val subMap = categorizedApps.getOrPut(catInfo.category) { mutableMapOf() }
+                val subMap = categorizedApps.getOrPut(catInfo.tabName) { mutableMapOf() }
                 val subCatKey = catInfo.subCategory ?: ""
                 subMap.getOrPut(subCatKey) { mutableListOf() }.add(app)
             } else {
@@ -183,9 +183,9 @@ class AutoCatAppProvider(private val context: Context) {
      * @param categoryName Name of the category
      * @return Hex color string (e.g., "#4CAF50") or null if not found
      */
-    fun getCategoryColor(categoryName: String): String? {
+    fun getTabColor(tabName: String): String? {
         return runBlocking {
-            categoryDao.getCustomCategoryByName(categoryName)?.colorHex
+            categoryDao.getCustomCategoryByName(tabName)?.colorHex
         }
     }
 

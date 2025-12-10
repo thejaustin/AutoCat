@@ -539,6 +539,8 @@
     <string name="gesture_handler_open_app_search">Open app search</string>
     <string name="gesture_handler_open_search">Open search</string>
     <string name="gesture_handler_open_assistant">Open assistant</string>
+    <string name="gesture_handler_open_folder">Open folder</string>
+    <string name="gesture_handler_open_app_config">Open <xliff:g id="app_name" example="Messenger">%1$s</xliff:g></string>
 
     <string name="pick_app_for_gesture">Pick app</string>
 

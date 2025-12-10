@@ -255,6 +255,14 @@ fun CategorizationSettingsPreferences(
                         label = "Rate Limiting",
                         description = "Add 1-second delay between batches. Recommended for free tier APIs.",
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    SwitchPreference(
+                        adapter = prefs.autoCatDevMode.getAdapter(),
+                        label = "Developer Mode",
+                        description = "Show advanced diagnostics and logs.",
+                    )
                 }
             }
 

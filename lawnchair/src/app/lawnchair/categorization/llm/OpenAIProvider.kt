@@ -442,6 +442,32 @@ class OpenAIProvider(
             .trim()
     }
 
+    /**
+     * Fixes common JSON formatting issues that LLMs sometimes produce.
+     * Specifically handles missing commas between array/object elements.
+     */
+    private fun fixMalformedJson(json: String): String {
+        var fixed = json
+
+        // Fix missing commas between objects in arrays
+        // Pattern: }[\s\n]*{ should be },{
+        fixed = fixed.replace(Regex("}\\s*\\{"), "},{")
+
+        // Fix missing commas between arrays
+        // Pattern: ][\s\n]*[ should be ],[
+        fixed = fixed.replace(Regex("]\\s*\\["), "],[")
+
+        // Fix missing commas after closing braces before new properties
+        // Pattern: }[\s\n]*"property" should be },"property"
+        fixed = fixed.replace(Regex("}\\s*\""), "},\"")
+
+        // Fix missing commas after closing brackets before new properties
+        // Pattern: ][\s\n]*"property" should be ],"property"
+        fixed = fixed.replace(Regex("]\\s*\""), "],\"")
+
+        return fixed
+    }
+
     private fun buildPrompt(
         appName: String,
         appPackage: String,
@@ -697,10 +723,13 @@ Respond ONLY in this JSON format:
                 .getString("content")
 
             // Extract JSON from markdown code blocks if present
-            val jsonText = content
+            var jsonText = content
                 .replace("```json", "")
                 .replace("```", "")
                 .trim()
+
+            // Apply JSON repair
+            jsonText = fixMalformedJson(jsonText)
 
             val result = JSONObject(jsonText)
             val category = result.getString("category")
@@ -731,10 +760,13 @@ Respond ONLY in this JSON format:
                 .getString("content")
 
             // Extract JSON from markdown code blocks if present
-            val jsonText = content
+            var jsonText = content
                 .replace("```json", "")
                 .replace("```", "")
                 .trim()
+
+            // Apply JSON repair
+            jsonText = fixMalformedJson(jsonText)
 
             val result = JSONObject(jsonText)
             val suggestions = result.getJSONArray("suggestions")
@@ -767,10 +799,13 @@ Respond ONLY in this JSON format:
                 .getString("content")
 
             // Extract JSON from markdown code blocks if present
-            val jsonText = content
+            var jsonText = content
                 .replace("```json", "")
                 .replace("```", "")
                 .trim()
+
+            // Apply JSON repair
+            jsonText = fixMalformedJson(jsonText)
 
             val result = JSONObject(jsonText)
             val foldersArray = result.getJSONArray("folders")
@@ -807,10 +842,13 @@ Respond ONLY in this JSON format:
                 .getString("content")
 
             // Extract JSON from markdown code blocks if present
-            val jsonText = content
+            var jsonText = content
                 .replace("```json", "")
                 .replace("```", "")
                 .trim()
+
+            // Apply JSON repair
+            jsonText = fixMalformedJson(jsonText)
 
             val result = JSONObject(jsonText)
             val resultsObj = result.getJSONObject("results")

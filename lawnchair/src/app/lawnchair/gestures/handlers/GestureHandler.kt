@@ -21,6 +21,10 @@ import app.lawnchair.LawnchairLauncher
 
 sealed class GestureHandler(val context: Context) {
     abstract suspend fun onTrigger(launcher: LawnchairLauncher)
+    
+    open suspend fun onTrigger(launcher: LawnchairLauncher, itemInfo: Any?) {
+        onTrigger(launcher)
+    }
 }
 
 class NoOpGestureHandler(context: Context) : GestureHandler(context) {

@@ -171,7 +171,7 @@ class CategoryTabStrip @JvmOverloads constructor(
         }
     }
 
-    private fun showTabOptions(view: View, categoryName: String) {
+    private fun showTabOptions(view: View, tabName: String) {
         if (categoryName == CategoryTabsController.TAB_ALL || categoryName == CategoryTabsController.TAB_WORK) {
             return
         }
@@ -183,12 +183,12 @@ class CategoryTabStrip @JvmOverloads constructor(
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 1 -> {
-                    showRenameDialog(categoryName)
+                    showRenameDialog(tabName)
                     true
                 }
 
                 2 -> {
-                    showDeleteDialog(categoryName)
+                    showDeleteDialog(tabName)
                     true
                 }
 
@@ -198,30 +198,30 @@ class CategoryTabStrip @JvmOverloads constructor(
         popup.show()
     }
 
-    private fun showRenameDialog(oldName: String) {
+    private fun showRenameDialog(oldTabName: String) {
         val input = EditText(context)
-        input.setText(oldName)
+        input.setText(oldTabName)
         input.setSelectAllOnFocus(true)
 
         AlertDialog.Builder(context)
-            .setTitle("Rename Category")
+            .setTitle("Rename Tab")
             .setView(input)
             .setPositiveButton("Save") { _, _ ->
-                val newName = input.text.toString().trim()
-                if (newName.isNotEmpty() && newName != oldName) {
-                    categoryController.renameCategory(oldName, newName)
+                val newTabName = input.text.toString().trim()
+                if (newTabName.isNotEmpty() && newTabName != oldTabName) {
+                    categoryController.renameTab(oldTabName, newTabName)
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    private fun showDeleteDialog(categoryName: String) {
+    private fun showDeleteDialog(tabName: String) {
         AlertDialog.Builder(context)
-            .setTitle("Delete Category")
-            .setMessage("Are you sure you want to delete '$categoryName'? Apps will be moved to 'Other'.")
+            .setTitle("Delete Tab")
+            .setMessage("Are you sure you want to delete '$tabName'? Apps will be moved to 'Other'.")
             .setPositiveButton("Delete") { _, _ ->
-                categoryController.deleteCategory(categoryName)
+                categoryController.deleteTab(tabName)
             }
             .setNegativeButton("Cancel", null)
             .show()

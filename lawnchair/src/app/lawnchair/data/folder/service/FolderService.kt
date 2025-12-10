@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
+import android.content.ComponentName
+import app.lawnchair.categorization.CategoryFolderSyncService
+
 class FolderService(val context: Context) : SafeCloseable {
 
     private val folderDao = AppDatabase.INSTANCE.get(context).folderDao()
@@ -42,17 +45,41 @@ class FolderService(val context: Context) : SafeCloseable {
                 it.toEntity(folderInfoId)
             }.toList(),
         )
+        // Bidirectional sync: Update categories when folder contents change
+        CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
+            folderId = folderInfoId,
+            categoryName = title,
+            newAppPackages = appInfos.mapNotNull { it.componentName?.packageName }
+        )
     }
 
     suspend fun saveFolderInfo(folderInfo: FolderInfo) = withContext(Dispatchers.IO) {
-        folderDao.insertFolder(FolderInfoEntity(title = folderInfo.title.toString()))
+        folderDao.insertFolder(FolderInfoEntity(
+            title = folderInfo.title.toString(),
+            icon = folderInfo.icon,
+            coverMode = folderInfo.coverMode,
+            coverAppComponent = folderInfo.coverApp?.flattenToString()
+        ))
     }
 
     suspend fun updateFolderInfo(folderInfo: FolderInfo, hide: Boolean = false) = withContext(Dispatchers.IO) {
         folderDao.updateFolderInfo(folderInfo.id, folderInfo.title.toString(), hide)
     }
 
+    suspend fun updateFolderCover(folderId: Int, coverMode: Boolean, coverApp: ComponentName?) = withContext(Dispatchers.IO) {
+        folderDao.updateFolderCover(folderId, coverMode, coverApp?.flattenToString())
+    }
+
     suspend fun deleteFolderInfo(id: Int) = withContext(Dispatchers.IO) {
+        // Bidirectional sync: Notify when folder is deleted
+        val folder = getFolderInfo(id, true)
+        if (folder != null) {
+            CategoryFolderSyncService.getInstance(context).onFolderDeleted(
+                folderId = id,
+                categoryName = folder.title.toString(),
+                removeCategories = false // Don't delete categories by default when folder is deleted
+            )
+        }
         folderDao.deleteFolder(id)
     }
 
@@ -69,6 +96,9 @@ class FolderService(val context: Context) : SafeCloseable {
                 if (hasId) id = folderWithItems.folder.id
                 title = folderWithItems.folder.title
                 icon = folderWithItems.folder.icon
+                // New fields for Folder Cover Mode
+                coverMode = folderWithItems.folder.coverMode
+                coverApp = folderWithItems.folder.coverAppComponent?.let { ComponentName.unflattenFromString(it) }
             }
 
             folderWithItems.items.forEach { itemEntity ->

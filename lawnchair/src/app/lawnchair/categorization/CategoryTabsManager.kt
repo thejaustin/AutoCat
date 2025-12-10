@@ -31,7 +31,7 @@ class CategoryTabsManager(private val context: Context) {
     data class TabInfo(
         val id: String,
         val name: String,
-        val category: String?,
+        val tabName: String?,
         val colorHex: String?,
         val isWorkTab: Boolean = false,
         val isOtherTab: Boolean = false,
@@ -50,33 +50,33 @@ class CategoryTabsManager(private val context: Context) {
         val tabs = mutableListOf<TabInfo>()
 
         // Get visible categories from database (already sorted by sortOrder)
-        val categories = runBlocking {
+        val tabs = runBlocking {
             categoryDao.getVisibleCustomCategories()
         }
 
-        android.util.Log.d(TAG, "getTabs: Found ${categories.size} visible categories")
-        categories.forEach { category ->
-            android.util.Log.d(TAG, "  - ${category.name} (id: ${category.id}, visible: ${category.isVisible}, sortOrder: ${category.sortOrder})")
+        android.util.Log.d(TAG, "getTabs: Found ${tabs.size} visible tabs")
+        tabs.forEach { tab ->
+            android.util.Log.d(TAG, "  - ${tab.name} (id: ${tab.id}, visible: ${tab.isVisible}, sortOrder: ${tab.sortOrder})")
         }
 
         // Group categories: only create tabs for top-level categories
-        val topLevelCategories = categories
+        val topLevelCategories = tabs
             .map { it.name.split(" > ").first() }
             .distinct()
-            .mapNotNull { name -> categories.find { it.name == name } ?: categories.find { it.name.startsWith("$name >") }?.copy(name = name) }
+            .mapNotNull { name -> tabs.find { it.name == name } ?: tabs.find { it.name.startsWith("$name >") }?.copy(name = name) }
 
-        android.util.Log.d(TAG, "getTabs: Found ${topLevelCategories.size} top-level categories from ${categories.size} total")
+        android.util.Log.d(TAG, "getTabs: Found ${topLevelCategories.size} top-level tabs from ${tabs.size} total")
 
         // Add a tab for each top-level category
-        topLevelCategories.forEach { category ->
+        topLevelCategories.forEach { tab ->
             // Use the top-level name
-            val name = category.name.split(" > ").first()
+            val name = tab.name.split(" > ").first()
             tabs.add(
                 TabInfo(
-                    id = "category_${category.id}", // Use ID of the representative category
+                    id = "tab_${tab.id}", // Use ID of the representative tab
                     name = name,
-                    category = name, // This will be used as a prefix match
-                    colorHex = category.colorHex,
+                    tabName = name, // This will be used as a prefix match
+                    colorHex = tab.colorHex,
                 ),
             )
         }
@@ -86,7 +86,7 @@ class CategoryTabsManager(private val context: Context) {
             TabInfo(
                 id = "other",
                 name = "Other",
-                category = null,
+                tabName = null,
                 colorHex = "#9E9E9E", // Gray color
                 isOtherTab = true,
             ),
@@ -98,7 +98,7 @@ class CategoryTabsManager(private val context: Context) {
                 TabInfo(
                     id = "work",
                     name = "Work",
-                    category = null,
+                    tabName = null,
                     colorHex = "#607D8B", // Blue-gray color
                     isWorkTab = true,
                 ),

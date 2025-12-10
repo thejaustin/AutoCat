@@ -10,14 +10,14 @@ import com.android.launcher3.allapps.AllAppsPagedView
  * Unlike the standard Personal/Work tabs which are fixed at 2 pages,
  * this supports N pages based on user-defined categories.
  */
-class CategoryAllAppsPagedView @JvmOverloads constructor(
+class CategoryTabAllAppsPagedView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0,
 ) : AllAppsPagedView(context, attrs, defStyle) {
 
     companion object {
-        private const val TAG = "CategoryAllAppsPagedView"
+        private const val TAG = "CategoryTabAllAppsPagedView"
     }
 
     private var categoryCount = 0

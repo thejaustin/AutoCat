@@ -43,6 +43,14 @@ For translations, please visit **[Lawnchair on Crowdin][crowdin]**.
 If you encounter errors with the `iconloaderlib` or `searchuilib` modules, run
 `git submodule update --init --recursive`.
 
+### Building
+
+> [!IMPORTANT]
+> **All builds are handled by GitHub Actions. NEVER build locally.**
+>
+> This project relies exclusively on CI/CD pipelines for building APKs. Local builds are not
+> supported and should not be attempted.
+
 Here are some contribution tips to help you get started:
 
 - Always make sure that you're up-to-date with **Lawnchair** by setting your base branch to

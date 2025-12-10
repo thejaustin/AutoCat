@@ -40,8 +40,8 @@ class CategoryTabsController private constructor(private val context: Context) :
     private val categoryDao = TabDatabase.getInstance(context).categoryDao()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val _categories = MutableStateFlow<List<CustomTab>>(emptyList())
-    val categories: StateFlow<List<CustomTab>> = _categories.asStateFlow()
+    private val _categories = MutableStateFlow<List<CustomCategoryTab>>(emptyList())
+    val categories: StateFlow<List<CustomCategoryTab>> = _categories.asStateFlow()
 
     private val _currentTabIndex = MutableStateFlow(TAB_ALL_INDEX)
     val currentTabIndex: StateFlow<Int> = _currentTabIndex.asStateFlow()
@@ -56,7 +56,7 @@ class CategoryTabsController private constructor(private val context: Context) :
     private fun loadCategories() {
         scope.launch {
             try {
-                val cats = withContext(Dispatchers.IO) {
+                val cats: List<CustomCategoryTab> = withContext(Dispatchers.IO) {
                     categoryDao.getAllCustomCategories()
                         .filter { it.isVisible }
                         .sortedBy { it.sortOrder }
@@ -71,7 +71,7 @@ class CategoryTabsController private constructor(private val context: Context) :
         }
     }
 
-    private fun updateTabNames(cats: List<CustomTab>) {
+    private fun updateTabNames(cats: List<CustomCategoryTab>) {
         val names = mutableListOf(TAB_ALL)
         names.addAll(cats.map { it.name })
 
@@ -118,11 +118,11 @@ class CategoryTabsController private constructor(private val context: Context) :
     }
 
     /**
-     * Get the category name for a given tab index.
+     * Get the tab name for a given tab index.
      * Returns null for "All Apps" tab.
      * Returns TAB_WORK constant for Work tab.
      */
-    fun getCategoryForTab(tabIndex: Int): String? {
+    fun getTabNameForTab(tabIndex: Int): String? {
         return if (tabIndex == TAB_ALL_INDEX) {
             null // "All Apps" shows everything
         } else if (isWorkTab(tabIndex)) {
@@ -170,14 +170,14 @@ class CategoryTabsController private constructor(private val context: Context) :
     /**
      * Rename a custom category.
      */
-    fun renameCategory(oldName: String, newName: String) {
-        if (oldName == TAB_ALL || oldName == TAB_WORK) return
+    fun renameTab(oldTabName: String, newTabName: String) {
+        if (oldTabName == TAB_ALL || oldTabName == TAB_WORK) return
 
         scope.launch(Dispatchers.IO) {
-            val category = categoryDao.getCustomCategoryByName(oldName)
-            if (category != null) {
-                categoryDao.updateCustomCategory(category.copy(name = newName))
-                categoryDao.updateAppCategoryName(oldName, newName)
+            val tab = categoryDao.getCustomCategoryByName(oldTabName)
+            if (tab != null) {
+                categoryDao.updateCustomCategory(tab.copy(name = newTabName))
+                categoryDao.updateAppTabName(oldTabName, newTabName)
                 loadCategories()
                 AutoCatAppProvider.getInstance(context).refreshCache()
             }
@@ -187,14 +187,14 @@ class CategoryTabsController private constructor(private val context: Context) :
     /**
      * Delete a custom category.
      */
-    fun deleteCategory(categoryName: String) {
-        if (categoryName == TAB_ALL || categoryName == TAB_WORK) return
+    fun deleteTab(tabName: String) {
+        if (tabName == TAB_ALL || tabName == TAB_WORK) return
 
         scope.launch(Dispatchers.IO) {
-            val category = categoryDao.getCustomCategoryByName(categoryName)
-            if (category != null) {
-                categoryDao.deleteCustomCategory(category)
-                categoryDao.resetAppCategoriesForDeletedCategory(categoryName)
+            val tab = categoryDao.getCustomCategoryByName(tabName)
+            if (tab != null) {
+                categoryDao.deleteCustomCategory(tab)
+                categoryDao.resetAppTabsForDeletedTab(tabName)
                 loadCategories()
                 AutoCatAppProvider.getInstance(context).refreshCache()
             }
