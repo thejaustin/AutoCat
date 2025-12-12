@@ -27,8 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-// TODO: Implement CategoryFolderSyncService
-// import app.lawnchair.categorization.CategoryFolderSyncService
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
