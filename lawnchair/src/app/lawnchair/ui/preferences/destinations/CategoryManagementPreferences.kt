@@ -498,7 +498,7 @@ private fun SuggestionsDialog(
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.weight(1f),
                                 )
-                                TextButton(onClick = { onAddCategory(suggestion) }) {
+                                TextButton(onClick = { onAddTab(suggestion) }) {
                                     Text("Add")
                                 }
                             }

@@ -43,7 +43,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations
 import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
-import app.lawnchair.ui.preferences.navigation.AppDrawerManageCategories
+import app.lawnchair.ui.preferences.navigation.AppDrawerManageTabs
 import kotlinx.coroutines.launch
 
 @Composable
@@ -177,7 +177,7 @@ fun CategorizationSettingsPreferences(
                     NavigationActionPreference(
                         label = "Tabs",
                         subtitle = "Create and manage custom tabs for your apps",
-                        destination = AppDrawerManageCategories,
+                        destination = AppDrawerManageTabs,
                         icon = Icons.Rounded.ViewList,
                     )
 

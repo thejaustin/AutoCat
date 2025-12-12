@@ -41,7 +41,7 @@ fun SelectAppPreference(requestId: Int) {
                 onClick = {
                     navController.previousBackStackEntry
                         ?.savedStateHandle
-                        ?.set("component_name_result_$requestId", ComponentKey(app.componentName, app.user))
+                        ?.set("component_name_result_$requestId", app.key)
                     navController.popBackStack()
                 },
             )
