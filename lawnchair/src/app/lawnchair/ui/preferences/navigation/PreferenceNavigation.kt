@@ -51,7 +51,6 @@ import app.lawnchair.ui.preferences.destinations.SearchPreferences
 import app.lawnchair.ui.preferences.destinations.SearchProviderPreferences
 import app.lawnchair.ui.preferences.destinations.SelectAppPreference
 import app.lawnchair.ui.preferences.destinations.SelectAppsForDrawerFolder
-import app.lawnchair.ui.preferences.destinations.SelectFolderIconPreference
 import app.lawnchair.ui.preferences.destinations.SelectIconPreference
 import app.lawnchair.ui.preferences.destinations.SmartspacePreferences
 import com.android.launcher3.util.ComponentKey
@@ -161,10 +160,11 @@ fun PreferenceNavigation(
             val key = ComponentKey.fromString(componentKey)!!
             SelectIconPreference(key)
         }
-        composable<SelectFolderIcon> { backStackEntry ->
-            val args: SelectFolderIcon = backStackEntry.toRoute()
-            SelectFolderIconPreference(args.folderId)
-        }
+        // TODO: Implement folder icon selection
+        // composable<SelectFolderIcon> { backStackEntry ->
+        //     val args: SelectFolderIcon = backStackEntry.toRoute()
+        //     SelectFolderIconPreference(args.folderId)
+        // }
         composable<SelectApp> { backStackEntry ->
             val args: SelectApp = backStackEntry.toRoute()
             SelectAppPreference(args.requestId)

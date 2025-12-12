@@ -27,7 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.lawnchair.categorization.CategoryFolderSyncService
+// TODO: Implement CategoryFolderSyncService
+// import app.lawnchair.categorization.CategoryFolderSyncService
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
@@ -112,13 +113,14 @@ fun SelectAppsForDrawerFolder(
                         )
 
                         // Bidirectional sync
-                        scope.launch {
-                            CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
-                                folderId = folderInfoId,
-                                categoryName = folderInfo?.title.toString(),
-                                newAppPackages = newSet.mapNotNull { it.targetPackage },
-                            )
-                        }
+                        // TODO: Implement CategoryFolderSyncService
+                        // scope.launch {
+                        //     CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
+                        //         folderId = folderInfoId,
+                        //         categoryName = folderInfo?.title.toString(),
+                        //         newAppPackages = newSet.mapNotNull { it.targetPackage },
+                        //     )
+                        // }
                     },
                     filterUniqueItems = filterNonUniqueItems,
                     onToggleFilterUniqueItems = {
@@ -167,13 +169,14 @@ fun SelectAppsForDrawerFolder(
                                             )
 
                                             // Bidirectional sync
-                                            scope.launch {
-                                                CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
-                                                    folderId = folderInfoId,
-                                                    categoryName = folderInfo?.title.toString(),
-                                                    newAppPackages = newSet.mapNotNull { it.targetPackage },
-                                                )
-                                            }
+                                            // TODO: Implement CategoryFolderSyncService
+                                            // scope.launch {
+                                            //     CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
+                                            //         folderId = folderInfoId,
+                                            //         categoryName = folderInfo?.title.toString(),
+                                            //         newAppPackages = newSet.mapNotNull { it.targetPackage },
+                                            //     )
+                                            // }
                                         },
                                     )
                                 },
