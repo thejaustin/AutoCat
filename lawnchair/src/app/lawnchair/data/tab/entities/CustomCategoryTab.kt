@@ -18,7 +18,7 @@ import androidx.room.PrimaryKey
  * @property createdAt Timestamp of tab creation (milliseconds since epoch)
  */
 @Entity(tableName = "custom_categories")
-data class CustomCategoryTab(
+data class CustomTab(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     val id: Int = 0,

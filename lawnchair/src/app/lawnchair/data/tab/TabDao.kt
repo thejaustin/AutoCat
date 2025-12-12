@@ -8,7 +8,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import app.lawnchair.data.tab.entities.AppTab
-import app.lawnchair.data.tab.entities.CustomCategoryTab
+import app.lawnchair.data.tab.entities.CustomTab
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -135,61 +135,61 @@ interface TabDao {
      * Inserts a new custom tab.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCustomCategory(customCategory: CustomCategoryTab): Long
+    suspend fun insertCustomCategory(customCategory: CustomTab): Long
 
     /**
      * Inserts multiple custom tabs.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCustomCategories(customCategories: List<CustomCategoryTab>)
+    suspend fun insertCustomCategories(customCategories: List<CustomTab>)
 
     /**
      * Updates an existing custom tab.
      */
     @Update
-    suspend fun updateCustomCategory(customCategory: CustomCategoryTab)
+    suspend fun updateCustomCategory(customCategory: CustomTab)
 
     /**
      * Deletes a custom tab.
      */
     @Delete
-    suspend fun deleteCustomCategory(customCategory: CustomCategoryTab)
+    suspend fun deleteCustomCategory(customCategory: CustomTab)
 
     /**
      * Gets all custom tabs ordered by sort order.
      */
     @Query("SELECT * FROM custom_categories ORDER BY sort_order")
-    suspend fun getAllCustomCategories(): List<CustomCategoryTab>
+    suspend fun getAllCustomCategories(): List<CustomTab>
 
     /**
      * Observes all custom tabs with reactive updates.
      */
     @Query("SELECT * FROM custom_categories ORDER BY sort_order")
-    fun observeAllCustomCategories(): Flow<List<CustomCategoryTab>>
+    fun observeAllCustomCategories(): Flow<List<CustomTab>>
 
     /**
      * Gets only visible custom tabs.
      */
     @Query("SELECT * FROM custom_categories WHERE is_visible = 1 ORDER BY sort_order")
-    suspend fun getVisibleCustomCategories(): List<CustomCategoryTab>
+    suspend fun getVisibleCustomCategories(): List<CustomTab>
 
     /**
      * Observes only visible custom tabs.
      */
     @Query("SELECT * FROM custom_categories WHERE is_visible = 1 ORDER BY sort_order")
-    fun observeVisibleCustomCategories(): Flow<List<CustomCategoryTab>>
+    fun observeVisibleCustomCategories(): Flow<List<CustomTab>>
 
     /**
      * Gets a custom tab by name.
      */
     @Query("SELECT * FROM custom_categories WHERE name = :name LIMIT 1")
-    suspend fun getCustomCategoryByName(name: String): CustomCategoryTab?
+    suspend fun getCustomCategoryByName(name: String): CustomTab?
 
     /**
      * Gets a custom tab by ID.
      */
     @Query("SELECT * FROM custom_categories WHERE id = :id LIMIT 1")
-    suspend fun getCustomCategoryById(id: Int): CustomCategoryTab?
+    suspend fun getCustomCategoryById(id: Int): CustomTab?
 
     /**
      * Updates the visibility of a custom tab.
@@ -219,7 +219,7 @@ interface TabDao {
     suspend fun initializeDefaultCategoriesIfNeeded() {
         val existingCategories = getAllCustomCategories()
         if (existingCategories.isEmpty()) {
-            insertCustomCategories(CustomCategoryTab.getDefaultTabs())
+            insertCustomCategories(CustomTab.getDefaultTabs())
         }
     }
 }
