@@ -64,9 +64,9 @@ fun CategoryManagementPreferences(
     val categorizationManager = remember { CategorizationManager.getInstance(context) }
     val appProvider = remember { AutoCatAppProvider.getInstance(context) }
 
-    var tabs by remember { mutableStateOf<List<CustomCategoryTab>>(emptyList()) }
+    var tabs by remember { mutableStateOf<List<CustomTab>>(emptyList()) }
     var showAddDialog by remember { mutableStateOf(false) }
-    var editingTab by remember { mutableStateOf<CustomCategoryTab?>(null) }
+    var editingTab by remember { mutableStateOf<CustomTab?>(null) }
     var showSuggestionsDialog by remember { mutableStateOf(false) }
     var suggestedCategories by remember { mutableStateOf<List<SuggestedCategory>>(emptyList()) }
     var isLoadingSuggestions by remember { mutableStateOf(false) }
@@ -259,7 +259,7 @@ fun CategoryManagementPreferences(
                         val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
                         android.util.Log.d("CategoryManagement", "Creating new tab: $name, sortOrder: ${maxSortOrder + 1}, isVisible: true")
                         val tabId = categoryDao.insertCustomCategory(
-                            CustomCategoryTab(
+                            CustomTab(
                                 name = name,
                                 colorHex = color,
                                 sortOrder = maxSortOrder + 1,
@@ -294,7 +294,7 @@ fun CategoryManagementPreferences(
                 scope.launch {
                     val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
                     categoryDao.insertCustomCategory(
-                        CustomCategoryTab(
+                        CustomTab(
                             name = suggestion.name,
                             colorHex = "#4CAF50", // Default green color
                             sortOrder = maxSortOrder + 1,
@@ -313,9 +313,9 @@ fun CategoryManagementPreferences(
 
 @Composable
 private fun CategoryItem(
-    tab: CustomCategoryTab,
-    onEdit: (CustomCategoryTab) -> Unit,
-    onDelete: (CustomCategoryTab) -> Unit,
+    tab: CustomTab,
+    onEdit: (CustomTab) -> Unit,
+    onDelete: (CustomTab) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -362,7 +362,7 @@ private fun CategoryItem(
 
 @Composable
 private fun CategoryDialog(
-    tab: CustomCategoryTab?,
+    tab: CustomTab?,
     onDismiss: () -> Unit,
     onSave: (String, String) -> Unit,
 ) {

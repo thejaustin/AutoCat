@@ -31,7 +31,7 @@ fun SelectAppPreference(requestId: Int) {
         (context as Activity).finish()
     }
 
-    PreferenceLayoutLazyColumn(label = context.getString(R.string.select_app)) {
+    PreferenceLayoutLazyColumn(label = "Select App") {
         preferenceGroupItems(
             items = apps,
             isFirstChild = true,
@@ -41,7 +41,7 @@ fun SelectAppPreference(requestId: Int) {
                 onClick = {
                     navController.previousBackStackEntry
                         ?.savedStateHandle
-                        ?.set("component_name_result_$requestId", ComponentKey(it.componentName!!, it.user))
+                        ?.set("component_name_result_$requestId", ComponentKey(app.componentName, app.user))
                     navController.popBackStack()
                 },
             )
