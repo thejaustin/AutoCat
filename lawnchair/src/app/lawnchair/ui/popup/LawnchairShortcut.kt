@@ -25,8 +25,8 @@ import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.override.CustomizeAppDialog
-// import app.lawnchair.override.CustomizeFolderDialog // TODO: Implement folder customization dialog
 import app.lawnchair.preferences2.PreferenceManager2
+// import app.lawnchair.override.CustomizeFolderDialog // TODO: Implement folder customization dialog
 import app.lawnchair.views.ComposeBottomSheet
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.BaseDraggingActivity
