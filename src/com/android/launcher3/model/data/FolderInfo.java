@@ -200,7 +200,7 @@ public class FolderInfo extends CollectionInfo {
     public void onAddToDatabase(@NonNull ContentWriter writer) {
         super.onAddToDatabase(writer);
         writer.put(LauncherSettings.Favorites.OPTIONS, options);
-        writer.put("coverMode", coverMode);
+        writer.put("coverMode", coverMode ? 1 : 0);
         writer.put("coverApp", coverApp != null ? coverApp.flattenToString() : null);
     }
 

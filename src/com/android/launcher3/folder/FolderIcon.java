@@ -245,7 +245,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
                     launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
                     launchIntent.setComponent(folderInfo.coverApp);
                     launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                    activity.startActivity(launchIntent);
+                    v.getContext().startActivity(launchIntent);
                 } catch (Exception e) {
                     // Log or show toast
                     e.printStackTrace();
@@ -304,16 +304,26 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         if (mInfo != null && mInfo.coverMode && mInfo.coverApp != null) {
             Executors.MODEL_EXECUTOR.post(() -> {
                 try {
-                    // Get the app icon from IconCache
-                    IconCache iconCache = LauncherAppState.getInstance(getContext()).getIconCache();
-                    // Assume UserHandle.CURRENT for simplicity for now, can be refined if needed.
-                    FastBitmapDrawable appIcon = iconCache.getAppIcon(mInfo.coverApp, Process.myUserHandle());
-                    
-                    if (appIcon != null) {
-                        post(() -> {
-                            mCoverAppIcon = appIcon;
-                            invalidate();
-                        });
+                    // Get LauncherActivityInfo from ComponentName
+                    android.content.pm.LauncherApps launcherApps = getContext().getSystemService(android.content.pm.LauncherApps.class);
+                    if (launcherApps != null) {
+                        android.content.pm.LauncherActivityInfo activityInfo = launcherApps.resolveActivity(
+                            new Intent(Intent.ACTION_MAIN).setComponent(mInfo.coverApp),
+                            Process.myUserHandle()
+                        );
+
+                        if (activityInfo != null) {
+                            IconCache iconCache = LauncherAppState.getInstance(getContext()).getIconCache();
+                            Drawable drawable = iconCache.getFullResIcon(activityInfo);
+
+                            if (drawable instanceof FastBitmapDrawable) {
+                                FastBitmapDrawable appIcon = (FastBitmapDrawable) drawable;
+                                post(() -> {
+                                    mCoverAppIcon = appIcon;
+                                    invalidate();
+                                });
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -858,7 +868,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
                     launchIntent.addCategory(android.content.Intent.CATEGORY_LAUNCHER);
                     launchIntent.setComponent(mInfo.coverApp);
                     launchIntent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                    mActivity.startActivity(launchIntent);
+                    getContext().startActivity(launchIntent);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
