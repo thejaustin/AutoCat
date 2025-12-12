@@ -99,7 +99,7 @@ interface TabDao {
     /**
      * Gets count of apps in each tab.
      */
-    @Query("SELECT tab_name, COUNT(*) as count FROM app_categories GROUP BY tab_name")
+    @Query("SELECT tab_name as category, COUNT(*) as count FROM app_categories GROUP BY tab_name")
     suspend fun getTabCounts(): List<TabCount>
 
     /**
