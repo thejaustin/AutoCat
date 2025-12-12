@@ -183,7 +183,7 @@ fun AppCategorizationListPreferences(
     editingApp?.let { app ->
         CategoryOverrideDialog(
             appCategory = app,
-            availableCategories = availableCustomTabs,
+            availableCustomTabs = availableCustomTabs,
             packageManager = packageManager,
             onDismiss = { editingApp = null },
             onSave = { newTabName, newSubCategory ->

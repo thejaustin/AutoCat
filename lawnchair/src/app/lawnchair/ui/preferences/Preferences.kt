@@ -47,6 +47,7 @@ import app.lawnchair.ui.preferences.navigation.PreferenceNavigation
 import app.lawnchair.ui.preferences.navigation.PreferenceRootRoute
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
 import app.lawnchair.ui.preferences.navigation.Root
+import app.lawnchair.ui.preferences.navigation.SelectApp
 import app.lawnchair.ui.preferences.navigation.SelectIcon
 import app.lawnchair.ui.util.ProvideBottomSheetHandler
 import app.lawnchair.util.ProvideLifecycleState
