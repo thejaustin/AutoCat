@@ -26,7 +26,7 @@ class AutoCatAppProvider(private val context: Context) {
 
     private val database = TabDatabase.getInstance(context)
     private val categoryDao = database.categoryDao()
-    private val llmCategorizer = LLMCategorizer(context, categoryDao)
+    private val llmCategorizer by lazy { LLMCategorizer(context, categoryDao) }
     private val packageManager = context.packageManager
 
     private data class CategoryInfo(val tabName: String, val subCategory: String?)
@@ -45,10 +45,23 @@ class AutoCatAppProvider(private val context: Context) {
     @Volatile
     private var cacheInitialized = false
 
-    init {
-        // Initialize cache asynchronously on startup
-        initializeCache()
-        loadSubCategoryIcons()
+    @Volatile
+    private var initializationStarted = false
+
+    /**
+     * Ensures cache is initialized. Safe to call multiple times.
+     * Initialization happens lazily on first access.
+     */
+    private fun ensureInitialized() {
+        if (!initializationStarted) {
+            synchronized(this) {
+                if (!initializationStarted) {
+                    initializationStarted = true
+                    initializeCache()
+                    loadSubCategoryIcons()
+                }
+            }
+        }
     }
 
     /**
@@ -145,6 +158,7 @@ class AutoCatAppProvider(private val context: Context) {
      *         SubCategory key is "" (empty string) if no subcategory exists.
      */
     fun categorizeApps(appList: List<app.lawnchair.data.apps.AppInfo?>?): Map<String, Map<String, List<AppInfo>>> {
+        ensureInitialized()
         if (appList.isNullOrEmpty()) return emptyMap()
 
         val validApps = appList.filterNotNull()
