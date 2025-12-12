@@ -45,11 +45,12 @@ class FolderService(val context: Context) : SafeCloseable {
             }.toList(),
         )
         // Bidirectional sync: Update categories when folder contents change
-        CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
-            folderId = folderInfoId,
-            categoryName = title,
-            newAppPackages = appInfos.mapNotNull { it.componentName?.packageName },
-        )
+        // TODO: Implement CategoryFolderSyncService
+        // CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
+        //     folderId = folderInfoId,
+        //     categoryName = title,
+        //     newAppPackages = appInfos.mapNotNull { it.componentName?.packageName },
+        // )
     }
 
     suspend fun saveFolderInfo(folderInfo: FolderInfo) = withContext(Dispatchers.IO) {
@@ -73,14 +74,15 @@ class FolderService(val context: Context) : SafeCloseable {
 
     suspend fun deleteFolderInfo(id: Int) = withContext(Dispatchers.IO) {
         // Bidirectional sync: Notify when folder is deleted
-        val folder = getFolderInfo(id, true)
-        if (folder != null) {
-            CategoryFolderSyncService.getInstance(context).onFolderDeleted(
-                folderId = id,
-                categoryName = folder.title.toString(),
-                removeCategories = false, // Don't delete categories by default when folder is deleted
-            )
-        }
+        // TODO: Implement CategoryFolderSyncService
+        // val folder = getFolderInfo(id, true)
+        // if (folder != null) {
+        //     CategoryFolderSyncService.getInstance(context).onFolderDeleted(
+        //         folderId = id,
+        //         categoryName = folder.title.toString(),
+        //         removeCategories = false, // Don't delete categories by default when folder is deleted
+        //     )
+        // }
         folderDao.deleteFolder(id)
     }
 

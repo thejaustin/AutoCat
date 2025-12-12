@@ -225,7 +225,7 @@ class LLMCategorizer(
                 app.lawnchair.categorization.llm.BatchCalculator.calculateOptimalBatchSize(
                     modelInfo = modelInfo,
                     totalApps = apps.size,
-                    availableTabs = tabNames,
+                    categories = tabNames,
                 ).batchSize
             }
         } else {

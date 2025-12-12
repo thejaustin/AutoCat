@@ -106,14 +106,15 @@ fun AppDrawerFoldersPreference(
         },
         onDeleteFolder = {
             viewModel.deleteFolder(it.id)
-            scope.launch {
-                // Bidirectional sync: Remove tab when folder is deleted by user
-                CategoryFolderSyncService.getInstance(context).onFolderDeleted(
-                    folderId = it.id,
-                    tabName = it.title.toString(),
-                    removeTabs = true,
-                )
-            }
+            // TODO: Implement CategoryFolderSyncService
+            // scope.launch {
+            //     // Bidirectional sync: Remove tab when folder is deleted by user
+            //     CategoryFolderSyncService.getInstance(context).onFolderDeleted(
+            //         folderId = it.id,
+            //         tabName = it.title.toString(),
+            //         removeTabs = true,
+            //     )
+            // }
         },
     )
 }
