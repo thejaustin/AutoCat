@@ -67,7 +67,7 @@ val LocalIsExpandedScreen = compositionLocalOf { false }
 val twoPaneBlacklist = setOf(
     IconPicker::class,
     SelectIcon::class,
-    SelectFolderIcon::class,
+    // SelectFolderIcon::class, // TODO: Implement folder icon selection
     SelectApp::class,
 )
 

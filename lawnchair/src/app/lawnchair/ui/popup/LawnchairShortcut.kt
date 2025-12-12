@@ -12,6 +12,7 @@ import android.content.pm.LauncherApps
 import android.content.pm.SuspendDialogInfo
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.UserHandle
 import android.util.Log
@@ -24,7 +25,7 @@ import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.override.CustomizeAppDialog
-import app.lawnchair.override.CustomizeFolderDialog
+// import app.lawnchair.override.CustomizeFolderDialog // TODO: Implement folder customization dialog
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.views.ComposeBottomSheet
 import com.android.launcher3.AbstractFloatingView
@@ -173,17 +174,19 @@ class LawnchairShortcut {
 
             val defaultTitle = folderInfo.title?.toString() ?: ""
 
-            AbstractFloatingView.closeAllOpenViews(launcher)
-            ComposeBottomSheet.show(
-                context = launcher,
-                contentPaddings = PaddingValues(bottom = 64.dp),
-            ) {
-                CustomizeFolderDialog(
-                    icon = icon!!,
-                    defaultTitle = defaultTitle,
-                    folderInfo = folderInfo,
-                ) { close(true) }
-            }
+            // TODO: Implement folder customization dialog
+            // AbstractFloatingView.closeAllOpenViews(launcher)
+            // ComposeBottomSheet.show(
+            //     context = launcher,
+            //     contentPaddings = PaddingValues(bottom = 64.dp),
+            // ) {
+            //     CustomizeFolderDialog(
+            //         icon = icon!!,
+            //         defaultTitle = defaultTitle,
+            //         folderInfo = folderInfo,
+            //     ) { close(true) }
+            // }
+            Toast.makeText(launcher, "Folder customization coming soon", Toast.LENGTH_SHORT).show()
         }
     }
 
