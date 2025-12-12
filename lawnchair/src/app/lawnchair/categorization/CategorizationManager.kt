@@ -60,8 +60,8 @@ class CategorizationManager(private val context: Context) {
     private val metadataProvider = AppMetadataProvider(context)
     private val builtInCategorizer = BuiltInCategorizer(categoryDao)
     private val llmCategorizer = LLMCategorizer(context, categoryDao)
-    private val appProvider = AutoCatAppProvider.getInstance(context)
-    private val folderSyncService = CategoryFolderSyncService(context)
+    private val appProvider by lazy { AutoCatAppProvider.getInstance(context) }
+    private val folderSyncService by lazy { CategoryFolderSyncService(context) }
 
     // Progress tracking
     private val _progress = MutableStateFlow(CategorizationProgress())

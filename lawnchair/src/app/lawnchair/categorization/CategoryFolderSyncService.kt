@@ -26,9 +26,9 @@ class CategoryFolderSyncService(
     private val context: Context,
 ) {
 
-    private val prefs = PreferenceManager.getInstance(context)
-    private val drawerFolderService = FolderService.INSTANCE.get(context)
-    private val reloadHelper = ReloadHelper(context)
+    private val prefs by lazy { PreferenceManager.getInstance(context) }
+    private val drawerFolderService by lazy { FolderService.INSTANCE.get(context) }
+    private val reloadHelper by lazy { ReloadHelper(context) }
 
     companion object {
         private const val TAG = "CategoryFolderSync"
