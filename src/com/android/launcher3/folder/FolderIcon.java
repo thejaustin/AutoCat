@@ -280,13 +280,16 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     
     private void loadCustomIcon() {
         if (mInfo != null && mInfo.icon != null) {
+            // Capture resources on main thread before posting to background
+            final Resources resources = getResources();
+
             Executors.MODEL_EXECUTOR.post(() -> {
                 try {
                     File file = new File(mInfo.icon);
                     if (file.exists()) {
                         Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                         if (bitmap != null) {
-                            final Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+                            final Drawable drawable = new BitmapDrawable(resources, bitmap);
                             post(() -> {
                                 mCustomIcon = drawable;
                                 invalidate();
@@ -302,10 +305,16 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
 
     private void loadCoverAppIcon() {
         if (mInfo != null && mInfo.coverMode && mInfo.coverApp != null) {
+            // Capture context on main thread before posting to background
+            final Context context = getContext();
+            if (context == null) {
+                return;
+            }
+
             Executors.MODEL_EXECUTOR.post(() -> {
                 try {
                     // Get LauncherActivityInfo from ComponentName
-                    android.content.pm.LauncherApps launcherApps = getContext().getSystemService(android.content.pm.LauncherApps.class);
+                    android.content.pm.LauncherApps launcherApps = context.getSystemService(android.content.pm.LauncherApps.class);
                     if (launcherApps != null) {
                         android.content.pm.LauncherActivityInfo activityInfo = launcherApps.resolveActivity(
                             new Intent(Intent.ACTION_MAIN).setComponent(mInfo.coverApp),
@@ -313,7 +322,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
                         );
 
                         if (activityInfo != null) {
-                            IconCache iconCache = LauncherAppState.getInstance(getContext()).getIconCache();
+                            IconCache iconCache = LauncherAppState.getInstance(context).getIconCache();
                             Drawable drawable = iconCache.getFullResIcon(activityInfo);
 
                             if (drawable instanceof FastBitmapDrawable) {
