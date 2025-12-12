@@ -183,8 +183,8 @@ class AutoCatAppProvider(private val context: Context) {
      * @param categoryName Name of the category
      * @return Hex color string (e.g., "#4CAF50") or null if not found
      */
-    fun getTabColor(tabName: String): String? {
-        return runBlocking {
+    suspend fun getTabColor(tabName: String): String? {
+        return withContext(Dispatchers.IO) {
             categoryDao.getCustomCategoryByName(tabName)?.colorHex
         }
     }

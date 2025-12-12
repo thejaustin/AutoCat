@@ -41,9 +41,9 @@ class FolderAutoSortService(private val context: Context) {
 
     private val tabDatabase = TabDatabase.getInstance(context)
     private val tabDao: TabDao = tabDatabase.categoryDao()
-    private val folderService = FolderService.INSTANCE.get(context)
+    private val folderService by lazy { FolderService.INSTANCE.get(context) }
     private val launcherApps = context.getSystemService(LauncherApps::class.java)
-    private val userCache = UserCache.INSTANCE.get(context)
+    private val userCache by lazy { UserCache.INSTANCE.get(context) }
     private val appFilter = AppFilter(context)
     private val converters = Converters()
 

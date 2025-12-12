@@ -129,9 +129,9 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
 
     @Thunk BubbleTextView mFolderName;
 
-    PreviewBackground mBackground = new PreviewBackground(getContext());
+    PreviewBackground mBackground;
     private boolean mBackgroundIsVisible = true;
-    
+
     private Drawable mCustomIcon = null;
     private Drawable mCoverAppIcon = null; // Field to hold the cover app's icon
 
@@ -183,6 +183,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
     }
 
     private void init() {
+        mBackground = new PreviewBackground(getContext());
         mLongPressHelper = new CheckLongPressHelper(this);
         mPreviewLayoutRule = new ClippedFolderIconLayoutRule();
         mPreviewItemManager = new PreviewItemManager(this);
