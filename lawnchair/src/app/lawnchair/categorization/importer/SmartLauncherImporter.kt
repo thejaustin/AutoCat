@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.AppTab
-import app.lawnchair.data.tab.entities.CustomCategoryTab
+import app.lawnchair.data.tab.entities.CustomTab
 import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
@@ -202,20 +202,20 @@ class SmartLauncherImporter(private val context: Context) {
 
                 val categoryDao = TabDatabase.getInstance(context).categoryDao()
 
-                // 6.5 Ensure all used tabs exist in CustomCategoryTab table
+                // 6.5 Ensure all used tabs exist in CustomTab table
                 val uniqueTabNames = appsToImport.map { it.tabName }.distinct()
                 val existingCategories = categoryDao.getAllCustomCategories()
                 var nextSortOrder = existingCategories.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
 
                 // Helper to pick a random default color
                 val defaultColors = listOf(
-                    CustomCategoryTab.COLOR_GAMES,
-                    CustomCategoryTab.COLOR_SOCIAL,
-                    CustomCategoryTab.COLOR_PRODUCTIVITY,
-                    CustomCategoryTab.COLOR_TOOLS,
-                    CustomCategoryTab.COLOR_ENTERTAINMENT,
-                    CustomCategoryTab.COLOR_PHOTOGRAPHY,
-                    CustomCategoryTab.COLOR_COMMUNICATION,
+                    CustomTab.COLOR_GAMES,
+                    CustomTab.COLOR_SOCIAL,
+                    CustomTab.COLOR_PRODUCTIVITY,
+                    CustomTab.COLOR_TOOLS,
+                    CustomTab.COLOR_ENTERTAINMENT,
+                    CustomTab.COLOR_PHOTOGRAPHY,
+                    CustomTab.COLOR_COMMUNICATION,
                 )
 
                 for (tabName in uniqueTabNames) {
@@ -225,7 +225,7 @@ class SmartLauncherImporter(private val context: Context) {
                         // We could check if there's a folder with the same name to steal its icon.
                         val matchingFolder = folderMap.values.find { it.label.equals(tabName, ignoreCase = true) }
 
-                        val newCategory = CustomCategoryTab(
+                        val newCategory = CustomTab(
                             name = tabName,
                             colorHex = defaultColors.random(),
                             sortOrder = nextSortOrder++,

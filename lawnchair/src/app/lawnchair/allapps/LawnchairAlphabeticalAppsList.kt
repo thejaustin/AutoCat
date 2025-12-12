@@ -168,7 +168,7 @@ class LawnchairAlphabeticalAppsList<T>(
                 if (allAppsInTab.size > 1) {
                     val folderInfo = FolderInfo().apply {
                         title = tabName
-                        allAppsInCategory.forEach { app -> app.toLauncherAppInfo()?.let { add(it) } }
+                        allAppsInTab.forEach { app -> app.toLauncherAppInfo()?.let { add(it) } }
                     }
                     tempFolders.add(folderInfo)
                 }

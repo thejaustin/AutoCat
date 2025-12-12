@@ -40,8 +40,8 @@ class CategoryTabsController private constructor(private val context: Context) :
     private val categoryDao = TabDatabase.getInstance(context).categoryDao()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val _categories = MutableStateFlow<List<CustomCategoryTab>>(emptyList())
-    val categories: StateFlow<List<CustomCategoryTab>> = _categories.asStateFlow()
+    private val _categories = MutableStateFlow<List<CustomTab>>(emptyList())
+    val categories: StateFlow<List<CustomTab>> = _categories.asStateFlow()
 
     private val _currentTabIndex = MutableStateFlow(TAB_ALL_INDEX)
     val currentTabIndex: StateFlow<Int> = _currentTabIndex.asStateFlow()
@@ -56,7 +56,7 @@ class CategoryTabsController private constructor(private val context: Context) :
     private fun loadCategories() {
         scope.launch {
             try {
-                val cats: List<CustomCategoryTab> = withContext(Dispatchers.IO) {
+                val cats: List<CustomTab> = withContext(Dispatchers.IO) {
                     categoryDao.getAllCustomCategories()
                         .filter { it.isVisible }
                         .sortedBy { it.sortOrder }
@@ -71,7 +71,7 @@ class CategoryTabsController private constructor(private val context: Context) :
         }
     }
 
-    private fun updateTabNames(cats: List<CustomCategoryTab>) {
+    private fun updateTabNames(cats: List<CustomTab>) {
         val names = mutableListOf(TAB_ALL)
         names.addAll(cats.map { it.name })
 

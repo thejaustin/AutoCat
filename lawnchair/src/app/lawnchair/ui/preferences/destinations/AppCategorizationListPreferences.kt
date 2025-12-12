@@ -70,7 +70,7 @@ fun AppCategorizationListPreferences(
     val appProvider = remember { AutoCatAppProvider.getInstance(context) }
 
     var appTabs by remember { mutableStateOf<List<AppTab>>(emptyList()) }
-    var availableCustomTabs by remember { mutableStateOf<List<CustomCategoryTab>>(emptyList()) }
+    var availableCustomTabs by remember { mutableStateOf<List<CustomTab>>(emptyList()) }
     var editingApp by remember { mutableStateOf<AppTab?>(null) }
     var expandedCategories by remember { mutableStateOf(setOf<String>()) }
     var filterMode by remember { mutableStateOf(FilterMode.ALL) }
@@ -391,7 +391,7 @@ private fun AppCategorizationItem(
 @Composable
 private fun CategoryOverrideDialog(
     appCategory: AppTab,
-    availableCustomTabs: List<CustomCategoryTab>,
+    availableCustomTabs: List<CustomTab>,
     packageManager: PackageManager,
     onDismiss: () -> Unit,
     onSave: (String, String?) -> Unit,

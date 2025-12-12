@@ -273,7 +273,8 @@ class CategorizationManager(private val context: Context) {
             var categorized = builtInCategorizer.categorize(appInfo)
 
             if (categorized) {
-                appProvider.updateCacheForApp(packageName, appCategory?.tabName)
+                val appTab = categoryDao.getAppCategory(packageName)
+                appProvider.updateCacheForApp(packageName, appTab?.tabName)
                 return@withContext
             }
 
@@ -283,8 +284,8 @@ class CategorizationManager(private val context: Context) {
             if (categorized) {
                 android.util.Log.d(TAG, "Categorized new app (LLM): $packageName")
                 // Update cache with the new category
-                val appCategory = categoryDao.getAppCategory(packageName)
-                appProvider.updateCacheForApp(packageName, appCategory?.tabName)
+                val appTab = categoryDao.getAppCategory(packageName)
+                appProvider.updateCacheForApp(packageName, appTab?.tabName)
             } else {
                 android.util.Log.d(TAG, "Could not categorize new app: $packageName")
             }

@@ -172,7 +172,7 @@ class CategoryTabStrip @JvmOverloads constructor(
     }
 
     private fun showTabOptions(view: View, tabName: String) {
-        if (categoryName == CategoryTabsController.TAB_ALL || categoryName == CategoryTabsController.TAB_WORK) {
+        if (tabName == CategoryTabsController.TAB_ALL || tabName == CategoryTabsController.TAB_WORK) {
             return
         }
 

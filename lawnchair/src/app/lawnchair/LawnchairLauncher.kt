@@ -263,7 +263,7 @@ class LawnchairLauncher : QuickstepLauncher() {
         super.getSupportedShortcuts(),
         Stream.concat(
             Stream.of(
-                LawnchairShortcut.CHANGE_CATEGORY,
+                LawnchairShortcut.CHANGE_TAB,
                 LawnchairShortcut.UNINSTALL,
                 LawnchairShortcut.CUSTOMIZE,
             ),
