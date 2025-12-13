@@ -49,8 +49,18 @@ class CategoryTabsController private constructor(private val context: Context) :
     private val _tabNames = MutableStateFlow<List<String>>(listOf(TAB_ALL))
     val tabNames: StateFlow<List<String>> = _tabNames.asStateFlow()
 
-    init {
-        loadCategories()
+    @Volatile
+    private var categoriesLoaded = false
+
+    private fun ensureCategoriesLoaded() {
+        if (!categoriesLoaded) {
+            synchronized(this) {
+                if (!categoriesLoaded) {
+                    loadCategories()
+                    categoriesLoaded = true
+                }
+            }
+        }
     }
 
     private fun loadCategories() {
@@ -103,12 +113,16 @@ class CategoryTabsController private constructor(private val context: Context) :
     /**
      * Get the current tab index.
      */
-    fun getCurrentTab(): Int = _currentTabIndex.value
+    fun getCurrentTab(): Int {
+        ensureCategoriesLoaded()
+        return _currentTabIndex.value
+    }
 
     /**
      * Get the name of the current tab.
      */
     fun getCurrentTabName(): String {
+        ensureCategoriesLoaded()
         val index = _currentTabIndex.value
         return if (index >= 0 && index < _tabNames.value.size) {
             _tabNames.value[index]
@@ -157,13 +171,17 @@ class CategoryTabsController private constructor(private val context: Context) :
     /**
      * Get the number of tabs.
      */
-    fun getTabCount(): Int = _tabNames.value.size
+    fun getTabCount(): Int {
+        ensureCategoriesLoaded()
+        return _tabNames.value.size
+    }
 
     /**
      * Check if we should show tabs (tabs are enabled in settings).
      * Always shows at minimum "All Apps" tab when enabled, even with no categories.
      */
     fun shouldShowTabs(context: Context): Boolean {
+        ensureCategoriesLoaded()
         return areTabsEnabled(context)
     }
 
