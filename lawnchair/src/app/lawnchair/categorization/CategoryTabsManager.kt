@@ -16,7 +16,7 @@ class CategoryTabsManager(private val context: Context) {
 
     private val database = TabDatabase.getInstance(context)
     private val categoryDao = database.categoryDao()
-    private val prefs = PreferenceManager.getInstance(context)
+    private val prefs by lazy { PreferenceManager.getInstance(context) }
 
     /**
      * Represents a tab in the app drawer.

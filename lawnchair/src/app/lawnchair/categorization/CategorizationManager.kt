@@ -57,7 +57,7 @@ class CategorizationManager(private val context: Context) {
 
     private val database = TabDatabase.getInstance(context)
     private val categoryDao = database.categoryDao()
-    private val metadataProvider = AppMetadataProvider(context)
+    private val metadataProvider by lazy { AppMetadataProvider(context) }
     private val builtInCategorizer by lazy { BuiltInCategorizer(categoryDao) }
     private val llmCategorizer by lazy { LLMCategorizer(context, categoryDao) }
     private val appProvider by lazy { AutoCatAppProvider.getInstance(context) }

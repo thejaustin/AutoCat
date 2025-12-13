@@ -42,16 +42,18 @@ class LLMCategorizer(
 ) {
 
     // Initialize providers once to avoid overhead in loops
-    private val googleProvider = GoogleAIProvider(context)
-    private val providers = mapOf(
-        "google_ai" to googleProvider,
-        "claude" to ClaudeProvider(context),
-        "openai" to OpenAIProvider(context),
-        "perplexity" to PerplexityProvider(context),
-    )
+    private val googleProvider by lazy { GoogleAIProvider(context) }
+    private val providers by lazy {
+        mapOf(
+            "google_ai" to googleProvider,
+            "claude" to ClaudeProvider(context),
+            "openai" to OpenAIProvider(context),
+            "perplexity" to PerplexityProvider(context),
+        )
+    }
 
     // User correction learner for improving accuracy
-    private val learner = UserCorrectionLearner.getInstance(context, categoryDao)
+    private val learner by lazy { UserCorrectionLearner.getInstance(context, categoryDao) }
 
     /**
      * Attempts to categorize an app using LLM analysis with fallback support.

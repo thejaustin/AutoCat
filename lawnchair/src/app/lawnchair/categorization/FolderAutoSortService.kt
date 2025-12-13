@@ -48,10 +48,12 @@ class FolderAutoSortService(private val context: Context) {
     private val converters = Converters()
 
     // LLM providers for folder suggestions
-    private val googleProvider = GoogleAIProvider(context)
-    private val providers = mapOf(
-        "google_ai" to googleProvider,
-    )
+    private val googleProvider by lazy { GoogleAIProvider(context) }
+    private val providers by lazy {
+        mapOf(
+            "google_ai" to googleProvider,
+        )
+    }
 
     companion object {
         private const val TAG = "FolderAutoSortService"
