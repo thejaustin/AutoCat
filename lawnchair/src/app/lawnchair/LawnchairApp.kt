@@ -256,6 +256,8 @@ class LawnchairApp : Application() {
         lateinit var instance: LawnchairApp
             private set
 
+        // Test build verification
+
         @JvmStatic
         val isRecentsEnabled: Boolean get() = instance.recentsEnabled
 
