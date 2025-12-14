@@ -96,15 +96,13 @@ class FolderAutoSortService(private val context: Context) {
             }
 
             // Build map of all installed apps
-            val allInstalledApps = if (launcherApps != null) {
+            val allInstalledApps = launcherApps?.let { service ->
                 userCache.userProfiles.flatMap { userHandle ->
-                    launcherApps.getActivityList(null, userHandle)
+                    service.getActivityList(null, userHandle)
                         .filter { appFilter.shouldShowApp(it.componentName) }
                         .map { AppInfo(context, it, userHandle) }
                 }
-            } else {
-                emptyList()
-            }
+            } ?: emptyList()
 
             val appsByPackage = allInstalledApps
                 .groupBy { it.componentName?.packageName }
