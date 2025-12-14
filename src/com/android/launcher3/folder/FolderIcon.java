@@ -296,12 +296,33 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
                                 mCustomIcon = drawable;
                                 invalidate();
                             });
+                        } else {
+                            // Bitmap was null, clear custom icon
+                            post(() -> {
+                                mCustomIcon = null;
+                                invalidate();
+                            });
                         }
+                    } else {
+                        // File does not exist, clear custom icon
+                        post(() -> {
+                            mCustomIcon = null;
+                            invalidate();
+                        });
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    // On error, clear custom icon
+                    post(() -> {
+                        mCustomIcon = null;
+                        invalidate();
+                    });
                 }
             });
+        } else {
+            // mInfo or mInfo.icon is null, ensure custom icon is cleared
+            mCustomIcon = null;
+            invalidate();
         }
     }
 
@@ -887,6 +908,13 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
         } else {
             setOnClickListener(mActivity.getItemOnClickListener());
         }
+    }
+
+    @Override
+    public void onIconChanged() {
+        loadCustomIcon();
+        invalidate();
+        requestLayout();
     }
 
     @Override

@@ -228,6 +228,8 @@ public class FolderInfo extends CollectionInfo {
         void onTitleChanged(CharSequence title);
 
         default void onCoverChanged() {}
+
+        default void onIconChanged() {}
     }
 
     public boolean hasOption(int optionFlag) {
@@ -306,11 +308,17 @@ public class FolderInfo extends CollectionInfo {
         }
     }
 
-    public void setCover(boolean coverMode, ComponentName coverApp) {
-        this.coverMode = coverMode;
-        this.coverApp = coverApp;
+    public void setIcon(String icon, ModelWriter modelWriter) {
+        if (icon != null && icon.equals(this.icon)) {
+            return;
+        }
+
+        this.icon = icon;
+        if (modelWriter != null) {
+            modelWriter.updateItemInDatabase(this);
+        }
         for (int i = 0; i < mListeners.size(); i++) {
-            mListeners.get(i).onCoverChanged();
+            mListeners.get(i).onIconChanged();
         }
     }
 
