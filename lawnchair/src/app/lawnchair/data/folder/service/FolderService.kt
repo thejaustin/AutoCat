@@ -24,9 +24,9 @@ import kotlinx.coroutines.withContext
 class FolderService(val context: Context) : SafeCloseable {
 
     private val folderDao = AppDatabase.INSTANCE.get(context).folderDao()
-    private val launcherApps = context.getSystemService(LauncherApps::class.java)
-    private val userCache = UserCache.INSTANCE.get(context)
-    private val appFilter = AppFilter(context)
+    private val launcherApps by lazy { context.getSystemService(LauncherApps::class.java) }
+    private val userCache by lazy { UserCache.INSTANCE.get(context) }
+    private val appFilter by lazy { AppFilter(context) }
     private val converters = Converters()
 
     fun getFoldersFlow(): Flow<List<FolderInfo>> {
@@ -119,9 +119,9 @@ class FolderService(val context: Context) : SafeCloseable {
     }
 
     private fun toItemInfo(componentKey: String?): AppInfo? {
-        if (launcherApps != null) {
+        launcherApps?.let { service ->
             return userCache.userProfiles.asSequence()
-                .flatMap { launcherApps.getActivityList(null, it) }
+                .flatMap { service.getActivityList(null, it) }
                 .filter { appFilter.shouldShowApp(it.componentName) }
                 .map { AppInfo(context, it, it.user) }
                 .filter { converters.fromComponentKey(it.componentKey) == componentKey }
@@ -130,7 +130,7 @@ class FolderService(val context: Context) : SafeCloseable {
         return null
     }
 
-    suspend fun getAllFolders(): List<FolderInfo> = withContext(Dispatchers.Main) {
+    suspend fun getAllFolders(): List<FolderInfo> = withContext(Dispatchers.IO) {
         try {
             val folderEntities = folderDao.getAllFolders().firstOrNull() ?: emptyList()
             folderEntities.mapNotNull { folderEntity ->
