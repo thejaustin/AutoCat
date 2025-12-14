@@ -67,6 +67,8 @@ abstract class TabDatabase : RoomDatabase() {
                 // TODO: Replace with proper migrations before production release
                 // dropAllTables = true: all tables will be dropped on migration failure
                 .fallbackToDestructiveMigration(dropAllTables = true)
+                // Temporarily allow main thread queries to prevent startup crashes during DB initialization
+                .allowMainThreadQueries()
                 // Initialize default tabs on first run
                 .addCallback(object : RoomDatabase.Callback() {
                     override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
