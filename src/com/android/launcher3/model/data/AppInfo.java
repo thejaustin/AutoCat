@@ -196,6 +196,11 @@ public class AppInfo extends ItemInfoWithIcon implements WorkspaceItemFactory {
         final int oldProgressLevel = info.getProgressLevel();
         final int oldRuntimeStatusFlags = info.runtimeStatusFlags;
         ApplicationInfo appInfo = lai.getApplicationInfo();
+        if (appInfo == null) {
+            // If ApplicationInfo is null, we cannot proceed with further checks.
+            // This might happen for certain special packages or on some OEM devices.
+            return false;
+        }
         if (PackageManagerHelper.isAppSuspended(appInfo)) {
             info.runtimeStatusFlags |= FLAG_DISABLED_SUSPENDED;
         } else {

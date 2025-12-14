@@ -28,6 +28,9 @@ import com.android.launcher3.model.DeviceGridState
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class PreferenceManager private constructor(private val context: Context) :
     BasePreferenceManager(context),
@@ -170,8 +173,13 @@ class PreferenceManager private constructor(private val context: Context) :
         TODO("Not yet implemented")
     }
 
-    init {
-        sp.registerOnSharedPreferenceChangeListener(this)
+    private val scope = CoroutineScope(Dispatchers.IO)
+    private var migrationsPerformed = false
+
+    private fun performMigrations() {
+        if (migrationsPerformed) return
+        migrationsPerformed = true
+
         migratePrefs(CURRENT_VERSION) { oldVersion ->
             if (oldVersion < 2) {
                 val gridState = DeviceGridState(context).toProtoMessage()
@@ -193,6 +201,13 @@ class PreferenceManager private constructor(private val context: Context) :
                 "PreferenceManager",
                 "Auto-migrated Gemini model from deprecated 1.5 to 2.0",
             )
+        }
+    }
+
+    init {
+        sp.registerOnSharedPreferenceChangeListener(this)
+        scope.launch {
+            performMigrations()
         }
     }
 

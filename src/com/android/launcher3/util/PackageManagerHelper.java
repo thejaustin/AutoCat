@@ -355,6 +355,9 @@ public class PackageManagerHelper implements SafeCloseable {
 
     /** Returns the incremental download progress for the given shortcut's app. */
     public static int getLoadingProgress(LauncherActivityInfo info) {
+        if (info == null) {
+            return 100; // Assume fully loaded if info is null
+        }
         if (Utilities.ATLEAST_S) {
             return (int) (100 * info.getLoadingProgress());
         }
