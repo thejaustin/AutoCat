@@ -100,7 +100,9 @@ abstract class AppDatabase : RoomDatabase() {
                 context,
                 AppDatabase::class.java,
                 "preferences",
-            ).addMigrations(MIGRATION_1_3, MIGRATION_2_3, MIGRATION_3_4).build()
+            ).addMigrations(MIGRATION_1_3, MIGRATION_2_3, MIGRATION_3_4)
+                .allowMainThreadQueries() // Temporary fix to prevent startup crashes
+                .build()
         }
     }
 }
