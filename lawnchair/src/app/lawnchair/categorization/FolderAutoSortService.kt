@@ -42,9 +42,9 @@ class FolderAutoSortService(private val context: Context) {
     private val tabDatabase by lazy { TabDatabase.getInstance(context) }
     private val tabDao by lazy { tabDatabase.categoryDao() }
     private val folderService by lazy { FolderService.INSTANCE.get(context) }
-    private val launcherApps = context.getSystemService(LauncherApps::class.java)
+    private val launcherApps by lazy { context.getSystemService(LauncherApps::class.java) }
     private val userCache by lazy { UserCache.INSTANCE.get(context) }
-    private val appFilter = AppFilter(context)
+    private val appFilter by lazy { AppFilter(context) }
     private val converters = Converters()
 
     // LLM providers for folder suggestions
