@@ -37,7 +37,8 @@ class CategoryTabsController private constructor(private val context: Context) :
         }
     }
 
-    private val categoryDao = TabDatabase.getInstance(context).categoryDao()
+    private val database by lazy { TabDatabase.getInstance(context) }
+    private val categoryDao by lazy { database.categoryDao() }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _categories = MutableStateFlow<List<CustomTab>>(emptyList())

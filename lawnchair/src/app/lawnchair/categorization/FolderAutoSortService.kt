@@ -39,8 +39,8 @@ import org.json.JSONObject
  */
 class FolderAutoSortService(private val context: Context) {
 
-    private val tabDatabase = TabDatabase.getInstance(context)
-    private val tabDao: TabDao = tabDatabase.categoryDao()
+    private val tabDatabase by lazy { TabDatabase.getInstance(context) }
+    private val tabDao by lazy { tabDatabase.categoryDao() }
     private val folderService by lazy { FolderService.INSTANCE.get(context) }
     private val launcherApps = context.getSystemService(LauncherApps::class.java)
     private val userCache by lazy { UserCache.INSTANCE.get(context) }

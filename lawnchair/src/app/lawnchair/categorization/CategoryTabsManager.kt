@@ -14,8 +14,8 @@ import kotlinx.coroutines.runBlocking
  */
 class CategoryTabsManager(private val context: Context) {
 
-    private val database = TabDatabase.getInstance(context)
-    private val categoryDao = database.categoryDao()
+    private val database by lazy { TabDatabase.getInstance(context) }
+    private val categoryDao by lazy { database.categoryDao() }
     private val prefs by lazy { PreferenceManager.getInstance(context) }
 
     /**
