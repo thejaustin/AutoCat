@@ -51,7 +51,7 @@ class LawnchairAlphabeticalAppsList<T>(
     private var folderList = mutableListOf<FolderInfo>()
     private val filteredList = mutableListOf<AppInfo>()
 
-    private val folderOrder = FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get())
+    private val folderOrder by lazy { FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get()) }
     private val potsManager = Flowerpot.Manager.getInstance(context)
     private val autoCatProvider = AutoCatAppProvider.getInstance(context)
     private val categoryTabsController = CategoryTabsController.getInstance(context)
