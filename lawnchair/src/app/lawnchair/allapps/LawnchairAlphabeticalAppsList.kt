@@ -57,24 +57,6 @@ class LawnchairAlphabeticalAppsList<T>(
     private val categoryTabsController = CategoryTabsController.getInstance(context)
     private var cachedCategorizedApps: Map<String, Map<String, List<app.lawnchair.data.apps.AppInfo>>>? = null
 
-    private fun app.lawnchair.data.apps.AppInfo.toLauncherAppInfo(): com.android.launcher3.model.data.AppInfo? {
-        // Get proper LauncherActivityInfo from LauncherApps service
-        val launcherApps = context.getSystemService(android.content.pm.LauncherApps::class.java)
-
-        // Try to find the launcher activity for this package
-        val userHandle = android.os.UserHandle.CURRENT
-        val activities = launcherApps?.getActivityList(this.packageName, userHandle)
-
-        if (activities.isNullOrEmpty()) {
-            Log.w(TAG, "No launcher activities found for package: ${this.packageName}")
-            return null
-        }
-
-        // Use the first launcher activity to create AppInfo properly with proper icon loading
-        val launcherActivityInfo = activities[0]
-        return com.android.launcher3.model.data.AppInfo(context, launcherActivityInfo, userHandle)
-    }
-
     private fun com.android.launcher3.model.data.AppInfo.toAutoCatAppInfo(): app.lawnchair.data.apps.AppInfo {
         return app.lawnchair.data.apps.AppInfo(
             packageName = this.componentName?.packageName ?: "",
@@ -154,6 +136,10 @@ class LawnchairAlphabeticalAppsList<T>(
             return super.addAppsWithSections(appList, position)
         }
 
+        // Create a lookup map for fast AppInfo retrieval by package name
+        // Maps packageName -> List<AppInfo> (to handle multiple users/profiles with same package)
+        val appMap = appList.filterNotNull().groupBy { it.componentName?.packageName }
+
         // Use AutoCat database categorization for filtering
         val categorizedApps = cachedCategorizedApps ?: autoCatProvider.categorizeApps(appList.map { it?.toAutoCatAppInfo() })
 
@@ -165,10 +151,16 @@ class LawnchairAlphabeticalAppsList<T>(
             val tempFolders = mutableListOf<FolderInfo>()
             categorizedApps.forEach { (tabName, subCategories) ->
                 val allAppsInTab = subCategories.values.flatten()
-                if (allAppsInTab.size > 1) {
+                
+                // Efficiently resolve Launcher3 AppInfos from our map
+                val launcherAppsInTab = allAppsInTab.flatMap { autoCatApp ->
+                    appMap[autoCatApp.packageName] ?: emptyList()
+                }.distinct()
+
+                if (launcherAppsInTab.size > 1) {
                     val folderInfo = FolderInfo().apply {
                         title = tabName
-                        allAppsInTab.forEach { app -> app.toLauncherAppInfo()?.let { add(it) } }
+                        launcherAppsInTab.forEach { add(it) }
                     }
                     tempFolders.add(folderInfo)
                 }
@@ -213,13 +205,18 @@ class LawnchairAlphabeticalAppsList<T>(
             }
 
             // 2. Apps in this tab that were not in matched folders
-            val allAppsInTab = categorizedApps[currentTabName]?.values?.flatten() ?: emptyList()
-            allAppsInTab.forEach { app ->
-                val launcherApp = app.toLauncherAppInfo()
+            val allAutoCatAppsInTab = categorizedApps[currentTabName]?.values?.flatten() ?: emptyList()
+            
+            // Map back to Launcher3 AppInfos
+            val allLauncherAppsInTab = allAutoCatAppsInTab.flatMap { autoCatApp ->
+                appMap[autoCatApp.packageName] ?: emptyList()
+            }
+
+            allLauncherAppsInTab.forEach { launcherApp ->
                 // Check if we haven't shown this app yet
                 // Note: filteredList contains apps shown via folders.
                 // We also need to check if we already added it via "Explode" above.
-                if (launcherApp != null && !filteredList.contains(launcherApp)) {
+                if (!filteredList.contains(launcherApp)) {
                     mAdapterItems.add(AdapterItem.asApp(launcherApp))
                     position++
                 }
@@ -238,13 +235,6 @@ class LawnchairAlphabeticalAppsList<T>(
                     folder.getContents().forEach { app ->
                         if (app is AppInfo) {
                             // If prefs.folderApps.get() is true (Hide apps in folders), add to filteredList
-                            // Wait, if prefs.folderApps.get() is true (Show apps in folders?), logic was ambiguous.
-                            // Default behavior: Apps in folders are NOT shown in list.
-                            // If we want to hide them, we add to filteredList.
-                            // Let's assume !prefs.folderApps.get() means "Hide apps".
-                            // Checking previous code: "filterNot { ... && prefs.folderApps.get() }"
-                            // If prefs.folderApps.get() is TRUE, filterNot removes it.
-                            // So folderApps=TRUE means HIDE.
                             if (prefs.folderApps.get()) filteredList.add(app)
                         }
                     }
