@@ -73,10 +73,18 @@ class LawnchairApp : Application() {
         super.onCreate()
         instance = this
         QuickStepContract.sRecentsDisabled = !recentsEnabled
-        Flowerpot.Manager.getInstance(this)
+        try {
+            Flowerpot.Manager.getInstance(this)
+        } catch (e: Throwable) {
+            Log.e(TAG, "Failed to initialize Flowerpot", e)
+        }
 
         // AutoCat: Initialize app categorization in background
-        initializeAutoCategorization()
+        try {
+            initializeAutoCategorization()
+        } catch (e: Throwable) {
+            Log.e(TAG, "Failed to start AutoCat initialization", e)
+        }
     }
 
     /**

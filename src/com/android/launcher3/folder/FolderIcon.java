@@ -310,7 +310,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
                             invalidate();
                         });
                     }
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     // On error, clear custom icon
                     post(() -> {
@@ -357,7 +357,7 @@ public class FolderIcon extends FrameLayout implements FolderListener, FloatingI
                             }
                         }
                     }
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                 }
             });

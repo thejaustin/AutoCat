@@ -24,6 +24,7 @@ object LLMLogger {
     private const val MAX_LOG_ENTRIES = 200
     private val logBuffer = ConcurrentLinkedQueue<LogEntry>()
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
+    private val scope = CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
 
     // Expose logs as a flow for real-time UI updates
     private val _logFlow = kotlinx.coroutines.flow.MutableSharedFlow<LogEntry>(
@@ -215,8 +216,13 @@ object LLMLogger {
         }
 
         // Emit to flow
-        CoroutineScope(Dispatchers.IO).launch {
-            _logFlow.emit(entry)
+        scope.launch {
+            try {
+                _logFlow.emit(entry)
+            } catch (e: Exception) {
+                // Ignore errors during logging to prevent crashes
+                android.util.Log.e("LLMLogger", "Failed to emit log", e)
+            }
         }
 
         // Also log to Android logcat
