@@ -68,7 +68,13 @@ class LawnchairAlphabeticalAppsList<T>(
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error converting AppInfo to AutoCatAppInfo", e)
-            app.lawnchair.data.apps.AppInfo(packageName = "", label = "")
+            app.lawnchair.data.apps.AppInfo(
+                packageName = "",
+                label = "",
+                category = null,
+                installedTime = 0L,
+                description = null
+            )
         }
     }
 
