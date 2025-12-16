@@ -98,7 +98,9 @@ fun PreferencesDashboard(
     ) {
         AnnouncementPreference()
 
-        if (BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) {
+        val hideSettingsWarnings by prefs.hideSettingsWarnings.observeAsState()
+
+        if ((BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) && !hideSettingsWarnings) {
             PreferencesDebugWarning()
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -176,7 +178,10 @@ fun PreferencesDashboard(
                 isSelected = currentRoute is Gestures,
             )
 
-            if (LawnchairApp.isRecentsEnabled || BuildConfig.DEBUG) {
+            val prefs = preferenceManager()
+            val hideQuickstepSettings by prefs.hideQuickstepSettings.observeAsState()
+
+            if (LawnchairApp.isRecentsEnabled || BuildConfig.DEBUG && !hideQuickstepSettings) {
                 PreferenceCategory(
                     label = stringResource(id = R.string.quickstep_label),
                     description = stringResource(id = R.string.quickstep_description),

@@ -167,6 +167,10 @@ class PreferenceManager private constructor(private val context: Context) :
     val circuitBreakerTimeoutMs = LongPref("pref_circuitBreakerTimeoutMs", 60_000L, {})
     val circuitBreakerHalfOpenDurationMs = LongPref("pref_circuitBreakerHalfOpenDurationMs", 10_000L, {})
 
+    // Advanced / Dev Options
+    val hideQuickstepSettings = BoolPref("pref_hideQuickstepSettings", false)
+    val hideSettingsWarnings = BoolPref("pref_hideSettingsWarnings", false)
+
     val recentsActionScreenshot = BoolPref("pref_recentsActionScreenshot", !isOnePlusStock)
     val recentsActionShare = BoolPref("pref_recentsActionShare", isOnePlusStock)
     val recentsActionLens = BoolPref("pref_recentsActionLens", true)

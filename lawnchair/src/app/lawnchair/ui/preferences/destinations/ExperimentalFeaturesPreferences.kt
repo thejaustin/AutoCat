@@ -72,6 +72,16 @@ fun ExperimentalFeaturesPreferences(
                 label = "AutoCat Developer Mode",
                 description = "Show detailed diagnostics and error logs in categorization screens",
             )
+            SwitchPreference(
+                adapter = prefs.hideQuickstepSettings.getAdapter(),
+                label = "Hide Quickstep Settings",
+                description = "Hides the Quickstep settings entry from the main preferences dashboard.",
+            )
+            SwitchPreference(
+                adapter = prefs.hideSettingsWarnings.getAdapter(),
+                label = "Hide Settings Warnings",
+                description = "Hides development build warnings and other informational messages at the top of settings.",
+            )
 
             val context = LocalContext.current
             val enableWallpaperBlur = prefs.enableWallpaperBlur.getAdapter()
