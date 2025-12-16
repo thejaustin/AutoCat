@@ -10,6 +10,7 @@ import app.lawnchair.categorization.llm.LLMException
 import app.lawnchair.categorization.llm.LLMProvider
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
+import app.lawnchair.categorization.llm.ProviderCircuitBreaker
 import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.tab.TabDao
 import app.lawnchair.data.tab.entities.AppTab
@@ -54,6 +55,7 @@ class LLMCategorizer(
 
     // User correction learner for improving accuracy
     private val learner by lazy { UserCorrectionLearner.getInstance(context, categoryDao) }
+    private val circuitBreaker = ProviderCircuitBreaker()
 
     /**
      * Attempts to categorize an app using LLM analysis with fallback support.
@@ -106,8 +108,14 @@ class LLMCategorizer(
         val allProviders = listOf(primary) + fallbacks
 
         for (provider in allProviders) {
+            // Check circuit breaker first
+            if (!circuitBreaker.isAvailable(provider.name)) {
+                android.util.Log.d(TAG, "Skipping ${provider.name} for ${appInfo.packageName} - circuit breaker OPEN")
+                continue
+            }
+
             try {
-                // Check if provider is available
+                // Check if provider is available (original check)
                 if (!provider.isAvailable()) {
                     android.util.Log.d(TAG, "LLM provider ${provider.name} not available, trying next")
                     continue
@@ -122,6 +130,9 @@ class LLMCategorizer(
                     appDescription = appInfo.description,
                     availableTabs = tabNames,
                 )
+
+                // Record success with circuit breaker
+                circuitBreaker.recordSuccess(provider.name)
 
                 // Only accept if confidence is above threshold
                 if (result.confidence < MIN_CONFIDENCE) {
@@ -153,9 +164,13 @@ class LLMCategorizer(
                 return true
             } catch (e: LLMException) {
                 android.util.Log.e(TAG, "${provider.name} error for ${appInfo.packageName}: ${e.message}")
+                // Record failure with circuit breaker
+                circuitBreaker.recordFailure(provider.name, e)
                 // Try next provider
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "Unexpected error with ${provider.name}", e)
+                // Record failure with circuit breaker
+                circuitBreaker.recordFailure(provider.name, e)
                 // Try next provider
             }
         }
@@ -292,7 +307,12 @@ class LLMCategorizer(
                         var lastError: String? = null
 
                         for (provider in allProviders) {
-                            if (!provider.isAvailable()) {
+                            // Check circuit breaker first
+                            if (!circuitBreaker.isAvailable(provider.name)) {
+                                android.util.Log.d(TAG, "Batch $batchIndex: Skipping ${provider.name} (circuit breaker OPEN)")
+                                continue
+                            }
+                            if (!provider.isAvailable()) { // Original check
                                 android.util.Log.d(
                                     TAG,
                                     "Batch $batchIndex: Skipping ${provider.name} (not available)",
@@ -310,7 +330,14 @@ class LLMCategorizer(
                                     TAG,
                                     "Batch $batchIndex/$totalBatches: Categorizing ${batch.size} apps with ${provider.name}",
                                 )
-                                provider.categorizeAppBatch(batchInfo, tabNames)
+                                try {
+                                    val result = provider.categorizeAppBatch(batchInfo, tabNames)
+                                    circuitBreaker.recordSuccess(provider.name)
+                                    result
+                                } catch (e: Exception) {
+                                    circuitBreaker.recordFailure(provider.name, e)
+                                    throw e // Re-throw to trigger retryWithBackoff's retry logic
+                                }
                             }
                             val batchDuration = System.currentTimeMillis() - batchStartTime
 
@@ -476,12 +503,19 @@ class LLMCategorizer(
         // Check preference for rate limiting
         val prefManager = PreferenceManager.getInstance(context)
         val preferredProviderId = prefManager.llmProviderPreference.get()
+        val primaryProvider = providers[preferredProviderId] ?: googleProvider
         // If Google AI is preferred (or default), use the slow rate limit.
         val isGooglePreferred = preferredProviderId == "google_ai" || preferredProviderId.isEmpty()
 
         for (app in apps) {
+            // Check circuit breaker for the primary provider before processing the app
+            if (!circuitBreaker.isAvailable(primaryProvider.name)) {
+                android.util.Log.d(TAG, "Skipping app ${app.packageName} - primary provider ${primaryProvider.name} is OPEN")
+                continue // Skip this app if primary provider is down
+            }
+
             try {
-                if (categorize(app)) {
+                if (categorize(app)) { // This call internally uses the circuit breaker already
                     categorizedCount++
                 }
 
@@ -493,8 +527,10 @@ class LLMCategorizer(
                     kotlinx.coroutines.delay(200)
                 }
             } catch (e: Exception) {
-                android.util.Log.e(TAG, "Error categorizing ${app.packageName}", e)
-                // Continue with next app
+                android.util.Log.e(TAG, "Error categorizing ${app.packageName} in sequential batch", e)
+                // The circuit breaker would have already recorded a failure inside the categorize(app) call
+                // So no need to call circuitBreaker.recordFailure here again for the provider.
+                // Just continue with next app.
             }
         }
 
