@@ -58,13 +58,18 @@ class LawnchairAlphabeticalAppsList<T>(
     private var cachedCategorizedApps: Map<String, Map<String, List<app.lawnchair.data.apps.AppInfo>>>? = null
 
     private fun com.android.launcher3.model.data.AppInfo.toAutoCatAppInfo(): app.lawnchair.data.apps.AppInfo {
-        return app.lawnchair.data.apps.AppInfo(
-            packageName = this.componentName?.packageName ?: "",
-            label = this.title.toString(),
-            category = null, // Can't easily get from Launcher3 AppInfo, use null
-            installedTime = 0L, // Can't easily get from Launcher3 AppInfo, use default
-            description = null, // Can't easily get from Launcher3 AppInfo, use null
-        )
+        return try {
+            app.lawnchair.data.apps.AppInfo(
+                packageName = this.componentName?.packageName ?: "",
+                label = this.title?.toString() ?: "",
+                category = null,
+                installedTime = 0L,
+                description = null,
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error converting AppInfo to AutoCatAppInfo", e)
+            app.lawnchair.data.apps.AppInfo(packageName = "", label = "")
+        }
     }
 
     init {
@@ -72,7 +77,11 @@ class LawnchairAlphabeticalAppsList<T>(
         try {
             prefs2.hiddenApps.onEach(launchIn = context.launcher.lifecycleScope) {
                 hiddenApps = it
-                onAppsUpdated()
+                try {
+                    onAppsUpdated()
+                } catch (e: Throwable) {
+                    Log.e(TAG, "Error in hiddenApps observer", e)
+                }
             }
         } catch (t: Throwable) {
             Log.w(TAG, "Failed to initialize hidden apps", t)
@@ -81,8 +90,19 @@ class LawnchairAlphabeticalAppsList<T>(
     }
 
     override fun onAppsUpdated() {
-        super.onAppsUpdated()
-        cachedCategorizedApps = autoCatProvider.categorizeApps(appsStore.apps.map { it.toAutoCatAppInfo() })
+        try {
+            super.onAppsUpdated()
+            // Safely map apps to AutoCat format
+            val autoCatApps = try {
+                appsStore.apps.mapNotNull { it?.toAutoCatAppInfo() }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error mapping apps for AutoCat", e)
+                emptyList()
+            }
+            cachedCategorizedApps = autoCatProvider.categorizeApps(autoCatApps)
+        } catch (e: Throwable) {
+            Log.e(TAG, "Error in onAppsUpdated", e)
+        }
     }
 
     private fun observeFolders() {

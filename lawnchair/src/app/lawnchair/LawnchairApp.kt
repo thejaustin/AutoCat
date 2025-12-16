@@ -58,6 +58,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
+import app.lawnchair.bugreport.LawnchairBugReporter
+
 class LawnchairApp : Application() {
     private val compatible = Build.VERSION.SDK_INT in BuildConfig.QUICKSTEP_MIN_SDK..BuildConfig.QUICKSTEP_MAX_SDK
     private val isRecentsComponent: Boolean by unsafeLazy { checkRecentsComponent() }
@@ -72,6 +74,13 @@ class LawnchairApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        try {
+            // Initialize crash reporter first
+            LawnchairBugReporter.INSTANCE.get(this)
+        } catch (e: Throwable) {
+            Log.e(TAG, "Failed to initialize BugReporter", e)
+        }
+
         QuickStepContract.sRecentsDisabled = !recentsEnabled
         try {
             Flowerpot.Manager.getInstance(this)
