@@ -44,10 +44,9 @@ import com.android.launcher3.util.PackageManagerHelper
 import com.patrykmichalik.opto.core.firstBlocking
 import java.io.File
 import java.net.URISyntaxException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import app.lawnchair.categorization.CategoryTabsController
 
 class LawnchairShortcut {
 
@@ -322,62 +321,61 @@ class LawnchairShortcut {
             val context = view.context
             val packageName = mItemInfo.targetComponent?.packageName ?: return
 
-            // Get all visible tabs from database
-            val database = TabDatabase.getInstance(context)
-            val categoryDao = database.categoryDao()
+            val categoryController = CategoryTabsController.getInstance(context)
 
-            val tabs = runBlocking {
-                categoryDao.getVisibleCustomCategories()
-            }
+            // Tabs are available synchronously from the controller's StateFlow
+            val tabs = categoryController.categories.value
 
             if (tabs.isEmpty()) {
                 Toast.makeText(context, "No tabs available", Toast.LENGTH_SHORT).show()
                 return
             }
 
-            // Get current tab
-            val currentTab = runBlocking {
-                categoryDao.getAppCategory(packageName)?.tabName
-            }
-
-            // Create tab names array for dialog
-            val tabNames = tabs.map { it.name }.toTypedArray()
-            val currentIndex = tabNames.indexOf(currentTab).takeIf { it >= 0 } ?: -1
-
-            // Show tab picker dialog
-            AlertDialog.Builder(context)
-                .setTitle(R.string.change_tab_title)
-                .setSingleChoiceItems(tabNames, currentIndex) { dialog, which ->
-                    val selectedTab = tabs[which]
-
-                    // Update tab in database with user override
-                    CoroutineScope(Dispatchers.IO).launch {
-                        categoryDao.insertAppCategory(
-                            AppTab(
-                                packageName = packageName,
-                                tabName = selectedTab.name,
-                                confidence = 1.0f,
-                                source = AppTab.SOURCE_USER,
-                                isUserOverride = true,
-                            ),
-                        )
-
-                        // Refresh the app drawer on main thread
-                        CoroutineScope(Dispatchers.Main).launch {
-                            launcher.appsView.activeRecyclerView?.apps?.updateAdapterItems()
-                            Toast.makeText(
-                                context,
-                                "Moved to ${selectedTab.name}",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        }
-                    }
-
-                    dialog.dismiss()
-                    AbstractFloatingView.closeAllOpenViews(launcher)
+            // Launch a coroutine to fetch current tab and then show dialog
+            launcher.lifecycleScope.launch(Dispatchers.Main) {
+                val currentTab = withContext(Dispatchers.IO) {
+                    TabDatabase.getInstance(context).categoryDao().getAppCategory(packageName)?.tabName
                 }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
+
+                // Create tab names array for dialog
+                val tabNames = tabs.map { it.name }.toTypedArray()
+                val currentIndex = tabNames.indexOf(currentTab).takeIf { it >= 0 } ?: -1
+
+                // Show tab picker dialog
+                AlertDialog.Builder(context)
+                    .setTitle(R.string.change_tab_title)
+                    .setSingleChoiceItems(tabNames, currentIndex) { dialog, which ->
+                        val selectedTab = tabs[which]
+
+                        // Update tab in database with user override
+                        launcher.lifecycleScope.launch(Dispatchers.IO) {
+                            TabDatabase.getInstance(context).categoryDao().insertAppCategory(
+                                AppTab(
+                                    packageName = packageName,
+                                    tabName = selectedTab.name,
+                                    confidence = 1.0f,
+                                    source = AppTab.SOURCE_USER,
+                                    isUserOverride = true,
+                                ),
+                            )
+
+                            // Refresh the app drawer on main thread
+                            withContext(Dispatchers.Main) {
+                                launcher.appsView.activeRecyclerView?.apps?.updateAdapterItems()
+                                Toast.makeText(
+                                    context,
+                                    "Moved to ${selectedTab.name}",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
+                        }
+
+                        dialog.dismiss()
+                        AbstractFloatingView.closeAllOpenViews(launcher)
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
         }
     }
 }

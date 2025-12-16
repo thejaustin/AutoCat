@@ -7,11 +7,11 @@ import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.tab.TabDatabase
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 /**
@@ -32,7 +32,8 @@ class AutoCatAppProvider(private val context: Context) {
     private data class CategoryInfo(val tabName: String, val subCategory: String?)
 
     // In-memory cache of app tabs (packageName -> CategoryInfo)
-    private val categoryCache = ConcurrentHashMap<String, CategoryInfo>()
+    // Uses AtomicReference for thread-safe swaps and immutable map for consistent reads
+    private val categoryCache = AtomicReference<Map<String, CategoryInfo>>(emptyMap())
 
     // Cache for subcategory icons (TabName|SubCategory -> IconPath)
     private val subCategoryIcons = ConcurrentHashMap<String, String>()
@@ -72,12 +73,12 @@ class AutoCatAppProvider(private val context: Context) {
         scope.launch {
             try {
                 val appCategories = categoryDao.getAllAppCategories()
-                categoryCache.clear()
-                appCategories.forEach { appCategory ->
-                    categoryCache[appCategory.packageName] = CategoryInfo(appCategory.tabName, appCategory.subCategory)
+                val newCache = appCategories.associate { appCategory ->
+                    appCategory.packageName to CategoryInfo(appCategory.tabName, appCategory.subCategory)
                 }
+                categoryCache.set(newCache)
                 cacheInitialized = true
-                Log.d(TAG, "Cache initialized with ${categoryCache.size} categorized apps")
+                Log.d(TAG, "Cache initialized with ${newCache.size} categorized apps")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to initialize tab cache", e)
             }
@@ -140,13 +141,18 @@ class AutoCatAppProvider(private val context: Context) {
      * @param subCategory Subcategory name, or null
      */
     fun updateCacheForApp(packageName: String, tabName: String?, subCategory: String? = null) {
+        val currentCache = categoryCache.get()
+        val newCache = currentCache.toMutableMap()
+        
         if (tabName != null) {
-            categoryCache[packageName] = CategoryInfo(tabName, subCategory)
+            newCache[packageName] = CategoryInfo(tabName, subCategory)
             Log.d(TAG, "Cache updated: $packageName -> $tabName / $subCategory")
         } else {
-            categoryCache.remove(packageName)
+            newCache.remove(packageName)
             Log.d(TAG, "Cache entry removed: $packageName")
         }
+        
+        categoryCache.set(newCache)
     }
 
     /**
@@ -167,8 +173,9 @@ class AutoCatAppProvider(private val context: Context) {
         val uncategorizedApps = mutableListOf<AppInfo>()
 
         // Use cached categories (fast in-memory lookup)
+        val cache = categoryCache.get()
         validApps.forEach { app ->
-            val catInfo = app.packageName?.let { categoryCache[it] }
+            val catInfo = app.packageName.let { cache[it] }
 
             if (catInfo != null) {
                 val subMap = categorizedApps.getOrPut(catInfo.tabName) { mutableMapOf() }
