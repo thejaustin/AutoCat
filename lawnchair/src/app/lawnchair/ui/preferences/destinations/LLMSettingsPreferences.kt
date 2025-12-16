@@ -52,6 +52,8 @@ import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.controls.ListPreference
 import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
+import app.lawnchair.ui.preferences.components.controls.SliderPreference
+import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.controls.TextPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
@@ -387,23 +389,23 @@ fun LLMSettingsPreferences(
                             SliderPreference(
                                 adapter = prefs.circuitBreakerFailureThreshold.getAdapter(),
                                 label = { Text("Failure Threshold") },
-                                valueRange = 1f..10f,
-                                steps = 9,
-                                valueText = { "${it.toInt()} failures" },
+                                valueRange = 1..10, // Use Int range
+                                step = 1, // Use Int step
+                                showUnit = " failures",
                             )
                             SliderPreference(
                                 adapter = prefs.circuitBreakerTimeoutMs.getAdapter(),
                                 label = { Text("Timeout Duration") },
                                 valueRange = 10000f..300000f, // 10s to 5min
-                                steps = (300000 - 10000) / 10000 - 1,
-                                valueText = { "${(it / 1000).toInt()} seconds" },
+                                step = 10000f, // 10 second increments
+                                showUnit = " seconds",
                             )
                             SliderPreference(
                                 adapter = prefs.circuitBreakerHalfOpenDurationMs.getAdapter(),
                                 label = { Text("Half-Open Test Duration") },
                                 valueRange = 5000f..60000f, // 5s to 1min
-                                steps = (60000 - 5000) / 5000 - 1,
-                                valueText = { "${(it / 1000).toInt()} seconds" },
+                                step = 5000f, // 5 second increments
+                                showUnit = " seconds",
                             )
                             OutlinedButton(
                                 onClick = {

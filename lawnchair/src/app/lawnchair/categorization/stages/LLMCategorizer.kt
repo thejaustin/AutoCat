@@ -355,7 +355,7 @@ class LLMCategorizer(
                                     "Batch $batchIndex: SUCCESS with ${provider.name} " +
                                         "(${apiResults.size} results in ${batchDuration}ms)",
                                 )
-                                return@async Triple(apiResults, batch.size, true)
+                                return@async Triple(apiResults, provider.name, provider.getCurrentModel()?.id)
                             } else {
                                 lastError = "${provider.name} failed after $MAX_RETRIES retries"
                                 android.util.Log.w(TAG, "Batch $batchIndex: $lastError")
@@ -375,24 +375,26 @@ class LLMCategorizer(
             }
 
             // Process results from parallel batches
-            results.forEach { (apiResults, batchSize, success) ->
+            results.forEach { (apiResults, providerName, modelId) ->
                 totalApiCalls++
 
-                if (success && apiResults != null) {
+                if (apiResults != null) {
                     apiResults.forEach { (packageName, result) ->
                         val calibratedConfidence = ConfidenceCalibrator.calibrate(
                             result.confidence,
-                            provider.name, // Note: In batch, 'provider' is the current provider in the retry loop.
+                            providerName,
                         )
 
                         if (calibratedConfidence >= MIN_CONFIDENCE) {
                             val appTab = AppTab(
                                 packageName = packageName,
                                 tabName = result.tabName,
-                                confidence = calibratedConfidence, // Use calibrated confidence
+                                confidence = calibratedConfidence,
                                 source = AppTab.SOURCE_LLM,
                                 isUserOverride = false,
                                 reasoning = result.reasoning,
+                                provider = providerName,
+                                model = modelId,
                             )
                             categoryDao.insertAppCategory(appTab)
                             categorizedCount++

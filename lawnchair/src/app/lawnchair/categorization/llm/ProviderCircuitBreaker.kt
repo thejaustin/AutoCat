@@ -35,12 +35,12 @@ class ProviderCircuitBreaker {
             CircuitState.OPEN -> {
                 // Check if enough time has passed to retry (transition to HALF_OPEN)
                 val elapsed = System.currentTimeMillis() - circuit.lastFailureTime
-                if (elapsed >= TIMEOUT_MS) {
+                if (elapsed >= timeoutMs) {
                     circuit.state = CircuitState.HALF_OPEN
                     Log.i(TAG, "Circuit breaker HALF_OPEN for $providerName (retrying after ${elapsed / 1000}s)")
                     true // Allow one request to test recovery
                 } else {
-                    Log.w(TAG, "Circuit breaker OPEN for $providerName (retry in ${(TIMEOUT_MS - elapsed) / 1000}s)")
+                    Log.w(TAG, "Circuit breaker OPEN for $providerName (retry in ${(timeoutMs - elapsed) / 1000}s)")
                     false // Still open, block request
                 }
             }
@@ -73,7 +73,7 @@ class ProviderCircuitBreaker {
         circuit.failureCount++
         circuit.lastFailureTime = System.currentTimeMillis()
 
-        if (circuit.state == CircuitState.HALF_OPEN || circuit.failureCount >= FAILURE_THRESHOLD) {
+        if (circuit.state == CircuitState.HALF_OPEN || circuit.failureCount >= failureThreshold) {
             circuit.state = CircuitState.OPEN
             Log.e(TAG, "Circuit breaker OPEN for $providerName after ${circuit.failureCount} failures (last error: ${error.message})")
         }
