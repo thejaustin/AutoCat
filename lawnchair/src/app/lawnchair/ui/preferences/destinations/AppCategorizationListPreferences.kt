@@ -64,11 +64,13 @@ fun AppCategorizationListPreferences(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val database = remember { TabDatabase.getInstance(context) }
-    val categoryDao = database.categoryDao()
+
+    var initializationError by remember { mutableStateOf<String?>(null) }
+    var database by remember { mutableStateOf<TabDatabase?>(null) }
+    var folderSyncService by remember { mutableStateOf<CategoryFolderSyncService?>(null) }
+    var appProvider by remember { mutableStateOf<AutoCatAppProvider?>(null) }
+
     val packageManager = context.packageManager
-    val folderSyncService = remember { CategoryFolderSyncService(context) }
-    val appProvider = remember { AutoCatAppProvider.getInstance(context) }
 
     var appTabs by remember { mutableStateOf<List<AppTab>>(emptyList()) }
     var availableCustomTabs by remember { mutableStateOf<List<CustomTab>>(emptyList()) }
@@ -76,31 +78,58 @@ fun AppCategorizationListPreferences(
     var expandedCategories by remember { mutableStateOf(setOf<String>()) }
     var filterMode by remember { mutableStateOf(FilterMode.ALL) }
 
-    // Load categorizations and available categories
+    // Initialize services safely
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             try {
-                appTabs = categoryDao.getAllAppCategories()
-                availableCustomTabs = categoryDao.getAllCustomCategories()
+                Log.d("AppCategorization", "Initializing database...")
+                database = TabDatabase.getInstance(context)
+                Log.d("AppCategorization", "Database initialized")
+
+                Log.d("AppCategorization", "Initializing folder sync service...")
+                folderSyncService = CategoryFolderSyncService(context)
+                Log.d("AppCategorization", "Folder sync service initialized")
+
+                Log.d("AppCategorization", "Initializing app provider...")
+                appProvider = AutoCatAppProvider.getInstance(context)
+                Log.d("AppCategorization", "App provider initialized")
+
+                Log.d("AppCategorization", "Loading categorizations...")
+                appTabs = database?.categoryDao()?.getAllAppCategories() ?: emptyList()
+                availableCustomTabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                Log.d("AppCategorization", "Loaded ${appTabs.size} app categorizations and ${availableCustomTabs.size} custom tabs")
             } catch (e: Exception) {
-                Log.e("AppCategorization", "Error loading categorizations: ${e.message}", e)
-                // Optionally, show a toast or a message on the UI
+                Log.e("AppCategorization", "Error initializing screen: ${e.message}", e)
+                initializationError = "Failed to load categorizations: ${e.message}"
             }
         }
     }
 
     val filteredAppTabs = remember(appTabs, filterMode) {
-        when (filterMode) {
-            FilterMode.ALL -> appTabs
-            FilterMode.UNCATEGORIZED -> appTabs.filter { it.tabName == "Other" }
-            FilterMode.UNFOLDERED -> appTabs.filter { it.tabName != "Other" && it.subCategory.isNullOrBlank() }
-            FilterMode.LLM_SORTED -> appTabs.filter { it.source == AppTab.SOURCE_LLM || it.source == AppTab.SOURCE_ML }
-            FilterMode.SLBK_SORTED -> appTabs.filter { it.source == AppTab.SOURCE_BUILT_IN || it.source == AppTab.SOURCE_RULE }
+        try {
+            when (filterMode) {
+                FilterMode.ALL -> appTabs
+                FilterMode.UNCATEGORIZED -> appTabs.filter { it.tabName == "Other" }
+                FilterMode.UNFOLDERED -> appTabs.filter { it.tabName != "Other" && it.subCategory.isNullOrBlank() }
+                FilterMode.LLM_SORTED -> appTabs.filter { it.source == AppTab.SOURCE_LLM || it.source == AppTab.SOURCE_ML }
+                FilterMode.SLBK_SORTED -> appTabs.filter { it.source == AppTab.SOURCE_BUILT_IN || it.source == AppTab.SOURCE_RULE }
+            }
+        } catch (e: Exception) {
+            Log.e("AppCategorization", "Error filtering apps: ${e.message}", e)
+            emptyList()
         }
     }
 
     val groupedApps = remember(filteredAppTabs) {
-        filteredAppTabs.groupBy { it.tabName }.toSortedMap()
+        try {
+            filteredAppTabs
+                .filter { it.tabName.isNotEmpty() } // Filter out any apps with empty tab names
+                .groupBy { it.tabName }
+                .toSortedMap()
+        } catch (e: Exception) {
+            Log.e("AppCategorization", "Error grouping apps: ${e.message}", e)
+            emptyMap()
+        }
     }
 
     PreferenceScaffold(
@@ -109,6 +138,34 @@ fun AppCategorizationListPreferences(
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
         PreferenceLazyColumn(it) {
+            // Show error if initialization failed
+            initializationError?.let { error ->
+                item {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "Error Loading Categorizations",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = error,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                            )
+                        }
+                    }
+                }
+            }
+
             item {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -187,55 +244,70 @@ fun AppCategorizationListPreferences(
 
     // Edit dialog
     editingApp?.let { app ->
-        CategoryOverrideDialog(
-            appCategory = app,
-            availableCustomTabs = availableCustomTabs,
-            packageManager = packageManager,
-            onDismiss = { editingApp = null },
-            onSave = { newTabName, newSubCategory ->
-                scope.launch(Dispatchers.IO) {
-                    // Update categorization with user override flag
-                    val updated = app.copy(
-                        tabName = newTabName,
-                        subCategory = newSubCategory,
-                        isUserOverride = true,
-                        source = AppTab.SOURCE_USER,
-                        confidence = 1.0f,
-                        lastUpdated = System.currentTimeMillis(),
-                    )
-                    categoryDao.insertAppCategory(updated)
+        val categoryDao = database?.categoryDao()
+        if (categoryDao != null) {
+            CategoryOverrideDialog(
+                appCategory = app,
+                availableCustomTabs = availableCustomTabs,
+                packageManager = packageManager,
+                onDismiss = { editingApp = null },
+                onSave = { newTabName, newSubCategory ->
+                    scope.launch(Dispatchers.IO) {
+                        try {
+                            // Update categorization with user override flag
+                            val updated = app.copy(
+                                tabName = newTabName,
+                                subCategory = newSubCategory,
+                                isUserOverride = true,
+                                source = AppTab.SOURCE_USER,
+                                confidence = 1.0f,
+                                lastUpdated = System.currentTimeMillis(),
+                            )
+                            categoryDao.insertAppCategory(updated)
 
-                    // Reload categorizations
-                    appTabs = categoryDao.getAllAppCategories()
+                            // Reload categorizations
+                            appTabs = categoryDao.getAllAppCategories()
 
-                    // Sync to folders if enabled
-                    if (folderSyncService.isSyncEnabled()) {
-                        val allAppTabs = categoryDao.getAllAppCategories()
-                        val categorizationMap = allAppTabs.associate { it.packageName to it.tabName }
-                        folderSyncService.syncCategoriesToFolders(categorizationMap)
+                            // Sync to folders if enabled
+                            folderSyncService?.let { syncService ->
+                                if (syncService.isSyncEnabled()) {
+                                    val allAppTabs = categoryDao.getAllAppCategories()
+                                    val categorizationMap = allAppTabs.associate { it.packageName to it.tabName }
+                                    syncService.syncCategoriesToFolders(categorizationMap)
+                                }
+                            }
+
+                            // Refresh app provider cache
+                            appProvider?.refreshCache()
+
+                            editingApp = null
+                        } catch (e: Exception) {
+                            Log.e("AppCategorization", "Error saving categorization: ${e.message}", e)
+                        }
                     }
-
-                    // Refresh app provider cache
-                    appProvider.refreshCache()
-
-                    editingApp = null
-                }
-            },
-            onAutoCategorize = { packageName ->
-                scope.launch(Dispatchers.IO) {
-                    appProvider.categorizeNewApp(packageName)
-                    // Reload categorizations after auto-categorization
-                    appTabs = categoryDao.getAllAppCategories()
-                    // Sync to folders if enabled
-                    if (folderSyncService.isSyncEnabled()) {
-                        val allAppTabs = categoryDao.getAllAppCategories()
-                        val categorizationMap = allAppTabs.associate { it.packageName to it.tabName }
-                        folderSyncService.syncCategoriesToFolders(categorizationMap)
+                },
+                onAutoCategorize = { packageName ->
+                    scope.launch(Dispatchers.IO) {
+                        try {
+                            appProvider?.categorizeNewApp(packageName)
+                            // Reload categorizations after auto-categorization
+                            appTabs = categoryDao.getAllAppCategories()
+                            // Sync to folders if enabled
+                            folderSyncService?.let { syncService ->
+                                if (syncService.isSyncEnabled()) {
+                                    val allAppTabs = categoryDao.getAllAppCategories()
+                                    val categorizationMap = allAppTabs.associate { it.packageName to it.tabName }
+                                    syncService.syncCategoriesToFolders(categorizationMap)
+                                }
+                            }
+                            editingApp = null // Dismiss the dialog
+                        } catch (e: Exception) {
+                            Log.e("AppCategorization", "Error auto-categorizing: ${e.message}", e)
+                        }
                     }
-                    editingApp = null // Dismiss the dialog
-                }
-            },
-        )
+                },
+            )
+        }
     }
 }
 
