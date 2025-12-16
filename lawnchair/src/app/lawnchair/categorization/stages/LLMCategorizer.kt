@@ -15,6 +15,7 @@ import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.tab.TabDao
 import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.preferences.PreferenceManager
+import app.lawnchair.categorization.llm.ConfidenceCalibrator
 import kotlin.math.min
 import kotlin.math.pow
 import kotlinx.coroutines.async
@@ -134,11 +135,16 @@ class LLMCategorizer(
                 // Record success with circuit breaker
                 circuitBreaker.recordSuccess(provider.name)
 
-                // Only accept if confidence is above threshold
-                if (result.confidence < MIN_CONFIDENCE) {
+                val calibratedConfidence = ConfidenceCalibrator.calibrate(
+                    result.confidence,
+                    provider.name
+                )
+
+                // Only accept if calibrated confidence is above threshold
+                if (calibratedConfidence < MIN_CONFIDENCE) {
                     android.util.Log.d(
                         TAG,
-                        "${provider.name} confidence too low for ${appInfo.packageName}: ${result.confidence}",
+                        "${provider.name} calibrated confidence too low for ${appInfo.packageName}: ${calibratedConfidence} (original: ${result.confidence})",
                     )
                     continue
                 }
@@ -147,7 +153,7 @@ class LLMCategorizer(
                 val appTab = AppTab(
                     packageName = appInfo.packageName,
                     tabName = result.tabName,
-                    confidence = result.confidence,
+                    confidence = calibratedConfidence, // Use calibrated confidence
                     source = AppTab.SOURCE_LLM,
                     isUserOverride = false,
                     reasoning = result.reasoning,
@@ -374,11 +380,16 @@ class LLMCategorizer(
 
                 if (success && apiResults != null) {
                     apiResults.forEach { (packageName, result) ->
-                        if (result.confidence >= MIN_CONFIDENCE) {
+                        val calibratedConfidence = ConfidenceCalibrator.calibrate(
+                            result.confidence,
+                            provider.name // Note: In batch, 'provider' is the current provider in the retry loop.
+                        )
+
+                        if (calibratedConfidence >= MIN_CONFIDENCE) {
                             val appTab = AppTab(
                                 packageName = packageName,
                                 tabName = result.tabName,
-                                confidence = result.confidence,
+                                confidence = calibratedConfidence, // Use calibrated confidence
                                 source = AppTab.SOURCE_LLM,
                                 isUserOverride = false,
                                 reasoning = result.reasoning,
@@ -388,7 +399,7 @@ class LLMCategorizer(
 
                             android.util.Log.d(
                                 TAG,
-                                "Saved: $packageName → ${result.tabName} (${result.confidence})",
+                                "Saved: $packageName → ${result.tabName} (${calibratedConfidence}) (original: ${result.confidence})",
                             )
                         }
                     }

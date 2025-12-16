@@ -44,6 +44,12 @@ data class AppTab(
 
     @ColumnInfo(name = "reasoning")
     val reasoning: String? = null,
+
+    @ColumnInfo(name = "llm_provider")
+    val provider: String? = null,
+
+    @ColumnInfo(name = "llm_model")
+    val model: String? = null,
 ) {
     companion object {
         const val SOURCE_BUILT_IN = "built-in"
