@@ -5,10 +5,10 @@ import kotlin.math.min
 
 object ConfidenceCalibrator {
     private val calibrationFactors = mapOf(
-        "claude" to 0.95f,        // Claude overconfident
-        "google_ai" to 1.05f,     // Gemini underconfident
-        "openai" to 1.00f,        // GPT well-calibrated
-        "perplexity" to 0.98f     // Perplexity slightly overconfident
+        "claude" to 0.95f, // Claude overconfident
+        "google_ai" to 1.05f, // Gemini underconfident
+        "openai" to 1.00f, // GPT well-calibrated
+        "perplexity" to 0.98f, // Perplexity slightly overconfident
     )
 
     fun calibrate(confidence: Float, provider: String): Float {

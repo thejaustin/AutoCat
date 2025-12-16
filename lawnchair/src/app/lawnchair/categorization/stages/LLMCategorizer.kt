@@ -5,6 +5,7 @@ import app.lawnchair.categorization.CategorizationProgress
 import app.lawnchair.categorization.learning.UserCorrectionLearner
 import app.lawnchair.categorization.llm.AppBatchInfo
 import app.lawnchair.categorization.llm.ClaudeProvider
+import app.lawnchair.categorization.llm.ConfidenceCalibrator
 import app.lawnchair.categorization.llm.GoogleAIProvider
 import app.lawnchair.categorization.llm.LLMException
 import app.lawnchair.categorization.llm.LLMProvider
@@ -15,7 +16,6 @@ import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.tab.TabDao
 import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.preferences.PreferenceManager
-import app.lawnchair.categorization.llm.ConfidenceCalibrator
 import kotlin.math.min
 import kotlin.math.pow
 import kotlinx.coroutines.async
@@ -137,14 +137,14 @@ class LLMCategorizer(
 
                 val calibratedConfidence = ConfidenceCalibrator.calibrate(
                     result.confidence,
-                    provider.name
+                    provider.name,
                 )
 
                 // Only accept if calibrated confidence is above threshold
                 if (calibratedConfidence < MIN_CONFIDENCE) {
                     android.util.Log.d(
                         TAG,
-                        "${provider.name} calibrated confidence too low for ${appInfo.packageName}: ${calibratedConfidence} (original: ${result.confidence})",
+                        "${provider.name} calibrated confidence too low for ${appInfo.packageName}: $calibratedConfidence (original: ${result.confidence})",
                     )
                     continue
                 }
@@ -382,7 +382,7 @@ class LLMCategorizer(
                     apiResults.forEach { (packageName, result) ->
                         val calibratedConfidence = ConfidenceCalibrator.calibrate(
                             result.confidence,
-                            provider.name // Note: In batch, 'provider' is the current provider in the retry loop.
+                            provider.name, // Note: In batch, 'provider' is the current provider in the retry loop.
                         )
 
                         if (calibratedConfidence >= MIN_CONFIDENCE) {
@@ -399,7 +399,7 @@ class LLMCategorizer(
 
                             android.util.Log.d(
                                 TAG,
-                                "Saved: $packageName → ${result.tabName} (${calibratedConfidence}) (original: ${result.confidence})",
+                                "Saved: $packageName → ${result.tabName} ($calibratedConfidence) (original: ${result.confidence})",
                             )
                         }
                     }
