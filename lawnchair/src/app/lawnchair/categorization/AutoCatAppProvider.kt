@@ -143,7 +143,7 @@ class AutoCatAppProvider(private val context: Context) {
     fun updateCacheForApp(packageName: String, tabName: String?, subCategory: String? = null) {
         val currentCache = categoryCache.get()
         val newCache = currentCache.toMutableMap()
-        
+
         if (tabName != null) {
             newCache[packageName] = CategoryInfo(tabName, subCategory)
             Log.d(TAG, "Cache updated: $packageName -> $tabName / $subCategory")
@@ -151,7 +151,7 @@ class AutoCatAppProvider(private val context: Context) {
             newCache.remove(packageName)
             Log.d(TAG, "Cache entry removed: $packageName")
         }
-        
+
         categoryCache.set(newCache)
     }
 

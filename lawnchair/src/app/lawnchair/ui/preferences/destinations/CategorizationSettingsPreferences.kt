@@ -117,6 +117,7 @@ fun CategorizationSettingsPreferences(
                         val sortResult = app.lawnchair.categorization.FolderAutoSortService.getInstance(context).autoSortAll()
                         "✅ Imported ${result.count} apps. Created ${sortResult.foldersCreated} folders with ${sortResult.appsSorted} apps."
                     }
+
                     is ImportResult.Error -> "❌ Import failed: ${result.message}"
                 }
             }
@@ -302,7 +303,7 @@ fun CategorizationSettingsPreferences(
                                     color = MaterialTheme.colorScheme.error,
                                 )
                             }
-                            
+
                             if (successMessage != null) {
                                 Text(
                                     text = successMessage!!,
@@ -408,7 +409,7 @@ fun CategorizationSettingsPreferences(
                         withContext(Dispatchers.IO) {
                             val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
                             categoryDao.insertCustomCategory(
-                                CustomTab(name = name, colorHex = color, sortOrder = maxSortOrder + 1, isVisible = true)
+                                CustomTab(name = name, colorHex = color, sortOrder = maxSortOrder + 1, isVisible = true),
                             )
                         }
                         successMessage = "✓ Tab '$name' created!"
@@ -433,7 +434,7 @@ fun CategorizationSettingsPreferences(
                     withContext(Dispatchers.IO) {
                         val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
                         categoryDao.insertCustomCategory(
-                            CustomTab(name = suggestion.name, colorHex = "#4CAF50", sortOrder = maxSortOrder + 1)
+                            CustomTab(name = suggestion.name, colorHex = "#4CAF50", sortOrder = maxSortOrder + 1),
                         )
                         tabs = categoryDao.getAllCustomCategories()
                     }

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.unit.dp
 import app.lawnchair.LawnchairLauncher
 import app.lawnchair.categorization.CategorizationManager
+import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.override.CustomizeAppDialog
@@ -46,7 +47,6 @@ import java.io.File
 import java.net.URISyntaxException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import app.lawnchair.categorization.CategoryTabsController
 
 class LawnchairShortcut {
 
