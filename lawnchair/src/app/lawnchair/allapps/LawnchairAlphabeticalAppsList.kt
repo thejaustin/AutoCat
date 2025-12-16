@@ -73,7 +73,7 @@ class LawnchairAlphabeticalAppsList<T>(
                 label = "",
                 category = null,
                 installedTime = 0L,
-                description = null
+                description = null,
             )
         }
     }
@@ -178,7 +178,7 @@ class LawnchairAlphabeticalAppsList<T>(
                 val tempFolders = mutableListOf<FolderInfo>()
                 categorizedApps.forEach { (tabName, subCategories) ->
                     val allAppsInTab = subCategories.values.flatten()
-                    
+
                     // Efficiently resolve Launcher3 AppInfos from our map
                     val launcherAppsInTab = allAppsInTab.flatMap { autoCatApp ->
                         appMap[autoCatApp.packageName] ?: emptyList()
@@ -233,7 +233,7 @@ class LawnchairAlphabeticalAppsList<T>(
 
                 // 2. Apps in this tab that were not in matched folders
                 val allAutoCatAppsInTab = categorizedApps[currentTabName]?.values?.flatten() ?: emptyList()
-                
+
                 // Map back to Launcher3 AppInfos
                 val allLauncherAppsInTab = allAutoCatAppsInTab.flatMap { autoCatApp ->
                     appMap[autoCatApp.packageName] ?: emptyList()
