@@ -532,7 +532,17 @@ public class Launcher extends StatefulActivity<LauncherState>
         mAllAppsController = new AllAppsTransitionController(this);
         mStateManager = new StateManager<>(this, NORMAL);
 
-        setupViews();
+        try {
+            setupViews();
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Error initializing views", e);
+            // If view setup fails, we can't really proceed, but maybe we can avoid a hard crash loop
+            // or at least log it better.
+            // For now, let's just log and rethrow if it's critical, or try to limp along.
+            // Rethrowing will cause a crash, which is better than a silent exit if BugReporter catches it.
+            throw e;
+        }
+        
         updateDisallowBack();
 
         mAppWidgetManager = new WidgetManagerHelper(this);

@@ -163,95 +163,103 @@ class LawnchairLauncher : QuickstepLauncher() {
         layoutInflater.factory2 = LawnchairLayoutFactory(this)
         super.onCreate(savedInstanceState)
 
-        prefs.launcherTheme.subscribeChanges(this, ::updateTheme)
-        prefs.feedProvider.subscribeChanges(this, defaultOverlay::reconnect)
-        preferenceManager2.enableFeed.get().distinctUntilChanged().onEach { enable ->
-            defaultOverlay.setEnableFeed(enable)
-        }.launchIn(scope = lifecycleScope)
-        launcher.stateManager.addStateListener(clearSearchStateListener)
+        colorScheme = themeProvider.colorScheme // Move this up
 
-        if (prefs.autoLaunchRoot.get()) {
-            lifecycleScope.launch {
-                try {
-                    RootHelperManager.INSTANCE.get(this@LawnchairLauncher)
-                } catch (_: RootNotAvailableException) {
+        try {
+            prefs.launcherTheme.subscribeChanges(this, ::updateTheme)
+            prefs.feedProvider.subscribeChanges(this, defaultOverlay::reconnect)
+            preferenceManager2.enableFeed.get().distinctUntilChanged().onEach { enable ->
+                defaultOverlay.setEnableFeed(enable)
+            }.launchIn(scope = lifecycleScope)
+            launcher.stateManager.addStateListener(clearSearchStateListener)
+
+            if (prefs.autoLaunchRoot.get()) {
+                lifecycleScope.launch {
+                    try {
+                        RootHelperManager.INSTANCE.get(this@LawnchairLauncher)
+                    } catch (_: RootNotAvailableException) {
+                    }
                 }
             }
-        }
 
-        preferenceManager2.showStatusBar.get().distinctUntilChanged().onEach {
-            with(insetsController) {
-                if (it) {
-                    show(WindowInsetsCompat.Type.statusBars())
-                } else {
-                    hide(WindowInsetsCompat.Type.statusBars())
+            preferenceManager2.showStatusBar.get().distinctUntilChanged().onEach {
+                with(insetsController) {
+                    if (it) {
+                        show(WindowInsetsCompat.Type.statusBars())
+                    } else {
+                        hide(WindowInsetsCompat.Type.statusBars())
+                    }
+                }
+                with(launcher.stateManager) {
+                    if (it) {
+                        removeStateListener(noStatusBarStateListener)
+                    } else {
+                        addStateListener(noStatusBarStateListener)
+                    }
+                }
+            }.launchIn(scope = lifecycleScope)
+
+            preferenceManager2.statusBarClock.get().onEach {
+                with(launcher.stateManager) {
+                    if (it) {
+                        addStateListener(statusBarClockListener)
+                    } else {
+                        removeStateListener(statusBarClockListener)
+                        // Make sure status bar clock is restored when the preference is toggled off
+                        LawnchairApp.instance.restoreClockInStatusBar()
+                    }
                 }
             }
-            with(launcher.stateManager) {
-                if (it) {
-                    removeStateListener(noStatusBarStateListener)
-                } else {
-                    addStateListener(noStatusBarStateListener)
+            preferenceManager2.rememberPosition.get().onEach {
+                with(launcher.stateManager) {
+                    if (it) {
+                        addStateListener(rememberPositionStateListener)
+                    } else {
+                        removeStateListener(rememberPositionStateListener)
+                    }
                 }
+            }.launchIn(scope = lifecycleScope)
+
+            prefs.overrideWindowCornerRadius.subscribeValues(this) {
+                QuickStepContract.sHasCustomCornerRadius = it
             }
-        }.launchIn(scope = lifecycleScope)
-
-        preferenceManager2.statusBarClock.get().onEach {
-            with(launcher.stateManager) {
-                if (it) {
-                    addStateListener(statusBarClockListener)
-                } else {
-                    removeStateListener(statusBarClockListener)
-                    // Make sure status bar clock is restored when the preference is toggled off
-                    LawnchairApp.instance.restoreClockInStatusBar()
-                }
+            prefs.windowCornerRadius.subscribeValues(this) {
+                QuickStepContract.sCustomCornerRadius = it.toFloat()
             }
-        }
-        preferenceManager2.rememberPosition.get().onEach {
-            with(launcher.stateManager) {
-                if (it) {
-                    addStateListener(rememberPositionStateListener)
-                } else {
-                    removeStateListener(rememberPositionStateListener)
-                }
+            preferenceManager2.roundedWidgets.onEach(launchIn = lifecycleScope) {
+                RoundedCornerEnforcement.sRoundedCornerEnabled = it
             }
-        }.launchIn(scope = lifecycleScope)
+            val isWorkspaceDarkText = Themes.getAttrBoolean(this, R.attr.isWorkspaceDarkText)
+            preferenceManager2.darkStatusBar.onEach(launchIn = lifecycleScope) { darkStatusBar ->
+                systemUiController.updateUiState(UI_STATE_BASE_WINDOW, isWorkspaceDarkText || darkStatusBar)
+            }
+            preferenceManager2.backPressGestureHandler.onEach(launchIn = lifecycleScope) { handler ->
+                hasBackGesture = handler !is GestureHandlerConfig.NoOp
+            }
 
-        prefs.overrideWindowCornerRadius.subscribeValues(this) {
-            QuickStepContract.sHasCustomCornerRadius = it
+            LauncherOptionsPopup.restoreMissingPopupOptions(launcher)
+            LauncherOptionsPopup.migrateLegacyPreferences(launcher)
+
+            // Handle update from version 12 Alpha 4 to version 12 Alpha 5.
+            if (
+                prefs.themedIcons.get() &&
+                packageManager.getThemedIconPacksInstalled(this).isEmpty()
+            ) {
+                prefs.themedIcons.set(newValue = false)
+            }
+
+            showQuickstepWarningIfNecessary()
+
+            reloadIconsIfNeeded()
+
+            AppDatabase.INSTANCE.get(this).checkpointSync()
+        } catch (e: Throwable) {
+            Log.e(TAG, "Error in LawnchairLauncher onCreate post-super initialization", e)
+            // If the bug reporter is already set up, it should catch this.
+            // If not, logging it here is the best we can do.
+            // Re-throwing could cause crash loops. The activity might just finish if it's too broken.
+            // For now, let's let it fail naturally if it's unrecoverable, relying on BugReporter.
         }
-        prefs.windowCornerRadius.subscribeValues(this) {
-            QuickStepContract.sCustomCornerRadius = it.toFloat()
-        }
-        preferenceManager2.roundedWidgets.onEach(launchIn = lifecycleScope) {
-            RoundedCornerEnforcement.sRoundedCornerEnabled = it
-        }
-        val isWorkspaceDarkText = Themes.getAttrBoolean(this, R.attr.isWorkspaceDarkText)
-        preferenceManager2.darkStatusBar.onEach(launchIn = lifecycleScope) { darkStatusBar ->
-            systemUiController.updateUiState(UI_STATE_BASE_WINDOW, isWorkspaceDarkText || darkStatusBar)
-        }
-        preferenceManager2.backPressGestureHandler.onEach(launchIn = lifecycleScope) { handler ->
-            hasBackGesture = handler !is GestureHandlerConfig.NoOp
-        }
-
-        LauncherOptionsPopup.restoreMissingPopupOptions(launcher)
-        LauncherOptionsPopup.migrateLegacyPreferences(launcher)
-
-        // Handle update from version 12 Alpha 4 to version 12 Alpha 5.
-        if (
-            prefs.themedIcons.get() &&
-            packageManager.getThemedIconPacksInstalled(this).isEmpty()
-        ) {
-            prefs.themedIcons.set(newValue = false)
-        }
-
-        colorScheme = themeProvider.colorScheme
-
-        showQuickstepWarningIfNecessary()
-
-        reloadIconsIfNeeded()
-
-        AppDatabase.INSTANCE.get(this).checkpointSync()
     }
 
     override fun collectStateHandlers(out: MutableList<StateHandler<LauncherState>>) {
