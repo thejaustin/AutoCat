@@ -87,6 +87,7 @@ fun PreferencesDashboard(
 ) {
     val context = LocalContext.current
     SyncLiveInformation()
+    val prefs = preferenceManager()
     val pref2 = preferenceManager2()
 
     PreferenceLayout(

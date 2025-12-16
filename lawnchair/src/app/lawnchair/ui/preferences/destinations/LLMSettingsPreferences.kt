@@ -58,6 +58,7 @@ import app.lawnchair.ui.preferences.components.controls.TextPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
+import kotlin.math.roundToLong
 import kotlinx.coroutines.launch
 
 @Composable
@@ -380,31 +381,37 @@ fun LLMSettingsPreferences(
                 PreferenceGroup(heading = "Circuit Breaker Settings") {
                     SwitchPreference(
                         adapter = prefs.circuitBreakerEnabled.getAdapter(),
-                        label = { Text("Enable Circuit Breaker") },
-                        description = { Text("Temporarily disable LLM providers that are consistently failing.") },
+                        label = "Enable Circuit Breaker",
+                        description = "Temporarily disable LLM providers that are consistently failing.",
                     )
 
                     AnimatedVisibility(visible = prefs.circuitBreakerEnabled.get()) {
                         Column {
                             SliderPreference(
                                 adapter = prefs.circuitBreakerFailureThreshold.getAdapter(),
-                                label = { Text("Failure Threshold") },
+                                label = "Failure Threshold",
                                 valueRange = 1..10, // Use Int range
                                 step = 1, // Use Int step
                                 showUnit = " failures",
                             )
                             SliderPreference(
-                                adapter = prefs.circuitBreakerTimeoutMs.getAdapter(),
-                                label = { Text("Timeout Duration") },
-                                valueRange = 10000f..300000f, // 10s to 5min
-                                step = 10000f, // 10 second increments
+                                adapter = rememberTransformAdapter(
+                                    transformSet = { (it * 1000f).roundToLong() }, // Convert seconds to ms and round
+                                ),
+                                label = "Timeout Duration",
+                                valueRange = 10f..300f, // 10s to 5min in seconds
+                                step = 10f, // 10 second increments
                                 showUnit = " seconds",
                             )
                             SliderPreference(
-                                adapter = prefs.circuitBreakerHalfOpenDurationMs.getAdapter(),
-                                label = { Text("Half-Open Test Duration") },
-                                valueRange = 5000f..60000f, // 5s to 1min
-                                step = 5000f, // 5 second increments
+                                adapter = rememberTransformAdapter(
+                                    adapter = prefs.circuitBreakerHalfOpenDurationMs.getAdapter(),
+                                    transformGet = { it.toFloat() / 1000f }, // Convert ms to seconds
+                                    transformSet = { (it * 1000f).roundToLong() }, // Convert seconds to ms and round
+                                ),
+                                label = "Half-Open Test Duration",
+                                valueRange = 5f..60f, // 5s to 1min in seconds
+                                step = 5f, // 5 second increments
                                 showUnit = " seconds",
                             )
                             OutlinedButton(

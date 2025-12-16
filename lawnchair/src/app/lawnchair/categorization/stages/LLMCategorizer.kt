@@ -369,7 +369,7 @@ class LLMCategorizer(
                             )
                         }
 
-                        return@async Triple(null, 0, false)
+                        return@async Triple(null, null, null)
                     }
                 }.awaitAll()
             }

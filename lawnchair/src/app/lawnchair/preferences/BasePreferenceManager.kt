@@ -280,6 +280,31 @@ sealed class BasePreferenceManager(private val context: Context) : SharedPrefere
         }
     }
 
+    inner class LongPref(
+        key: String,
+        override val defaultValue: Long,
+        primaryListener: ChangeListener? = null,
+    ) : BasePref<Long>(key, primaryListener) {
+        private var currentValue = 0L
+
+        init {
+            prefsMap[key] = this
+        }
+
+        override fun get(): Long {
+            if (!loaded) {
+                currentValue = sp.getLong(key, defaultValue)
+                loaded = true
+            }
+            return currentValue
+        }
+
+        override fun set(newValue: Long) {
+            currentValue = newValue
+            editSp { putLong(key, newValue) }
+        }
+    }
+
     inner class StringSetPref(
         key: String,
         override val defaultValue: Set<String>,
