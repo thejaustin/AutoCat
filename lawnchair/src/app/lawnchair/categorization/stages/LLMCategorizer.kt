@@ -537,6 +537,13 @@ class LLMCategorizer(
         return categorizedCount
     }
 
+    /**
+     * Resets all circuit breakers, allowing providers to be re-attempted.
+     */
+    fun resetCircuitBreakers() {
+        circuitBreaker.resetAll()
+    }
+
     companion object {
         private const val TAG = "LLMCategorizer"
 

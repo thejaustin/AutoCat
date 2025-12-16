@@ -161,6 +161,12 @@ class PreferenceManager private constructor(private val context: Context) :
     // AutoCat: Rate limiting
     val autoCatEnableRateLimiting = BoolPref("pref_autoCatEnableRateLimiting", false, {})
 
+    // AutoCat: Circuit Breaker settings
+    val circuitBreakerEnabled = BoolPref("pref_circuitBreakerEnabled", true, {})
+    val circuitBreakerFailureThreshold = IntPref("pref_circuitBreakerFailureThreshold", 3, {})
+    val circuitBreakerTimeoutMs = LongPref("pref_circuitBreakerTimeoutMs", 60_000L, {})
+    val circuitBreakerHalfOpenDurationMs = LongPref("pref_circuitBreakerHalfOpenDurationMs", 10_000L, {})
+
     val recentsActionScreenshot = BoolPref("pref_recentsActionScreenshot", !isOnePlusStock)
     val recentsActionShare = BoolPref("pref_recentsActionShare", isOnePlusStock)
     val recentsActionLens = BoolPref("pref_recentsActionLens", true)

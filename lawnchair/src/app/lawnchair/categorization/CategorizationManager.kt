@@ -299,6 +299,13 @@ class CategorizationManager(private val context: Context) {
         }
     }
 
+    /**
+     * Resets all circuit breakers for LLM providers.
+     */
+    fun resetCircuitBreakers() {
+        llmCategorizer.resetCircuitBreakers()
+    }
+
     companion object {
         private const val TAG = "CategorizationManager"
 

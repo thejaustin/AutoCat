@@ -373,6 +373,55 @@ fun LLMSettingsPreferences(
                 }
             }
 
+            // Circuit Breaker Settings
+            item {
+                PreferenceGroup(heading = "Circuit Breaker Settings") {
+                    SwitchPreference(
+                        adapter = prefs.circuitBreakerEnabled.getAdapter(),
+                        label = { Text("Enable Circuit Breaker") },
+                        description = { Text("Temporarily disable LLM providers that are consistently failing.") },
+                    )
+
+                    AnimatedVisibility(visible = prefs.circuitBreakerEnabled.get()) {
+                        Column {
+                            SliderPreference(
+                                adapter = prefs.circuitBreakerFailureThreshold.getAdapter(),
+                                label = { Text("Failure Threshold") },
+                                valueRange = 1f..10f,
+                                steps = 9,
+                                valueText = { "${it.toInt()} failures" },
+                            )
+                            SliderPreference(
+                                adapter = prefs.circuitBreakerTimeoutMs.getAdapter(),
+                                label = { Text("Timeout Duration") },
+                                valueRange = 10000f..300000f, // 10s to 5min
+                                steps = (300000 - 10000) / 10000 - 1,
+                                valueText = { "${(it / 1000).toInt()} seconds" },
+                            )
+                            SliderPreference(
+                                adapter = prefs.circuitBreakerHalfOpenDurationMs.getAdapter(),
+                                label = { Text("Half-Open Test Duration") },
+                                valueRange = 5000f..60000f, // 5s to 1min
+                                steps = (60000 - 5000) / 5000 - 1,
+                                valueText = { "${(it / 1000).toInt()} seconds" },
+                            )
+                            OutlinedButton(
+                                onClick = {
+                                    scope.launch {
+                                        CategorizationManager.getInstance(context).resetCircuitBreakers()
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                            ) {
+                                Text("Reset All Circuit Breakers")
+                            }
+                        }
+                    }
+                }
+            }
+
             // Operations Section
             item {
                 PreferenceGroup(heading = "Categorization Operations") {
