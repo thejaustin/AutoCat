@@ -251,10 +251,15 @@ class CategorizationManager(private val context: Context) {
             android.util.Log.e(TAG, "Error during re-categorization", e)
             _progress.value = CategorizationProgress(
                 isRunning = false,
-                currentStage = "Error",
+                currentStage = "Error: ${e.message}",
                 processedCount = 0,
                 totalCount = 0,
             )
+        } finally {
+            // Ensure running state is cleared even if unexpected error
+            if (_progress.value.isRunning) {
+                _progress.value = _progress.value.copy(isRunning = false)
+            }
         }
     }
 

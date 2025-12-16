@@ -181,17 +181,32 @@ object ModelRegistry {
         ),
     )
 
+    private fun getAutoModel(provider: String): ModelInfo {
+        return ModelInfo(
+            id = "auto",
+            displayName = "Auto (Recommended)",
+            provider = provider,
+            isAvailable = true,
+            costTier = ModelInfo.CostTier.FREE,
+            contextWindow = 0,
+            speedTier = ModelInfo.SpeedTier.FAST,
+            qualityTier = ModelInfo.QualityTier.HIGH,
+            recommendedFor = listOf("categorization", "suggestions", "batch"),
+        )
+    }
+
     /**
      * Gets all available models for a provider
      */
     fun getAvailableModels(provider: String): List<ModelInfo> {
-        return when (provider) {
+        val models = when (provider) {
             "google_ai" -> GOOGLE_AI_MODELS.filter { it.isAvailable }
             "claude" -> CLAUDE_MODELS.filter { it.isAvailable }
             "openai" -> OPENAI_MODELS.filter { it.isAvailable }
             "perplexity" -> PERPLEXITY_MODELS.filter { it.isAvailable }
             else -> emptyList()
         }
+        return listOf(getAutoModel(provider)) + models
     }
 
     /**
