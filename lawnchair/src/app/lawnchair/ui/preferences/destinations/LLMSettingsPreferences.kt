@@ -49,6 +49,7 @@ import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
+import app.lawnchair.preferences.rememberTransformAdapter
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.controls.ListPreference
 import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
@@ -396,7 +397,9 @@ fun LLMSettingsPreferences(
                             )
                             SliderPreference(
                                 adapter = rememberTransformAdapter(
-                                    transformSet = { (it * 1000f).roundToLong() }, // Convert seconds to ms and round
+                                    adapter = prefs.circuitBreakerTimeoutMs.getAdapter(),
+                                    transformGet = { (it as Long).toFloat() / 1000f }, // Convert ms to seconds
+                                    transformSet = { (it as Float * 1000f).roundToLong() }, // Convert seconds to ms and round
                                 ),
                                 label = "Timeout Duration",
                                 valueRange = 10f..300f, // 10s to 5min in seconds
@@ -406,8 +409,8 @@ fun LLMSettingsPreferences(
                             SliderPreference(
                                 adapter = rememberTransformAdapter(
                                     adapter = prefs.circuitBreakerHalfOpenDurationMs.getAdapter(),
-                                    transformGet = { it.toFloat() / 1000f }, // Convert ms to seconds
-                                    transformSet = { (it * 1000f).roundToLong() }, // Convert seconds to ms and round
+                                    transformGet = { (it as Long).toFloat() / 1000f }, // Convert ms to seconds
+                                    transformSet = { (it as Float * 1000f).roundToLong() }, // Convert seconds to ms and round
                                 ),
                                 label = "Half-Open Test Duration",
                                 valueRange = 5f..60f, // 5s to 1min in seconds

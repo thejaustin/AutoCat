@@ -382,9 +382,8 @@ class LLMCategorizer(
                     apiResults.forEach { (packageName, result) ->
                         val calibratedConfidence = ConfidenceCalibrator.calibrate(
                             result.confidence,
-                            providerName,
+                            providerName!!, // Assert non-null here
                         )
-
                         if (calibratedConfidence >= MIN_CONFIDENCE) {
                             val appTab = AppTab(
                                 packageName = packageName,
