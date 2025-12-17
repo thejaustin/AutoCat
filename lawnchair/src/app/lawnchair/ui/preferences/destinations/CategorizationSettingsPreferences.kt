@@ -80,11 +80,15 @@ fun CategorizationSettingsPreferences(
     val context = LocalContext.current
     val prefs = preferenceManager()
     val scope = rememberCoroutineScope()
-    val categorizationManager = remember { CategorizationManager.getInstance(context) }
-    val progress by categorizationManager.progress.collectAsState()
-    val database = remember { TabDatabase.getInstance(context) }
-    val categoryDao = database.categoryDao()
-    val appProvider = remember { AutoCatAppProvider.getInstance(context) }
+
+    var categorizationManager by remember { mutableStateOf<CategorizationManager?>(null) }
+    var database by remember { mutableStateOf<TabDatabase?>(null) }
+    var appProvider by remember { mutableStateOf<AutoCatAppProvider?>(null) }
+    var initializationError by remember { mutableStateOf<String?>(null) }
+
+    val progress by (categorizationManager?.progress ?: kotlinx.coroutines.flow.MutableStateFlow(
+        app.lawnchair.categorization.CategorizationProgress()
+    )).collectAsState()
 
     var categorizationStatus by remember { mutableStateOf("") }
     var tabs by remember { mutableStateOf<List<CustomTab>>(emptyList()) }
@@ -97,9 +101,19 @@ fun CategorizationSettingsPreferences(
     var suggestionsProvider by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
 
-    // Load tabs on start
+    // Initialize services and load tabs safely
     LaunchedEffect(Unit) {
-        tabs = withContext(Dispatchers.IO) { categoryDao.getAllCustomCategories() }
+        withContext(Dispatchers.IO) {
+            try {
+                categorizationManager = CategorizationManager.getInstance(context)
+                database = TabDatabase.getInstance(context)
+                appProvider = AutoCatAppProvider.getInstance(context)
+                tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+            } catch (e: Exception) {
+                android.util.Log.e("CategorizationSettings", "Error initializing: ${e.message}", e)
+                initializationError = "Failed to initialize: ${e.message}"
+            }
+        }
     }
 
     val slImportLauncher = rememberLauncherForActivityResult(
@@ -144,14 +158,14 @@ fun CategorizationSettingsPreferences(
                                 categorizationStatus = ""
                                 scope.launch {
                                     try {
-                                        categorizationManager.recategorizeAll()
+                                        categorizationManager?.recategorizeAll()
                                         categorizationStatus = "✅ Categorization complete! Check your app drawer."
                                     } catch (e: Exception) {
                                         categorizationStatus = "❌ Error: ${e.message}"
                                     }
                                 }
                             },
-                            enabled = !progress.isRunning,
+                            enabled = !progress.isRunning && categorizationManager != null,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(if (progress.isRunning) "Categorizing..." else "Re-categorize All Apps")
@@ -196,8 +210,8 @@ fun CategorizationSettingsPreferences(
                                 onEdit = { editingTab = it },
                                 onDelete = { target ->
                                     scope.launch(Dispatchers.IO) {
-                                        categoryDao.deleteCustomCategory(target)
-                                        tabs = categoryDao.getAllCustomCategories()
+                                        database?.categoryDao()?.deleteCustomCategory(target)
+                                        tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
                                     }
                                 },
                             )
@@ -400,24 +414,29 @@ fun CategorizationSettingsPreferences(
             },
             onSave = { name, color ->
                 scope.launch {
-                    if (editingTab != null) {
-                        withContext(Dispatchers.IO) {
-                            categoryDao.updateCustomCategory(editingTab!!.copy(name = name, colorHex = color))
+                    try {
+                        if (editingTab != null) {
+                            withContext(Dispatchers.IO) {
+                                database?.categoryDao()?.updateCustomCategory(editingTab!!.copy(name = name, colorHex = color))
+                            }
+                            successMessage = "✓ Tab '$name' updated"
+                        } else {
+                            withContext(Dispatchers.IO) {
+                                val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
+                                database?.categoryDao()?.insertCustomCategory(
+                                    CustomTab(name = name, colorHex = color, sortOrder = maxSortOrder + 1, isVisible = true),
+                                )
+                            }
+                            successMessage = "✓ Tab '$name' created!"
                         }
-                        successMessage = "✓ Tab '$name' updated"
-                    } else {
-                        withContext(Dispatchers.IO) {
-                            val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
-                            categoryDao.insertCustomCategory(
-                                CustomTab(name = name, colorHex = color, sortOrder = maxSortOrder + 1, isVisible = true),
-                            )
-                        }
-                        successMessage = "✓ Tab '$name' created!"
+                        tabs = withContext(Dispatchers.IO) { database?.categoryDao()?.getAllCustomCategories() ?: emptyList() }
+                        appProvider?.refreshCache()
+                        showAddDialog = false
+                        editingTab = null
+                    } catch (e: Exception) {
+                        android.util.Log.e("CategorizationSettings", "Error saving tab: ${e.message}", e)
+                        successMessage = "❌ Error: ${e.message}"
                     }
-                    tabs = withContext(Dispatchers.IO) { categoryDao.getAllCustomCategories() }
-                    appProvider.refreshCache()
-                    showAddDialog = false
-                    editingTab = null
                 }
             },
         )
@@ -431,15 +450,20 @@ fun CategorizationSettingsPreferences(
             onDismiss = { showSuggestionsDialog = false },
             onAddTab = { suggestion ->
                 scope.launch {
-                    withContext(Dispatchers.IO) {
-                        val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
-                        categoryDao.insertCustomCategory(
-                            CustomTab(name = suggestion.name, colorHex = "#4CAF50", sortOrder = maxSortOrder + 1),
-                        )
-                        tabs = categoryDao.getAllCustomCategories()
+                    try {
+                        withContext(Dispatchers.IO) {
+                            val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
+                            database?.categoryDao()?.insertCustomCategory(
+                                CustomTab(name = suggestion.name, colorHex = "#4CAF50", sortOrder = maxSortOrder + 1),
+                            )
+                            tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                        }
+                        appProvider?.refreshCache()
+                        successMessage = "✓ Added '${suggestion.name}' tab!"
+                    } catch (e: Exception) {
+                        android.util.Log.e("CategorizationSettings", "Error adding suggested tab: ${e.message}", e)
+                        successMessage = "❌ Error: ${e.message}"
                     }
-                    appProvider.refreshCache()
-                    successMessage = "✓ Added '${suggestion.name}' tab!"
                 }
             },
         )

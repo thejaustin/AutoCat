@@ -59,10 +59,11 @@ fun CategoryManagementPreferences(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val database = remember { TabDatabase.getInstance(context) }
-    val categoryDao = database.categoryDao()
-    val categorizationManager = remember { CategorizationManager.getInstance(context) }
-    val appProvider = remember { AutoCatAppProvider.getInstance(context) }
+
+    var database by remember { mutableStateOf<TabDatabase?>(null) }
+    var categorizationManager by remember { mutableStateOf<CategorizationManager?>(null) }
+    var appProvider by remember { mutableStateOf<AutoCatAppProvider?>(null) }
+    var initializationError by remember { mutableStateOf<String?>(null) }
 
     var tabs by remember { mutableStateOf<List<CustomTab>>(emptyList()) }
     var showAddDialog by remember { mutableStateOf(false) }
@@ -74,9 +75,19 @@ fun CategoryManagementPreferences(
     var suggestionsProvider by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
 
-    // Load categories
+    // Initialize services and load categories safely
     LaunchedEffect(Unit) {
-        tabs = categoryDao.getAllCustomCategories()
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                database = TabDatabase.getInstance(context)
+                categorizationManager = CategorizationManager.getInstance(context)
+                appProvider = AutoCatAppProvider.getInstance(context)
+                tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+            } catch (e: Exception) {
+                android.util.Log.e("CategoryManagement", "Error initializing: ${e.message}", e)
+                initializationError = "Failed to initialize: ${e.message}"
+            }
+        }
     }
 
     PreferenceScaffold(
@@ -100,9 +111,9 @@ fun CategoryManagementPreferences(
                     tab = tab,
                     onEdit = { editingTab = it },
                     onDelete = {
-                        scope.launch {
-                            categoryDao.deleteCustomCategory(it)
-                            tabs = categoryDao.getAllCustomCategories()
+                        scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                            database?.categoryDao()?.deleteCustomCategory(it)
+                            tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
                         }
                     },
                 )
@@ -244,41 +255,46 @@ fun CategoryManagementPreferences(
                 editingTab = null
             },
             onSave = { name, color ->
-                scope.launch {
-                    if (editingTab != null) {
-                        // Edit existing
-                        categoryDao.updateCustomCategory(
-                            editingTab!!.copy(
-                                name = name,
-                                colorHex = color,
-                            ),
-                        )
-                        successMessage = "✓ Tab '$name' updated"
-                    } else {
-                        // Add new tab
-                        val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
-                        android.util.Log.d("CategoryManagement", "Creating new tab: $name, sortOrder: ${maxSortOrder + 1}, isVisible: true")
-                        val tabId = categoryDao.insertCustomCategory(
-                            CustomTab(
-                                name = name,
-                                colorHex = color,
-                                sortOrder = maxSortOrder + 1,
-                                isVisible = true,
-                            ),
-                        )
-                        android.util.Log.d("CategoryManagement", "Tab created with ID: $tabId")
+                scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    try {
+                        if (editingTab != null) {
+                            // Edit existing
+                            database?.categoryDao()?.updateCustomCategory(
+                                editingTab!!.copy(
+                                    name = name,
+                                    colorHex = color,
+                                ),
+                            )
+                            successMessage = "✓ Tab '$name' updated"
+                        } else {
+                            // Add new tab
+                            val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
+                            android.util.Log.d("CategoryManagement", "Creating new tab: $name, sortOrder: ${maxSortOrder + 1}, isVisible: true")
+                            val tabId = database?.categoryDao()?.insertCustomCategory(
+                                CustomTab(
+                                    name = name,
+                                    colorHex = color,
+                                    sortOrder = maxSortOrder + 1,
+                                    isVisible = true,
+                                ),
+                            )
+                            android.util.Log.d("CategoryManagement", "Tab created with ID: $tabId")
 
-                        successMessage = "✓ Tab '$name' created! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
+                            successMessage = "✓ Tab '$name' created! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
+                        }
+                        tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                        android.util.Log.d("CategoryManagement", "Total tabs after save: ${tabs.size}")
+                        tabs.forEach { t ->
+                            android.util.Log.d("CategoryManagement", "  - ${t.name} (visible: ${t.isVisible}, sortOrder: ${t.sortOrder})")
+                        }
+                        appProvider?.refreshCache()
+                        showAddDialog = false
+                        editingTab = null
+                        suggestionsError = null // Clear any previous errors
+                    } catch (e: Exception) {
+                        android.util.Log.e("CategoryManagement", "Error saving tab: ${e.message}", e)
+                        successMessage = "❌ Error: ${e.message}"
                     }
-                    tabs = categoryDao.getAllCustomCategories()
-                    android.util.Log.d("CategoryManagement", "Total tabs after save: ${tabs.size}")
-                    tabs.forEach { t ->
-                        android.util.Log.d("CategoryManagement", "  - ${t.name} (visible: ${t.isVisible}, sortOrder: ${t.sortOrder})")
-                    }
-                    appProvider.refreshCache()
-                    showAddDialog = false
-                    editingTab = null
-                    suggestionsError = null // Clear any previous errors
                 }
             },
         )
@@ -291,20 +307,25 @@ fun CategoryManagementPreferences(
             providerName = suggestionsProvider,
             onDismiss = { showSuggestionsDialog = false },
             onAddTab = { suggestion ->
-                scope.launch {
-                    val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
-                    categoryDao.insertCustomCategory(
-                        CustomTab(
-                            name = suggestion.name,
-                            colorHex = "#4CAF50", // Default green color
-                            sortOrder = maxSortOrder + 1,
-                        ),
-                    )
-                    tabs = categoryDao.getAllCustomCategories()
-                    appProvider.refreshCache()
+                scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    try {
+                        val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
+                        database?.categoryDao()?.insertCustomCategory(
+                            CustomTab(
+                                name = suggestion.name,
+                                colorHex = "#4CAF50", // Default green color
+                                sortOrder = maxSortOrder + 1,
+                            ),
+                        )
+                        tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                        appProvider?.refreshCache()
 
-                    successMessage = "✓ Added '${suggestion.name}' tab! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
-                    suggestionsError = null
+                        successMessage = "✓ Added '${suggestion.name}' tab! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
+                        suggestionsError = null
+                    } catch (e: Exception) {
+                        android.util.Log.e("CategoryManagement", "Error adding suggested tab: ${e.message}", e)
+                        successMessage = "❌ Error: ${e.message}"
+                    }
                 }
             },
         )

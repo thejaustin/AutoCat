@@ -71,8 +71,24 @@ fun LLMSettingsPreferences(
     val scope = rememberCoroutineScope()
     var testStatus by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
-    val categorizationManager = remember { CategorizationManager.getInstance(context) }
-    val progress by categorizationManager.progress.collectAsState()
+    var categorizationManager by remember { mutableStateOf<CategorizationManager?>(null) }
+    var initializationError by remember { mutableStateOf<String?>(null) }
+
+    // Initialize categorization manager safely
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                categorizationManager = CategorizationManager.getInstance(context)
+            } catch (e: Exception) {
+                android.util.Log.e("LLMSettings", "Error initializing: ${e.message}", e)
+                initializationError = "Failed to initialize: ${e.message}"
+            }
+        }
+    }
+
+    val progress by (categorizationManager?.progress ?: kotlinx.coroutines.flow.MutableStateFlow(
+        app.lawnchair.categorization.CategorizationProgress()
+    )).collectAsState()
 
     PreferenceScaffold(
         label = "LLM Settings",
@@ -420,9 +436,10 @@ fun LLMSettingsPreferences(
                             OutlinedButton(
                                 onClick = {
                                     scope.launch {
-                                        CategorizationManager.getInstance(context).resetCircuitBreakers()
+                                        categorizationManager?.resetCircuitBreakers()
                                     }
                                 },
+                                enabled = categorizationManager != null,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp),
@@ -440,10 +457,10 @@ fun LLMSettingsPreferences(
                     OutlinedButton(
                         onClick = {
                             scope.launch {
-                                categorizationManager.recategorizeAll()
+                                categorizationManager?.recategorizeAll()
                             }
                         },
-                        enabled = !progress.isRunning,
+                        enabled = !progress.isRunning && categorizationManager != null,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
