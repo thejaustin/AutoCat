@@ -14,7 +14,9 @@ import app.lawnchair.data.tab.entities.CustomTab
  * - App tab assignments (which apps belong to which tabs)
  * - Custom tab definitions (user-created tabs with colors and ordering)
  *
- * Database version: 4
+ * Database version: 5
+ * - v5: Added llm_provider and llm_model fields to AppTab entity
+ * - v4: Previous schema
  * Export schema: false (disabled for development, will enable for production)
  */
 @Database(
@@ -22,7 +24,7 @@ import app.lawnchair.data.tab.entities.CustomTab
         AppTab::class,
         CustomTab::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class TabDatabase : RoomDatabase() {
