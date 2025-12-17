@@ -42,13 +42,20 @@ class PerplexityProvider(
                 envKey.isNotEmpty() -> envKey
                 else -> ""
             }
-            android.util.Log.d(TAG, "Perplexity API key status: ${if (finalKey.isEmpty()) "NOT SET" else "SET (length: ${finalKey.length}, source: ${
-                when {
-                    !userKey.isNullOrEmpty() -> "user pref"
-                    envKey.isNotEmpty() -> "env var"
-                    else -> "none"
-                }
-            })"}")
+            android.util.Log.d(
+                TAG,
+                "Perplexity API key status: ${if (finalKey.isEmpty()) {
+                    "NOT SET"
+                } else {
+                    "SET (length: ${finalKey.length}, source: ${
+                        when {
+                            !userKey.isNullOrEmpty() -> "user pref"
+                            envKey.isNotEmpty() -> "env var"
+                            else -> "none"
+                        }
+                    })"
+                }}",
+            )
             return finalKey
         }
 
