@@ -34,9 +34,21 @@ class ClaudeProvider(
 
     private val effectiveApiKey: String
         get() {
+            // Priority: constructor param > user preference > environment variable
             val userKey = apiKey ?: PreferenceManager.getInstance(context).llmClaudeKey.get()
-            val finalKey = userKey.ifEmpty { "" }
-            android.util.Log.d(TAG, "Claude API key status: ${if (finalKey.isEmpty()) "NOT SET" else "SET (length: ${finalKey.length})"}")
+            val envKey = System.getenv("ANTHROPIC_API_KEY") ?: ""
+            val finalKey = when {
+                !userKey.isNullOrEmpty() -> userKey
+                envKey.isNotEmpty() -> envKey
+                else -> ""
+            }
+            android.util.Log.d(TAG, "Claude API key status: ${if (finalKey.isEmpty()) "NOT SET" else "SET (length: ${finalKey.length}, source: ${
+                when {
+                    !userKey.isNullOrEmpty() -> "user pref"
+                    envKey.isNotEmpty() -> "env var"
+                    else -> "none"
+                }
+            })"}")
             return finalKey
         }
 
