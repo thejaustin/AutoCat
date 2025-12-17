@@ -86,9 +86,11 @@ fun CategorizationSettingsPreferences(
     var appProvider by remember { mutableStateOf<AutoCatAppProvider?>(null) }
     var initializationError by remember { mutableStateOf<String?>(null) }
 
-    val progress by (categorizationManager?.progress ?: kotlinx.coroutines.flow.MutableStateFlow(
-        app.lawnchair.categorization.CategorizationProgress()
-    )).collectAsState()
+    val progress by (
+        categorizationManager?.progress ?: kotlinx.coroutines.flow.MutableStateFlow(
+            app.lawnchair.categorization.CategorizationProgress(),
+        )
+        ).collectAsState()
 
     var categorizationStatus by remember { mutableStateOf("") }
     var tabs by remember { mutableStateOf<List<CustomTab>>(emptyList()) }

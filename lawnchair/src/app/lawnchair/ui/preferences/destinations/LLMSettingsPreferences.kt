@@ -86,9 +86,11 @@ fun LLMSettingsPreferences(
         }
     }
 
-    val progress by (categorizationManager?.progress ?: kotlinx.coroutines.flow.MutableStateFlow(
-        app.lawnchair.categorization.CategorizationProgress()
-    )).collectAsState()
+    val progress by (
+        categorizationManager?.progress ?: kotlinx.coroutines.flow.MutableStateFlow(
+            app.lawnchair.categorization.CategorizationProgress(),
+        )
+        ).collectAsState()
 
     PreferenceScaffold(
         label = "LLM Settings",
