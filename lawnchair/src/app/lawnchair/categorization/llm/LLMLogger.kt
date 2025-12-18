@@ -8,6 +8,7 @@ import java.util.Locale
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -318,6 +319,15 @@ object LLMLogger {
         val providerCounts: Map<String, Int>,
         val recentErrors: List<LogEntry>,
     )
+
+    /**
+     * Cancels the coroutine scope and cleans up resources.
+     * Should be called when shutting down to prevent memory leaks.
+     */
+    fun cleanup() {
+        scope.cancel()
+        android.util.Log.d("LLMLogger", "LLMLogger cleaned up, coroutine scope cancelled")
+    }
 }
 
 /**

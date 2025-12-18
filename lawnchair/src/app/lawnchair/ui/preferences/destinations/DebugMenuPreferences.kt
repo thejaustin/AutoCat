@@ -2,6 +2,7 @@ package app.lawnchair.ui.preferences.destinations
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.datastore.preferences.core.Preferences
 import app.lawnchair.preferences.PreferenceManager
@@ -21,7 +22,7 @@ import app.lawnchair.ui.preferences.data.liveinfo.liveInformationManager
 import app.lawnchair.ui.preferences.data.liveinfo.model.LiveInformation
 import app.lawnchair.ui.preferences.navigation.FeatureFlags
 import com.patrykmichalik.opto.domain.Preference
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 /**
  * A screen to house unfinished preferences and debug flags
@@ -37,6 +38,7 @@ fun DebugMenuPreferences(
     val flags2 = remember { prefs2.debugFlags }
     val textFlags = remember { prefs2.textFlags }
     val navController = LocalNavController.current
+    val coroutineScope = rememberCoroutineScope()
 
     val enableDebug = prefs.enableDebugMenu.getAdapter()
 
@@ -60,7 +62,7 @@ fun DebugMenuPreferences(
                 ClickablePreference(
                     label = "Reset live information",
                     onClick = {
-                        runBlocking {
+                        coroutineScope.launch {
                             liveInfoManager.liveInformation.set(LiveInformation())
                             liveInfoManager.dismissedAnnouncementIds.set(emptySet())
                         }

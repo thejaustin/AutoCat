@@ -30,6 +30,7 @@ import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class PreferenceManager private constructor(private val context: Context) :
@@ -180,7 +181,7 @@ class PreferenceManager private constructor(private val context: Context) :
     val recentsTranslucentBackgroundAlpha = FloatPref("pref_recentTranslucentBackgroundAlpha", .8f, recreate)
 
     override fun close() {
-        TODO("Not yet implemented")
+        scope.cancel()
     }
 
     private val scope = CoroutineScope(Dispatchers.IO)

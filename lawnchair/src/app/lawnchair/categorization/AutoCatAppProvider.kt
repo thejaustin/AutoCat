@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -238,6 +239,15 @@ class AutoCatAppProvider(private val context: Context) {
         }
     }
 
+    /**
+     * Cancels all running coroutines and cleans up resources.
+     * Should be called when the provider is no longer needed.
+     */
+    fun cleanup() {
+        scope.cancel()
+        Log.d(TAG, "AutoCatAppProvider cleaned up, coroutine scope cancelled")
+    }
+
     companion object {
         private const val TAG = "AutoCatAppProvider"
 
@@ -253,6 +263,15 @@ class AutoCatAppProvider(private val context: Context) {
                     instance = it
                 }
             }
+        }
+
+        /**
+         * Cleans up the singleton instance and cancels all coroutines.
+         * Call this when the application is terminating to prevent memory leaks.
+         */
+        fun cleanup() {
+            instance?.cleanup()
+            instance = null
         }
     }
 }

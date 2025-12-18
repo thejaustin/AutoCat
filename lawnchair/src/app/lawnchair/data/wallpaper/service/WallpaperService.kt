@@ -13,11 +13,18 @@ import com.android.launcher3.util.SafeCloseable
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
-import kotlinx.coroutines.runBlocking
 
 class WallpaperService(val context: Context) : SafeCloseable {
 
     val dao = AppDatabase.Companion.INSTANCE.get(context).wallpaperDao()
+
+    // Cache for quick synchronous isEmpty check
+    @Volatile
+    private var cachedWallpapers: List<Wallpaper>? = null
+
+    private fun updateCache(wallpapers: List<Wallpaper>) {
+        cachedWallpapers = wallpapers
+    }
 
     suspend fun saveWallpaper(wallpaperManager: WallpaperManager) {
         try {
@@ -80,6 +87,8 @@ class WallpaperService(val context: Context) : SafeCloseable {
             )
             dao.insert(wallpaper)
         }
+        // Update cache after modifications
+        updateCache(dao.getTopWallpapers())
     }
 
     suspend fun updateWallpaperRank(selectedWallpaper: Wallpaper) {
@@ -93,11 +102,22 @@ class WallpaperService(val context: Context) : SafeCloseable {
                 dao.updateRank(wallpaper.rank)
             }
         }
+        // Update cache after modifications
+        updateCache(dao.getTopWallpapers())
     }
 
-    fun getTopWallpapers(): List<Wallpaper> = runBlocking {
+    suspend fun getTopWallpapers(): List<Wallpaper> {
         val wallpapers = dao.getTopWallpapers()
-        wallpapers.ifEmpty { emptyList() }
+        updateCache(wallpapers)
+        return wallpapers.ifEmpty { emptyList() }
+    }
+
+    /**
+     * Synchronous check if wallpaper list is empty.
+     * Uses cached value if available, otherwise returns true to be safe.
+     */
+    fun isWallpaperListEmpty(): Boolean {
+        return cachedWallpapers?.isEmpty() ?: true
     }
 
     private fun deleteWallpaperFile(imagePath: String) {

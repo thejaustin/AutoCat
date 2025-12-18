@@ -4,7 +4,8 @@ import android.content.Context
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.CustomTab
 import app.lawnchair.preferences.PreferenceManager
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Manages dynamic app tabs for the app drawer.
@@ -46,11 +47,11 @@ class CategoryTabsManager(private val context: Context) {
      * @param hasWorkApps Whether the device has work profile apps
      * @return List of tabs in display order
      */
-    fun getTabs(hasWorkApps: Boolean): List<TabInfo> {
+    suspend fun getTabs(hasWorkApps: Boolean): List<TabInfo> {
         val tabs = mutableListOf<TabInfo>()
 
         // Get visible custom tabs from database (already sorted by sortOrder)
-        val customCategoryTabs = runBlocking {
+        val customCategoryTabs = withContext(Dispatchers.IO) {
             categoryDao.getVisibleCustomCategories()
         }
 
