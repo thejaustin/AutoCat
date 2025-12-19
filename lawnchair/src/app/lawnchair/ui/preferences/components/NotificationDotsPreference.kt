@@ -48,8 +48,11 @@ import com.android.launcher3.settings.SettingsActivity.EXTRA_FRAGMENT_ARGS
 import com.android.launcher3.settings.SettingsActivity.EXTRA_FRAGMENT_HIGHLIGHT_KEY
 import com.android.launcher3.util.SettingsCache
 import com.android.launcher3.util.SettingsCache.NOTIFICATION_BADGING_URI
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun NotificationDotsPreference(
@@ -165,13 +168,14 @@ fun isNotificationServiceEnabled(context: Context): Boolean {
 fun notificationServiceEnabled(): Boolean {
     val context = LocalContext.current
 
-    val enabledState = remember { mutableStateOf(isNotificationServiceEnabled(context)) }
+    val enabledState = remember { mutableStateOf(false) }
     val resumed = lifecycleState().isAtLeast(Lifecycle.State.RESUMED)
 
-    if (resumed) {
-        DisposableEffect(null) {
-            enabledState.value = isNotificationServiceEnabled(context)
-            onDispose { }
+    LaunchedEffect(resumed) {
+        if (resumed) {
+            withContext(Dispatchers.IO) {
+                enabledState.value = isNotificationServiceEnabled(context)
+            }
         }
     }
 

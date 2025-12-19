@@ -50,7 +50,9 @@ import app.lawnchair.util.FileAccessState
 import app.lawnchair.util.hasFlag
 import app.lawnchair.util.removeFlag
 import com.android.launcher3.R
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun CreateBackupScreen(
@@ -65,7 +67,12 @@ fun CreateBackupScreen(
     val scrollState = rememberScrollState()
 
     val context = LocalContext.current
-    val hasLiveWallpaper = remember { WallpaperManager.getInstance(context).wallpaperInfo != null }
+    var hasLiveWallpaper by remember { mutableStateOf(false) }
+    LaunchedEffect(context) {
+        withContext(Dispatchers.IO) {
+            hasLiveWallpaper = WallpaperManager.getInstance(context).wallpaperInfo != null
+        }
+    }
     val allFilesAccessState by viewModel.allFilesAccessState.collectAsStateWithLifecycle()
     val wallpaperAccessState by viewModel.wallpaperAccessState.collectAsStateWithLifecycle()
     val hasWallpaperPermission = wallpaperAccessState == FileAccessState.Full
