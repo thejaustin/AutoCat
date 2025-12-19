@@ -43,9 +43,16 @@
 
         <include layout="@layout/all_apps_personal_work_tabs" />
 
-        <include layout="@layout/all_apps_category_tabs" />
-
     </com.android.launcher3.allapps.FloatingHeaderView>
 
     <include layout="@layout/all_apps_fast_scroller" />
+
+    <!-- Category tabs moved to bottom for better reachability -->
+    <include
+        android:id="@+id/category_tabs_bottom"
+        layout="@layout/all_apps_category_tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone" />
 </merge>

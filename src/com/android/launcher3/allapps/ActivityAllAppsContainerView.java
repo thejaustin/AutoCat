@@ -840,15 +840,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         try {
             View personalWorkTabs = mHeader.findViewById(com.android.launcher3.R.id.tabs);
 
-            // Find CategoryTabStrip by iterating children (since it's in an include)
-            CategoryTabStrip categoryTabStrip = null;
-            for (int i = 0; i < mHeader.getChildCount(); i++) {
-                View child = mHeader.getChildAt(i);
-                if (child instanceof CategoryTabStrip) {
-                    categoryTabStrip = (CategoryTabStrip) child;
-                    break;
-                }
-            }
+            // Find CategoryTabStrip at bottom of container (moved from header for better reachability)
+            CategoryTabStrip categoryTabStrip = findViewById(com.android.launcher3.R.id.category_tabs);
 
             if (usingCategoryTabs && categoryTabStrip != null) {
                 categoryTabStrip.setupTabs();
@@ -1416,8 +1409,20 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     private void applyAdapterSideAndBottomPaddings(DeviceProfile grid) {
         int bottomPadding = Math.max(mInsets.bottom, mNavBarScrimHeight);
+
+        // Add extra padding for category tabs at bottom (if enabled)
+        PreferenceManager prefManager = PreferenceManager.getInstance(getContext());
+        boolean usingCategoryTabs = prefManager.getUseAppTabs().get();
+        CategoryTabStrip categoryTabStrip = findViewById(com.android.launcher3.R.id.category_tabs);
+        if (usingCategoryTabs && categoryTabStrip != null && categoryTabStrip.getVisibility() == View.VISIBLE) {
+            int tabHeight = getResources().getDimensionPixelSize(com.android.launcher3.R.dimen.all_apps_header_pill_height);
+            int tabMargin = (int) (8 * getResources().getDisplayMetrics().density); // 8dp margin
+            bottomPadding += tabHeight + tabMargin;
+        }
+
+        int finalBottomPadding = bottomPadding;
         mAH.forEach(adapterHolder -> {
-            adapterHolder.mPadding.bottom = bottomPadding;
+            adapterHolder.mPadding.bottom = finalBottomPadding;
             adapterHolder.mPadding.left = adapterHolder.mPadding.right = grid.allAppsPadding.left
                     + grid.allAppsPadding.right;
             adapterHolder.applyPadding();
