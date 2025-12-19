@@ -115,9 +115,9 @@ fun CategorizationOverviewPreferences(
                 }
             }
 
-            // Quick Actions
+            // Navigation Actions
             item {
-                PreferenceGroup(heading = "Quick Actions") {
+                PreferenceGroup(heading = "Manage Categorization") {
                     NavigationActionPreference(
                         label = "Manage Categories",
                         subtitle = "Create, edit, and delete app categories",
@@ -138,10 +138,14 @@ fun CategorizationOverviewPreferences(
                         destination = AppDrawerLLMSettings,
                         icon = Icons.Rounded.Psychology,
                     )
+                }
+            }
 
-                    // Re-categorize button
+            // Re-categorize Action
+            item {
+                PreferenceGroup(heading = "Categorization Action") {
                     androidx.compose.foundation.background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),

@@ -107,13 +107,27 @@ fun AppCategorizationListPreferences(
 
     val filteredAppTabs = remember(appTabs, filterMode) {
         try {
-            when (filterMode) {
+            val filtered = when (filterMode) {
                 FilterMode.ALL -> appTabs
-                FilterMode.UNCATEGORIZED -> appTabs.filter { it.tabName == "Other" }
-                FilterMode.UNFOLDERED -> appTabs.filter { it.tabName != "Other" && it.subCategory.isNullOrBlank() }
-                FilterMode.LLM_SORTED -> appTabs.filter { it.source == AppTab.SOURCE_LLM || it.source == AppTab.SOURCE_ML }
-                FilterMode.SLBK_SORTED -> appTabs.filter { it.source == AppTab.SOURCE_BUILT_IN || it.source == AppTab.SOURCE_RULE }
+
+                FilterMode.UNCATEGORIZED -> appTabs.filter {
+                    it.tabName == "Other" || it.tabName == "Uncategorized" || it.tabName.isEmpty()
+                }
+
+                FilterMode.UNFOLDERED -> appTabs.filter {
+                    it.tabName.isNotEmpty() && it.tabName != "Other" && it.subCategory.isNullOrBlank()
+                }
+
+                FilterMode.LLM_SORTED -> appTabs.filter {
+                    it.source == AppTab.SOURCE_LLM || it.source == AppTab.SOURCE_ML
+                }
+
+                FilterMode.SLBK_SORTED -> appTabs.filter {
+                    it.source == AppTab.SOURCE_BUILT_IN || it.source == AppTab.SOURCE_RULE
+                }
             }
+            // Ensure we're not returning null values that could cause issues
+            filtered.filter { it.tabName != null }
         } catch (e: Exception) {
             Log.e("AppCategorization", "Error filtering apps: ${e.message}", e)
             emptyList()
@@ -123,8 +137,8 @@ fun AppCategorizationListPreferences(
     val groupedApps = remember(filteredAppTabs) {
         try {
             filteredAppTabs
-                .filter { it.tabName.isNotEmpty() } // Filter out any apps with empty tab names
-                .groupBy { it.tabName }
+                .filter { !it.tabName.isNullOrBlank() } // Filter out any apps with empty or null tab names
+                .groupBy { it.tabName!! } // Use !! since we filtered out nulls above
                 .toSortedMap()
         } catch (e: Exception) {
             Log.e("AppCategorization", "Error grouping apps: ${e.message}", e)
@@ -167,42 +181,53 @@ fun AppCategorizationListPreferences(
             }
 
             item {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
                     Text(
                         text = "View and override app categorizations. Changes are used to improve future categorization.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Filters
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(
-                            selected = filterMode == FilterMode.ALL,
-                            onClick = { filterMode = FilterMode.ALL },
-                            label = { Text("All") },
-                        )
-                        FilterChip(
-                            selected = filterMode == FilterMode.UNCATEGORIZED,
-                            onClick = { filterMode = FilterMode.UNCATEGORIZED },
-                            label = { Text("Uncategorized") },
-                        )
-                        FilterChip(
-                            selected = filterMode == FilterMode.UNFOLDERED,
-                            onClick = { filterMode = FilterMode.UNFOLDERED },
-                            label = { Text("Unfoldered") },
-                        )
-                        FilterChip(
-                            selected = filterMode == FilterMode.LLM_SORTED,
-                            onClick = { filterMode = FilterMode.LLM_SORTED },
-                            label = { Text("LLM Sorted") },
-                        )
-                        FilterChip(
-                            selected = filterMode == FilterMode.SLBK_SORTED,
-                            onClick = { filterMode = FilterMode.SLBK_SORTED },
-                            label = { Text("SLBK Sorted") },
-                        )
+                    // Filters - organized in a horizontal scroll container for better mobile experience
+                    androidx.compose.foundation.HorizontalScrollView(
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(end = 16.dp), // Add padding to account for the end of the scroll area
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            FilterChip(
+                                selected = filterMode == FilterMode.ALL,
+                                onClick = { filterMode = FilterMode.ALL },
+                                label = { Text("All") },
+                            )
+                            FilterChip(
+                                selected = filterMode == FilterMode.UNCATEGORIZED,
+                                onClick = { filterMode = FilterMode.UNCATEGORIZED },
+                                label = { Text("Uncategorized") },
+                            )
+                            FilterChip(
+                                selected = filterMode == FilterMode.UNFOLDERED,
+                                onClick = { filterMode = FilterMode.UNFOLDERED },
+                                label = { Text("Unfoldered") },
+                            )
+                            FilterChip(
+                                selected = filterMode == FilterMode.LLM_SORTED,
+                                onClick = { filterMode = FilterMode.LLM_SORTED },
+                                label = { Text("LLM Sorted") },
+                            )
+                            FilterChip(
+                                selected = filterMode == FilterMode.SLBK_SORTED,
+                                onClick = { filterMode = FilterMode.SLBK_SORTED },
+                                label = { Text("SLBK Sorted") },
+                            )
+                        }
                     }
                 }
             }
@@ -331,25 +356,51 @@ private fun CategoryHeader(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 2.dp,
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Column {
-                Text(
-                    text = tabName,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                // Add a colored indicator circle for the category
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(
+                            color = androidx.compose.ui.graphics.Color(
+                                android.graphics.Color.HSVToColor(
+                                    floatArrayOf(
+                                        (tabName.hashCode() % 360).toFloat(),
+                                        0.6f,
+                                        0.8f,
+                                    ),
+                                ),
+                            ),
+                            shape = androidx.compose.foundation.shape.CircleShape,
+                        ),
                 )
-                Text(
-                    text = "$count apps",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+
+                Column {
+                    Text(
+                        text = tabName,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = "$count apps",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             Icon(
                 imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
@@ -383,84 +434,123 @@ private fun AppCategorizationItem(
         }
     }
 
-    Row(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onEditClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp,
     ) {
-        // App icon
-        if (appIcon != null) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(appIcon)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                modifier = Modifier.size(40.dp),
-            )
-        }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // App info
-        Column(
-            modifier = Modifier.weight(1f),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = appName,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-            )
+            // App icon
+            if (appIcon != null) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(appIcon)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(MaterialTheme.shapes.small),
+                )
+            }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            // App info
+            Column(
+                modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text = appCategory.tabName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    text = appName,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
                 )
 
-                if (!appCategory.subCategory.isNullOrBlank()) {
-                    Text(
-                        text = "• ${appCategory.subCategory}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Category and subcategory info
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    // Category tag
+                    androidx.compose.foundation.background(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = MaterialTheme.shapes.small,
+                    ) {
+                        Text(
+                            text = appCategory.tabName,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        )
+                    }
+
+                    // Subcategory if available
+                    if (!appCategory.subCategory.isNullOrBlank()) {
+                        Text(
+                            text = "→ ${appCategory.subCategory}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    // User override indicator
+                    if (appCategory.isUserOverride) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        androidx.compose.foundation.background(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = MaterialTheme.shapes.small,
+                        ) {
+                            Text(
+                                text = "Override",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            )
+                        }
+                    }
                 }
 
-                if (appCategory.isUserOverride) {
-                    Text(
-                        text = "• Override",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary,
-                    )
+                // Show reasoning if available
+                if (!appCategory.reasoning.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    androidx.compose.foundation.background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = MaterialTheme.shapes.extraSmall,
+                    ) {
+                        Text(
+                            text = appCategory.reasoning,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            modifier = Modifier.padding(8.dp),
+                        )
+                    }
                 }
             }
 
-            // Show reasoning if available
-            if (!appCategory.reasoning.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = appCategory.reasoning,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+            // Edit button
+            IconButton(
+                onClick = onEditClick,
+                modifier = Modifier
+                    .padding(start = 8.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit categorization",
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
-        }
-
-        // Edit button
-        IconButton(onClick = onEditClick) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Edit tab",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

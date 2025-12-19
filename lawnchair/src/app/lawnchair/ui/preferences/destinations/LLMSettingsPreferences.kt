@@ -160,25 +160,30 @@ fun LLMSettingsPreferences(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                val provider = GoogleAIProvider(context)
-                                val result = provider.testConnection()
-                                testStatus = testStatus + (
-                                    "google_ai" to if (result.success) {
-                                        "✅ Connected (${result.latencyMs}ms)"
-                                    } else {
-                                        "❌ ${result.message}"
-                                    }
-                                    )
-                            }
-                        },
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Text("Test Google AI Connection")
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    val provider = GoogleAIProvider(context)
+                                    val result = provider.testConnection()
+                                    testStatus = testStatus + (
+                                        "google_ai" to if (result.success) {
+                                            "✅ Connected (${result.latencyMs}ms)"
+                                        } else {
+                                            "❌ ${result.message}"
+                                        }
+                                        )
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text("Test Connection")
+                        }
                     }
 
                     testStatus["google_ai"]?.let { status ->
@@ -191,7 +196,9 @@ fun LLMSettingsPreferences(
                             } else {
                                 MaterialTheme.colorScheme.error
                             },
-                            modifier = Modifier.padding(horizontal = 16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
                         )
                     }
 
@@ -201,7 +208,9 @@ fun LLMSettingsPreferences(
                         text = "Get your free API key at ai.google.dev/gemini-api",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
                     )
                 }
             }
@@ -229,25 +238,30 @@ fun LLMSettingsPreferences(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                val provider = ClaudeProvider(context)
-                                val result = provider.testConnection()
-                                testStatus = testStatus + (
-                                    "claude" to if (result.success) {
-                                        "✅ Connected (${result.latencyMs}ms)"
-                                    } else {
-                                        "❌ ${result.message}"
-                                    }
-                                    )
-                            }
-                        },
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Text("Test Claude Connection")
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    val provider = ClaudeProvider(context)
+                                    val result = provider.testConnection()
+                                    testStatus = testStatus + (
+                                        "claude" to if (result.success) {
+                                            "✅ Connected (${result.latencyMs}ms)"
+                                        } else {
+                                            "❌ ${result.message}"
+                                        }
+                                        )
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text("Test Connection")
+                        }
                     }
 
                     testStatus["claude"]?.let { status ->
@@ -260,7 +274,9 @@ fun LLMSettingsPreferences(
                             } else {
                                 MaterialTheme.colorScheme.error
                             },
-                            modifier = Modifier.padding(horizontal = 16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
                         )
                     }
                 }
@@ -289,25 +305,30 @@ fun LLMSettingsPreferences(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                val provider = OpenAIProvider(context)
-                                val result = provider.testConnection()
-                                testStatus = testStatus + (
-                                    "openai" to if (result.success) {
-                                        "✅ Connected (${result.latencyMs}ms)"
-                                    } else {
-                                        "❌ ${result.message}"
-                                    }
-                                    )
-                            }
-                        },
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Text("Test OpenAI Connection")
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    val provider = OpenAIProvider(context)
+                                    val result = provider.testConnection()
+                                    testStatus = testStatus + (
+                                        "openai" to if (result.success) {
+                                            "✅ Connected (${result.latencyMs}ms)"
+                                        } else {
+                                            "❌ ${result.message}"
+                                        }
+                                        )
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text("Test Connection")
+                        }
                     }
 
                     testStatus["openai"]?.let { status ->
@@ -320,7 +341,9 @@ fun LLMSettingsPreferences(
                             } else {
                                 MaterialTheme.colorScheme.error
                             },
-                            modifier = Modifier.padding(horizontal = 16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
                         )
                     }
                 }
@@ -349,25 +372,30 @@ fun LLMSettingsPreferences(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                val provider = PerplexityProvider(context)
-                                val result = provider.testConnection()
-                                testStatus = testStatus + (
-                                    "perplexity" to if (result.success) {
-                                        "✅ Connected (${result.latencyMs}ms)"
-                                    } else {
-                                        "❌ ${result.message}"
-                                    }
-                                    )
-                            }
-                        },
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Text("Test Perplexity Connection")
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    val provider = PerplexityProvider(context)
+                                    val result = provider.testConnection()
+                                    testStatus = testStatus + (
+                                        "perplexity" to if (result.success) {
+                                            "✅ Connected (${result.latencyMs}ms)"
+                                        } else {
+                                            "❌ ${result.message}"
+                                        }
+                                        )
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text("Test Connection")
+                        }
                     }
 
                     testStatus["perplexity"]?.let { status ->
@@ -380,7 +408,9 @@ fun LLMSettingsPreferences(
                             } else {
                                 MaterialTheme.colorScheme.error
                             },
-                            modifier = Modifier.padding(horizontal = 16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
                         )
                     }
 
@@ -390,7 +420,9 @@ fun LLMSettingsPreferences(
                         text = "Get your API key at docs.perplexity.ai. If you get a 401 error, verify your API key is correct and active.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
                     )
                 }
             }
@@ -435,18 +467,23 @@ fun LLMSettingsPreferences(
                                 step = 5f, // 5 second increments
                                 showUnit = " seconds",
                             )
-                            OutlinedButton(
-                                onClick = {
-                                    scope.launch {
-                                        categorizationManager?.resetCircuitBreakers()
-                                    }
-                                },
-                                enabled = categorizationManager != null,
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                Text("Reset All Circuit Breakers")
+                                OutlinedButton(
+                                    onClick = {
+                                        scope.launch {
+                                            categorizationManager?.resetCircuitBreakers()
+                                        }
+                                    },
+                                    enabled = categorizationManager != null,
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Text("Reset All")
+                                }
                             }
                         }
                     }
@@ -456,18 +493,23 @@ fun LLMSettingsPreferences(
             // Operations Section
             item {
                 PreferenceGroup(heading = "Categorization Operations") {
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                categorizationManager?.recategorizeAll()
-                            }
-                        },
-                        enabled = !progress.isRunning && categorizationManager != null,
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Text(if (progress.isRunning) "Processing..." else "Re-categorize All Apps")
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    categorizationManager?.recategorizeAll()
+                                }
+                            },
+                            enabled = !progress.isRunning && categorizationManager != null,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(if (progress.isRunning) "Processing..." else "Re-categorize All")
+                        }
                     }
 
                     AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
