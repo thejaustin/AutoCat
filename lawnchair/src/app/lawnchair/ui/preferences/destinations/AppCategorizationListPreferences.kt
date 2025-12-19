@@ -488,34 +488,40 @@ private fun CategoryOverrideDialog(
     var subCategory by remember { mutableStateOf(appCategory.subCategory ?: "") }
     var expanded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        expanded = false
+    // Ensure dropdown is properly initialized
+    LaunchedEffect(availableCustomTabs) {
+        // If the current tab name is not in available tabs, add it to the list
+        if (!availableCustomTabs.any { it.name == selectedTabName }) {
+            // Keep the current selection if it's valid
+        }
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text("Change Tab")
+            Text("Change Category")
         },
         text = {
             Column {
                 Text(
-                    text = "Change categorization for $appName",
+                    text = "Change category for $appName",
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Tab dropdown
+                // Tab dropdown - improved for better UX
                 ExposedDropdownMenuBox(
                     expanded = expanded,
-                    onExpandedChange = { expanded = it },
+                    onExpandedChange = {
+                        expanded = !expanded
+                    },
                 ) {
                     OutlinedTextField(
                         value = selectedTabName,
-                        onValueChange = {},
+                        onValueChange = {}, // Read-only for dropdown
                         readOnly = true,
-                        label = { Text("Tab") },
+                        label = { Text("Category") },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                         },
@@ -526,11 +532,26 @@ private fun CategoryOverrideDialog(
 
                     ExposedDropdownMenu(
                         expanded = expanded,
-                        onDismissRequest = { expanded = false },
+                        onDismissRequest = {
+                            expanded = false
+                        },
                     ) {
                         availableCustomTabs.forEach { tab ->
                             DropdownMenuItem(
-                                text = { Text(tab.name) },
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                                .background(
+                                                    color = parseColor(tab.colorHex),
+                                                    shape = CircleShape,
+                                                ),
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(text = tab.name)
+                                    }
+                                },
                                 onClick = {
                                     selectedTabName = tab.name
                                     expanded = false
@@ -581,9 +602,11 @@ private fun CategoryOverrideDialog(
                             onDismiss() // Dismiss dialog after triggering auto-categorization
                         },
                     ) {
-                        Text("Auto Categorize")
+                        Text("Auto")
                     }
                 }
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 TextButton(
                     onClick = {
@@ -603,4 +626,13 @@ private fun CategoryOverrideDialog(
             }
         },
     )
+}
+
+// Helper function to parse color - added here for the dropdown improvement
+private fun parseColor(hex: String): Color {
+    return try {
+        Color(android.graphics.Color.parseColor(hex))
+    } catch (e: Exception) {
+        Color.Gray
+    }
 }

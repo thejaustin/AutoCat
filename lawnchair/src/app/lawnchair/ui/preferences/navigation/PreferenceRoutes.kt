@@ -112,6 +112,9 @@ data object AppDrawerAppCategorizations : PreferenceRoute
 data object AppDrawerCategorizationSettings : PreferenceRoute
 
 @Serializable
+data object AppDrawerCategorizationOverview : PreferenceRoute
+
+@Serializable
 data object AppDrawerFolder : PreferenceRoute
 
 @Serializable

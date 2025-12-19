@@ -125,6 +125,7 @@ fun PreferenceNavigation(
         composable<AppDrawerLLMSettings> { LLMSettingsPreferences() }
         composable<AppDrawerAppCategorizations> { AppCategorizationListPreferences() }
         composable<AppDrawerCategorizationSettings> { CategorizationSettingsPreferences() }
+        composable<AppDrawerCategorizationOverview> { CategorizationOverviewPreferences() }
         composable<AppDrawerAppListToFolder> { backStackEntry ->
             val args = backStackEntry.arguments!!
             val folderInfoId = args.getInt("id")
