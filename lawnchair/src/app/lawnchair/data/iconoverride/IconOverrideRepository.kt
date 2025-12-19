@@ -20,7 +20,8 @@ import kotlinx.coroutines.plus
 class IconOverrideRepository(private val context: Context) : SafeCloseable {
 
     private val scope = MainScope() + CoroutineName("IconOverrideRepository")
-    private val dao = AppDatabase.INSTANCE.get(context).iconOverrideDao()
+    private val database by lazy { AppDatabase.INSTANCE.get(context) }
+    private val dao by lazy { database.iconOverrideDao() }
     private var _overridesMap = mapOf<ComponentKey, IconPickerItem>()
     val overridesMap get() = _overridesMap
 

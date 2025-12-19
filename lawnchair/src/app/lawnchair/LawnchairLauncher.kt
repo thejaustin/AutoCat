@@ -253,7 +253,10 @@ class LawnchairLauncher : QuickstepLauncher() {
 
             reloadIconsIfNeeded()
 
-            AppDatabase.INSTANCE.get(this).checkpointSync()
+            // Run checkpoint on background thread to avoid main thread database access
+            Executors.MODEL_EXECUTOR.execute {
+                AppDatabase.INSTANCE.get(this).checkpointSync()
+            }
         } catch (e: Throwable) {
             Log.e("LawnchairLauncher", "Error in LawnchairLauncher onCreate post-super initialization", e)
             // If the bug reporter is already set up, it should catch this.

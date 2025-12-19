@@ -16,7 +16,8 @@ import java.security.MessageDigest
 
 class WallpaperService(val context: Context) : SafeCloseable {
 
-    val dao = AppDatabase.Companion.INSTANCE.get(context).wallpaperDao()
+    private val database by lazy { AppDatabase.INSTANCE.get(context) }
+    val dao by lazy { database.wallpaperDao() }
 
     // Cache for quick synchronous isEmpty check
     @Volatile

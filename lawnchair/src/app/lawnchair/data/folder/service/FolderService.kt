@@ -23,7 +23,8 @@ import kotlinx.coroutines.withContext
 
 class FolderService(val context: Context) : SafeCloseable {
 
-    private val folderDao by lazy { AppDatabase.INSTANCE.get(context).folderDao() }
+    private val database by lazy { AppDatabase.INSTANCE.get(context) }
+    private val folderDao by lazy { database.folderDao() }
     private val launcherApps by lazy { context.getSystemService(LauncherApps::class.java) }
     private val userCache by lazy { UserCache.INSTANCE.get(context) }
     private val appFilter by lazy { AppFilter(context) }
