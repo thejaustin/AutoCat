@@ -39,6 +39,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations
 import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
+import app.lawnchair.ui.preferences.navigation.AppDrawerManageTabs
 import kotlinx.coroutines.launch
 
 @Composable
@@ -124,7 +125,7 @@ fun CategorizationOverviewPreferences(
                     NavigationActionPreference(
                         label = "Manage Categories",
                         subtitle = "Create, edit, and delete app categories",
-                        destination = app.lawnchair.ui.preferences.navigation.CategoryManagement,
+                        destination = AppDrawerManageTabs,
                         icon = Icons.Rounded.Category,
                     )
 
