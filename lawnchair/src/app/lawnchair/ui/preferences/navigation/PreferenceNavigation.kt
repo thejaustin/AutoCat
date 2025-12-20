@@ -24,6 +24,7 @@ import app.lawnchair.ui.preferences.components.search.SearchProviderPreferenceSc
 import app.lawnchair.ui.preferences.destinations.AppCategorizationListPreferences
 import app.lawnchair.ui.preferences.destinations.AppDrawerFoldersPreference
 import app.lawnchair.ui.preferences.destinations.AppDrawerPreferences
+import app.lawnchair.ui.preferences.destinations.CategorizationOverviewPreferences
 import app.lawnchair.ui.preferences.destinations.CategorizationSettingsPreferences
 import app.lawnchair.ui.preferences.destinations.CategoryManagementPreferences
 import app.lawnchair.ui.preferences.destinations.CustomIconShapePreference
