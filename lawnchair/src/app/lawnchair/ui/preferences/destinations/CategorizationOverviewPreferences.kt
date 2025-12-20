@@ -1,6 +1,9 @@
 package app.lawnchair.ui.preferences.destinations
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -144,35 +147,30 @@ fun CategorizationOverviewPreferences(
             // Re-categorize Action
             item {
                 PreferenceGroup(heading = "Categorization Action") {
-                    androidx.compose.foundation.background(
-                        color = MaterialTheme.colorScheme.primaryContainer,
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    ) {
-                        androidx.compose.foundation.layout.Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    scope.launch {
-                                        categorizationManager?.recategorizeAll()
-                                    }
+                            .padding(horizontal = 16.dp)
+                            .background(color = MaterialTheme.colorScheme.primaryContainer)
+                            .clickable {
+                                scope.launch {
+                                    categorizationManager?.recategorizeAll()
                                 }
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = if (progress.isRunning) "Processing..." else "Re-categorize All Apps",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                                Text(
-                                    text = "Use AI to reassign all apps to categories",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
                             }
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = if (progress.isRunning) "Processing..." else "Re-categorize All Apps",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(
+                                text = "Use AI to reassign all apps to categories",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                 }
