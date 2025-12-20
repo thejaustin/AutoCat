@@ -2,8 +2,11 @@ package app.lawnchair.ui.preferences.destinations
 
 import android.content.pm.PackageManager
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +16,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -194,40 +204,37 @@ fun AppCategorizationListPreferences(
                     )
 
                     // Filters - organized in a horizontal scroll container for better mobile experience
-                    androidx.compose.foundation.HorizontalScrollView(
-                        modifier = Modifier.fillMaxWidth(),
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(end = 16.dp), // Add padding to account for the end of the scroll area
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            FilterChip(
-                                selected = filterMode == FilterMode.ALL,
-                                onClick = { filterMode = FilterMode.ALL },
-                                label = { Text("All") },
-                            )
-                            FilterChip(
-                                selected = filterMode == FilterMode.UNCATEGORIZED,
-                                onClick = { filterMode = FilterMode.UNCATEGORIZED },
-                                label = { Text("Uncategorized") },
-                            )
-                            FilterChip(
-                                selected = filterMode == FilterMode.UNFOLDERED,
-                                onClick = { filterMode = FilterMode.UNFOLDERED },
-                                label = { Text("Unfoldered") },
-                            )
-                            FilterChip(
-                                selected = filterMode == FilterMode.LLM_SORTED,
-                                onClick = { filterMode = FilterMode.LLM_SORTED },
-                                label = { Text("LLM Sorted") },
-                            )
-                            FilterChip(
-                                selected = filterMode == FilterMode.SLBK_SORTED,
-                                onClick = { filterMode = FilterMode.SLBK_SORTED },
-                                label = { Text("SLBK Sorted") },
-                            )
-                        }
+                        FilterChip(
+                            selected = filterMode == FilterMode.ALL,
+                            onClick = { filterMode = FilterMode.ALL },
+                            label = { Text("All") },
+                        )
+                        FilterChip(
+                            selected = filterMode == FilterMode.UNCATEGORIZED,
+                            onClick = { filterMode = FilterMode.UNCATEGORIZED },
+                            label = { Text("Uncategorized") },
+                        )
+                        FilterChip(
+                            selected = filterMode == FilterMode.UNFOLDERED,
+                            onClick = { filterMode = FilterMode.UNFOLDERED },
+                            label = { Text("Unfoldered") },
+                        )
+                        FilterChip(
+                            selected = filterMode == FilterMode.LLM_SORTED,
+                            onClick = { filterMode = FilterMode.LLM_SORTED },
+                            label = { Text("LLM Sorted") },
+                        )
+                        FilterChip(
+                            selected = filterMode == FilterMode.SLBK_SORTED,
+                            onClick = { filterMode = FilterMode.SLBK_SORTED },
+                            label = { Text("SLBK Sorted") },
+                        )
                     }
                 }
             }
