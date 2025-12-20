@@ -85,32 +85,56 @@ class CategorizationManager(private val context: Context) {
             // Get all installed apps
             val apps = metadataProvider.getInstalledApps()
 
-            // Stage 1: LLM categorizer for custom categories (PRIORITY)
-            val llmCount = llmCategorizer.categorizeBatch(apps)
-
-            android.util.Log.d(
-                TAG,
-                "Stage 1 (LLM) complete: $llmCount/${apps.size} apps categorized",
-            )
-
-            // Stage 2: Built-in categorizer for remaining apps (FALLBACK)
             // Fetch all categories in one query to avoid N+1 problem
             val allCategories = categoryDao.getAllAppCategories().associateBy { it.packageName }
             val uncategorizedApps = apps.filter { app ->
                 !allCategories.containsKey(app.packageName)
             }
 
-            if (uncategorizedApps.isNotEmpty()) {
+            android.util.Log.d(
+                TAG,
+                "Initialization: ${apps.size} total apps, ${uncategorizedApps.size} uncategorized",
+            )
+
+            // Skip if all apps are already categorized
+            if (uncategorizedApps.isEmpty()) {
+                android.util.Log.d(TAG, "All apps already categorized, skipping initialization")
+                return@withContext
+            }
+
+            // Stage 1: LLM categorizer for custom categories (PRIORITY)
+            // Only run if custom categories exist
+            val customCategories = categoryDao.getVisibleCustomCategories()
+            val llmCount = if (customCategories.isNotEmpty()) {
+                llmCategorizer.categorizeBatch(uncategorizedApps)
+            } else {
+                android.util.Log.d(TAG, "No custom categories, skipping LLM categorization")
+                0
+            }
+
+            android.util.Log.d(
+                TAG,
+                "Stage 1 (LLM) complete: $llmCount/${uncategorizedApps.size} apps categorized",
+            )
+
+            // Stage 2: Built-in categorizer for remaining apps (FALLBACK)
+            // Re-fetch categories to see which apps are still uncategorized after LLM
+            val categoriesAfterLLM = categoryDao.getAllAppCategories().associateBy { it.packageName }
+            val stillUncategorized = uncategorizedApps.filter { app ->
+                !categoriesAfterLLM.containsKey(app.packageName)
+            }
+
+            if (stillUncategorized.isNotEmpty()) {
                 android.util.Log.d(
                     TAG,
-                    "Starting Stage 2 (Built-in) for ${uncategorizedApps.size} uncategorized apps",
+                    "Starting Stage 2 (Built-in) for ${stillUncategorized.size} remaining uncategorized apps",
                 )
 
-                val builtInCount = builtInCategorizer.categorizeBatch(uncategorizedApps)
+                val builtInCount = builtInCategorizer.categorizeBatch(stillUncategorized)
 
                 android.util.Log.d(
                     TAG,
-                    "Stage 2 (Built-in) complete: $builtInCount/${uncategorizedApps.size} apps categorized",
+                    "Stage 2 (Built-in) complete: $builtInCount/${stillUncategorized.size} apps categorized",
                 )
             }
 
