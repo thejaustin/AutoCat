@@ -534,16 +534,19 @@ private fun AppCategorizationItem(
                 // Show reasoning if available
                 if (!appCategory.reasoning.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(6.dp))
-                    androidx.compose.foundation.background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = MaterialTheme.shapes.extraSmall,
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = MaterialTheme.shapes.extraSmall,
+                            )
+                            .padding(8.dp),
                     ) {
                         Text(
                             text = appCategory.reasoning,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            modifier = Modifier.padding(8.dp),
                         )
                     }
                 }
