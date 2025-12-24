@@ -1,6 +1,10 @@
 package app.lawnchair.ui.preferences.destinations
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,16 +17,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,8 +46,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategorizationManager
@@ -125,15 +141,33 @@ fun CategoryManagementPreferences(
                         .fillMaxWidth()
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Button(onClick = { showAddDialog = true }) {
+                    // Material 3 Expressive: Enhanced primary action button
+                    ElevatedButton(
+                        onClick = { showAddDialog = true },
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .shadow(
+                                elevation = 4.dp,
+                                shape = RoundedCornerShape(16.dp),
+                            ),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = ButtonDefaults.elevatedButtonElevation(
+                            defaultElevation = 3.dp,
+                            pressedElevation = 6.dp,
+                        ),
+                    ) {
                         Icon(Icons.Default.Add, contentDescription = "Add Tab")
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Add Tab")
+                        Text(
+                            "Add Tab",
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
 
-                    Button(
+                    // Material 3 Expressive: Enhanced secondary button with gradient
+                    FilledTonalButton(
                         onClick = {
                             scope.launch {
                                 isLoadingSuggestions = true
@@ -214,32 +248,81 @@ fun CategoryManagementPreferences(
                             }
                         },
                         enabled = !isLoadingSuggestions,
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .shadow(
+                                elevation = 3.dp,
+                                shape = RoundedCornerShape(16.dp),
+                            ),
+                        shape = RoundedCornerShape(16.dp),
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "AI Suggestions")
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (isLoadingSuggestions) "Analyzing..." else "Get AI Suggestions")
+                        Text(
+                            if (isLoadingSuggestions) "Analyzing..." else "Get AI Suggestions",
+                            fontWeight = FontWeight.Medium,
+                        )
                     }
 
-                    // Show error if any
+                    // Material 3 Expressive: Enhanced error message card
                     if (suggestionsError != null) {
-                        Spacer(modifier = Modifier.padding(4.dp))
-                        Text(
-                            text = suggestionsError!!,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            elevation = CardDefaults.cardElevation(2.dp),
+                        ) {
+                            Text(
+                                text = suggestionsError!!,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(16.dp),
+                            )
+                        }
                     }
 
-                    // Show success message if any
+                    // Material 3 Expressive: Enhanced success message card
                     if (successMessage != null) {
-                        Spacer(modifier = Modifier.padding(4.dp))
-                        Text(
-                            text = successMessage!!,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
+                                .shadow(
+                                    elevation = 3.dp,
+                                    shape = RoundedCornerShape(14.dp),
+                                    ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                ),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            elevation = CardDefaults.cardElevation(2.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                                Text(
+                                    text = successMessage!!,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -338,44 +421,86 @@ private fun CategoryItem(
     onEdit: (CustomTab) -> Unit,
     onDelete: (CustomTab) -> Unit,
 ) {
-    Row(
+    val categoryColor = remember(tab.colorHex) { parseColor(tab.colorHex) }
+
+    // Material 3 Expressive: Enhanced card with gradient and shadow
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onEdit(tab) }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .shadow(
+                elevation = 3.dp,
+                shape = RoundedCornerShape(18.dp),
+                ambientColor = categoryColor.copy(alpha = 0.2f),
+                spotColor = categoryColor.copy(alpha = 0.3f),
+            )
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium,
+                ),
+            ),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 2.dp,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(
-                        color = parseColor(tab.colorHex),
-                        shape = CircleShape,
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            categoryColor.copy(alpha = 0.12f),
+                            MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.0f),
+                        ),
                     ),
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = tab.name,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-
-        Row {
-            IconButton(onClick = { onEdit(tab) }) {
-                Icon(
-                    Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    tint = MaterialTheme.colorScheme.primary,
+                )
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                modifier = Modifier.weight(1f),
+            ) {
+                // Material 3 Expressive: Enhanced color indicator with border
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .border(
+                            width = 2.5.dp,
+                            color = categoryColor.copy(alpha = 0.4f),
+                            shape = CircleShape,
+                        )
+                        .background(
+                            color = categoryColor,
+                            shape = CircleShape,
+                        ),
+                )
+                Text(
+                    text = tab.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
-            IconButton(onClick = { onDelete(tab) }) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.error,
-                )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                IconButton(onClick = { onEdit(tab) }) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                IconButton(onClick = { onDelete(tab) }) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
         }
     }
@@ -420,29 +545,54 @@ private fun CategoryDialog(
                 Text("Color", style = MaterialTheme.typography.labelMedium)
                 Spacer(modifier = Modifier.padding(4.dp))
 
-                // Color picker
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Material 3 Expressive: Enhanced color picker with borders and animations
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     predefinedColors.chunked(5).forEach { row ->
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             row.forEach { (color, label) ->
+                                val isSelected = colorHex == color
                                 Box(
                                     modifier = Modifier
-                                        .size(40.dp)
+                                        .size(if (isSelected) 48.dp else 44.dp)
+                                        .shadow(
+                                            elevation = if (isSelected) 6.dp else 2.dp,
+                                            shape = CircleShape,
+                                            ambientColor = parseColor(color).copy(alpha = 0.3f),
+                                            spotColor = parseColor(color).copy(alpha = 0.4f),
+                                        )
+                                        .border(
+                                            width = if (isSelected) 3.dp else 1.5.dp,
+                                            color = if (isSelected) {
+                                                parseColor(color).copy(alpha = 0.6f)
+                                            } else {
+                                                parseColor(color).copy(alpha = 0.3f)
+                                            },
+                                            shape = CircleShape,
+                                        )
                                         .background(
                                             color = parseColor(color),
                                             shape = CircleShape,
                                         )
-                                        .clickable { colorHex = color },
+                                        .clickable { colorHex = color }
+                                        .animateContentSize(
+                                            animationSpec = spring(
+                                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                stiffness = Spring.StiffnessMedium,
+                                            ),
+                                        ),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    if (colorHex == color) {
+                                    if (isSelected) {
                                         Icon(
-                                            Icons.Default.Add,
+                                            Icons.Default.CheckCircle,
                                             contentDescription = "Selected",
                                             tint = Color.White,
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .shadow(2.dp, CircleShape),
                                         )
                                     }
                                 }
@@ -479,64 +629,104 @@ private fun SuggestionsDialog(
         onDismissRequest = onDismiss,
         title = {
             Column {
-                Text("AI Tab Suggestions")
+                Text(
+                    "AI Tab Suggestions",
+                    fontWeight = FontWeight.Bold,
+                )
                 if (providerName != null) {
                     Text(
                         text = "Powered by $providerName",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
             }
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(
                     text = "Based on your installed apps, here are some suggested tabs:",
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 if (suggestions.isEmpty()) {
-                    Text(
-                        text = "No suggestions available. Make sure you have enough apps installed.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Text(
+                            text = "No suggestions available. Make sure you have enough apps installed.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    }
                 } else {
+                    // Material 3 Expressive: Enhanced suggestion cards
                     suggestions.forEach { suggestion ->
-                        Column(
+                        Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                                .shadow(
+                                    elevation = 2.dp,
+                                    shape = RoundedCornerShape(14.dp),
+                                ),
+                            shape = RoundedCornerShape(14.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerLow,
+                            tonalElevation = 1.dp,
                         ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                Text(
-                                    text = suggestion.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                TextButton(onClick = { onAddTab(suggestion) }) {
-                                    Text("Add")
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = suggestion.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    FilledTonalButton(
+                                        onClick = { onAddTab(suggestion) },
+                                        shape = RoundedCornerShape(10.dp),
+                                    ) {
+                                        Text("Add", fontWeight = FontWeight.Medium)
+                                    }
                                 }
-                            }
 
-                            Text(
-                                text = suggestion.description,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-
-                            if (suggestion.exampleApps.isNotEmpty()) {
                                 Text(
-                                    text = "Examples: ${suggestion.exampleApps.take(3).joinToString(", ")}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(top = 2.dp),
+                                    text = suggestion.description,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+
+                                if (suggestion.exampleApps.isNotEmpty()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                                shape = RoundedCornerShape(8.dp),
+                                            )
+                                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                                    ) {
+                                        Text(
+                                            text = "Examples: ${suggestion.exampleApps.take(3).joinToString(", ")}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -545,7 +735,7 @@ private fun SuggestionsDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close")
+                Text("Close", fontWeight = FontWeight.Medium)
             }
         },
     )
