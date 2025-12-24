@@ -2,7 +2,19 @@ package app.lawnchair.ui.preferences.destinations
 
 import android.content.pm.PackageManager
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -28,6 +41,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +59,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -200,37 +217,37 @@ fun AppCategorizationListPreferences(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
-                    // Filters - organized in a horizontal scroll container for better mobile experience
+                    // Material 3 Expressive: Enhanced filter chips with personality
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        FilterChip(
+                        ExpressiveFilterChip(
                             selected = filterMode == FilterMode.ALL,
                             onClick = { filterMode = FilterMode.ALL },
-                            label = { Text("All") },
+                            label = "All",
                         )
-                        FilterChip(
+                        ExpressiveFilterChip(
                             selected = filterMode == FilterMode.UNCATEGORIZED,
                             onClick = { filterMode = FilterMode.UNCATEGORIZED },
-                            label = { Text("Uncategorized") },
+                            label = "Uncategorized",
                         )
-                        FilterChip(
+                        ExpressiveFilterChip(
                             selected = filterMode == FilterMode.UNFOLDERED,
                             onClick = { filterMode = FilterMode.UNFOLDERED },
-                            label = { Text("Unfoldered") },
+                            label = "Unfoldered",
                         )
-                        FilterChip(
+                        ExpressiveFilterChip(
                             selected = filterMode == FilterMode.LLM_SORTED,
                             onClick = { filterMode = FilterMode.LLM_SORTED },
-                            label = { Text("LLM Sorted") },
+                            label = "LLM Sorted",
                         )
-                        FilterChip(
+                        ExpressiveFilterChip(
                             selected = filterMode == FilterMode.SLBK_SORTED,
                             onClick = { filterMode = FilterMode.SLBK_SORTED },
-                            label = { Text("SLBK Sorted") },
+                            label = "SLBK Sorted",
                         )
                     }
                 }
@@ -252,11 +269,28 @@ fun AppCategorizationListPreferences(
                     )
                 }
 
+                // Material 3 Expressive: Animated visibility for category expansion
                 if (expandedCategories.contains(tabName) || filterMode != FilterMode.ALL) {
                     items(apps, key = { it.packageName }) { appCategory ->
-                        Surface(
-                            color = preferenceGroupColor(),
-                            modifier = Modifier.padding(horizontal = 16.dp),
+                        // Spring-based entrance animation
+                        AnimatedVisibility(
+                            visible = true,
+                            enter = expandVertically(
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMedium,
+                                ),
+                            ) + fadeIn(
+                                animationSpec = tween(300),
+                            ),
+                            exit = shrinkVertically(
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessMedium,
+                                ),
+                            ) + fadeOut(
+                                animationSpec = tween(200),
+                            ),
                         ) {
                             AppCategorizationItem(
                                 appCategory = appCategory,
@@ -265,7 +299,7 @@ fun AppCategorizationListPreferences(
                             )
                         }
                     }
-                    item { Spacer(modifier = Modifier.height(8.dp)) }
+                    item { Spacer(modifier = Modifier.height(12.dp)) }
                 }
             }
         }
@@ -355,48 +389,80 @@ private fun CategoryHeader(
     expanded: Boolean,
     onClick: () -> Unit,
 ) {
+    // Material 3 Expressive: Enhanced header with gradient and spring animation
+    val categoryColor = remember(tabName) {
+        Color(
+            android.graphics.Color.HSVToColor(
+                floatArrayOf(
+                    (tabName.hashCode() % 360).toFloat(),
+                    0.65f,
+                    0.85f,
+                ),
+            ),
+        )
+    }
+
     Surface(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        shape = MaterialTheme.shapes.large,
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium,
+                ),
+            )
+            .shadow(
+                elevation = if (expanded) 4.dp else 2.dp,
+                shape = RoundedCornerShape(20.dp),
+                ambientColor = categoryColor.copy(alpha = 0.3f),
+                spotColor = categoryColor.copy(alpha = 0.4f),
+            ),
+        shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = 2.dp,
+        tonalElevation = if (expanded) 3.dp else 2.dp,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            categoryColor.copy(alpha = 0.15f),
+                            MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.0f),
+                        ),
+                    ),
+                )
+                .padding(18.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                // Add a colored indicator circle for the category
+                // Material 3 Expressive: Enhanced category indicator with border
                 Box(
                     modifier = Modifier
-                        .size(24.dp)
+                        .size(32.dp)
+                        .border(
+                            width = 2.dp,
+                            color = categoryColor.copy(alpha = 0.4f),
+                            shape = CircleShape,
+                        )
                         .background(
-                            color = androidx.compose.ui.graphics.Color(
-                                android.graphics.Color.HSVToColor(
-                                    floatArrayOf(
-                                        (tabName.hashCode() % 360).toFloat(),
-                                        0.6f,
-                                        0.8f,
-                                    ),
-                                ),
-                            ),
-                            shape = androidx.compose.foundation.shape.CircleShape,
-                        ),
+                            color = categoryColor,
+                            shape = CircleShape,
+                        )
+                        .scale(if (expanded) 1.1f else 1.0f),
                 )
 
                 Column {
                     Text(
                         text = tabName,
                         style = MaterialTheme.typography.titleMedium,
+                        fontWeight = if (expanded) FontWeight.SemiBold else FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
@@ -409,7 +475,8 @@ private fun CategoryHeader(
             Icon(
                 imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = if (expanded) "Collapse" else "Expand",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = categoryColor,
+                modifier = Modifier.scale(if (expanded) 1.1f else 1.0f),
             )
         }
     }
@@ -438,12 +505,17 @@ private fun AppCategorizationItem(
         }
     }
 
+    // Material 3 Expressive: Enhanced card with shadow and animation
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onEditClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = MaterialTheme.shapes.medium,
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(16.dp),
+            ),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 1.dp,
     ) {
@@ -481,50 +553,81 @@ private fun AppCategorizationItem(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Category and subcategory info
+                // Material 3 Expressive: Enhanced category tags with borders and gradients
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    // Category tag
+                    // Category tag with expressive design
                     Box(
                         modifier = Modifier
-                            .background(
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                shape = MaterialTheme.shapes.small,
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(8.dp),
                             )
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primaryContainer,
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
+                                    ),
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                            )
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
                     ) {
                         Text(
                             text = appCategory.tabName,
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                     }
 
-                    // Subcategory if available
+                    // Subcategory if available with expressive arrow
                     if (!appCategory.subCategory.isNullOrBlank()) {
                         Text(
-                            text = "→ ${appCategory.subCategory}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = "→",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
                         )
-                    }
-
-                    // User override indicator
-                    if (appCategory.isUserOverride) {
-                        Spacer(modifier = Modifier.width(8.dp))
                         Box(
                             modifier = Modifier
                                 .background(
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
-                                    shape = MaterialTheme.shapes.small,
+                                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                                    shape = RoundedCornerShape(8.dp),
                                 )
-                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                        ) {
+                            Text(
+                                text = appCategory.subCategory,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            )
+                        }
+                    }
+
+                    // User override indicator with enhanced styling
+                    if (appCategory.isUserOverride) {
+                        Box(
+                            modifier = Modifier
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
+                                    shape = RoundedCornerShape(6.dp),
+                                )
+                                .background(
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    shape = RoundedCornerShape(6.dp),
+                                )
+                                .padding(horizontal = 7.dp, vertical = 3.dp),
                         ) {
                             Text(
                                 text = "Override",
                                 style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                             )
                         }
@@ -738,4 +841,60 @@ private fun parseColor(hex: String): Color {
     } catch (e: Exception) {
         Color.Gray
     }
+}
+
+/**
+ * Material 3 Expressive: Custom filter chip with enhanced visual design
+ */
+@Composable
+private fun ExpressiveFilterChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: String,
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = {
+            Text(
+                text = label,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            )
+        },
+        modifier = Modifier
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium,
+                ),
+            ),
+        shape = RoundedCornerShape(12.dp),
+        border = if (selected) {
+            FilterChipDefaults.filterChipBorder(
+                enabled = true,
+                selected = true,
+                borderColor = MaterialTheme.colorScheme.primary,
+                selectedBorderColor = MaterialTheme.colorScheme.primary,
+                borderWidth = 2.dp,
+                selectedBorderWidth = 2.dp,
+            )
+        } else {
+            FilterChipDefaults.filterChipBorder(
+                enabled = true,
+                selected = false,
+            )
+        },
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            labelColor = MaterialTheme.colorScheme.onSurface,
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+        elevation = FilterChipDefaults.filterChipElevation(
+            elevation = if (selected) 3.dp else 1.dp,
+            pressedElevation = 4.dp,
+            focusedElevation = 4.dp,
+            hoveredElevation = 3.dp,
+        ),
+    )
 }

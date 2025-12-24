@@ -1,5 +1,8 @@
 package app.lawnchair.allapps
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.drawable.RippleDrawable
@@ -7,11 +10,15 @@ import android.util.AttributeSet
 import android.view.Gravity
 import android.view.Menu
 import android.view.View
+import android.view.animation.OvershootInterpolator
 import android.widget.Button
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
+import androidx.dynamicanimation.animation.DynamicAnimation
+import androidx.dynamicanimation.animation.SpringAnimation
+import androidx.dynamicanimation.animation.SpringForce
 import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.font.FontManager
 import app.lawnchair.theme.color.tokens.ColorStateListTokens
@@ -230,9 +237,17 @@ class CategoryTabStrip @JvmOverloads constructor(
     override fun setActiveMarker(activePage: Int) {
         if (activePage < 0 || activePage >= tabs.size) return
 
-        // Update tab selection state
+        // Update tab selection state with expressive spring animation
         tabs.forEachIndexed { index, tab ->
+            val wasSelected = tab.isSelected
             tab.isSelected = index == activePage
+
+            // Material 3 Expressive: Spring-based scale animation on selection
+            if (index == activePage && !wasSelected) {
+                animateTabSelection(tab)
+            } else if (wasSelected && index != activePage) {
+                animateTabDeselection(tab)
+            }
         }
 
         // Scroll to show active tab
@@ -249,6 +264,49 @@ class CategoryTabStrip @JvmOverloads constructor(
             onActivePageChangedListener?.onActivePageChanged(activePage)
         }
         lastActivePage = activePage
+    }
+
+    /**
+     * Material 3 Expressive: Animate tab selection with spring physics
+     */
+    private fun animateTabSelection(tab: Button) {
+        // Spring-based scale animation with overshoot for expressive feel
+        val scaleX = SpringAnimation(tab, DynamicAnimation.SCALE_X, 1.08f).apply {
+            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
+            spring.dampingRatio = SpringForce.DAMPING_RATIO_LOW_BOUNCY // Creates expressive bounce
+        }
+
+        val scaleY = SpringAnimation(tab, DynamicAnimation.SCALE_Y, 1.08f).apply {
+            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
+            spring.dampingRatio = SpringForce.DAMPING_RATIO_LOW_BOUNCY
+        }
+
+        scaleX.start()
+        scaleY.start()
+
+        // Subtle elevation animation for depth
+        tab.elevation = resources.getDimensionPixelSize(R.dimen.all_apps_header_pill_height) * 0.08f
+    }
+
+    /**
+     * Material 3 Expressive: Animate tab deselection
+     */
+    private fun animateTabDeselection(tab: Button) {
+        val scaleX = SpringAnimation(tab, DynamicAnimation.SCALE_X, 1.0f).apply {
+            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
+            spring.dampingRatio = SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY
+        }
+
+        val scaleY = SpringAnimation(tab, DynamicAnimation.SCALE_Y, 1.0f).apply {
+            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
+            spring.dampingRatio = SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY
+        }
+
+        scaleX.start()
+        scaleY.start()
+
+        // Reset elevation
+        tab.elevation = 0f
     }
 
     fun setOnActivePageChangedListener(listener: OnActivePageChangedListener?) {
