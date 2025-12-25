@@ -66,6 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.lawnchair.categorization.AccuracyTracker
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategoryFolderSyncService
 import app.lawnchair.data.tab.TabDatabase
@@ -93,6 +94,7 @@ fun AppCategorizationListPreferences(
     var database by remember { mutableStateOf<TabDatabase?>(null) }
     var folderSyncService by remember { mutableStateOf<CategoryFolderSyncService?>(null) }
     var appProvider by remember { mutableStateOf<AutoCatAppProvider?>(null) }
+    var accuracyTracker by remember { mutableStateOf<AccuracyTracker?>(null) }
 
     val packageManager = context.packageManager
 
@@ -117,6 +119,10 @@ fun AppCategorizationListPreferences(
                 Log.d("AppCategorization", "Initializing app provider...")
                 appProvider = AutoCatAppProvider.getInstance(context)
                 Log.d("AppCategorization", "App provider initialized")
+
+                Log.d("AppCategorization", "Initializing accuracy tracker...")
+                accuracyTracker = AccuracyTracker(context)
+                Log.d("AppCategorization", "Accuracy tracker initialized")
 
                 Log.d("AppCategorization", "Loading categorizations...")
                 appTabs = database?.categoryDao()?.getAllAppCategories() ?: emptyList()
@@ -317,6 +323,15 @@ fun AppCategorizationListPreferences(
                 onSave = { newTabName, newSubCategory ->
                     scope.launch(Dispatchers.IO) {
                         try {
+                            // Track accuracy if user changed the category
+                            if (app.tabName != newTabName) {
+                                accuracyTracker?.recordUserCorrection(
+                                    packageName = app.packageName,
+                                    oldCategory = app.tabName,
+                                    newCategory = newTabName,
+                                )
+                            }
+
                             // Update categorization with user override flag
                             val updated = app.copy(
                                 tabName = newTabName,

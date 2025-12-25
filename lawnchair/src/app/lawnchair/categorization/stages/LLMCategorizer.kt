@@ -157,6 +157,8 @@ class LLMCategorizer(
                     source = AppTab.SOURCE_LLM,
                     isUserOverride = false,
                     reasoning = result.reasoning,
+                    provider = provider.name,
+                    model = provider.getCurrentModel()?.id,
                 )
 
                 categoryDao.insertAppCategory(appTab)

@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.data.tab.entities.CustomTab
+import app.lawnchair.data.tab.entities.ModelAccuracy
 
 /**
  * Room database for app tab assignments and custom tab management.
@@ -13,8 +14,10 @@ import app.lawnchair.data.tab.entities.CustomTab
  * This database stores:
  * - App tab assignments (which apps belong to which tabs)
  * - Custom tab definitions (user-created tabs with colors and ordering)
+ * - Model accuracy tracking (LLM prediction performance metrics)
  *
- * Database version: 5
+ * Database version: 6
+ * - v6: Added ModelAccuracy entity for accuracy tracking
  * - v5: Added llm_provider and llm_model fields to AppTab entity
  * - v4: Previous schema
  * Export schema: false (disabled for development, will enable for production)
@@ -23,8 +26,9 @@ import app.lawnchair.data.tab.entities.CustomTab
     entities = [
         AppTab::class,
         CustomTab::class,
+        ModelAccuracy::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = false,
 )
 abstract class TabDatabase : RoomDatabase() {
@@ -33,6 +37,11 @@ abstract class TabDatabase : RoomDatabase() {
      * Provides access to tab-related data operations.
      */
     abstract fun categoryDao(): TabDao
+
+    /**
+     * Provides access to model accuracy tracking operations.
+     */
+    abstract fun accuracyDao(): AccuracyDao
 
     companion object {
         private const val DATABASE_NAME = "category_database"

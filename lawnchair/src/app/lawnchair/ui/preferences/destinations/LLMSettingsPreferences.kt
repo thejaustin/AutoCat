@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.lawnchair.categorization.AccuracyTracker
 import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.GoogleAIProvider
@@ -61,6 +62,7 @@ import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.categorization.llm.ModelRegistry
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
+import app.lawnchair.data.tab.entities.ModelAccuracyStats
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences.rememberTransformAdapter
@@ -87,12 +89,18 @@ fun LLMSettingsPreferences(
 
     var categorizationManager by remember { mutableStateOf<CategorizationManager?>(null) }
     var initializationError by remember { mutableStateOf<String?>(null) }
+    var accuracyTracker by remember { mutableStateOf<AccuracyTracker?>(null) }
+    var accuracyStats by remember { mutableStateOf<List<ModelAccuracyStats>>(emptyList()) }
 
-    // Initialize categorization manager safely
+    // Initialize categorization manager and accuracy tracker safely
     LaunchedEffect(Unit) {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             try {
                 categorizationManager = CategorizationManager.getInstance(context)
+                accuracyTracker = AccuracyTracker(context)
+
+                // Load accuracy stats
+                accuracyStats = accuracyTracker!!.getAccuracyStats(daysBack = 30)
             } catch (e: Exception) {
                 android.util.Log.e("LLMSettings", "Error initializing: ${e.message}", e)
                 initializationError = "Failed to initialize: ${e.message}"
@@ -549,6 +557,36 @@ fun LLMSettingsPreferences(
                 }
             }
 
+            // Model Accuracy Section
+            item {
+                PreferenceGroup(heading = "Model Performance (Last 30 Days)") {
+                    if (accuracyStats.isEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                        ) {
+                            Text(
+                                text = "No accuracy data yet. Accuracy tracking begins when you manually correct app categorizations.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            accuracyStats.forEach { stats ->
+                                ModelAccuracyCard(stats)
+                            }
+                        }
+                    }
+                }
+            }
+
             // Operations Section
             item {
                 PreferenceGroup(heading = "Categorization Operations") {
@@ -719,4 +757,112 @@ fun CategorizationStatus(
             }
         }
     }
+}
+
+@Composable
+fun ModelAccuracyCard(
+    stats: ModelAccuracyStats,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        ),
+        shape = RoundedCornerShape(12.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Provider and Model Info
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = formatProviderName(stats.provider),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                if (stats.model.isNotEmpty()) {
+                    Text(
+                        text = stats.model,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    text = "${stats.total} predictions",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            // Accuracy Score
+            Column(
+                horizontalAlignment = Alignment.End,
+            ) {
+                Text(
+                    text = "${stats.accuracy.toInt()}%",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = when {
+                        stats.accuracy >= 90f -> Color(0xFF4CAF50) // Green
+                        stats.accuracy >= 80f -> Color(0xFF8BC34A) // Light green
+                        stats.accuracy >= 70f -> Color(0xFFFFC107) // Amber
+                        else -> Color(0xFFFF9800) // Orange
+                    },
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    when {
+                        stats.accuracy >= 90f -> {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = "Excellent",
+                                tint = Color(0xFF4CAF50),
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = "Excellent",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        stats.accuracy >= 80f -> {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = "Good",
+                                tint = Color(0xFF8BC34A),
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = "Good",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        else -> {
+                            Text(
+                                text = "Fair",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun formatProviderName(provider: String): String = when (provider) {
+    "google_ai" -> "Google AI (Gemini)"
+    "claude" -> "Anthropic Claude"
+    "openai" -> "OpenAI (GPT)"
+    "perplexity" -> "Perplexity"
+    else -> provider.replaceFirstChar { it.uppercase() }
 }
