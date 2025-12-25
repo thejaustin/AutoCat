@@ -90,7 +90,7 @@ class AdaptiveModelSelector(private val context: Context) {
             } else {
                 Log.d(
                     TAG,
-                    "No models meet selection criteria (min ${minSamples} samples, " +
+                    "No models meet selection criteria (min $minSamples samples, " +
                         "min ${MIN_ACCURACY_THRESHOLD}% accuracy)",
                 )
                 return null
