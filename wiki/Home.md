@@ -14,10 +14,13 @@ Welcome to the comprehensive documentation for **AutoCat** - an intelligent fork
 - **[Bug Fixes Registry](Bug-Fixes-Registry.md)** - Sortable list of all bugs and fixes
 - **[Feature Timeline](Feature-Timeline.md)** - Visual development milestones
 
-### Guides
+### Guides & References
 - **[User Guide](User-Guide.md)** - How to use AutoCat features
 - **[Developer Guide](Developer-Guide.md)** - Contributing to AutoCat
 - **[API Keys Setup](API-Keys-Setup.md)** - Configure LLM providers
+- **[Security Policy](Security-Policy.md)** - Security practices and reporting
+- **[Roadmap](Roadmap.md)** - Future plans and priorities
+- **[Technical Implementation](Technical-Implementation.md)** - Architecture deep dive
 
 ## 🚀 Quick Start
 
