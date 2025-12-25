@@ -4,6 +4,9 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,14 +20,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Psychology
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -45,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategorizationManager
@@ -155,7 +166,8 @@ fun CategorizationSettingsPreferences(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        Button(
+                        // Material 3 Expressive: Enhanced primary action button
+                        ElevatedButton(
                             onClick = {
                                 categorizationStatus = ""
                                 scope.launch {
@@ -169,8 +181,16 @@ fun CategorizationSettingsPreferences(
                             },
                             enabled = !progress.isRunning && categorizationManager != null,
                             modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp),
+                            elevation = ButtonDefaults.elevatedButtonElevation(
+                                defaultElevation = 3.dp,
+                                pressedElevation = 6.dp,
+                            ),
                         ) {
-                            Text(if (progress.isRunning) "Categorizing..." else "Re-categorize All Apps")
+                            Text(
+                                if (progress.isRunning) "Categorizing..." else "Re-categorize All Apps",
+                                fontWeight = FontWeight.SemiBold,
+                            )
                         }
 
                         OutlinedButton(
@@ -185,17 +205,60 @@ fun CategorizationSettingsPreferences(
                             CategorizationProgress(progress)
                         }
 
-                        // Status message
+                        // Material 3 Expressive: Enhanced status message card
                         if (categorizationStatus.isNotEmpty()) {
-                            Text(
-                                text = categorizationStatus,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = when {
-                                    categorizationStatus.startsWith("✅") -> MaterialTheme.colorScheme.primary
-                                    categorizationStatus.startsWith("❌") -> MaterialTheme.colorScheme.error
-                                    else -> MaterialTheme.colorScheme.onSurface
-                                },
-                            )
+                            val isSuccess = categorizationStatus.startsWith("✅")
+                            val isError = categorizationStatus.startsWith("❌")
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateContentSize(
+                                        animationSpec = spring(
+                                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                                            stiffness = Spring.StiffnessMedium,
+                                        ),
+                                    ),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = when {
+                                        isSuccess -> MaterialTheme.colorScheme.primaryContainer
+                                        isError -> MaterialTheme.colorScheme.errorContainer
+                                        else -> MaterialTheme.colorScheme.surfaceVariant
+                                    },
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                elevation = CardDefaults.cardElevation(2.dp),
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(14.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                ) {
+                                    if (isSuccess || isError) {
+                                        Icon(
+                                            imageVector = if (isSuccess) Icons.Default.CheckCircle else Icons.Default.Error,
+                                            contentDescription = null,
+                                            tint = if (isSuccess) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.error
+                                            },
+                                            modifier = Modifier.size(22.dp),
+                                        )
+                                    }
+                                    Text(
+                                        text = categorizationStatus.removePrefix("✅ ").removePrefix("❌ "),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = when {
+                                            isSuccess -> MaterialTheme.colorScheme.onPrimaryContainer
+                                            isError -> MaterialTheme.colorScheme.onErrorContainer
+                                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
+                                    )
+                                }
+                            }
                         }
                     }
                 }
