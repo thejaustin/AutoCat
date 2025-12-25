@@ -1,8 +1,12 @@
 package app.lawnchair.ui.preferences.destinations
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,15 +16,25 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -160,13 +174,14 @@ fun LLMSettingsPreferences(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // Material 3 Expressive: Enhanced test button
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        OutlinedButton(
+                        FilledTonalButton(
                             onClick = {
                                 scope.launch {
                                     val provider = GoogleAIProvider(context)
@@ -181,25 +196,69 @@ fun LLMSettingsPreferences(
                                 }
                             },
                             modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = ButtonDefaults.filledTonalButtonElevation(
+                                defaultElevation = 2.dp,
+                                pressedElevation = 4.dp,
+                            ),
                         ) {
-                            Text("Test Connection")
+                            Text("Test Connection", fontWeight = FontWeight.Medium)
                         }
                     }
 
+                    // Material 3 Expressive: Enhanced status card
                     testStatus["google_ai"]?.let { status ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = status,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (status.startsWith("✅")) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            },
+                        Spacer(modifier = Modifier.height(10.dp))
+                        val isSuccess = status.startsWith("✅")
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                        )
+                                .padding(horizontal = 16.dp)
+                                .animateContentSize(
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessMedium,
+                                    ),
+                                ),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSuccess) {
+                                    MaterialTheme.colorScheme.primaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.errorContainer
+                                },
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = CardDefaults.cardElevation(2.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                Icon(
+                                    imageVector = if (isSuccess) Icons.Default.CheckCircle else Icons.Default.Error,
+                                    contentDescription = null,
+                                    tint = if (isSuccess) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.error
+                                    },
+                                    modifier = Modifier.size(20.dp),
+                                )
+                                Text(
+                                    text = status.removePrefix("✅ ").removePrefix("❌ "),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    color = if (isSuccess) {
+                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.onErrorContainer
+                                    },
+                                )
+                            }
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -543,15 +602,25 @@ fun CategorizationStatus(
         label = "ProgressAnimation",
     )
 
+    // Material 3 Expressive: Enhanced progress monitoring card
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .height(300.dp),
+            .height(300.dp)
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium,
+                ),
+            ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
         ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 3.dp,
+        ),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
