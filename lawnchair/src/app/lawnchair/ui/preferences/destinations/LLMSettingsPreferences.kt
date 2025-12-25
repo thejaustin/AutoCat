@@ -91,6 +91,7 @@ fun LLMSettingsPreferences(
     var initializationError by remember { mutableStateOf<String?>(null) }
     var accuracyTracker by remember { mutableStateOf<AccuracyTracker?>(null) }
     var accuracyStats by remember { mutableStateOf<List<ModelAccuracyStats>>(emptyList()) }
+    var autoSelectedProvider by remember { mutableStateOf<String?>(null) }
 
     // Initialize categorization manager and accuracy tracker safely
     LaunchedEffect(Unit) {
@@ -101,6 +102,10 @@ fun LLMSettingsPreferences(
 
                 // Load accuracy stats
                 accuracyStats = accuracyTracker!!.getAccuracyStats(daysBack = 30)
+
+                // Get auto-selected provider if enabled
+                val selector = AdaptiveModelSelector(context)
+                autoSelectedProvider = selector.getBestProvider()
             } catch (e: Exception) {
                 android.util.Log.e("LLMSettings", "Error initializing: ${e.message}", e)
                 initializationError = "Failed to initialize: ${e.message}"
@@ -134,9 +139,17 @@ fun LLMSettingsPreferences(
             // Provider Selection
             item {
                 PreferenceGroup(heading = "Provider Selection") {
+                    SwitchPreference(
+                        adapter = prefs.llmAutoSelectBestModel.getAdapter(),
+                        label = "Auto-Select Best Model",
+                        description = "Automatically use the most accurate provider based on your correction history. " +
+                            "Requires at least 10 categorizations to activate.",
+                    )
+
                     ListPreference(
                         adapter = prefs.llmProviderPreference.getAdapter(),
                         label = "Preferred LLM Provider",
+                        description = "Used when auto-select is disabled or has insufficient data",
                         entries = listOf(
                             ListPreferenceEntry(
                                 value = "google_ai",
@@ -579,8 +592,23 @@ fun LLMSettingsPreferences(
                                 .padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
+                            // Show auto-selection status if enabled
+                            val isAutoSelectEnabled = prefs.llmAutoSelectBestModel.get()
+                            if (isAutoSelectEnabled && autoSelectedProvider != null) {
+                                Text(
+                                    text = "⚡ Auto-selecting: ${formatProviderName(autoSelectedProvider!!)}",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(bottom = 4.dp),
+                                )
+                            }
+
                             accuracyStats.forEach { stats ->
-                                ModelAccuracyCard(stats)
+                                ModelAccuracyCard(
+                                    stats = stats,
+                                    isAutoSelected = isAutoSelectEnabled && stats.provider == autoSelectedProvider,
+                                )
                             }
                         }
                     }
@@ -763,13 +791,23 @@ fun CategorizationStatus(
 fun ModelAccuracyCard(
     stats: ModelAccuracyStats,
     modifier: Modifier = Modifier,
+    isAutoSelected: Boolean = false,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            containerColor = if (isAutoSelected) {
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            },
         ),
         shape = RoundedCornerShape(12.dp),
+        border = if (isAutoSelected) {
+            androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        } else {
+            null
+        },
     ) {
         Row(
             modifier = Modifier
@@ -780,11 +818,30 @@ fun ModelAccuracyCard(
         ) {
             // Provider and Model Info
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = formatProviderName(stats.provider),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = formatProviderName(stats.provider),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    if (isAutoSelected) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                        ) {
+                            Text(
+                                text = "⚡ ACTIVE",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
                 if (stats.model.isNotEmpty()) {
                     Text(
                         text = stats.model,

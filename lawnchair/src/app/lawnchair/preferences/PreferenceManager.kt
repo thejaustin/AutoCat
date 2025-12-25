@@ -140,6 +140,7 @@ class PreferenceManager private constructor(private val context: Context) :
     val llmOpenAIKey = StringPref("pref_llmOpenAIKey", "", {})
     val llmPerplexityKey = StringPref("pref_llmPerplexityKey", "", {})
     val llmProviderPreference = StringPref("pref_llmProvider", "google_ai", {})
+    val llmAutoSelectBestModel = BoolPref("pref_llmAutoSelectBestModel", false, {})
 
     // AutoCat: LLM model selection
     val llmGoogleAIModel = StringPref("pref_llmGoogleAIModel", "gemini-2.0-flash-exp", {})
