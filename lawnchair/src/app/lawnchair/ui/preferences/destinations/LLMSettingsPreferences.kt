@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.lawnchair.categorization.AccuracyTracker
+import app.lawnchair.categorization.AdaptiveModelSelector
 import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.GoogleAIProvider
