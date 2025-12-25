@@ -46,11 +46,37 @@ Visual timeline of major AutoCat feature milestones and development phases.
         │ ├─ Fixed startup crashes
         │ └─ Migration to OkHttpClient
         │
-2025-12-25│ 📊 Intelligence Phase
+2025-12-25│ 📊 Phase 21: Intelligence & Analytics
         │ ├─ Model accuracy tracking ([#18](https://github.com/thejaustin/AutoCat/issues/18))
         │ ├─ Adaptive model selection
         │ ├─ Performance analytics UI
         │ └─ Data-driven optimization
+        │
+2025-12-20│ 🔧 Phase 19: HTTP Client Migration
+        │ ├─ Migrated to OkHttpClient ([#4](https://github.com/thejaustin/AutoCat/issues/4))
+        │ ├─ Connection pooling
+        │ └─ Better timeout handling
+        │
+2025-12-13│ ⚙️ Phase 20: Settings Consolidation
+        │ ├─ CategorizationOverviewPreferences
+        │ ├─ Settings reorganization
+        │ └─ Filter dropdowns
+        │
+2025-12-12│ 📦 Phase 12: Smart Launcher Import
+        │ ├─ .slbk import support ([#28](https://github.com/thejaustin/AutoCat/issues/28))
+        │ ├─ Folder auto-sort service
+        │ └─ LLM folder suggestions
+        │
+2025-12-10│ 🛡️ Phase 13: Security & Performance
+        │ ├─ Prompt injection fixes ([#11](https://github.com/thejaustin/AutoCat/issues/11))
+        │ ├─ N+1 query optimization ([#2](https://github.com/thejaustin/AutoCat/issues/2))
+        │ ├─ Lazy initialization ([#9](https://github.com/thejaustin/AutoCat/issues/9))
+        │ └─ 8 more performance/security fixes
+        │
+2025-12-08│ 🔄 Phase 11: Category→Tab Refactor
+        │ ├─ Database rename ([#21](https://github.com/thejaustin/AutoCat/issues/21))
+        │ ├─ UI terminology update
+        │ └─ 20+ commits for migration
         │
   Future │ 🚀 Planned Features
         │ ├─ Parallel batch processing ([#19](https://github.com/thejaustin/AutoCat/issues/19))
