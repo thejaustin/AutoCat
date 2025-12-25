@@ -808,9 +808,15 @@ fun ModelAccuracyCard(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = when {
-                        stats.accuracy >= 90f -> Color(0xFF4CAF50) // Green
-                        stats.accuracy >= 80f -> Color(0xFF8BC34A) // Light green
-                        stats.accuracy >= 70f -> Color(0xFFFFC107) // Amber
+                        stats.accuracy >= 90f -> Color(0xFF4CAF50)
+
+                        // Green
+                        stats.accuracy >= 80f -> Color(0xFF8BC34A)
+
+                        // Light green
+                        stats.accuracy >= 70f -> Color(0xFFFFC107)
+
+                        // Amber
                         else -> Color(0xFFFF9800) // Orange
                     },
                 )
@@ -832,6 +838,7 @@ fun ModelAccuracyCard(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+
                         stats.accuracy >= 80f -> {
                             Icon(
                                 Icons.Default.CheckCircle,
@@ -845,6 +852,7 @@ fun ModelAccuracyCard(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+
                         else -> {
                             Text(
                                 text = "Fair",

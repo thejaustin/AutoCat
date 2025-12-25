@@ -209,10 +209,9 @@ class AccuracyTracker(private val context: Context) {
      * @param daysBack Number of days of history to include (default: 30)
      * @return List of accuracy stats sorted by accuracy descending
      */
-    suspend fun getAccuracyStats(daysBack: Int = 30) =
-        accuracyDao.getAccuracyByModel(
-            since = System.currentTimeMillis() - (daysBack * 24 * 60 * 60 * 1000L),
-        )
+    suspend fun getAccuracyStats(daysBack: Int = 30) = accuracyDao.getAccuracyByModel(
+        since = System.currentTimeMillis() - (daysBack * 24 * 60 * 60 * 1000L),
+    )
 
     /**
      * Gets the best performing model based on recent accuracy.
@@ -221,9 +220,8 @@ class AccuracyTracker(private val context: Context) {
      * @param daysBack Number of days of history to consider
      * @return The best model, or null if no model meets criteria
      */
-    suspend fun getBestModel(minSamples: Int = 10, daysBack: Int = 30) =
-        accuracyDao.getBestModel(
-            minSamples = minSamples,
-            since = System.currentTimeMillis() - (daysBack * 24 * 60 * 60 * 1000L),
-        )
+    suspend fun getBestModel(minSamples: Int = 10, daysBack: Int = 30) = accuracyDao.getBestModel(
+        minSamples = minSamples,
+        since = System.currentTimeMillis() - (daysBack * 24 * 60 * 60 * 1000L),
+    )
 }
