@@ -12,6 +12,7 @@ import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
+import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.launcher
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
