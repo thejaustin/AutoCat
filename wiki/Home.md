@@ -1,65 +1,141 @@
-# AutoCat Wiki
+# Welcome to AutoCat Wiki
 
-Welcome to the comprehensive documentation for **AutoCat** - an intelligent fork of Lawnchair Launcher with AI-powered app categorization.
+**AutoCat** is an intelligent fork of Lawnchair Launcher with AI-powered app categorization that learns from your preferences.
 
-## 📚 Wiki Navigation
+---
 
-### Core Documentation
-- **[Build History & Features](Build-History-and-Features.md)** - Detailed breakdown of features per build
-- **[Changelog](Changelog.md)** - Chronological list of all changes
-- **[AutoCat vs Upstream](AutoCat-vs-Upstream.md)** - Differences from Lawnchair
+## 🚀 New to AutoCat?
 
-### Development Resources
-- **[Development Conversation Logs](Development-Conversation-Logs.md)** - Full AI-assisted development sessions
-- **[Bug Fixes Registry](Bug-Fixes-Registry.md)** - Sortable list of all bugs and fixes
-- **[Feature Timeline](Feature-Timeline.md)** - Visual development milestones
+### 📱 For Users
+Start here if you want to use AutoCat:
 
-### Guides & References
-- **[User Guide](User-Guide.md)** - How to use AutoCat features
-- **[Developer Guide](Developer-Guide.md)** - Contributing to AutoCat
-- **[API Keys Setup](API-Keys-Setup.md)** - Configure LLM providers
-- **[Security Policy](Security-Policy.md)** - Security practices and reporting
-- **[Roadmap](Roadmap.md)** - Future plans and priorities
-- **[Technical Implementation](Technical-Implementation.md)** - Architecture deep dive
+1. **[Download & Install](User-Guide#installation)**
+2. **[Setup API Keys](API-Keys-Setup)**
+3. **[Configure Settings](User-Guide#settings--configuration)**
+4. **[Troubleshooting](User-Guide#troubleshooting)**
 
-## 🚀 Quick Start
+### 💻 For Developers
+Contributing to AutoCat:
 
-AutoCat is a fork of **Lawnchair 15** that adds intelligent app categorization using:
-- **4 LLM Providers** (Google AI, Claude, OpenAI, Perplexity)
-- **Batch Processing** for 20x faster categorization
-- **Adaptive Model Selection** that learns which provider works best for you
-- **Dual Folder Sync** to both drawer and home screen
+1. **[Developer Guide](Developer-Guide)**
+2. **[Technical Architecture](Technical-Implementation)**
+3. **[Build Policy](Developer-Guide#critical-build-policy)**
+4. **[Coding Standards](Developer-Guide#coding-guidelines)**
 
-## 📊 Project Stats
+### 📊 Project Info
+Understanding AutoCat development:
+
+1. **[Build History](Build-History-and-Features)**
+2. **[Changelog](Changelog)**
+3. **[Roadmap](Roadmap)**
+4. **[Bug Fixes](Bug-Fixes-Registry)**
+
+---
+
+## ⭐ Key Features
+
+- **🤖 AI-Powered Categorization** - 4 LLM providers (Google AI, Claude, OpenAI, Perplexity)
+- **⚡ Batch Processing** - 20x faster categorization (100 apps in 20 seconds)
+- **📊 Accuracy Tracking** - Learns which provider works best for your apps
+- **🔄 Auto-Selection** - Automatically uses the most accurate model
+- **📁 Folder Sync** - Auto-creates persistent folders from categories
+- **🎨 Material 3 Design** - Beautiful, modern UI
+
+---
+
+## 📚 Documentation Sections
+
+### 📖 User Documentation
+
+| Page | Description |
+|------|-------------|
+| **[User Guide](User-Guide)** | Complete guide: installation, features, usage, FAQ |
+| **[API Keys Setup](API-Keys-Setup)** | Step-by-step for all 4 LLM providers with cost comparison |
+
+### 🔧 Developer Documentation
+
+| Page | Description |
+|------|-------------|
+| **[Developer Guide](Developer-Guide)** | Contributing guidelines, build policy, coding standards |
+| **[Technical Implementation](Technical-Implementation)** | Architecture deep dive, performance metrics, database schema |
+| **[AutoCat vs Upstream](AutoCat-vs-Upstream)** | All 42 AutoCat files tracked vs Lawnchair |
+| **[Development Conversation Logs](Development-Conversation-Logs)** | AI-assisted development transparency |
+
+### 📊 Project Tracking
+
+| Page | Description |
+|------|-------------|
+| **[Build History & Features](Build-History-and-Features)** | All 100+ builds with features per build |
+| **[Changelog](Changelog)** | Keep a Changelog format - all versions |
+| **[Bug Fixes Registry](Bug-Fixes-Registry)** | All 18 closed bugs with severity tracking |
+| **[Feature Timeline](Feature-Timeline)** | Visual development milestones and phases |
+| **[Roadmap](Roadmap)** | Future plans, Q1 2026 priorities, long-term goals |
+| **[Security Policy](Security-Policy)** | Security practices, CVE tracking, vulnerability reporting |
+
+---
+
+## 📊 Project Statistics
 
 - **Base**: Lawnchair 15 (Android 15 Launcher3)
-- **First Commit**: November 2025
-- **Total AutoCat Builds**: 100+
-- **Active Development**: Yes
-- **License**: Apache 2.0
+- **Fork Date**: November 2025
+- **Total Builds**: 100+
+- **AutoCat Files**: 42 custom files
+- **Code Added**: 12,000+ lines
+- **LLM Providers**: 4 (Google AI, Claude, OpenAI, Perplexity)
+- **Bugs Fixed**: 18 (all closed)
+- **Development Phases**: 21 phases completed
 
-## 🔗 Important Links
+---
 
-- **Repository**: [github.com/thejaustin/AutoCat](https://github.com/thejaustin/AutoCat)
-- **Latest Release**: [dev-latest](https://github.com/thejaustin/AutoCat/releases/tag/dev-latest)
-- **Issues**: [GitHub Issues](https://github.com/thejaustin/AutoCat/issues)
-- **Upstream**: [Lawnchair 15](https://github.com/LawnchairLauncher/lawnchair)
+## 🔗 Quick Links
 
-## ⚡ Latest Features
+### Download & Install
+- **[Latest Release (dev-latest)](https://github.com/thejaustin/AutoCat/releases/tag/dev-latest)** - Always up-to-date
+- **[All Releases](https://github.com/thejaustin/AutoCat/releases)** - Version history
+- **[Installation Guide](User-Guide#installation)** - Step-by-step instructions
 
-**Build autocat.100+ (2025-12-25)**:
-- ✨ Model accuracy tracking
+### Community & Support
+- **[GitHub Repository](https://github.com/thejaustin/AutoCat)** - Source code
+- **[Issues](https://github.com/thejaustin/AutoCat/issues)** - Bug reports & feature requests
+- **[Lawnchair Community](https://t.me/lccommunity)** - Telegram
+- **[Lawnchair Discord](https://discord.com/invite/3x8qNWxgGZ)** - Discord server
+
+### Upstream
+- **[Lawnchair 15](https://github.com/LawnchairLauncher/lawnchair)** - Upstream repository
+- **[Lawnchair Wiki](https://github.com/LawnchairLauncher/lawnchair/wiki)** - Upstream documentation
+
+---
+
+## 🆕 Latest Updates
+
+**Build autocat.100+ (2025-12-25)** - Phase 21: Accuracy Tracking
+- ✨ Model accuracy tracking based on user corrections
 - ✨ Adaptive model auto-selection
 - ⚡ Auto-select best performing provider
-- 📊 Visual performance metrics
+- 📊 Visual performance metrics with color-coded ratings
+- 🎯 30-day rolling analysis with smart fallback
 
-See [Build History](Build-History-and-Features.md) for complete feature list.
+See [Changelog](Changelog) for all changes.
+
+---
 
 ## 🤝 Contributing
 
-AutoCat is developed with AI assistance using Claude Code. All development conversations are logged in the [Development Conversation Logs](Development-Conversation-Logs.md) for full transparency.
+AutoCat is developed with AI assistance using Claude Code. All development is done in public:
 
-See [Developer Guide](Developer-Guide.md) for contribution guidelines.
+- **Development conversations** are logged in [Development Conversation Logs](Development-Conversation-Logs)
+- **Code changes** are tracked in [Changelog](Changelog)
+- **Build history** is documented in [Build History](Build-History-and-Features)
+
+Want to contribute? See [Developer Guide](Developer-Guide) for guidelines.
+
+---
+
+## 📄 License
+
+AutoCat is licensed under **Apache 2.0**, same as upstream Lawnchair.
+
+See [CONTRIBUTING.md](https://github.com/thejaustin/AutoCat/blob/15-dev/CONTRIBUTING.md) for details.
 
 ---
 
