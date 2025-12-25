@@ -4,11 +4,11 @@ Comprehensive tracking of all bugs and their fixes with sortable data.
 
 ## Quick Stats
 
-- **Total Bugs Fixed**: 15+
+- **Total Bugs Fixed**: 18 (ALL closed issues)
 - **Critical Fixes**: 3
-- **High Priority**: 5
-- **Medium Priority**: 5
-- **Low Priority**: 2+
+- **High Priority**: 6
+- **Medium Priority**: 6
+- **Low Priority**: 3
 
 ---
 
@@ -18,6 +18,9 @@ Comprehensive tracking of all bugs and their fixes with sortable data.
 |-------|----------------|----------|--------|-------|--------|------------|
 | 100+ | Missing AdaptiveModelSelector import causes build failure | High | ✅ Fixed | [#18](https://github.com/thejaustin/AutoCat/issues/18) | [e15734e](https://github.com/thejaustin/AutoCat/commit/e15734e5e8) | 2025-12-25 |
 | 100+ | Spotless formatting violations in Phase 2 code | Low | ✅ Fixed | [#18](https://github.com/thejaustin/AutoCat/issues/18) | [0bfbc5a](https://github.com/thejaustin/AutoCat/commit/0bfbc5ab8c) | 2025-12-25 |
+| ~80 | **SECURITY**: Prompt injection vulnerability in LLM categorization | Critical | ✅ Fixed | [#11](https://github.com/thejaustin/AutoCat/issues/11) | [06e6cdb](https://github.com/thejaustin/AutoCat/commit/06e6cdcb29) | 2025-12-10 |
+| ~80 | **SECURITY**: Socket timeout not configured (hanging connections) | Critical | ✅ Fixed | [#10](https://github.com/thejaustin/AutoCat/issues/10) | Multiple | 2025-12-10 |
+| ~80 | N+1 query problem in app categorization (80-90% slowdown) | High | ✅ Fixed | [#2](https://github.com/thejaustin/AutoCat/issues/2) | [fdf131b](https://github.com/thejaustin/AutoCat/commit/fdf131b77c) | 2025-12-10 |
 | 96 | Missing Flowerpot import after upstream merge | Medium | ✅ Fixed | N/A | [e4776fb](https://github.com/thejaustin/AutoCat/commit/e4776fbbbf) | 2025-12-22 |
 | 95 | Incorrect background() usage in reasoning section | Low | ✅ Fixed | N/A | [709e674](https://github.com/thejaustin/AutoCat/commit/709e674fd9) | 2025-12-21 |
 | 95 | Background usage in AppCategorizationListPreferences | Low | ✅ Fixed | N/A | [30fb2e3](https://github.com/thejaustin/AutoCat/commit/30fb2e3987) | 2025-12-21 |
