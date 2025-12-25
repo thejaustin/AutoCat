@@ -12,10 +12,10 @@ import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
-import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.launcher
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
+import app.lawnchair.util.categorizeAppsWithSystemAndGoogle
 import com.android.launcher3.InvariantDeviceProfile.OnIDPChangeListener
 import com.android.launcher3.allapps.AllAppsStore
 import com.android.launcher3.allapps.AlphabeticalAppsList
@@ -51,7 +51,7 @@ class LawnchairAlphabeticalAppsList<T>(
     private var folderList = mutableListOf<FolderInfo>()
     private val filteredList = mutableListOf<AppInfo>()
 
-    private val folderOrder by lazy { FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get()) }
+    private val folderOrder = FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get())
     private val potsManager = Flowerpot.Manager.getInstance(context)
     private val autoCatProvider = AutoCatAppProvider.getInstance(context)
     private val categoryTabsController = CategoryTabsController.getInstance(context)
