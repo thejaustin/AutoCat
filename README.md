@@ -16,6 +16,8 @@
 - **Auto Batch Sizing**: Optimizes batch size based on model context windows (16K-1M tokens)
 - **Provider Fallback**: Automatic failover between providers for reliability
 - **Model Selection**: Choose specific models per provider with deprecation handling
+- **Accuracy Tracking**: Tracks model performance based on your correction history
+- **Auto-Select Best Model**: Automatically uses the most accurate provider for your apps
 
 #### 📁 **Dual Folder Sync**
 - **App Drawer Folders**: Automatically creates folders in caddy-style app drawer
@@ -52,6 +54,8 @@
 - ✅ Smart Launcher import
 - ✅ Developer diagnostics
 - ✅ Comprehensive error handling
+- ✅ Model accuracy tracking & analytics
+- ✅ Adaptive model auto-selection
 
 **In Progress:**
 - 🔄 Compilation & integration testing
