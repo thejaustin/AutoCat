@@ -1,13 +1,14 @@
 package app.lawnchair.ui.preferences.haptics
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.getSystemService
-import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.VibratorWrapper
 
 /**
@@ -171,9 +172,10 @@ private class PreferenceHapticsImpl(
 
         // Build composition from primitives
         val composition = VibrationEffect.startComposition()
+        val handler = Handler(Looper.getMainLooper())
         primitives.forEach { primitive ->
             if (primitive.delayMs > 0) {
-                UI_HELPER_EXECUTOR.postDelayed({
+                handler.postDelayed({
                     vibrator?.let {
                         if (it.areAllPrimitivesSupported(primitive.type)) {
                             it.vibrate(

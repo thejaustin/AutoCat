@@ -35,6 +35,7 @@ fun PreferenceScaffold(
     backArrowVisible: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
     bottomBar: @Composable () -> Unit = { BottomSpacer() },
+    floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val scrollBehavior = if (isExpandedScreen) TopAppBarDefaults.pinnedScrollBehavior() else TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -50,6 +51,7 @@ fun PreferenceScaffold(
             )
         },
         bottomBar = bottomBar,
+        floatingActionButton = floatingActionButton,
     ) {
         content(it)
     }

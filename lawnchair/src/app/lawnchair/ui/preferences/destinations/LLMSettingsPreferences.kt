@@ -635,17 +635,14 @@ fun LLMSettingsPreferences(
                             ListPreferenceEntry(
                                 value = "DRAWER",
                                 label = { "App drawer only" },
-                                description = { "Create folders in the app drawer (default)" },
                             ),
                             ListPreferenceEntry(
                                 value = "HOME_SCREEN",
                                 label = { "Home screen only" },
-                                description = { "Create folders on the home screen workspace" },
                             ),
                             ListPreferenceEntry(
                                 value = "BOTH",
                                 label = { "Both app drawer and home screen" },
-                                description = { "Create folders in both locations" },
                             ),
                         ),
                         enabled = prefs.autoCatSyncFolders.get(),

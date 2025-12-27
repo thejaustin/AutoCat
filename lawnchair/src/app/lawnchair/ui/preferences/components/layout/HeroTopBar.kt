@@ -3,6 +3,7 @@ package app.lawnchair.ui.preferences.components.layout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,7 +43,7 @@ fun HeroLargeTopAppBar(
     heroImage: (@Composable () -> Unit)? = null,
     gradient: Brush? = null,
     navigationIcon: @Composable () -> Unit = {},
-    actions: @Composable () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     val containerColor = if (gradient != null) {
         Color.Transparent
@@ -114,7 +115,7 @@ fun HeroMediumTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     gradient: Brush? = null,
     navigationIcon: @Composable () -> Unit = {},
-    actions: @Composable () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     val containerColor = if (gradient != null) {
         Color.Transparent

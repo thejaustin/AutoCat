@@ -53,8 +53,8 @@ object PreferenceIcons {
     val LightMode = Icons.Rounded.LightMode
     val Font = Icons.Rounded.FontDownload
     val TextSize = Icons.Rounded.FormatSize
-    val Icons = Icons.Rounded.Apps
-    val IconShape = Icons.Rounded.Shape
+    val AppIcons = Icons.Rounded.Apps
+    val IconShape = Shape
     val Style = Icons.Rounded.Style
     val Color = Icons.Rounded.ColorLens
     val Wallpaper = Icons.Rounded.Wallpaper
@@ -136,7 +136,7 @@ object PreferenceIconMapping {
                 PreferenceIcons.IconShape
 
             allTerms.any { it.contains("icon") } ->
-                PreferenceIcons.Icons
+                PreferenceIcons.AppIcons
 
             allTerms.any { it.contains("font") || it.contains("typeface") } ->
                 PreferenceIcons.Font
@@ -204,7 +204,7 @@ object PreferenceIconMapping {
      */
     fun getCategoryForIcon(icon: ImageVector): IconCategory {
         return when (icon) {
-            PreferenceIcons.Theme, PreferenceIcons.Color, PreferenceIcons.Icons,
+            PreferenceIcons.Theme, PreferenceIcons.Color, PreferenceIcons.AppIcons,
             PreferenceIcons.IconShape, PreferenceIcons.Font, PreferenceIcons.Style,
             PreferenceIcons.Wallpaper, PreferenceIcons.Opacity,
             -> IconCategory.APPEARANCE

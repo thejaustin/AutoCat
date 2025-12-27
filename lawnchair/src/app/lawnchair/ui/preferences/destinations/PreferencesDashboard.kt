@@ -67,7 +67,6 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.components.layout.SearchPreferenceFAB
 import app.lawnchair.ui.preferences.components.search.PreferenceSearchBar
-import app.lawnchair.ui.preferences.components.search.PreferenceSearchEngine
 import app.lawnchair.ui.preferences.components.search.PreferenceSearchIndex
 import app.lawnchair.ui.preferences.components.search.SearchResultsScreen
 import app.lawnchair.ui.preferences.data.liveinfo.SyncLiveInformation
