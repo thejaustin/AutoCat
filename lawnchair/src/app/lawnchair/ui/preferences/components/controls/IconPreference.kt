@@ -166,10 +166,9 @@ fun IconSliderPreference(
         label = label,
         adapter = adapter,
         valueRange = valueRange,
-        step = step.toFloat(),
+        step = step,
         showAsPercentage = showAsPercentage,
         showUnit = showUnit,
-        modifier = modifier,
     )
 }
 

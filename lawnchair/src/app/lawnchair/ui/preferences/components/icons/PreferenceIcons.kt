@@ -54,7 +54,7 @@ object PreferenceIcons {
     val Font = Icons.Rounded.FontDownload
     val TextSize = Icons.Rounded.FormatSize
     val AppIcons = Icons.Rounded.Apps
-    val IconShape = Shape
+    val IconShape = Icons.Rounded.Shape
     val Style = Icons.Rounded.Style
     val Color = Icons.Rounded.ColorLens
     val Wallpaper = Icons.Rounded.Wallpaper
