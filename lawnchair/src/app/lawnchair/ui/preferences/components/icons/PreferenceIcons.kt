@@ -25,7 +25,6 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.Shape
 import androidx.compose.material.icons.rounded.SmartToy
 import androidx.compose.material.icons.rounded.Sort
 import androidx.compose.material.icons.rounded.Style
@@ -54,7 +53,7 @@ object PreferenceIcons {
     val Font = Icons.Rounded.FontDownload
     val TextSize = Icons.Rounded.FormatSize
     val AppIcons = Icons.Rounded.Apps
-    val IconShape = Icons.Rounded.Shape
+    val IconShape = Icons.Rounded.Dashboard
     val Style = Icons.Rounded.Style
     val Color = Icons.Rounded.ColorLens
     val Wallpaper = Icons.Rounded.Wallpaper

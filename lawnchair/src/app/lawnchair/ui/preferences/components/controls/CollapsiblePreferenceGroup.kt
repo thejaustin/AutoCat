@@ -84,10 +84,10 @@ fun CollapsiblePreferenceGroup(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             },
-            description = description?.let {
-                {
+            description = description?.let { desc ->
+                @Composable {
                     Text(
-                        text = it,
+                        text = desc,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
