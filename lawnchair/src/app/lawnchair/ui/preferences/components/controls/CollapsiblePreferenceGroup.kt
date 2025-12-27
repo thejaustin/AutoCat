@@ -84,16 +84,14 @@ fun CollapsiblePreferenceGroup(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             },
-            description = if (description != null) {
-                {
+            description = {
+                if (description != null) {
                     Text(
                         text = description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-            } else {
-                null
             },
             endWidget = {
                 Icon(
