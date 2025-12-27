@@ -84,14 +84,16 @@ fun CollapsiblePreferenceGroup(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             },
-            description = description?.let { desc ->
-                @Composable {
+            description = if (description != null) {
+                {
                     Text(
-                        text = desc,
+                        text = description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            } else {
+                null
             },
             endWidget = {
                 Icon(
