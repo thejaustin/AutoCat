@@ -42,6 +42,30 @@ class CategoryFolderSyncService(
     }
 
     /**
+     * Gets the current folder sync mode from preferences
+     */
+    private fun getSyncMode(): FolderSyncMode {
+        val modeString = prefs.autoCatFolderSyncMode.get()
+        return FolderSyncMode.fromString(modeString)
+    }
+
+    /**
+     * Checks if drawer folder sync is enabled
+     */
+    private fun shouldSyncToDrawer(): Boolean {
+        val mode = getSyncMode()
+        return mode == FolderSyncMode.DRAWER || mode == FolderSyncMode.BOTH
+    }
+
+    /**
+     * Checks if home screen folder sync is enabled
+     */
+    private fun shouldSyncToHomeScreen(): Boolean {
+        val mode = getSyncMode()
+        return mode == FolderSyncMode.HOME_SCREEN || mode == FolderSyncMode.BOTH
+    }
+
+    /**
      * Syncs all categorized apps to drawer folders.
      *
      * Creates folders for each category and adds apps to them.
@@ -70,11 +94,26 @@ class CategoryFolderSyncService(
         }
 
         try {
+            val syncMode = getSyncMode()
             LLMLogger.logInfo(
                 provider = "CategoryFolderSync",
                 operation = "SYNC",
-                message = "Starting folder sync for ${categorizations.size} categorizations",
+                message = "Starting folder sync for ${categorizations.size} categorizations (mode: ${syncMode.displayName})",
             )
+
+            if (!shouldSyncToDrawer() && !shouldSyncToHomeScreen()) {
+                LLMLogger.logWarning(
+                    provider = "CategoryFolderSync",
+                    operation = "SYNC",
+                    message = "No sync mode enabled",
+                )
+                return@withContext SyncResult(
+                    success = false,
+                    message = "No sync mode enabled",
+                    foldersCreated = 0,
+                    appsMovedToFolders = 0,
+                )
+            }
 
             // Group apps by tab, excluding "Other" and system categories
             val appsByTab = categorizations.entries
@@ -135,90 +174,34 @@ class CategoryFolderSyncService(
             val customTabs = TabDatabase.getInstance(context).categoryDao().getAllCustomCategories()
             val tabIconMap = customTabs.associate { it.name to it.icon }
 
-            // Create/update folder for each tab (FAST - parallel friendly)
-            appsByTab.forEach { (tabName, packageNames) ->
-                val folderName = getFolderName(tabName)
-                val folderIcon = tabIconMap[tabName]
+            // Sync to drawer folders if enabled
+            if (shouldSyncToDrawer()) {
+                syncToDrawer(appsByTab, appsByPackage, existingFolderMap, tabIconMap)
+                    .also { result ->
+                        foldersCreated += result.first
+                        appsMovedToFolders += result.second
+                    }
+            }
 
-                LLMLogger.logDebug(
+            // TODO: Sync to home screen folders if enabled
+            if (shouldSyncToHomeScreen()) {
+                LLMLogger.logWarning(
                     provider = "CategoryFolderSync",
-                    operation = "SYNC_DRAWER_FOLDER",
-                    message = "Syncing drawer folder: $folderName",
-                    details = mapOf(
-                        "tab" to tabName,
-                        "appCount" to packageNames.size,
-                        "icon" to (folderIcon ?: "none"),
-                    ),
+                    operation = "SYNC_HOME_SCREEN",
+                    message = "Home screen folder sync not yet implemented",
                 )
-
-                // Find apps for this category (FAST - map lookup)
-                val apps = packageNames.flatMap { packageName ->
-                    val matchedApps = appsByPackage[packageName] ?: emptyList()
-                    if (matchedApps.isEmpty()) {
-                        android.util.Log.w(TAG, "No apps found for package: $packageName in tab: $tabName")
-                    }
-                    matchedApps
-                }
-
-                if (apps.isNotEmpty()) {
-                    android.util.Log.d(TAG, "Folder '$folderName': ${apps.size} apps from ${packageNames.size} packages")
-                    // Check if folder exists
-                    val existingFolder = existingFolderMap[folderName]
-
-                    if (existingFolder != null) {
-                        // Update existing folder
-                        drawerFolderService.updateFolderWithItems(
-                            folderInfoId = existingFolder.id,
-                            title = folderName,
-                            appInfos = apps,
-                            icon = folderIcon,
-                        )
-                        android.util.Log.d(TAG, "Updated drawer folder: $folderName (${apps.size} apps)")
-                    } else {
-                        // Create new folder with ID
-                        val newFolder = FolderInfo().apply {
-                            title = folderName
-                            // Launcher3 auto-generates ID if not set
-                        }
-                        drawerFolderService.saveFolderInfo(newFolder)
-
-                        // Use database query instead of timeout-based getAllFolders() - much faster
-                        kotlinx.coroutines.delay(100) // Small delay for DB write
-                        val folderId = try {
-                            // Get folder ID from Room directly (no timeout)
-                            val allFolders = drawerFolderService.getAllFolders()
-                            allFolders.find { it.title.toString() == folderName }?.id
-                        } catch (e: Exception) {
-                            android.util.Log.w(TAG, "Failed to get folder ID for $folderName", e)
-                            null
-                        }
-
-                        if (folderId != null) {
-                            drawerFolderService.updateFolderWithItems(
-                                folderInfoId = folderId,
-                                title = folderName,
-                                appInfos = apps,
-                                icon = folderIcon,
-                            )
-                            android.util.Log.d(TAG, "Created drawer folder: $folderName (${apps.size} apps)")
-                            foldersCreated++
-                        }
-                    }
-
-                    appsMovedToFolders += apps.size
-                }
             }
 
             val result = SyncResult(
                 success = true,
-                message = "Synced $appsMovedToFolders apps to $foldersCreated drawer folders",
+                message = "Synced $appsMovedToFolders apps to $foldersCreated folders (mode: ${syncMode.displayName})",
                 foldersCreated = foldersCreated,
                 appsMovedToFolders = appsMovedToFolders,
             )
 
             LLMLogger.logInfo(
                 provider = "CategoryFolderSync",
-                operation = "SYNC_DRAWER",
+                operation = "SYNC",
                 message = result.message,
             )
 
@@ -230,18 +213,108 @@ class CategoryFolderSyncService(
         } catch (e: Exception) {
             LLMLogger.logError(
                 provider = "CategoryFolderSync",
-                operation = "SYNC_DRAWER",
+                operation = "SYNC",
                 error = e,
             )
 
             SyncResult(
                 success = false,
-                message = "Drawer folder sync failed: ${e.message}",
+                message = "Folder sync failed: ${e.message}",
                 foldersCreated = 0,
                 appsMovedToFolders = 0,
                 error = e,
             )
         }
+    }
+
+    /**
+     * Syncs apps to drawer folders.
+     * Returns Pair<foldersCreated, appsMovedToFolders>
+     */
+    private suspend fun syncToDrawer(
+        appsByTab: Map<String, List<String>>,
+        appsByPackage: Map<String, List<AppInfo>>,
+        existingFolderMap: Map<String, FolderInfo>,
+        tabIconMap: Map<String, String?>,
+    ): Pair<Int, Int> {
+        var foldersCreated = 0
+        var appsMovedToFolders = 0
+
+        // Create/update folder for each tab (FAST - parallel friendly)
+        appsByTab.forEach { (tabName, packageNames) ->
+            val folderName = getFolderName(tabName)
+            val folderIcon = tabIconMap[tabName]
+
+            LLMLogger.logDebug(
+                provider = "CategoryFolderSync",
+                operation = "SYNC_DRAWER_FOLDER",
+                message = "Syncing drawer folder: $folderName",
+                details = mapOf(
+                    "tab" to tabName,
+                    "appCount" to packageNames.size,
+                    "icon" to (folderIcon ?: "none"),
+                ),
+            )
+
+            // Find apps for this category (FAST - map lookup)
+            val apps = packageNames.flatMap { packageName ->
+                val matchedApps = appsByPackage[packageName] ?: emptyList()
+                if (matchedApps.isEmpty()) {
+                    android.util.Log.w(TAG, "No apps found for package: $packageName in tab: $tabName")
+                }
+                matchedApps
+            }
+
+            if (apps.isNotEmpty()) {
+                android.util.Log.d(TAG, "Folder '$folderName': ${apps.size} apps from ${packageNames.size} packages")
+                // Check if folder exists
+                val existingFolder = existingFolderMap[folderName]
+
+                if (existingFolder != null) {
+                    // Update existing folder
+                    drawerFolderService.updateFolderWithItems(
+                        folderInfoId = existingFolder.id,
+                        title = folderName,
+                        appInfos = apps,
+                        icon = folderIcon,
+                    )
+                    android.util.Log.d(TAG, "Updated drawer folder: $folderName (${apps.size} apps)")
+                } else {
+                    // Create new folder with ID
+                    val newFolder = FolderInfo().apply {
+                        title = folderName
+                        // Launcher3 auto-generates ID if not set
+                    }
+                    drawerFolderService.saveFolderInfo(newFolder)
+
+                    // Use database query instead of timeout-based getAllFolders() - much faster
+                    kotlinx.coroutines.delay(100) // Small delay for DB write
+                    val folderId = try {
+                        // Get folder ID from Room directly (no timeout)
+                        val allFolders = drawerFolderService.getAllFolders()
+                        allFolders.find { it.title.toString() == folderName }?.id
+                    } catch (e: Exception) {
+                        android.util.Log.w(TAG, "Failed to get folder ID for $folderName", e)
+                        null
+                    }
+
+                    if (folderId != null) {
+                        drawerFolderService.updateFolderWithItems(
+                            folderInfoId = folderId,
+                            title = folderName,
+                            appInfos = apps,
+                            icon = folderIcon,
+                        )
+                        android.util.Log.d(TAG, "Created drawer folder: $folderName (${apps.size} apps)")
+                        foldersCreated++
+                    }
+                }
+
+                appsMovedToFolders += apps.size
+            }
+        }
+
+        return Pair(foldersCreated, appsMovedToFolders)
     }
 
     /**

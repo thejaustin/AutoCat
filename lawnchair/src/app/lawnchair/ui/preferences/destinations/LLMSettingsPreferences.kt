@@ -616,6 +616,43 @@ fun LLMSettingsPreferences(
                 }
             }
 
+            // Folder Sync Settings
+            item {
+                PreferenceGroup(heading = "Category Folders") {
+                    SwitchPreference(
+                        adapter = prefs.autoCatSyncFolders.getAdapter(),
+                        label = "Auto-create folders from categories",
+                        description = "Automatically create folders for each category",
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ListPreference(
+                        adapter = prefs.autoCatFolderSyncMode.getAdapter(),
+                        label = "Folder location",
+                        description = "Where category folders should be created",
+                        entries = listOf(
+                            ListPreferenceEntry(
+                                value = "DRAWER",
+                                label = { "App drawer only" },
+                                description = { "Create folders in the app drawer (default)" },
+                            ),
+                            ListPreferenceEntry(
+                                value = "HOME_SCREEN",
+                                label = { "Home screen only" },
+                                description = { "Create folders on the home screen workspace" },
+                            ),
+                            ListPreferenceEntry(
+                                value = "BOTH",
+                                label = { "Both app drawer and home screen" },
+                                description = { "Create folders in both locations" },
+                            ),
+                        ),
+                        enabled = prefs.autoCatSyncFolders.get(),
+                    )
+                }
+            }
+
             // Operations Section
             item {
                 PreferenceGroup(heading = "Categorization Operations") {
