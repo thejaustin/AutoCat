@@ -8,8 +8,8 @@ import androidx.compose.material.icons.rounded.Brush
 import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ColorLens
-import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.Folder
@@ -128,52 +128,70 @@ object PreferenceIconMapping {
             // Theme & Appearance
             allTerms.any { it.contains("theme") || it.contains("dark") || it.contains("light") } ->
                 PreferenceIcons.Theme
+
             allTerms.any { it.contains("color") || it.contains("palette") } ->
                 PreferenceIcons.Color
+
             allTerms.any { it.contains("icon") && it.contains("shape") } ->
                 PreferenceIcons.IconShape
+
             allTerms.any { it.contains("icon") } ->
                 PreferenceIcons.Icons
+
             allTerms.any { it.contains("font") || it.contains("typeface") } ->
                 PreferenceIcons.Font
+
             allTerms.any { it.contains("opacity") || it.contains("transparency") } ->
                 PreferenceIcons.Opacity
+
             allTerms.any { it.contains("wallpaper") } ->
                 PreferenceIcons.Wallpaper
 
             // Layout
             allTerms.any { it.contains("grid") } ->
                 PreferenceIcons.Grid
+
             allTerms.any { it.contains("column") } ->
                 PreferenceIcons.Columns
+
             allTerms.any { it.contains("row") } ->
                 PreferenceIcons.Rows
+
             allTerms.any { it.contains("spacing") || it.contains("padding") } ->
                 PreferenceIcons.Spacing
+
             allTerms.any { it.contains("rotation") || it.contains("rotate") } ->
                 PreferenceIcons.Rotation
 
             // Organization
             allTerms.any { it.contains("folder") } ->
                 PreferenceIcons.Folder
+
             allTerms.any { it.contains("category") || it.contains("categoriz") } ->
                 PreferenceIcons.Category
+
             allTerms.any { it.contains("sort") } ->
                 PreferenceIcons.Sort
+
             allTerms.any { it.contains("filter") } ->
                 PreferenceIcons.Filter
+
             allTerms.any { it.contains("search") } ->
                 PreferenceIcons.Search
+
             allTerms.any { it.contains("hidden") || it.contains("hide") } ->
                 PreferenceIcons.Hidden
+
             allTerms.any { it.contains("visible") || it.contains("show") } ->
                 PreferenceIcons.Visible
 
             // Features
             allTerms.any { it.contains("widget") || it.contains("smartspace") } ->
                 PreferenceIcons.Widget
+
             allTerms.any { it.contains("notification") || it.contains("badge") } ->
                 PreferenceIcons.Notification
+
             allTerms.any { it.contains("ai") || it.contains("llm") || it.contains("smart") } ->
                 PreferenceIcons.AI
 

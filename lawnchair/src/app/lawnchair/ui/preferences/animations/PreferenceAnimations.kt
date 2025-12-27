@@ -31,7 +31,7 @@ object PreferenceAnimationDefaults {
     const val RIPPLE_DURATION = 350
 
     // Content reveal durations
-    const val STAGGER_DELAY = 50  // Delay per item in staggered lists
+    const val STAGGER_DELAY = 50 // Delay per item in staggered lists
     const val REVEAL_DURATION = 400
 
     // Expand/Collapse durations

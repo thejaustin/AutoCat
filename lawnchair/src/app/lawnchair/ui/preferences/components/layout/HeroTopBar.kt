@@ -37,12 +37,12 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HeroLargeTopAppBar(
     title: String,
+    modifier: Modifier = Modifier,
     scrollBehavior: TopAppBarScrollBehavior? = null,
     heroImage: (@Composable () -> Unit)? = null,
     gradient: Brush? = null,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable () -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     val containerColor = if (gradient != null) {
         Color.Transparent
@@ -110,11 +110,11 @@ fun HeroLargeTopAppBar(
 @Composable
 fun HeroMediumTopAppBar(
     title: String,
+    modifier: Modifier = Modifier,
     scrollBehavior: TopAppBarScrollBehavior? = null,
     gradient: Brush? = null,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable () -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     val containerColor = if (gradient != null) {
         Color.Transparent

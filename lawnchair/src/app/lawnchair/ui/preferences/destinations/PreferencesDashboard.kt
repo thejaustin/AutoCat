@@ -167,109 +167,109 @@ fun PreferencesDashboard(
             }
         } else {
             // Normal dashboard content
-        AnnouncementPreference()
+            AnnouncementPreference()
 
-        val hideSettingsWarnings by prefs.hideSettingsWarnings.observeAsState()
+            val hideSettingsWarnings by prefs.hideSettingsWarnings.observeAsState()
 
-        if ((BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) && !hideSettingsWarnings) {
-            PreferencesDebugWarning()
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        if (!context.isDefaultLauncher()) {
-            PreferencesSetDefaultLauncherWarning()
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        PreferenceCategoryGroup {
-            PreferenceCategory(
-                label = stringResource(R.string.general_label),
-                description = stringResource(R.string.general_description),
-                iconResource = R.drawable.ic_general,
-                onNavigate = { onNavigate(General) },
-                isSelected = currentRoute is General,
-            )
-
-            PreferenceCategory(
-                label = stringResource(R.string.home_screen_label),
-                description = stringResource(R.string.home_screen_description),
-                iconResource = R.drawable.ic_home_screen,
-                onNavigate = { onNavigate(HomeScreen) },
-                isSelected = currentRoute is HomeScreen,
-            )
-
-            PreferenceCategory(
-                label = stringResource(id = R.string.smartspace_widget),
-                description = stringResource(R.string.smartspace_widget_description),
-                iconResource = R.drawable.ic_smartspace,
-                onNavigate = { onNavigate(Smartspace) },
-                isSelected = currentRoute is Smartspace,
-            )
-
-            PreferenceCategory(
-                label = stringResource(R.string.dock_label),
-                description = stringResource(R.string.dock_description),
-                iconResource = R.drawable.ic_dock,
-                onNavigate = { onNavigate(Dock) },
-                isSelected = currentRoute is Dock,
-            )
-
-            val deckLayout = pref2.deckLayout.getAdapter()
-            if (!deckLayout.state.value) {
-                PreferenceCategory(
-                    label = stringResource(R.string.app_drawer_label),
-                    description = stringResource(R.string.app_drawer_description),
-                    iconResource = R.drawable.ic_app_drawer,
-                    onNavigate = { onNavigate(AppDrawer) },
-                    isSelected = currentRoute is AppDrawer,
-                )
+            if ((BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) && !hideSettingsWarnings) {
+                PreferencesDebugWarning()
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
-            PreferenceCategory(
-                label = stringResource(R.string.search_bar_label),
-                description = stringResource(R.string.drawer_search_description),
-                iconResource = R.drawable.ic_search,
-                onNavigate = { onNavigate(Search()) },
-                isSelected = currentRoute is Search,
-            )
-
-            PreferenceCategory(
-                label = stringResource(R.string.folders_label),
-                description = stringResource(R.string.folders_description),
-                iconResource = R.drawable.ic_folder,
-                onNavigate = { onNavigate(Folders) },
-                isSelected = currentRoute is Folders,
-            )
-
-            PreferenceCategory(
-                label = stringResource(id = R.string.gestures_label),
-                description = stringResource(R.string.gestures_description),
-                iconResource = R.drawable.ic_gestures,
-                onNavigate = { onNavigate(Gestures) },
-                isSelected = currentRoute is Gestures,
-            )
-
-            val prefs = preferenceManager()
-            val hideQuickstepSettings by prefs.hideQuickstepSettings.observeAsState()
-
-            if (LawnchairApp.isRecentsEnabled || BuildConfig.DEBUG && !hideQuickstepSettings) {
-                PreferenceCategory(
-                    label = stringResource(id = R.string.quickstep_label),
-                    description = stringResource(id = R.string.quickstep_description),
-                    iconResource = R.drawable.ic_quickstep,
-                    onNavigate = { onNavigate(Quickstep) },
-                    isSelected = currentRoute is Quickstep,
-                )
+            if (!context.isDefaultLauncher()) {
+                PreferencesSetDefaultLauncherWarning()
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
-            PreferenceCategory(
-                label = stringResource(R.string.about_label),
-                description = "${context.getString(R.string.derived_app_name)} ${BuildConfig.MAJOR_VERSION}",
-                iconResource = R.drawable.ic_about,
-                onNavigate = { onNavigate(About) },
-                isSelected = currentRoute is About,
-            )
-        }
+            PreferenceCategoryGroup {
+                PreferenceCategory(
+                    label = stringResource(R.string.general_label),
+                    description = stringResource(R.string.general_description),
+                    iconResource = R.drawable.ic_general,
+                    onNavigate = { onNavigate(General) },
+                    isSelected = currentRoute is General,
+                )
+
+                PreferenceCategory(
+                    label = stringResource(R.string.home_screen_label),
+                    description = stringResource(R.string.home_screen_description),
+                    iconResource = R.drawable.ic_home_screen,
+                    onNavigate = { onNavigate(HomeScreen) },
+                    isSelected = currentRoute is HomeScreen,
+                )
+
+                PreferenceCategory(
+                    label = stringResource(id = R.string.smartspace_widget),
+                    description = stringResource(R.string.smartspace_widget_description),
+                    iconResource = R.drawable.ic_smartspace,
+                    onNavigate = { onNavigate(Smartspace) },
+                    isSelected = currentRoute is Smartspace,
+                )
+
+                PreferenceCategory(
+                    label = stringResource(R.string.dock_label),
+                    description = stringResource(R.string.dock_description),
+                    iconResource = R.drawable.ic_dock,
+                    onNavigate = { onNavigate(Dock) },
+                    isSelected = currentRoute is Dock,
+                )
+
+                val deckLayout = pref2.deckLayout.getAdapter()
+                if (!deckLayout.state.value) {
+                    PreferenceCategory(
+                        label = stringResource(R.string.app_drawer_label),
+                        description = stringResource(R.string.app_drawer_description),
+                        iconResource = R.drawable.ic_app_drawer,
+                        onNavigate = { onNavigate(AppDrawer) },
+                        isSelected = currentRoute is AppDrawer,
+                    )
+                }
+
+                PreferenceCategory(
+                    label = stringResource(R.string.search_bar_label),
+                    description = stringResource(R.string.drawer_search_description),
+                    iconResource = R.drawable.ic_search,
+                    onNavigate = { onNavigate(Search()) },
+                    isSelected = currentRoute is Search,
+                )
+
+                PreferenceCategory(
+                    label = stringResource(R.string.folders_label),
+                    description = stringResource(R.string.folders_description),
+                    iconResource = R.drawable.ic_folder,
+                    onNavigate = { onNavigate(Folders) },
+                    isSelected = currentRoute is Folders,
+                )
+
+                PreferenceCategory(
+                    label = stringResource(id = R.string.gestures_label),
+                    description = stringResource(R.string.gestures_description),
+                    iconResource = R.drawable.ic_gestures,
+                    onNavigate = { onNavigate(Gestures) },
+                    isSelected = currentRoute is Gestures,
+                )
+
+                val prefs = preferenceManager()
+                val hideQuickstepSettings by prefs.hideQuickstepSettings.observeAsState()
+
+                if (LawnchairApp.isRecentsEnabled || BuildConfig.DEBUG && !hideQuickstepSettings) {
+                    PreferenceCategory(
+                        label = stringResource(id = R.string.quickstep_label),
+                        description = stringResource(id = R.string.quickstep_description),
+                        iconResource = R.drawable.ic_quickstep,
+                        onNavigate = { onNavigate(Quickstep) },
+                        isSelected = currentRoute is Quickstep,
+                    )
+                }
+
+                PreferenceCategory(
+                    label = stringResource(R.string.about_label),
+                    description = "${context.getString(R.string.derived_app_name)} ${BuildConfig.MAJOR_VERSION}",
+                    iconResource = R.drawable.ic_about,
+                    onNavigate = { onNavigate(About) },
+                    isSelected = currentRoute is About,
+                )
+            }
         }
     }
 }

@@ -29,10 +29,13 @@ import app.lawnchair.ui.preferences.haptics.rememberPreferenceHaptics
 enum class ButtonVariant {
     /** Standard filled button with primary color */
     FILLED,
+
     /** Filled tonal button with secondary container color */
     FILLED_TONAL,
+
     /** Outlined button with border */
     OUTLINED,
+
     /** Text-only button */
     TEXT,
 }

@@ -18,9 +18,7 @@ import androidx.compose.ui.unit.dp
 /**
  * Enhanced navigation transitions for preference screens.
  * Provides smooth, Material Design-compliant animations.
- */
-
-/**
+ *
  * Remembers the slide distance for shared axis transitions.
  * Responsive to screen size (30dp default).
  */

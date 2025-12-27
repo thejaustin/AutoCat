@@ -90,8 +90,8 @@ fun PreferenceFilledCard(
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     header: (@Composable () -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit,
     actions: (@Composable RowScope.() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -126,8 +126,8 @@ fun PreferenceElevatedCard(
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     header: (@Composable () -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit,
     actions: (@Composable RowScope.() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     ElevatedCard(
         modifier = modifier.fillMaxWidth(),
@@ -160,8 +160,8 @@ fun PreferenceOutlinedCard(
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
     header: (@Composable () -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit,
     actions: (@Composable RowScope.() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     OutlinedCard(
         modifier = modifier.fillMaxWidth(),
@@ -184,8 +184,8 @@ fun PreferenceOutlinedCard(
 @Composable
 private fun PreferenceCardContent(
     header: (@Composable () -> Unit)?,
-    content: @Composable ColumnScope.() -> Unit,
     actions: (@Composable RowScope.() -> Unit)?,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = Modifier

@@ -61,8 +61,8 @@ fun SearchResultsScreen(
     results: List<PreferenceMetadata>,
     query: String,
     onResultClick: (PreferenceRoute) -> Unit,
-    contentPadding: PaddingValues = PaddingValues(0.dp),
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     val haptics = rememberPreferenceHaptics()
 
@@ -376,20 +376,21 @@ private fun highlightMatches(text: String, query: String): androidx.compose.ui.t
  * @param onSearch Callback with search results
  */
 @Composable
-fun rememberDebouncedSearch(
+fun DebouncedSearch(
     query: String,
     debounceMs: Long = 300,
     onSearch: suspend (String) -> List<PreferenceMetadata>,
 ) {
     val scope = rememberCoroutineScope()
     var currentJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    val currentOnSearch by androidx.compose.runtime.rememberUpdatedState(onSearch)
 
     LaunchedEffect(query) {
         currentJob?.cancel()
         currentJob = scope.launch {
             if (query.isNotEmpty()) {
                 delay(debounceMs)
-                onSearch(query)
+                currentOnSearch(query)
             }
         }
     }

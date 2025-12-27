@@ -49,14 +49,14 @@ import app.lawnchair.ui.preferences.haptics.rememberPreferenceHaptics
 @Composable
 fun CategoryCard(
     label: String,
-    description: String? = null,
     icon: Any, // Can be Int (resource), ImageVector, or Painter
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    description: String? = null,
     iconSize: Dp = 40.dp,
     iconTint: Color = MaterialTheme.colorScheme.primary,
     backgroundGradient: Brush? = null,
-    onClick: () -> Unit,
     enabled: Boolean = true,
-    modifier: Modifier = Modifier,
 ) {
     val haptics = rememberPreferenceHaptics()
 
@@ -107,12 +107,14 @@ fun CategoryCard(
                             tint = iconTint,
                             modifier = Modifier.size(iconSize),
                         )
+
                         is ImageVector -> Icon(
                             imageVector = icon,
                             contentDescription = null,
                             tint = iconTint,
                             modifier = Modifier.size(iconSize),
                         )
+
                         is Painter -> Icon(
                             painter = icon,
                             contentDescription = null,
@@ -170,11 +172,11 @@ fun CategoryCard(
 fun CompactCategoryCard(
     label: String,
     icon: Any,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     iconSize: Dp = 32.dp,
     iconTint: Color = MaterialTheme.colorScheme.primary,
-    onClick: () -> Unit,
     enabled: Boolean = true,
-    modifier: Modifier = Modifier,
 ) {
     val haptics = rememberPreferenceHaptics()
 
@@ -211,12 +213,14 @@ fun CompactCategoryCard(
                         tint = iconTint,
                         modifier = Modifier.size(iconSize),
                     )
+
                     is ImageVector -> Icon(
                         imageVector = icon,
                         contentDescription = null,
                         tint = iconTint,
                         modifier = Modifier.size(iconSize),
                     )
+
                     is Painter -> Icon(
                         painter = icon,
                         contentDescription = null,

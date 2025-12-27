@@ -16,31 +16,31 @@ import com.android.launcher3.util.VibratorWrapper
  */
 enum class PreferenceHapticType {
     // Basic interactions
-    PREFERENCE_CLICK,       // Light tap for standard clicks
-    PREFERENCE_LONG_PRESS,  // Heavier tap for long press
-    SWITCH_TOGGLE_ON,       // Smooth "click on" feedback
-    SWITCH_TOGGLE_OFF,      // Smooth "click off" feedback
-    SLIDER_TICK,            // Subtle tick per slider value change
-    SLIDER_COMMIT,          // Confirm final slider value
+    PREFERENCE_CLICK, // Light tap for standard clicks
+    PREFERENCE_LONG_PRESS, // Heavier tap for long press
+    SWITCH_TOGGLE_ON, // Smooth "click on" feedback
+    SWITCH_TOGGLE_OFF, // Smooth "click off" feedback
+    SLIDER_TICK, // Subtle tick per slider value change
+    SLIDER_COMMIT, // Confirm final slider value
 
     // Navigation
-    SCREEN_ENTER,           // Entering new preference screen
-    SCREEN_EXIT,            // Exiting preference screen
-    TAB_SWITCH,             // Switching between tabs
+    SCREEN_ENTER, // Entering new preference screen
+    SCREEN_EXIT, // Exiting preference screen
+    TAB_SWITCH, // Switching between tabs
 
     // Content
-    EXPAND_SECTION,         // Expanding accordion section
-    COLLAPSE_SECTION,       // Collapsing accordion section
-    CATEGORY_SELECT,        // Selecting category card
+    EXPAND_SECTION, // Expanding accordion section
+    COLLAPSE_SECTION, // Collapsing accordion section
+    CATEGORY_SELECT, // Selecting category card
 
     // Search
-    SEARCH_RESULT_FOUND,    // Search results found
-    SEARCH_NO_RESULTS,      // No search results (different pattern)
+    SEARCH_RESULT_FOUND, // Search results found
+    SEARCH_NO_RESULTS, // No search results (different pattern)
 
     // Special feedback
-    ERROR_FEEDBACK,         // Error occurred
-    SUCCESS_FEEDBACK,       // Successful action
-    PREVIEW_UPDATE,         // Live preview changed
+    ERROR_FEEDBACK, // Error occurred
+    SUCCESS_FEEDBACK, // Successful action
+    PREVIEW_UPDATE, // Live preview changed
 }
 
 /**
@@ -119,7 +119,7 @@ private class PreferenceHapticsImpl(
                 HapticEffects.sliderTexture(hapticProfile)?.let {
                     vibratorWrapper.vibrate(it)
                 }
-                return  // Early return if texture feedback performed
+                return // Early return if texture feedback performed
             }
 
             PreferenceHapticType.SLIDER_COMMIT ->

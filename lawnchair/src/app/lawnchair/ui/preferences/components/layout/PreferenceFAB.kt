@@ -41,8 +41,8 @@ import app.lawnchair.ui.preferences.haptics.rememberPreferenceHaptics
 @Composable
 fun SearchPreferenceFAB(
     onClick: () -> Unit,
-    visible: Boolean = true,
     modifier: Modifier = Modifier,
+    visible: Boolean = true,
 ) {
     val haptics = rememberPreferenceHaptics()
 
@@ -91,9 +91,9 @@ fun ExtendedPreferenceFAB(
     text: String,
     icon: ImageVector,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     expanded: Boolean = true,
     visible: Boolean = true,
-    modifier: Modifier = Modifier,
 ) {
     val haptics = rememberPreferenceHaptics()
 
@@ -141,8 +141,8 @@ fun PreferenceFAB(
     icon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
-    visible: Boolean = true,
     modifier: Modifier = Modifier,
+    visible: Boolean = true,
 ) {
     val haptics = rememberPreferenceHaptics()
 
@@ -188,8 +188,8 @@ fun SmallPreferenceFAB(
     icon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
-    visible: Boolean = true,
     modifier: Modifier = Modifier,
+    visible: Boolean = true,
 ) {
     val haptics = rememberPreferenceHaptics()
 
@@ -233,12 +233,12 @@ fun SmallPreferenceFAB(
  */
 @Composable
 fun MultiActionFAB(
-    mainIcon: ImageVector = Icons.Default.Add,
-    mainContentDescription: String = "Actions",
     expanded: Boolean,
     onMainClick: () -> Unit,
-    modifier: Modifier = Modifier,
     actions: List<FABAction>,
+    modifier: Modifier = Modifier,
+    mainIcon: ImageVector = Icons.Default.Add,
+    mainContentDescription: String = "Actions",
 ) {
     val haptics = rememberPreferenceHaptics()
     val rotation by animateFloatAsState(

@@ -8,11 +8,11 @@ import android.os.VibrationEffect.Composition.PRIMITIVE_SLOW_RISE
 import android.os.VibrationEffect.Composition.PRIMITIVE_SPIN
 import android.os.VibrationEffect.Composition.PRIMITIVE_THUD
 import android.os.VibrationEffect.Composition.PRIMITIVE_TICK
-import android.os.VibrationEffect.createPredefined
 import android.os.VibrationEffect.EFFECT_CLICK
 import android.os.VibrationEffect.EFFECT_DOUBLE_CLICK
 import android.os.VibrationEffect.EFFECT_HEAVY_CLICK
 import android.os.VibrationEffect.EFFECT_TICK
+import android.os.VibrationEffect.createPredefined
 
 /**
  * Collection of predefined haptic effects optimized for preference interactions.

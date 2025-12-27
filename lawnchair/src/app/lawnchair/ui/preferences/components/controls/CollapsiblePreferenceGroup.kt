@@ -45,11 +45,11 @@ import app.lawnchair.ui.preferences.haptics.rememberPreferenceHaptics
 @Composable
 fun CollapsiblePreferenceGroup(
     heading: String,
+    modifier: Modifier = Modifier,
     description: String? = null,
     defaultExpanded: Boolean = true,
     persistKey: String? = null,
     enabled: Boolean = true,
-    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var expanded by if (persistKey != null) {
@@ -149,9 +149,9 @@ fun CollapsiblePreferenceGroup(
 @Composable
 fun SimpleCollapsibleGroup(
     heading: String,
+    modifier: Modifier = Modifier,
     defaultExpanded: Boolean = true,
     enabled: Boolean = true,
-    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var expanded by remember { mutableStateOf(defaultExpanded) }

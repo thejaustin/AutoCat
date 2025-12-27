@@ -51,8 +51,8 @@ fun PreferenceSearchBar(
     onSearch: (String) -> Unit,
     active: Boolean,
     onActiveChange: (Boolean) -> Unit,
-    placeholder: String = "Search settings...",
     modifier: Modifier = Modifier,
+    placeholder: String = "Search settings...",
     content: @Composable () -> Unit = {},
 ) {
     val haptics = rememberPreferenceHaptics()
@@ -153,8 +153,8 @@ fun CompactSearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onSearch: (String) -> Unit,
-    placeholder: String = "Search...",
     modifier: Modifier = Modifier,
+    placeholder: String = "Search...",
 ) {
     val haptics = rememberPreferenceHaptics()
     val keyboardController = LocalSoftwareKeyboardController.current

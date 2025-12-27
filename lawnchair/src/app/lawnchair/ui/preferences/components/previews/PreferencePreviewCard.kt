@@ -41,9 +41,9 @@ import app.lawnchair.ui.preferences.components.cards.PreferenceFilledCard
  */
 @Composable
 fun LivePreview(
+    modifier: Modifier = Modifier,
     title: String? = null,
     height: Dp = 200.dp,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     PreferenceFilledCard(
@@ -94,10 +94,10 @@ fun LivePreview(
  */
 @Composable
 fun IconPreview(
-    iconContent: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
     shape: androidx.compose.ui.graphics.Shape = MaterialTheme.shapes.medium,
     label: String = "Preview",
-    modifier: Modifier = Modifier,
+    iconContent: @Composable () -> Unit,
 ) {
     Column(
         modifier = modifier,
@@ -138,8 +138,8 @@ fun IconPreview(
 fun GridPreview(
     columns: Int,
     rows: Int,
-    spacing: Dp = 8.dp,
     modifier: Modifier = Modifier,
+    spacing: Dp = 8.dp,
 ) {
     Column(
         modifier = modifier,
@@ -198,8 +198,8 @@ fun ThemePreview(
     secondaryColor: Color,
     tertiaryColor: Color,
     backgroundColor: Color,
-    label: String = "Theme Preview",
     modifier: Modifier = Modifier,
+    label: String = "Theme Preview",
 ) {
     Column(
         modifier = modifier,
@@ -272,9 +272,9 @@ private fun ColorSwatch(
  */
 @Composable
 fun FontPreview(
+    modifier: Modifier = Modifier,
     sampleText: String = "Aa Bb Cc",
     fontFamily: androidx.compose.ui.text.font.FontFamily? = null,
-    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -317,8 +317,8 @@ fun FontPreview(
  */
 @Composable
 fun GenericPreview(
-    label: String? = null,
     modifier: Modifier = Modifier,
+    label: String? = null,
     content: @Composable () -> Unit,
 ) {
     Column(

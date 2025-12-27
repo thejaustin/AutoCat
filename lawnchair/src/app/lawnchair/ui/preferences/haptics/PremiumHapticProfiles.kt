@@ -36,10 +36,10 @@ object PremiumHapticProfiles {
      * Tuned for sharp, precise haptic feedback that leverages Samsung's excellent haptic engine.
      */
     val SAMSUNG_FLAGSHIP = HapticProfile(
-        clickScale = 0.7f,      // Sharp, responsive clicks
-        tickScale = 0.5f,       // Subtle but noticeable ticks
-        textureScale = 0.04f,   // Fine-grained texture for sliders
-        commitScale = 0.6f,     // Satisfying confirmation feedback
+        clickScale = 0.7f, // Sharp, responsive clicks
+        tickScale = 0.5f, // Subtle but noticeable ticks
+        textureScale = 0.04f, // Fine-grained texture for sliders
+        commitScale = 0.6f, // Satisfying confirmation feedback
         supportsPrimitives = true,
     )
 
@@ -60,10 +60,10 @@ object PremiumHapticProfiles {
      * Tuned for Google's vibration motor characteristics - crisp and clear.
      */
     val PIXEL_PREMIUM = HapticProfile(
-        clickScale = 0.8f,      // Slightly stronger for Pixel's motor
-        tickScale = 0.6f,       // Clear, distinct ticks
-        textureScale = 0.05f,   // Rich texture feedback
-        commitScale = 0.7f,     // Strong confirmation
+        clickScale = 0.8f, // Slightly stronger for Pixel's motor
+        tickScale = 0.6f, // Clear, distinct ticks
+        textureScale = 0.05f, // Rich texture feedback
+        commitScale = 0.7f, // Strong confirmation
         supportsPrimitives = true,
     )
 
@@ -72,10 +72,10 @@ object PremiumHapticProfiles {
      * Tuned for OnePlus X-axis linear motor.
      */
     val ONEPLUS_FLAGSHIP = HapticProfile(
-        clickScale = 0.6f,      // Lighter for OnePlus motor
-        tickScale = 0.4f,       // Subtle ticks
-        textureScale = 0.03f,   // Fine texture
-        commitScale = 0.5f,     // Balanced commit
+        clickScale = 0.6f, // Lighter for OnePlus motor
+        tickScale = 0.4f, // Subtle ticks
+        textureScale = 0.03f, // Fine texture
+        commitScale = 0.5f, // Balanced commit
         supportsPrimitives = true,
     )
 
@@ -107,10 +107,10 @@ object PremiumHapticProfiles {
      * Falls back to basic vibration patterns.
      */
     val STANDARD = HapticProfile(
-        clickScale = 1.0f,      // Full strength for basic motors
-        tickScale = 0.9f,       // Near-full strength
-        textureScale = 0f,      // No texture support on basic devices
-        commitScale = 1.0f,     // Full confirmation
+        clickScale = 1.0f, // Full strength for basic motors
+        tickScale = 0.9f, // Near-full strength
+        textureScale = 0f, // No texture support on basic devices
+        commitScale = 1.0f, // Full confirmation
         supportsPrimitives = false,
     )
 
@@ -142,16 +142,21 @@ object PremiumHapticProfiles {
             manufacturer == "samsung" -> when {
                 // S22/S23/S24 Ultra series
                 model.contains("s22") && model.contains("ultra") -> SAMSUNG_FLAGSHIP
+
                 model.contains("s23") && model.contains("ultra") -> SAMSUNG_FLAGSHIP
+
                 model.contains("s24") && model.contains("ultra") -> SAMSUNG_FLAGSHIP
 
                 // S22/S23/S24 standard and Plus
                 model.contains("s22") -> SAMSUNG_FLAGSHIP
+
                 model.contains("s23") -> SAMSUNG_FLAGSHIP
+
                 model.contains("s24") -> SAMSUNG_FLAGSHIP
 
                 // Foldables
                 model.contains("fold") -> SAMSUNG_FOLDABLE
+
                 model.contains("flip") -> SAMSUNG_FOLDABLE
 
                 // Other premium Samsung devices
@@ -164,10 +169,10 @@ object PremiumHapticProfiles {
             manufacturer == "google" -> when {
                 model.contains("pixel") && (
                     model.contains("6") ||
-                    model.contains("7") ||
-                    model.contains("8") ||
-                    model.contains("9")
-                ) -> PIXEL_PREMIUM
+                        model.contains("7") ||
+                        model.contains("8") ||
+                        model.contains("9")
+                    ) -> PIXEL_PREMIUM
 
                 else -> STANDARD.copy(supportsPrimitives = true)
             }
@@ -175,9 +180,9 @@ object PremiumHapticProfiles {
             // OnePlus devices
             manufacturer == "oneplus" -> when {
                 model.contains("9") ||
-                model.contains("10") ||
-                model.contains("11") ||
-                model.contains("12")
+                    model.contains("10") ||
+                    model.contains("11") ||
+                    model.contains("12")
                 -> ONEPLUS_FLAGSHIP
 
                 else -> STANDARD.copy(supportsPrimitives = true)
@@ -186,9 +191,9 @@ object PremiumHapticProfiles {
             // Xiaomi devices
             manufacturer == "xiaomi" || manufacturer == "redmi" -> when {
                 model.contains("12") ||
-                model.contains("13") ||
-                model.contains("14") ||
-                model.contains("mi 11")
+                    model.contains("13") ||
+                    model.contains("14") ||
+                    model.contains("mi 11")
                 -> XIAOMI_FLAGSHIP
 
                 else -> STANDARD.copy(supportsPrimitives = true)
@@ -197,7 +202,7 @@ object PremiumHapticProfiles {
             // OPPO devices
             manufacturer == "oppo" -> when {
                 model.contains("find x") ||
-                model.contains("reno")
+                    model.contains("reno")
                 -> OPPO_FLAGSHIP
 
                 else -> STANDARD.copy(supportsPrimitives = true)
