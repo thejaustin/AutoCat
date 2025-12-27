@@ -42,10 +42,13 @@ import androidx.compose.ui.unit.dp
 import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.preferences.rememberTransformAdapter
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.preferences.haptics.PreferenceHapticType
+import app.lawnchair.ui.preferences.haptics.rememberPreferenceHaptics
 import app.lawnchair.ui.theme.LawnchairTheme
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
 import app.lawnchair.ui.util.preview.PreviewLawnchair
 import com.android.launcher3.R
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @Composable
@@ -112,9 +115,12 @@ private fun SliderPreference(
     showUnit: String = "",
 ) {
     var sliderValue by remember { mutableFloatStateOf(value) }
+    var lastHapticValue by remember { mutableFloatStateOf(0f) }
+    val haptics = rememberPreferenceHaptics()
 
     DisposableEffect(value) {
         sliderValue = value
+        lastHapticValue = value
         onDispose { }
     }
 
@@ -156,8 +162,21 @@ private fun SliderPreference(
         description = {
             Slider(
                 value = sliderValue,
-                onValueChange = { newValue -> sliderValue = newValue },
-                onValueChangeFinished = { onValueChangeFinished(sliderValue) },
+                onValueChange = { newValue ->
+                    sliderValue = newValue
+
+                    // Texture feedback for premium devices
+                    // Triggers on ~5% change to avoid overwhelming haptics
+                    if (abs(newValue - lastHapticValue) >= 0.05f) {
+                        haptics.perform(PreferenceHapticType.SLIDER_TICK)
+                        lastHapticValue = newValue
+                    }
+                },
+                onValueChangeFinished = {
+                    onValueChangeFinished(sliderValue)
+                    // Commit haptic when user releases the slider
+                    haptics.perform(PreferenceHapticType.SLIDER_COMMIT)
+                },
                 valueRange = valueRange,
                 steps = getSteps(valueRange, step),
                 modifier = Modifier

@@ -34,7 +34,10 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import app.lawnchair.preferences.PreferenceAdapter
+import app.lawnchair.ui.preferences.animations.pressableScale
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.preferences.haptics.PreferenceHapticType
+import app.lawnchair.ui.preferences.haptics.rememberPreferenceHaptics
 import app.lawnchair.ui.theme.LawnchairTheme
 import app.lawnchair.ui.theme.dividerColor
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
@@ -63,6 +66,7 @@ fun SwitchPreference(
 
 /**
  * A Preference that provides a two-state toggleable option.
+ * Enhanced with haptic feedback and press animations for premium feel.
  */
 @Composable
 fun SwitchPreference(
@@ -75,6 +79,7 @@ fun SwitchPreference(
     onClick: (() -> Unit)? = null,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val haptics = rememberPreferenceHaptics()
 
     PreferenceTemplate(
         modifier = modifier.clickable(
@@ -84,8 +89,18 @@ fun SwitchPreference(
         ) {
             if (onClick != null) {
                 onClick()
+                haptics.perform(PreferenceHapticType.PREFERENCE_CLICK)
             } else {
-                onCheckedChange(!checked)
+                val newValue = !checked
+                onCheckedChange(newValue)
+                // Different haptic feedback for on vs off
+                haptics.perform(
+                    if (newValue) {
+                        PreferenceHapticType.SWITCH_TOGGLE_ON
+                    } else {
+                        PreferenceHapticType.SWITCH_TOGGLE_OFF
+                    },
+                )
             }
         },
         contentModifier = Modifier
@@ -107,9 +122,23 @@ fun SwitchPreference(
             Switch(
                 modifier = Modifier
                     .padding(all = 16.dp)
-                    .height(24.dp),
+                    .height(24.dp)
+                    .pressableScale(
+                        enabled = enabled,
+                        targetScale = 0.9f,
+                    ),
                 checked = checked,
-                onCheckedChange = onCheckedChange,
+                onCheckedChange = { newValue ->
+                    onCheckedChange(newValue)
+                    // Haptic feedback when switch is toggled directly
+                    haptics.perform(
+                        if (newValue) {
+                            PreferenceHapticType.SWITCH_TOGGLE_ON
+                        } else {
+                            PreferenceHapticType.SWITCH_TOGGLE_OFF
+                        },
+                    )
+                },
                 enabled = enabled,
                 interactionSource = interactionSource,
             )

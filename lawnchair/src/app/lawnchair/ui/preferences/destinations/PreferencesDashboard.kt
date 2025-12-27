@@ -10,6 +10,7 @@ import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -31,7 +32,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -49,6 +55,9 @@ import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.AnnouncementPreference
+import app.lawnchair.ui.preferences.components.cards.CategoryCard
+import app.lawnchair.ui.preferences.components.cards.categoryGradient
+import app.lawnchair.ui.preferences.components.controls.CollapsiblePreferenceGroup
 import app.lawnchair.ui.preferences.components.controls.PreferenceCategory
 import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.ClickableIcon
@@ -56,6 +65,11 @@ import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.preferences.components.layout.SearchPreferenceFAB
+import app.lawnchair.ui.preferences.components.search.PreferenceSearchBar
+import app.lawnchair.ui.preferences.components.search.PreferenceSearchEngine
+import app.lawnchair.ui.preferences.components.search.PreferenceSearchIndex
+import app.lawnchair.ui.preferences.components.search.SearchResultsScreen
 import app.lawnchair.ui.preferences.data.liveinfo.SyncLiveInformation
 import app.lawnchair.ui.preferences.navigation.About
 import app.lawnchair.ui.preferences.navigation.AppDrawer
@@ -78,6 +92,7 @@ import app.lawnchair.util.isDefaultLauncher
 import app.lawnchair.util.restartLauncher
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
+import kotlinx.coroutines.launch
 
 @Composable
 fun PreferencesDashboard(
@@ -89,6 +104,27 @@ fun PreferencesDashboard(
     SyncLiveInformation()
     val prefs = preferenceManager()
     val pref2 = preferenceManager2()
+    val navController = LocalNavController.current
+    val scope = rememberCoroutineScope()
+
+    // Initialize search index
+    LaunchedEffect(Unit) {
+        PreferenceSearchIndex.buildIndex()
+    }
+
+    // Search state
+    var searchActive by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf(emptyList<app.lawnchair.ui.preferences.components.search.PreferenceMetadata>()) }
+
+    // Perform search
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isNotEmpty()) {
+            searchResults = PreferenceSearchIndex.search(searchQuery)
+        } else {
+            searchResults = emptyList()
+        }
+    }
 
     PreferenceLayout(
         label = stringResource(id = R.string.settings),
@@ -96,7 +132,41 @@ fun PreferencesDashboard(
         verticalArrangement = Arrangement.Top,
         backArrowVisible = false,
         actions = { PreferencesOverflowMenu(currentRoute = currentRoute, onNavigate = onNavigate) },
+        floatingActionButton = {
+            SearchPreferenceFAB(
+                onClick = { searchActive = true },
+                visible = !searchActive,
+            )
+        },
     ) {
+        // Show search UI when active
+        if (searchActive) {
+            Column {
+                PreferenceSearchBar(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    onSearch = { /* search performed automatically */ },
+                    active = searchActive,
+                    onActiveChange = { active ->
+                        searchActive = active
+                        if (!active) {
+                            searchQuery = ""
+                        }
+                    },
+                )
+
+                SearchResultsScreen(
+                    results = searchResults,
+                    query = searchQuery,
+                    onResultClick = { route ->
+                        navController.navigate(route)
+                        searchActive = false
+                        searchQuery = ""
+                    },
+                )
+            }
+        } else {
+            // Normal dashboard content
         AnnouncementPreference()
 
         val hideSettingsWarnings by prefs.hideSettingsWarnings.observeAsState()
@@ -199,6 +269,7 @@ fun PreferencesDashboard(
                 onNavigate = { onNavigate(About) },
                 isSelected = currentRoute is About,
             )
+        }
         }
     }
 }
