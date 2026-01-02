@@ -86,7 +86,7 @@ class LawnchairAlphabeticalAppsList<T>(
      */
     private fun loadFolderWithIcons(
         sourceFolder: FolderInfo,
-        appMap: Map<String?, List<AppInfo>>
+        appMap: Map<String?, List<AppInfo>>,
     ): FolderInfo {
         return FolderInfo().apply {
             // Explicitly mark as app drawer folder
@@ -106,6 +106,7 @@ class LawnchairAlphabeticalAppsList<T>(
                         }
                         add(matchingApp ?: item)
                     }
+
                     else -> {
                         // For other ItemInfo types, try to find matching AppInfo from current list
                         val packageName = item.targetComponent?.packageName
@@ -233,7 +234,7 @@ class LawnchairAlphabeticalAppsList<T>(
 
                     if (launcherAppsInTab.size > 1) {
                         val folderInfo = FolderInfo().apply {
-                            container = ItemInfo.NO_ID  // Mark as app drawer folder
+                            container = ItemInfo.NO_ID // Mark as app drawer folder
                             title = tabName
                             launcherAppsInTab.forEach { add(it) }
                         }
