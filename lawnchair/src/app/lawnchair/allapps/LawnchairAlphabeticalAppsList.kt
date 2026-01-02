@@ -79,6 +79,52 @@ class LawnchairAlphabeticalAppsList<T>(
         }
     }
 
+    /**
+     * Creates a FolderInfo for app drawer display with properly loaded icons from icon packs.
+     * This ensures folder preview items have correct icons by using AppInfo objects from the
+     * current app list, which already have icons loaded through IconCache with icon pack applied.
+     */
+    private fun loadFolderWithIcons(
+        sourceFolder: FolderInfo,
+        appMap: Map<String?, List<AppInfo>>
+    ): FolderInfo {
+        return FolderInfo().apply {
+            // Explicitly mark as app drawer folder
+            container = ItemInfo.NO_ID
+            title = sourceFolder.title
+            icon = sourceFolder.icon
+
+            // Load contents with proper icons from the current app list
+            sourceFolder.getContents().forEach { item ->
+                when (item) {
+                    is AppInfo -> {
+                        // AppInfo already has icon from IconCache with icon pack applied
+                        // Try to find the matching AppInfo from current app list to ensure fresh icons
+                        val matchingApps = appMap[item.componentName?.packageName]
+                        val matchingApp = matchingApps?.firstOrNull {
+                            it.componentName == item.componentName
+                        }
+                        add(matchingApp ?: item)
+                    }
+                    else -> {
+                        // For other ItemInfo types, try to find matching AppInfo from current list
+                        val packageName = item.targetComponent?.packageName
+                        val matchingApps = appMap[packageName]
+                        val matchingApp = matchingApps?.firstOrNull {
+                            it.componentName == item.targetComponent
+                        }
+                        if (matchingApp != null) {
+                            add(matchingApp)
+                        } else {
+                            // Fallback: add original item if no match found
+                            add(item)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     init {
         context.launcher.deviceProfile.inv.addOnChangeListener(this)
         try {
@@ -187,6 +233,7 @@ class LawnchairAlphabeticalAppsList<T>(
 
                     if (launcherAppsInTab.size > 1) {
                         val folderInfo = FolderInfo().apply {
+                            container = ItemInfo.NO_ID  // Mark as app drawer folder
                             title = tabName
                             launcherAppsInTab.forEach { add(it) }
                         }
@@ -206,12 +253,8 @@ class LawnchairAlphabeticalAppsList<T>(
                     val folderTitle = folder.title.toString()
                     if (subCategories.contains(folderTitle)) {
                         // This folder is a subcategory (e.g. "Puzzle" in "Games")
-                        // Create a copy for display
-                        val displayFolder = FolderInfo().apply {
-                            title = folder.title
-                            icon = folder.icon
-                            folder.getContents().forEach { add(it) }
-                        }
+                        // Create a copy for display with properly loaded icons
+                        val displayFolder = loadFolderWithIcons(folder, appMap)
                         mAdapterItems.add(AdapterItem.asFolder(displayFolder))
 
                         // Mark apps as shown
@@ -253,11 +296,8 @@ class LawnchairAlphabeticalAppsList<T>(
                 // All Apps Mode (Unified List)
                 folders.forEach { folder ->
                     if (folder.getContents().size > 1) {
-                        val folderInfo = FolderInfo().apply {
-                            title = folder.title
-                            icon = folder.icon
-                            folder.getContents().forEach { add(it) }
-                        }
+                        // Create folder with properly loaded icons from icon packs
+                        val folderInfo = loadFolderWithIcons(folder, appMap)
                         mAdapterItems.add(AdapterItem.asFolder(folderInfo))
 
                         folder.getContents().forEach { app ->
