@@ -115,13 +115,27 @@ fun PreferencesDashboard(
     var searchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf(emptyList<app.lawnchair.ui.preferences.components.search.PreferenceMetadata>()) }
+    var isSearching by remember { mutableStateOf(false) }
+    var searchError by remember { mutableStateOf<String?>(null) }
+    var retryTrigger by remember { mutableStateOf(0) }
 
-    // Perform search
-    LaunchedEffect(searchQuery) {
+    // Perform search with loading indicator and error handling
+    LaunchedEffect(searchQuery, retryTrigger) {
         if (searchQuery.isNotEmpty()) {
-            searchResults = PreferenceSearchIndex.search(searchQuery)
+            isSearching = true
+            searchError = null
+            try {
+                searchResults = PreferenceSearchIndex.search(searchQuery)
+            } catch (e: Exception) {
+                searchError = "Search failed: ${e.message}"
+                searchResults = emptyList()
+            } finally {
+                isSearching = false
+            }
         } else {
             searchResults = emptyList()
+            isSearching = false
+            searchError = null
         }
     }
 
@@ -157,6 +171,13 @@ fun PreferencesDashboard(
                 SearchResultsScreen(
                     results = searchResults,
                     query = searchQuery,
+                    isLoading = isSearching,
+                    error = searchError,
+                    onRetry = if (searchError != null) {
+                        { retryTrigger++ }
+                    } else {
+                        null
+                    },
                     onResultClick = { route ->
                         navController.navigate(route)
                         searchActive = false

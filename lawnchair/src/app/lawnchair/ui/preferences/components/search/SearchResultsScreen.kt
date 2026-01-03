@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,6 +55,9 @@ import kotlinx.coroutines.launch
  * @param results List of search results to display
  * @param query The search query (for highlighting matches)
  * @param onResultClick Callback when a result is clicked
+ * @param isLoading Whether a search is currently in progress
+ * @param error Error message if search failed
+ * @param onRetry Callback to retry failed search
  * @param contentPadding Padding for the results list
  * @param modifier Modifier for the screen
  */
@@ -62,11 +67,28 @@ fun SearchResultsScreen(
     query: String,
     onResultClick: (PreferenceRoute) -> Unit,
     modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
+    error: String? = null,
+    onRetry: (() -> Unit)? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     val haptics = rememberPreferenceHaptics()
 
     when {
+        error != null -> {
+            // Show error state
+            ErrorSearchResults(
+                error = error,
+                onRetry = onRetry,
+                modifier = modifier,
+            )
+        }
+
+        isLoading -> {
+            // Show loading indicator
+            LoadingSearchResults(modifier = modifier)
+        }
+
         results.isEmpty() && query.isNotEmpty() -> {
             // No results found
             EmptySearchResults(
@@ -317,6 +339,94 @@ private fun SearchPlaceholder(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Loading indicator shown while search is in progress.
+ */
+@Composable
+private fun LoadingSearchResults(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(32.dp),
+        ) {
+            androidx.compose.material3.CircularProgressIndicator(
+                modifier = Modifier.size(48.dp),
+                color = MaterialTheme.colorScheme.primary,
+            )
+
+            Text(
+                text = "Searching...",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+/**
+ * Error state shown when search fails.
+ */
+@Composable
+private fun ErrorSearchResults(
+    error: String,
+    onRetry: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(32.dp),
+        ) {
+            Icon(
+                imageVector = androidx.compose.material.icons.Icons.Rounded.Error,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(64.dp),
+            )
+
+            Text(
+                text = "Search Error",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+            )
+
+            Text(
+                text = error,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+
+            if (onRetry != null) {
+                androidx.compose.material3.Button(
+                    onClick = onRetry,
+                    modifier = Modifier.padding(top = 8.dp),
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Rounded.Refresh,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    Text("Retry")
                 }
             }
         }

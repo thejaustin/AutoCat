@@ -19,6 +19,7 @@ fun ClickableIcon(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     tint: Color = LocalContentColor.current,
+    contentDescription: String? = null,
 ) {
     IconButton(
         onClick = onClick,
@@ -29,7 +30,7 @@ fun ClickableIcon(
         val alpha by animateFloatAsState(targetValue = contentAlpha, label = "")
         Icon(
             painter = painter,
-            contentDescription = null,
+            contentDescription = contentDescription,
             tint = tint.copy(alpha = alpha),
         )
     }
@@ -42,6 +43,7 @@ fun ClickableIcon(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     tint: Color = LocalContentColor.current,
+    contentDescription: String? = null,
 ) {
     ClickableIcon(
         painter = rememberVectorPainter(image = imageVector),
@@ -49,5 +51,6 @@ fun ClickableIcon(
         modifier = modifier,
         enabled = enabled,
         tint = tint,
+        contentDescription = contentDescription,
     )
 }
