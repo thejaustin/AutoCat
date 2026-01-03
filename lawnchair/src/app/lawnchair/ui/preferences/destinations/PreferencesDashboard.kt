@@ -34,6 +34,7 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -117,7 +118,7 @@ fun PreferencesDashboard(
     var searchResults by remember { mutableStateOf(emptyList<app.lawnchair.ui.preferences.components.search.PreferenceMetadata>()) }
     var isSearching by remember { mutableStateOf(false) }
     var searchError by remember { mutableStateOf<String?>(null) }
-    var retryTrigger by remember { mutableStateOf(0) }
+    var retryTrigger by remember { mutableIntStateOf(0) }
 
     // Perform search with loading indicator and error handling
     LaunchedEffect(searchQuery, retryTrigger) {
