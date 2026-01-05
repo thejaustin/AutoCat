@@ -71,6 +71,7 @@ import java.util.stream.Collectors;
 import app.lawnchair.deck.LawndeckManager;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
+import app.lawnchair.util.LawnchairLockedStateController;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 /**
@@ -186,6 +187,9 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                     if (isThemedIconsAvailable) {
                         pm.getThemedIcons().set(false);
                     }
+                    // Remove task lock state for uninstalled package
+                    LawnchairLockedStateController.INSTANCE.initialize(context)
+                            .removeTaskLockState(packages[i], mUser.getIdentifier());
                 }
                 // Fall through
             }

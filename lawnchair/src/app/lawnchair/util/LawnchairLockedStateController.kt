@@ -128,7 +128,10 @@ object LawnchairLockedStateController {
         return lockedListWithUserId.contains(appendUserWithBrace(taskIdentifier, userId.toString()))
     }
 
-    // TODO Implement this, when the app is uninstalled
+    /**
+     * Removes task lock state for a package when it's uninstalled.
+     * Called automatically by PackageUpdatedTask when a package is removed.
+     */
     fun removeTaskLockState(taskIdentifier: String, userId: Int) {
         if (userId != -1) {
             backgroundThreadHandler.post {
