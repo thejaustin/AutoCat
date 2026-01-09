@@ -10,6 +10,7 @@ import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -17,8 +18,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Science
+import androidx.compose.material.icons.outlined.SettingsBackupRestore
+import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.TipsAndUpdates
 import androidx.compose.material3.DropdownMenuItem
@@ -28,7 +32,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -46,14 +57,20 @@ import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.AnnouncementPreference
+import app.lawnchair.ui.preferences.components.cards.CategoryCard
+import app.lawnchair.ui.preferences.components.cards.categoryGradient
+import app.lawnchair.ui.preferences.components.controls.CollapsiblePreferenceGroup
 import app.lawnchair.ui.preferences.components.controls.PreferenceCategory
 import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.ClickableIcon
 import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
-import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.preferences.components.layout.SearchPreferenceFAB
+import app.lawnchair.ui.preferences.components.search.PreferenceSearchBar
+import app.lawnchair.ui.preferences.components.search.PreferenceSearchIndex
+import app.lawnchair.ui.preferences.components.search.SearchResultsScreen
 import app.lawnchair.ui.preferences.data.liveinfo.SyncLiveInformation
 import app.lawnchair.ui.preferences.navigation.About
 import app.lawnchair.ui.preferences.navigation.AppDrawer
@@ -76,6 +93,7 @@ import app.lawnchair.util.isDefaultLauncher
 import app.lawnchair.util.restartLauncher
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
+import kotlinx.coroutines.launch
 
 @Composable
 fun PreferencesDashboard(
@@ -86,12 +104,46 @@ fun PreferencesDashboard(
     val context = LocalContext.current
     SyncLiveInformation()
     val prefs = preferenceManager()
-    val prefs2 = preferenceManager2()
+    val pref2 = preferenceManager2()
+    val navController = LocalNavController.current
+    val scope = rememberCoroutineScope()
 
-    val aboutDescrption = if (prefs.hideVersionInfo.get()) {
-        prefs.pseudonymVersion.get()
-    } else {
-        "${context.getString(R.string.derived_app_name)} ${BuildConfig.MAJOR_VERSION}"
+    // Settings category management
+    val categoryManager = remember { app.lawnchair.ui.preferences.SettingsCategoryManager.getInstance(context) }
+    val categories by categoryManager.categories.collectAsState()
+    var isEditMode by remember { mutableStateOf(false) }
+
+    // Initialize search index
+    LaunchedEffect(Unit) {
+        PreferenceSearchIndex.buildIndex()
+    }
+
+    // Search state
+    var searchActive by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf(emptyList<app.lawnchair.ui.preferences.components.search.PreferenceMetadata>()) }
+    var isSearching by remember { mutableStateOf(false) }
+    var searchError by remember { mutableStateOf<String?>(null) }
+    var retryTrigger by remember { mutableIntStateOf(0) }
+
+    // Perform search with loading indicator and error handling
+    LaunchedEffect(searchQuery, retryTrigger) {
+        if (searchQuery.isNotEmpty()) {
+            isSearching = true
+            searchError = null
+            try {
+                searchResults = PreferenceSearchIndex.search(searchQuery)
+            } catch (e: Exception) {
+                searchError = "Search failed: ${e.message}"
+                searchResults = emptyList()
+            } finally {
+                isSearching = false
+            }
+        } else {
+            searchResults = emptyList()
+            isSearching = false
+            searchError = null
+        }
     }
 
     PreferenceLayout(
@@ -100,105 +152,100 @@ fun PreferencesDashboard(
         verticalArrangement = Arrangement.Top,
         backArrowVisible = false,
         actions = { PreferencesOverflowMenu(currentRoute = currentRoute, onNavigate = onNavigate) },
+        floatingActionButton = {
+            SearchPreferenceFAB(
+                onClick = { searchActive = true },
+                visible = !searchActive,
+            )
+        },
     ) {
-        AnnouncementPreference()
+        // Show search UI when active
+        if (searchActive) {
+            Column {
+                PreferenceSearchBar(
+                    query = searchQuery,
+                    onQueryChange = { searchQuery = it },
+                    onSearch = { /* search performed automatically */ },
+                    active = searchActive,
+                    onActiveChange = { active ->
+                        searchActive = active
+                        if (!active) {
+                            searchQuery = ""
+                        }
+                    },
+                )
 
-        if (BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) {
-            PreferencesDebugWarning()
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        if (!context.isDefaultLauncher()) {
-            PreferencesSetDefaultLauncherWarning()
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        PreferenceGroup {
-            PreferenceCategory(
-                label = stringResource(R.string.general_label),
-                description = stringResource(R.string.general_description),
-                iconResource = R.drawable.ic_general,
-                onNavigate = { onNavigate(General) },
-                isSelected = currentRoute is General,
-            )
-
-            PreferenceCategory(
-                label = stringResource(R.string.home_screen_label),
-                description = stringResource(R.string.home_screen_description),
-                iconResource = R.drawable.ic_home_screen,
-                onNavigate = { onNavigate(HomeScreen) },
-                isSelected = currentRoute is HomeScreen,
-            )
-
-            PreferenceCategory(
-                label = stringResource(id = R.string.smartspace_widget),
-                description = stringResource(R.string.smartspace_widget_description),
-                iconResource = R.drawable.ic_smartspace,
-                onNavigate = { onNavigate(Smartspace) },
-                isSelected = currentRoute is Smartspace,
-            )
-
-            PreferenceCategory(
-                label = stringResource(R.string.dock_label),
-                description = stringResource(R.string.dock_description),
-                iconResource = R.drawable.ic_dock,
-                onNavigate = { onNavigate(Dock) },
-                isSelected = currentRoute is Dock,
-            )
-
-            val deckLayout = prefs2.deckLayout.getAdapter()
-            if (!deckLayout.state.value) {
-                PreferenceCategory(
-                    label = stringResource(R.string.app_drawer_label),
-                    description = stringResource(R.string.app_drawer_description),
-                    iconResource = R.drawable.ic_app_drawer,
-                    onNavigate = { onNavigate(AppDrawer) },
-                    isSelected = currentRoute is AppDrawer,
+                SearchResultsScreen(
+                    results = searchResults,
+                    query = searchQuery,
+                    isLoading = isSearching,
+                    error = searchError,
+                    onRetry = if (searchError != null) {
+                        { retryTrigger++ }
+                    } else {
+                        null
+                    },
+                    onResultClick = { route ->
+                        navController.navigate(route)
+                        searchActive = false
+                        searchQuery = ""
+                    },
                 )
             }
+        } else {
+            // Normal dashboard content
+            AnnouncementPreference()
 
-            PreferenceCategory(
-                label = stringResource(R.string.search_bar_label),
-                description = stringResource(R.string.drawer_search_description),
-                iconResource = R.drawable.ic_search,
-                onNavigate = { onNavigate(Search()) },
-                isSelected = currentRoute is Search,
-            )
+            val hideSettingsWarnings by prefs.hideSettingsWarnings.observeAsState()
+            val hideDefaultLauncherWarning by prefs.hideDefaultLauncherWarning.observeAsState()
 
-            PreferenceCategory(
-                label = stringResource(R.string.folders_label),
-                description = stringResource(R.string.folders_description),
-                iconResource = R.drawable.ic_folder,
-                onNavigate = { onNavigate(Folders) },
-                isSelected = currentRoute is Folders,
-            )
-
-            PreferenceCategory(
-                label = stringResource(id = R.string.gestures_label),
-                description = stringResource(R.string.gestures_description),
-                iconResource = R.drawable.ic_gestures,
-                onNavigate = { onNavigate(Gestures) },
-                isSelected = currentRoute is Gestures,
-            )
-
-            if (LawnchairApp.isRecentsEnabled || BuildConfig.DEBUG) {
-                PreferenceCategory(
-                    label = stringResource(id = R.string.quickstep_label),
-                    description = stringResource(id = R.string.quickstep_description),
-                    iconResource = R.drawable.ic_quickstep,
-                    onNavigate = { onNavigate(Quickstep) },
-                    isSelected = currentRoute is Quickstep,
-                )
+            if ((BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) && !hideSettingsWarnings) {
+                PreferencesDebugWarning()
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
-            PreferenceCategory(
-                label = stringResource(R.string.about_label),
-                description = aboutDescrption,
-                iconResource = R.drawable.ic_about,
-                onNavigate = { onNavigate(About) },
-                isSelected = currentRoute is About,
+            if (!context.isDefaultLauncher() && !hideDefaultLauncherWarning) {
+                PreferencesSetDefaultLauncherWarning(
+                    onDismiss = { prefs.hideDefaultLauncherWarning.set(true) },
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            DraggableSettingsCategoryGroup(
+                categories = categories,
+                currentRoute = currentRoute,
+                isEditMode = isEditMode,
+                onNavigate = onNavigate,
+                onToggleEditMode = { isEditMode = !isEditMode },
+                onReorder = { from, to -> categoryManager.reorderCategories(from, to) },
+                onToggleVisibility = { categoryId -> categoryManager.toggleCategoryVisibility(categoryId) },
+                deckLayoutEnabled = pref2.deckLayout.getAdapter().state.value,
+                quickstepEnabled = LawnchairApp.isRecentsEnabled || BuildConfig.DEBUG && !prefs.hideQuickstepSettings.get(),
             )
         }
+    }
+}
+
+@Composable
+fun PreferenceCategoryGroup(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    val color = preferenceGroupColor()
+
+    Surface(
+        modifier = modifier.padding(horizontal = 16.dp),
+        shape = MaterialTheme.shapes.large,
+        color = color,
+        tonalElevation = if (isSelectedThemeDark) 1.dp else 0.dp,
+    ) {
+        DividerColumn(
+            content = content,
+            startIndent = (-16).dp,
+            endIndent = (-16).dp,
+            color = MaterialTheme.colorScheme.surface,
+            thickness = 2.dp,
+        )
     }
 }
 
@@ -341,35 +388,52 @@ fun PreferencesDebugWarning(
 @Composable
 fun PreferencesSetDefaultLauncherWarning(
     modifier: Modifier = Modifier,
+    onDismiss: () -> Unit = {},
 ) {
     val context = LocalContext.current
-    Surface(
+    androidx.compose.material3.SwipeToDismissBox(
+        state = androidx.compose.material3.rememberSwipeToDismissBoxState(
+            confirmValueChange = { dismissValue ->
+                if (dismissValue == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart ||
+                    dismissValue == androidx.compose.material3.SwipeToDismissBoxValue.StartToEnd
+                ) {
+                    onDismiss()
+                    true
+                } else {
+                    false
+                }
+            },
+        ),
+        backgroundContent = {},
         modifier = modifier.padding(horizontal = 16.dp),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
-        PreferenceTemplate(
-            modifier = Modifier.clickable {
-                Intent(Settings.ACTION_HOME_SETTINGS)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    .let { context.startActivity(it) }
-                (context as? Activity)?.finish()
-            },
-            title = {},
-            description = {
-                Text(
-                    text = stringResource(id = R.string.set_default_launcher_tip),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            },
-            startWidget = {
-                Icon(
-                    imageVector = Icons.Rounded.TipsAndUpdates,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    contentDescription = null,
-                )
-            },
-        )
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceVariant,
+        ) {
+            PreferenceTemplate(
+                modifier = Modifier.clickable {
+                    Intent(Settings.ACTION_HOME_SETTINGS)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .let { context.startActivity(it) }
+                    (context as? Activity)?.finish()
+                },
+                title = {},
+                description = {
+                    Text(
+                        text = stringResource(id = R.string.set_default_launcher_tip),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+                startWidget = {
+                    Icon(
+                        imageVector = Icons.Rounded.TipsAndUpdates,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        contentDescription = null,
+                    )
+                },
+            )
+        }
     }
 }
 

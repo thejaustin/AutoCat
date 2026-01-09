@@ -144,6 +144,57 @@ class PreferenceManager @Inject constructor(
     val enableMaterialExpressive = BoolPref("pref_enableMaterialExpressive", false, recreate)
     val enableGnc = BoolPref("pref_enableGnc", false, recreate)
 
+    // AutoCat: Work apps settings
+    val showWorkTab = BoolPref("pref_showWorkTab", false, recreate)
+    val hideWorkApps = BoolPref("pref_hideWorkApps", false, recreate)
+
+    // AutoCat: Category tabs settings
+    val useAppTabs = BoolPref("pref_useAppTabs", true, recreate)
+
+    // AutoCat: LLM API keys
+    val llmGoogleAIKey = StringPref("pref_llmGoogleAIKey", "", {})
+    val llmClaudeKey = StringPref("pref_llmClaudeKey", "", {})
+    val llmOpenAIKey = StringPref("pref_llmOpenAIKey", "", {})
+    val llmPerplexityKey = StringPref("pref_llmPerplexityKey", "", {})
+    val llmProviderPreference = StringPref("pref_llmProvider", "google_ai", {})
+    val llmAutoSelectBestModel = BoolPref("pref_llmAutoSelectBestModel", false, {})
+
+    // AutoCat: LLM model selection
+    val llmGoogleAIModel = StringPref("pref_llmGoogleAIModel", "gemini-2.0-flash-exp", {})
+    val llmClaudeModel = StringPref("pref_llmClaudeModel", "claude-3-5-haiku-20241022", {})
+    val llmOpenAIModel = StringPref("pref_llmOpenAIModel", "gpt-4o-mini", {})
+    val llmPerplexityModel = StringPref("pref_llmPerplexityModel", "llama-3.1-sonar-small-128k-online", {})
+
+    // AutoCat: Batch processing settings
+    val llmEnableBatching = BoolPref("pref_llmEnableBatching", true, {})
+    val llmBatchSize = IntPref("pref_llmBatchSize", 0, {}) // 0 = auto-calculate
+
+    // AutoCat: Folder sync settings
+    val autoCatSyncFolders = BoolPref("pref_autoCatSyncFolders", true, {})
+    val autoCatFolderSyncMode = StringPref("pref_autoCatFolderSyncMode", "DRAWER", {})
+
+    // AutoCat: App tabs in app drawer
+    val autoCatUseTabs = BoolPref("pref_autoCatUseTabs", false, recreate)
+
+    // AutoCat: Developer mode
+    val autoCatDevMode = BoolPref("pref_autoCatDevMode", false, {})
+
+    // AutoCat: Rate limiting
+    val autoCatEnableRateLimiting = BoolPref("pref_autoCatEnableRateLimiting", false, {})
+
+    // AutoCat: Circuit Breaker settings
+    val circuitBreakerEnabled = BoolPref("pref_circuitBreakerEnabled", true, {})
+    val circuitBreakerFailureThreshold = IntPref("pref_circuitBreakerFailureThreshold", 3, {})
+    val circuitBreakerTimeoutMs = IntPref("pref_circuitBreakerTimeoutMs", 5000, {})
+
+    // AutoCat: Settings customization
+    val hideQuickstepSettings = BoolPref("pref_hideQuickstepSettings", false)
+    val hideSettingsWarnings = BoolPref("pref_hideSettingsWarnings", false)
+
+    // AutoCat: Settings category order and visibility
+    val settingsCategoryOrder = StringPref("pref_settingsCategoryOrder", "")
+    val settingsCategoryVisibility = StringPref("pref_settingsCategoryVisibility", "")
+
     override fun close() {
         TODO("Not yet implemented")
     }
@@ -160,6 +211,17 @@ class PreferenceManager @Inject constructor(
                     hotseatColumns.set(gridState.hotseatCount)
                 }
             }
+        }
+
+        // AutoCat: Migrate deprecated Gemini models
+        if (llmGoogleAIModel.get() == "gemini-1.5-flash" ||
+            llmGoogleAIModel.get() == "gemini-1.5-pro"
+        ) {
+            llmGoogleAIModel.set("gemini-2.0-flash-exp")
+            android.util.Log.i(
+                "PreferenceManager",
+                "Migrated deprecated Gemini model to gemini-2.0-flash-exp",
+            )
         }
     }
 

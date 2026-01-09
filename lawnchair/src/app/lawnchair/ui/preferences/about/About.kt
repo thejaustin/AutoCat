@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.NavigationActionPreference
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
@@ -74,8 +73,6 @@ fun About(
     val sheetState = rememberModalBottomSheetState(true)
     var openBottomSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-
-    val prefs: PreferenceManager = PreferenceManager.getInstance(context)
 
     if (openBottomSheet) {
         val updateState = uiState.updateState
@@ -138,11 +135,7 @@ fun About(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    text = if (prefs.hideVersionInfo.get()) {
-                        prefs.pseudonymVersion.get() + " (pseudonym)"
-                    } else {
-                        BuildConfig.VERSION_DISPLAY_NAME
-                    },
+                    text = BuildConfig.VERSION_DISPLAY_NAME,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -151,7 +144,7 @@ fun About(
                             onClick = {},
                             onLongClick = {
                                 val commitUrl =
-                                    "https://github.com/LawnchairLauncher/lawnchair/commit/${BuildConfig.COMMIT_HASH}"
+                                    "https://github.com/shmcfarl/AutoCat/commit/${BuildConfig.COMMIT_HASH}"
                                 context.startActivity(Intent(Intent.ACTION_VIEW, commitUrl.toUri()))
                             },
                         ),
@@ -196,9 +189,9 @@ fun About(
         }
         preferenceGroupItems(
             items = uiState.coreTeam,
-            isFirstChild = false,
-            heading = { stringResource(id = R.string.product) },
             key = { _, it -> it.name },
+            isFirstChild = false,
+            heading = { "Original Lawnchair Development Team" },
         ) { _, it ->
             ContributorRow(
                 member = it,
@@ -206,25 +199,27 @@ fun About(
         }
         preferenceGroupItems(
             items = uiState.supportAndPr,
-            isFirstChild = false,
-            heading = { stringResource(id = R.string.support_and_pr) },
             key = { _, it -> it.name },
+            isFirstChild = false,
+            heading = { "Original Lawnchair Support Team" },
         ) { _, it ->
             ContributorRow(
                 member = it,
             )
         }
-        preferenceGroupItems(
-            items = uiState.bottomLinks,
-            isFirstChild = false,
-            heading = { stringResource(id = R.string.community) },
-            key = { _, it -> it.labelResId },
-        ) { _, it ->
-            HorizontalLawnchairLink(
-                iconResId = it.iconResId,
-                label = stringResource(id = it.labelResId),
-                url = it.url,
-            )
+        if (uiState.bottomLinks.isNotEmpty()) {
+            preferenceGroupItems(
+                items = uiState.bottomLinks,
+                key = { _, it -> it.labelResId },
+                isFirstChild = false,
+                heading = { stringResource(id = R.string.community) },
+            ) { _, it ->
+                HorizontalLawnchairLink(
+                    iconResId = it.iconResId,
+                    label = stringResource(id = it.labelResId),
+                    url = it.url,
+                )
+            }
         }
         item {
             PreferenceGroupHeading(
@@ -243,13 +238,11 @@ fun About(
             }
         }
         item {
-            Spacer(Modifier.height(3.dp))
-        }
-        item {
             PreferenceGroupItem(
                 cutTop = true,
-                cutBottom = false,
+                cutBottom = true,
             ) {
+                PreferenceDivider()
                 ClickablePreference(
                     label = stringResource(id = R.string.privacy_policy),
                     onClick = {

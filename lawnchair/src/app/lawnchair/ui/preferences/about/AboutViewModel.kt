@@ -3,7 +3,6 @@ package app.lawnchair.ui.preferences.about
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import app.lawnchair.preferences.PreferenceManager
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
 import java.io.File
@@ -19,7 +18,6 @@ class AboutViewModel(
 ) : AndroidViewModel(application) {
 
     private val api: GitHubService = gitHubApiRetrofit.create()
-    private val prefs: PreferenceManager = PreferenceManager.getInstance(application)
 
     private val nightlyBuildsRepository = NightlyBuildsRepository(
         applicationContext = application,
@@ -33,11 +31,7 @@ class AboutViewModel(
     init {
         _uiState.update {
             it.copy(
-                versionName = if (prefs.hideVersionInfo.get()) {
-                    prefs.pseudonymVersion.get() + " (pseudonym)"
-                } else {
-                    BuildConfig.VERSION_NAME
-                },
+                versionName = BuildConfig.VERSION_NAME,
                 commitHash = BuildConfig.COMMIT_HASH,
                 coreTeam = team,
                 supportAndPr = supportAndPr,
@@ -102,7 +96,7 @@ class AboutViewModel(
                 socialUrl = "https://codebucket.de",
             ),
             TeamMember(
-                name = "Goooler",
+                name = "Zongle Wang",
                 role = Role.Development,
                 photoUrl = "https://avatars.githubusercontent.com/u/10363352",
                 socialUrl = "https://github.com/Goooler",
@@ -152,6 +146,12 @@ class AboutViewModel(
                 socialUrl = "https://x.com/skittles9823",
             ),
             TeamMember(
+                name = "Pun Butrach",
+                role = Role.Development,
+                photoUrl = "https://avatars.githubusercontent.com/u/93124920",
+                socialUrl = "https://github.com/validcube",
+            ),
+            TeamMember(
                 name = "SuperDragonXD",
                 role = Role.Development,
                 photoUrl = "https://avatars.githubusercontent.com/u/70206496",
@@ -169,48 +169,14 @@ class AboutViewModel(
 
         private val topLinks = listOf(
             Link(
-                iconResId = R.drawable.ic_new_releases,
-                labelResId = R.string.news,
-                url = "https://t.me/lawnchairci",
-            ),
-            Link(
-                iconResId = R.drawable.ic_help,
-                labelResId = R.string.support,
-                url = "https://lawnchair.app/support",
-            ),
-            Link(
                 iconResId = R.drawable.ic_github,
                 labelResId = R.string.github,
-                url = "https://github.com/LawnchairLauncher/lawnchair",
-            ),
-            Link(
-                iconResId = R.drawable.ic_translate,
-                labelResId = R.string.translate,
-                url = "https://lawnchair.crowdin.com/lawnchair",
-            ),
-            Link(
-                iconResId = R.drawable.ic_donate,
-                labelResId = R.string.donate,
-                url = "https://opencollective.com/lawnchair",
+                url = "https://github.com/shmcfarl/AutoCat",
             ),
         )
 
-        private val bottomLinks = listOf(
-            Link(
-                iconResId = R.drawable.ic_telegram,
-                labelResId = R.string.telegram,
-                url = "https://t.me/lccommunity",
-            ),
-            Link(
-                iconResId = R.drawable.ic_discord,
-                labelResId = R.string.discord,
-                url = "https://discord.com/invite/3x8qNWxgGZ",
-            ),
-            Link(
-                iconResId = R.drawable.ic_x_twitter,
-                labelResId = R.string.x_twitter,
-                url = "https://x.com/lawnchairapp",
-            ),
+        private val bottomLinks = listOf<Link>(
+            // AutoCat-specific links can be added here
         )
 
         private val supportAndPr = listOf(
