@@ -29,7 +29,7 @@ object DefaultSettingsCategories {
             descriptionResId = com.android.launcher3.R.string.general_description,
             iconResId = com.android.launcher3.R.drawable.ic_general,
             route = General,
-            order = 0
+            order = 0,
         ),
         SettingsCategory(
             id = "home_screen",
@@ -37,7 +37,7 @@ object DefaultSettingsCategories {
             descriptionResId = com.android.launcher3.R.string.home_screen_description,
             iconResId = com.android.launcher3.R.drawable.ic_home_screen,
             route = HomeScreen,
-            order = 1
+            order = 1,
         ),
         SettingsCategory(
             id = "smartspace",
@@ -45,7 +45,7 @@ object DefaultSettingsCategories {
             descriptionResId = com.android.launcher3.R.string.smartspace_widget_description,
             iconResId = com.android.launcher3.R.drawable.ic_smartspace,
             route = Smartspace,
-            order = 2
+            order = 2,
         ),
         SettingsCategory(
             id = "dock",
@@ -53,7 +53,7 @@ object DefaultSettingsCategories {
             descriptionResId = com.android.launcher3.R.string.dock_description,
             iconResId = com.android.launcher3.R.drawable.ic_dock,
             route = Dock,
-            order = 3
+            order = 3,
         ),
         SettingsCategory(
             id = "app_drawer",
@@ -70,7 +70,7 @@ object DefaultSettingsCategories {
             descriptionResId = com.android.launcher3.R.string.drawer_search_description,
             iconResId = com.android.launcher3.R.drawable.ic_search,
             route = Search(),
-            order = 5
+            order = 5,
         ),
         SettingsCategory(
             id = "folders",
@@ -78,7 +78,7 @@ object DefaultSettingsCategories {
             descriptionResId = com.android.launcher3.R.string.folders_description,
             iconResId = com.android.launcher3.R.drawable.ic_folder,
             route = Folders,
-            order = 6
+            order = 6,
         ),
         SettingsCategory(
             id = "gestures",
@@ -86,7 +86,7 @@ object DefaultSettingsCategories {
             descriptionResId = com.android.launcher3.R.string.gestures_description,
             iconResId = com.android.launcher3.R.drawable.ic_gestures,
             route = Gestures,
-            order = 7
+            order = 7,
         ),
         SettingsCategory(
             id = "quickstep",
@@ -103,7 +103,7 @@ object DefaultSettingsCategories {
             descriptionResId = com.android.launcher3.R.string.about_label, // Will be overridden with version
             iconResId = com.android.launcher3.R.drawable.ic_about,
             route = About,
-            order = 9
+            order = 9,
         )
     )
 }
