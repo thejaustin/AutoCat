@@ -30,7 +30,8 @@ import app.lawnchair.ui.theme.preferenceGroupColor
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import sh.calvin.reorderable.ReorderableColumn
-import sh.calvin.reorderable.ReorderableScope
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.ReorderableListItemScope
 
 @Composable
 fun <T> ReorderablePreferenceGroup(
@@ -40,7 +41,7 @@ fun <T> ReorderablePreferenceGroup(
     onOrderChange: (List<T>) -> Unit,
     modifier: Modifier = Modifier,
     onSettle: ((List<T>) -> Unit)? = null,
-    itemContent: @Composable ReorderableScope.(
+    itemContent: @Composable ReorderableListItemScope.(
         item: T,
         index: Int,
         isDragging: Boolean,
@@ -74,18 +75,17 @@ fun <T> ReorderablePreferenceGroup(
             color = color,
         ) {
             ReorderableColumn(
-                modifier = Modifier,
                 list = localItems,
-                onSettle = { fromIndex, toIndex ->
+                onSettle = { from, to ->
                     val newItems = localItems.toMutableList().apply {
-                        add(toIndex, removeAt(fromIndex))
-                    }.toList()
-                    localItems = newItems
-                    onOrderChange(newItems)
-                    if (onSettle != null) {
-                        onSettle(newItems)
+                        add(to, removeAt(from))
+                    }.also {
+                        onOrderChange(it)
+                        if (onSettle != null) {
+                            onSettle(it)
+                        }
+                        isAnyDragging = false
                     }
-                    isAnyDragging = false
                 },
                 onMove = {
                     isAnyDragging = true
@@ -94,8 +94,9 @@ fun <T> ReorderablePreferenceGroup(
                     }
                 },
             ) { index, item, isDragging ->
-                key(item) {
-                    Column {
+                key(item.hashCode()) {
+                    ReorderableItem {
+                        Column {
                         ReorderablePreferenceItem(
                             isDragging = isDragging,
                             modifier = Modifier
@@ -126,10 +127,11 @@ fun <T> ReorderablePreferenceGroup(
                                 isAnyDragging = it
                             }
                         }
-                        AnimatedVisibility(!isAnyDragging && index != localItems.lastIndex) {
-                            HorizontalDivider(
-                                Modifier.padding(start = 50.dp, end = 16.dp),
-                            )
+                            AnimatedVisibility(!isAnyDragging && index != localItems.lastIndex) {
+                                HorizontalDivider(
+                                    Modifier.padding(start = 50.dp, end = 16.dp),
+                                )
+                            }
                         }
                     }
                 }
