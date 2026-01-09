@@ -2,7 +2,7 @@ package app.lawnchair.ui.preferences
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import app.lawnchair.ui.preferences.navigation.*
+import app.lawnchair.ui.preferences.navigation.Route
 
 /**
  * Represents a settings category that can be reordered and hidden

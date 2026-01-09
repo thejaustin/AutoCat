@@ -108,12 +108,12 @@ class SettingsCategoryManager(private val context: Context) {
 
     companion object {
         @Volatile
-        private var INSTANCE: SettingsCategoryManager? = null
+        private var instance: SettingsCategoryManager? = null
 
         fun getInstance(context: Context): SettingsCategoryManager {
-            return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: SettingsCategoryManager(context.applicationContext).also {
-                    INSTANCE = it
+            return instance ?: synchronized(this) {
+                instance ?: SettingsCategoryManager(context.applicationContext).also {
+                    instance = it
                 }
             }
         }
