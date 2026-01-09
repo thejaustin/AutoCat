@@ -97,36 +97,36 @@ fun <T> ReorderablePreferenceGroup(
                 key(item.hashCode()) {
                     ReorderableItem {
                         Column {
-                        ReorderablePreferenceItem(
-                            isDragging = isDragging,
-                            modifier = Modifier
-                                .a11yDrag(
-                                    index = index,
-                                    items = items,
-                                    onMoveUp = {
-                                        localItems = it
-                                        onOrderChange(it)
-                                        if (onSettle != null) {
-                                            onSettle(it)
-                                        }
-                                    },
-                                    onMoveDown = {
-                                        localItems = it
-                                        onOrderChange(it)
-                                        if (onSettle != null) {
-                                            onSettle(it)
-                                        }
-                                    },
-                                ),
-                        ) {
-                            itemContent(
-                                item,
-                                index,
-                                isDragging,
+                            ReorderablePreferenceItem(
+                                isDragging = isDragging,
+                                modifier = Modifier
+                                    .a11yDrag(
+                                        index = index,
+                                        items = items,
+                                        onMoveUp = {
+                                            localItems = it
+                                            onOrderChange(it)
+                                            if (onSettle != null) {
+                                                onSettle(it)
+                                            }
+                                        },
+                                        onMoveDown = {
+                                            localItems = it
+                                            onOrderChange(it)
+                                            if (onSettle != null) {
+                                                onSettle(it)
+                                            }
+                                        },
+                                    ),
                             ) {
-                                isAnyDragging = it
+                                itemContent(
+                                    item,
+                                    index,
+                                    isDragging,
+                                ) {
+                                    isAnyDragging = it
+                                }
                             }
-                        }
                             AnimatedVisibility(!isAnyDragging && index != localItems.lastIndex) {
                                 HorizontalDivider(
                                     Modifier.padding(start = 50.dp, end = 16.dp),
