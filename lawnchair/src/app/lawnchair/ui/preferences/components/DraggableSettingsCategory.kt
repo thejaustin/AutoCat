@@ -49,7 +49,7 @@ fun DraggableSettingsCategory(
 ) {
     val elevation by animateDpAsState(
         targetValue = if (isEditMode) 4.dp else 0.dp,
-        label = "elevation"
+        label = "elevation",
     )
 
     Row(
@@ -72,7 +72,7 @@ fun DraggableSettingsCategory(
 
         // Main category card
         Box(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ) {
             PreferenceCategory(
                 label = stringResource(id = category.labelResId),

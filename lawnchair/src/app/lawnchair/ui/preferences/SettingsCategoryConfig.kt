@@ -104,6 +104,6 @@ object DefaultSettingsCategories {
             iconResId = com.android.launcher3.R.drawable.ic_about,
             route = About,
             order = 9,
-        )
+        ),
     )
 }
