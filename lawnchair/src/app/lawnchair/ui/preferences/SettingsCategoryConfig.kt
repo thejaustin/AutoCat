@@ -62,7 +62,7 @@ object DefaultSettingsCategories {
             iconResId = com.android.launcher3.R.drawable.ic_app_drawer,
             route = AppDrawer,
             order = 4,
-            isConditional = true
+            isConditional = true,
         ),
         SettingsCategory(
             id = "search",
@@ -95,7 +95,7 @@ object DefaultSettingsCategories {
             iconResId = com.android.launcher3.R.drawable.ic_quickstep,
             route = Quickstep,
             order = 8,
-            isConditional = true
+            isConditional = true,
         ),
         SettingsCategory(
             id = "about",
