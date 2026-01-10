@@ -129,7 +129,7 @@ fun DraggableSettingsCategoryGroup(
     modifier: Modifier = Modifier,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    
+
     Column(modifier = modifier) {
         // Edit mode controls
         if (isEditMode) {
@@ -204,7 +204,7 @@ fun DraggableSettingsCategoryGroup(
                                     )
                                 } else {
                                     Modifier
-                                }
+                                },
                             ),
                     ) {
                         DraggableSettingsCategory(
