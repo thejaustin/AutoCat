@@ -105,6 +105,12 @@ data object AppDrawerFolder : PreferenceRoute
 @Serializable
 data class AppDrawerAppListToFolder(val id: Int) : PreferenceRoute
 
+@Serializable
+data object AppDrawerAppCategorizations : PreferenceRoute
+
+@Serializable
+data object AppDrawerLLMSettings : PreferenceRoute
+
 // Search section routes
 @Serializable
 data class SearchProviderPreference(val id: SearchProviderId) : PreferenceRoute

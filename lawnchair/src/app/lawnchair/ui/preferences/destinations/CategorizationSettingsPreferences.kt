@@ -202,7 +202,7 @@ fun CategorizationSettingsPreferences(
 
                         // Progress indicator
                         AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
-                            CategorizationProgress(progress)
+                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                         }
 
                         // Material 3 Expressive: Enhanced status message card
@@ -402,14 +402,12 @@ fun CategorizationSettingsPreferences(
                         label = "Review & Override",
                         subtitle = "View and manually override app categorizations",
                         destination = AppDrawerAppCategorizations,
-                        icon = Icons.Rounded.Edit,
                     )
 
                     NavigationActionPreference(
                         label = "AI Provider Settings",
                         subtitle = "Configure AI providers and test connections",
                         destination = AppDrawerLLMSettings,
-                        icon = Icons.Rounded.Psychology,
                     )
                 }
             }

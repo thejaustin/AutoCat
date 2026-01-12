@@ -2,7 +2,17 @@ package app.lawnchair.ui.preferences
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import app.lawnchair.ui.preferences.navigation.Route
+import app.lawnchair.ui.preferences.navigation.About
+import app.lawnchair.ui.preferences.navigation.AppDrawer
+import app.lawnchair.ui.preferences.navigation.Dock
+import app.lawnchair.ui.preferences.navigation.Folders
+import app.lawnchair.ui.preferences.navigation.General
+import app.lawnchair.ui.preferences.navigation.Gestures
+import app.lawnchair.ui.preferences.navigation.HomeScreen
+import app.lawnchair.ui.preferences.navigation.PreferenceRootRoute
+import app.lawnchair.ui.preferences.navigation.Quickstep
+import app.lawnchair.ui.preferences.navigation.Search
+import app.lawnchair.ui.preferences.navigation.Smartspace
 
 /**
  * Represents a settings category that can be reordered and hidden
