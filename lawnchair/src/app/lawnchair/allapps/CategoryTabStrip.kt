@@ -29,6 +29,7 @@ import com.android.launcher3.BaseActivity
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
+import com.android.launcher3.pageindicators.Direction
 import com.android.launcher3.pageindicators.PageIndicator
 import com.android.launcher3.util.Themes
 import com.android.launcher3.util.VibratorWrapper
@@ -341,7 +342,7 @@ class CategoryTabStrip @JvmOverloads constructor(
         // Tabs are set up via setupTabs() instead
     }
 
-    override fun setArrowClickListener(listener: java.util.function.Consumer<*>?) {
+    override fun setArrowClickListener(listener: java.util.function.Consumer<Direction>?) {
         // Not applicable for category tabs - no arrows needed
     }
 

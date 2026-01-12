@@ -434,6 +434,8 @@
 
     <!-- Battery labels -->
     <string name="smartspace_battery_charging">Charging</string>
+    <string name="smartspace_battery_fast_charging">Fast charging</string>
+    <string name="smartspace_battery_slow_charging">Slow charging</string>
     <string name="smartspace_battery_full">Charged</string>
     <string name="smartspace_battery_low">Battery low</string>
     <string name="battery_charging_percentage_charging_time">"%1$d%% — Full in %2$s"</string>
@@ -547,6 +549,7 @@
     <string name="gesture_handler_sleep">Sleep</string>
     <string name="gesture_handler_recents">Open Recents screen</string>
     <string name="gesture_handler_open_notifications">Open notification panel</string>
+    <string name="gesture_handler_open_quick_settings">Open quick settings</string>
     <string name="gesture_handler_open_app_option">Open app</string>
     <string name="gesture_handler_open_app_drawer">Open app drawer</string>
     <string name="gesture_handler_open_app_search">Open app search</string>
@@ -556,6 +559,14 @@
     <string name="gesture_handler_open_app_config">Open <xliff:g id="app_name" example="Messenger">%1$s</xliff:g></string>
 
     <string name="pick_app_for_gesture">Pick app</string>
+
+    <!-- Accessibility hints -->
+    <string name="generic_a11y_hint">Enable accessibility service to use this gesture</string>
+    <string name="generic_a11y_disclaimer">This gesture requires accessibility service access</string>
+    <string name="notifications_fallback_a11y_hint">Enable accessibility service to open notifications</string>
+    <string name="quick_settings_a11y_hint">Enable accessibility service to open quick settings</string>
+    <string name="recents_screen_a11y_hint">Enable accessibility service to open recents</string>
+    <string name="sleep_a11y_hint">Enable accessibility service to use sleep gesture</string>
 
     <string name="dt2s_admin_hint_title">Admin permissions required</string>
     <string name="dt2s_admin_hint">To use Double-Tap to Sleep, set Lawnchair as a device admin app. Tap \"Open settings\", then tap \"Activate this device admin app.\"</string>
