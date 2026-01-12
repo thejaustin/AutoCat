@@ -103,13 +103,15 @@ allprojects {
                 throw new IllegalArgumentException("Framework jar path ${frameworkJar.path} doesn't exist")
             }
 
-            tasks.withType(JavaCompile).configureEach {
-                // Make sure the frameworkJar is always first in the classpath.
-                classpath = files(frameworkJar, classpath)
-            }
-            tasks.withType(KotlinCompile).configureEach {
-                // Make sure the frameworkJar is always first in the classpath.
-                libraries.setFrom files(frameworkJar, libraries)
+            project.afterEvaluate {
+                tasks.withType(JavaCompile).configureEach {
+                    // Make sure the frameworkJar is always first in the classpath.
+                    classpath = files(frameworkJar, classpath)
+                }
+                tasks.withType(KotlinCompile).configureEach {
+                    // Make sure the frameworkJar is always first in the classpath.
+                    libraries.setFrom files(frameworkJar, libraries)
+                }
             }
 
             dependencies {
