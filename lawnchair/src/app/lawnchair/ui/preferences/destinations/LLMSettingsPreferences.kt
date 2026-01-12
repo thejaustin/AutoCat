@@ -529,23 +529,12 @@ fun LLMSettingsPreferences(
                             SliderPreference(
                                 adapter = rememberTransformAdapter(
                                     adapter = prefs.circuitBreakerTimeoutMs.getAdapter(),
-                                    transformGet = { (it as Long).toFloat() / 1000f }, // Convert ms to seconds
-                                    transformSet = { (it as Float * 1000f).roundToLong() }, // Convert seconds to ms and round
+                                    transformGet = { (it as Int).toFloat() / 1000f }, // Convert ms to seconds
+                                    transformSet = { (it as Float * 1000f).toInt() }, // Convert seconds to ms
                                 ),
                                 label = "Timeout Duration",
                                 valueRange = 10f..300f, // 10s to 5min in seconds
                                 step = 10f, // 10 second increments
-                                showUnit = " seconds",
-                            )
-                            SliderPreference(
-                                adapter = rememberTransformAdapter(
-                                    adapter = prefs.circuitBreakerHalfOpenDurationMs.getAdapter(),
-                                    transformGet = { (it as Long).toFloat() / 1000f }, // Convert ms to seconds
-                                    transformSet = { (it as Float * 1000f).roundToLong() }, // Convert seconds to ms and round
-                                ),
-                                label = "Half-Open Test Duration",
-                                valueRange = 5f..60f, // 5s to 1min in seconds
-                                step = 5f, // 5 second increments
                                 showUnit = " seconds",
                             )
                             Row(

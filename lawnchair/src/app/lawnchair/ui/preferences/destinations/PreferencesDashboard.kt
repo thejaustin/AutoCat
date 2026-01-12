@@ -58,9 +58,6 @@ import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.AnnouncementPreference
 import app.lawnchair.ui.preferences.components.DraggableSettingsCategoryGroup
-import app.lawnchair.ui.preferences.components.cards.CategoryCard
-import app.lawnchair.ui.preferences.components.cards.categoryGradient
-import app.lawnchair.ui.preferences.components.controls.CollapsiblePreferenceGroup
 import app.lawnchair.ui.preferences.components.controls.PreferenceCategory
 import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.ClickableIcon

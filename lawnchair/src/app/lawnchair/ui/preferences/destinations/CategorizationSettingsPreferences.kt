@@ -416,9 +416,8 @@ fun CategorizationSettingsPreferences(
 
             // ===== SETTINGS =====
             item {
-                CollapsiblePreferenceGroup(
+                PreferenceGroup(
                     heading = "Display & Behavior",
-                    isExpandedInitially = false,
                 ) {
                     val useTabs by prefs.autoCatUseTabs.getAdapter().state
 
