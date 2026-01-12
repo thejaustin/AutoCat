@@ -19,7 +19,11 @@ import android.widget.PopupMenu
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
+import android.os.VibrationEffect
+import app.lawnchair.animation.M3ESpringConfig
 import app.lawnchair.categorization.CategoryTabsController
+import com.android.launcher3.Utilities
+import com.android.launcher3.util.VibratorWrapper
 import app.lawnchair.font.FontManager
 import app.lawnchair.theme.color.tokens.ColorStateListTokens
 import app.lawnchair.theme.drawable.DrawableTokens
@@ -167,6 +171,16 @@ class CategoryTabStrip @JvmOverloads constructor(
 
             // Click listener
             setOnClickListener {
+                // M3E: Haptic feedback on tab switch
+                if (Utilities.ATLEAST_S) {
+                    VibratorWrapper.INSTANCE.get(context).vibrate(
+                        VibrationEffect.PRIMITIVE_LOW_TICK,
+                        0.8f,
+                        VibratorWrapper.EFFECT_CLICK,
+                    )
+                } else {
+                    VibratorWrapper.INSTANCE.get(context).vibrate(VibratorWrapper.EFFECT_CLICK)
+                }
                 setActiveMarker(index)
             }
 
@@ -270,43 +284,57 @@ class CategoryTabStrip @JvmOverloads constructor(
      * Material 3 Expressive: Animate tab selection with spring physics
      */
     private fun animateTabSelection(tab: Button) {
-        // Spring-based scale animation with overshoot for expressive feel
-        val scaleX = SpringAnimation(tab, DynamicAnimation.SCALE_X, 1.08f).apply {
-            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
-            spring.dampingRatio = SpringForce.DAMPING_RATIO_LOW_BOUNCY // Creates expressive bounce
+        // M3E: Expressive Spatial FAST for quick, bouncy tab selection
+        // Using official M3E parameters: stiffness 800, damping 0.6
+        val scaleX = SpringAnimation(tab, DynamicAnimation.SCALE_X, 1.12f).apply {
+            spring.stiffness = M3ESpringConfig.ExpressiveSpatial.FAST.stiffness // 800f
+            spring.dampingRatio = M3ESpringConfig.ExpressiveSpatial.FAST.dampingRatio // 0.6f
         }
 
-        val scaleY = SpringAnimation(tab, DynamicAnimation.SCALE_Y, 1.08f).apply {
-            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
-            spring.dampingRatio = SpringForce.DAMPING_RATIO_LOW_BOUNCY
+        val scaleY = SpringAnimation(tab, DynamicAnimation.SCALE_Y, 1.12f).apply {
+            spring.stiffness = 800f // M3E Expressive Spatial FAST
+            spring.dampingRatio = 0.6f // More bounce than before
         }
 
         scaleX.start()
         scaleY.start()
 
-        // Subtle elevation animation for depth
-        tab.elevation = resources.getDimensionPixelSize(R.dimen.all_apps_header_pill_height) * 0.08f
+        // Enhanced elevation animation for depth
+        ObjectAnimator.ofFloat(
+            tab,
+            "elevation",
+            0f,
+            resources.getDimensionPixelSize(R.dimen.all_apps_header_pill_height) * 0.12f,
+        ).apply {
+            duration = 300
+            start()
+        }
     }
 
     /**
      * Material 3 Expressive: Animate tab deselection
      */
     private fun animateTabDeselection(tab: Button) {
+        // M3E: Expressive Spatial DEFAULT for smooth return
+        // Using official M3E parameters: stiffness 380, damping 0.8
         val scaleX = SpringAnimation(tab, DynamicAnimation.SCALE_X, 1.0f).apply {
-            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
-            spring.dampingRatio = SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY
+            spring.stiffness = M3ESpringConfig.ExpressiveSpatial.DEFAULT.stiffness // 380f
+            spring.dampingRatio = M3ESpringConfig.ExpressiveSpatial.DEFAULT.dampingRatio // 0.8f
         }
 
         val scaleY = SpringAnimation(tab, DynamicAnimation.SCALE_Y, 1.0f).apply {
-            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
-            spring.dampingRatio = SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY
+            spring.stiffness = 380f // M3E Expressive Spatial DEFAULT
+            spring.dampingRatio = 0.8f // Moderate bounce
         }
 
         scaleX.start()
         scaleY.start()
 
-        // Reset elevation
-        tab.elevation = 0f
+        // Animate elevation back to 0
+        ObjectAnimator.ofFloat(tab, "elevation", tab.elevation, 0f).apply {
+            duration = 200
+            start()
+        }
     }
 
     fun setOnActivePageChangedListener(listener: OnActivePageChangedListener?) {

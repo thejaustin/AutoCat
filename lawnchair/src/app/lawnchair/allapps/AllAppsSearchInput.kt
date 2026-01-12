@@ -16,6 +16,7 @@ import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.ViewTreeObserver
 import android.view.animation.DecelerateInterpolator
+import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
@@ -47,6 +48,8 @@ import com.android.launcher3.LauncherState
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.allapps.ActivityAllAppsContainerView
+import com.android.launcher3.util.VibratorWrapper
+import android.os.VibrationEffect
 import com.android.launcher3.allapps.AllAppsStore
 import com.android.launcher3.allapps.BaseAllAppsAdapter.AdapterItem
 import com.android.launcher3.allapps.SearchUiManager
@@ -138,6 +141,8 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
         with(actionButton) {
             isVisible = false
             setOnClickListener {
+                // M3E: Haptic feedback on clear button click
+                VibratorWrapper.INSTANCE.get(launcher).vibrate(VibratorWrapper.EFFECT_CLICK)
                 input.reset()
                 searchAlgorithm?.doZeroStateSearch(this@AllAppsSearchInput)
                 updateHint()
@@ -185,6 +190,17 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
         val currentPaddingRight = initialPaddingRight
         input.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+                // M3E: Haptic feedback on search bar focus
+                if (Utilities.ATLEAST_S) {
+                    VibratorWrapper.INSTANCE.get(launcher).vibrate(
+                        VibrationEffect.PRIMITIVE_LOW_TICK,
+                        0.7f,
+                        VibratorWrapper.EFFECT_CLICK,
+                    )
+                } else {
+                    VibratorWrapper.INSTANCE.get(launcher).vibrate(VibratorWrapper.EFFECT_CLICK)
+                }
+
                 if (prefs2.searchAlgorithm.firstBlocking() != LawnchairSearchAlgorithm.APP_SEARCH) {
                     input.setHint(R.string.all_apps_device_search_hint)
                 } else {
@@ -256,7 +272,8 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
 
     private fun animateHintVisibility(visible: Boolean) {
         val targetAlpha = if (visible) 1f else 0f
-        val duration = if (visible) 300L else 200L
+        // M3E: Standard Effects - fast, smooth fade without bounce
+        val duration = if (visible) 250L else 150L
 
         if (visible) {
             hint.alpha = 0f
@@ -266,7 +283,7 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
         hint.animate()
             .alpha(targetAlpha)
             .setDuration(duration)
-            .setInterpolator(FastOutSlowInInterpolator())
+            .setInterpolator(FastOutSlowInInterpolator()) // Smooth fade
             .withEndAction {
                 if (!visible) hint.isVisible = false
             }
@@ -278,8 +295,10 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
         val currentPaddingRight = paddingRight
 
         ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 300
-            interpolator = FastOutSlowInInterpolator()
+            // M3E: Expressive Spatial - longer duration with spring-like easing
+            duration = 400 // Increased from 300ms for expressive feel
+            // M3E spring-like curve: slight overshoot for spatial animation
+            interpolator = PathInterpolator(0.05f, 0.7f, 0.1f, 1f)
             addUpdateListener { animation ->
                 val fraction = animation.animatedFraction
                 val leftPadding = currentPaddingLeft + (newPaddingLeft - currentPaddingLeft) * fraction

@@ -42,11 +42,11 @@
     <dimen name="search_widget_hotseat_height">56dp</dimen>
     <dimen name="qsb_widget_vertical_padding">6dp</dimen>
 
-    <!-- search -->
-    <dimen name="search_box_container_height">60dp</dimen>
-    <dimen name="search_box_height">52dp</dimen>
+    <!-- search - M3E: Taller search bar with more rounded corners -->
+    <dimen name="search_box_container_height">68dp</dimen> <!-- M3E: was 60dp -->
+    <dimen name="search_box_height">60dp</dimen> <!-- M3E: was 52dp -->
     <dimen name="search_decoration_padding">1dp</dimen>
-    <dimen name="search_group_radius">28dp</dimen>
+    <dimen name="search_group_radius">32dp</dimen> <!-- M3E: was 28dp -->
     <dimen name="search_hero_inline_button_text_size">12sp</dimen>
     <dimen name="search_result_hero_title_size">16sp</dimen>
     <dimen name="search_result_hero_subtitle_size">14sp</dimen>

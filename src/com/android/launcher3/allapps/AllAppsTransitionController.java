@@ -36,8 +36,10 @@ import static com.android.launcher3.util.SystemUiController.UI_STATE_ALL_APPS;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
+import android.os.VibrationEffect;
 import android.util.FloatProperty;
 import android.view.HapticFeedbackConstants;
+import android.view.animation.PathInterpolator;
 import android.view.View;
 import android.view.animation.Interpolator;
 
@@ -50,6 +52,7 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.PropertySetter;
@@ -62,6 +65,7 @@ import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.launcher3.util.MultiValueAlpha;
 import com.android.launcher3.util.ScrollableLayoutManager;
 import com.android.launcher3.util.Themes;
+import com.android.launcher3.util.VibratorWrapper;
 import com.android.launcher3.views.ScrimView;
 
 import com.google.android.msdl.data.model.MSDLToken;
@@ -347,6 +351,10 @@ public class AllAppsTransitionController
     public void setStateWithAnimation(LauncherState toState,
             StateAnimationConfig config, PendingAnimation builder) {
         if (mLauncher.isInState(ALL_APPS) && !ALL_APPS.equals(toState)) {
+            // M3E: Haptic feedback when closing drawer
+            VibratorWrapper.INSTANCE.get(mLauncher).vibrate(
+                    VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK));
+
             builder.addEndListener(success -> {
                 // Reset pull back progress and alpha after switching states.
                 ALL_APPS_PULL_BACK_TRANSLATION.set(this, ALL_APPS_PULL_BACK_TRANSLATION_DEFAULT);
@@ -386,14 +394,34 @@ public class AllAppsTransitionController
                     mMSDLPlayerWrapper.playToken(MSDLToken.TAP_HIGH_EMPHASIS);
                 }
             } else {
-                mLauncher.getAppsView().performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY,
-                        HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+                // M3E: Enhanced haptic feedback
+                // Drag = subtle, Tap = emphasis
+                if (config.isUserControlled()) {
+                    // User-controlled drag: use LOW_TICK for subtle feedback
+                    if (Utilities.ATLEAST_S) {
+                        VibratorWrapper.INSTANCE.get(mLauncher).vibrate(
+                                VibrationEffect.PRIMITIVE_LOW_TICK, 0.7f,
+                                VibratorWrapper.EFFECT_CLICK);
+                    } else {
+                        mLauncher.getAppsView().performHapticFeedback(
+                                HapticFeedbackConstants.VIRTUAL_KEY,
+                                HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
+                    }
+                } else {
+                    // Tap: use EFFECT_CLICK for emphasis
+                    VibratorWrapper.INSTANCE.get(mLauncher).vibrate(VibratorWrapper.EFFECT_CLICK);
+                }
             }
         }
     }
 
     public Animator createSpringAnimation(float... progressValues) {
-        return ObjectAnimator.ofFloat(this, ALL_APPS_PROGRESS, progressValues);
+        // M3E: Expressive Spatial SLOW for drawer transitions
+        // Longer duration with spring-like easing for natural, bouncy feel
+        ObjectAnimator anim = ObjectAnimator.ofFloat(this, ALL_APPS_PROGRESS, progressValues);
+        anim.setDuration(450); // M3E: Increased from default for expressive feel
+        anim.setInterpolator(new PathInterpolator(0.05f, 0.7f, 0.1f, 1f)); // M3E spring curve
+        return anim;
     }
 
     /**

@@ -65,10 +65,13 @@ internal val animators = WeakHashMap<Any, PhysicsAnimator<*>>()
 /**
  * Default spring configuration to use for animations where stiffness and/or damping ratio
  * were not provided, and a default spring was not set via [PhysicsAnimator.setDefaultSpringConfig].
+ *
+ * Uses Material 3 Expressive Spatial DEFAULT parameters for a modern, bouncy feel.
+ * Reference: https://m3.material.io/blog/m3-expressive-motion-theming
  */
 private val globalDefaultSpring = PhysicsAnimator.SpringConfig(
-    SpringForce.STIFFNESS_MEDIUM,
-    SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY,
+    M3ESpringConfig.ExpressiveSpatial.DEFAULT.stiffness, // 380f
+    M3ESpringConfig.ExpressiveSpatial.DEFAULT.dampingRatio, // 0.8f
 )
 
 /**
