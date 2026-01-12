@@ -22,4 +22,27 @@ class AppMetadataProvider(private val context: Context) {
     fun getInstalledApps(): List<AppInfo> {
         return emptyList()
     }
+
+    fun getAppInfo(packageName: String): AppInfo? {
+        return null
+    }
+
+    companion object {
+        /**
+         * Maps Android system categories to AutoCat tab names.
+         */
+        fun getCategoryName(category: Int?): String? {
+            return when (category) {
+                android.content.pm.ApplicationInfo.CATEGORY_GAME -> "Games"
+                android.content.pm.ApplicationInfo.CATEGORY_AUDIO -> "Entertainment"
+                android.content.pm.ApplicationInfo.CATEGORY_VIDEO -> "Entertainment"
+                android.content.pm.ApplicationInfo.CATEGORY_IMAGE -> "Photography"
+                android.content.pm.ApplicationInfo.CATEGORY_SOCIAL -> "Social"
+                android.content.pm.ApplicationInfo.CATEGORY_NEWS -> "News"
+                android.content.pm.ApplicationInfo.CATEGORY_MAPS -> "Navigation"
+                android.content.pm.ApplicationInfo.CATEGORY_PRODUCTIVITY -> "Productivity"
+                else -> null
+            }
+        }
+    }
 }

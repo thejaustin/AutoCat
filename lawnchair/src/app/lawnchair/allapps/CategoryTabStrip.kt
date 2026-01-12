@@ -341,7 +341,7 @@ class CategoryTabStrip @JvmOverloads constructor(
         // Tabs are set up via setupTabs() instead
     }
 
-    override fun setArrowClickListener(listener: java.util.function.Consumer<com.android.launcher3.util.PagedView.Direction>?) {
+    override fun setArrowClickListener(listener: java.util.function.Consumer<*>?) {
         // Not applicable for category tabs - no arrows needed
     }
 
