@@ -276,7 +276,6 @@ class CategoryFolderSyncService(
                         folderInfoId = existingFolder.id,
                         title = folderName,
                         appInfos = apps,
-                        icon = folderIcon,
                     )
                     android.util.Log.d(TAG, "Updated drawer folder: $folderName (${apps.size} apps)")
                 } else {
@@ -303,7 +302,6 @@ class CategoryFolderSyncService(
                             folderInfoId = folderId,
                             title = folderName,
                             appInfos = apps,
-                            icon = folderIcon,
                         )
                         android.util.Log.d(TAG, "Created drawer folder: $folderName (${apps.size} apps)")
                         foldersCreated++

@@ -91,7 +91,6 @@ class LawnchairAlphabeticalAppsList<T>(
             // Explicitly mark as app drawer folder
             container = ItemInfo.NO_ID
             title = sourceFolder.title
-            icon = sourceFolder.icon
 
             // Load contents with proper icons from the current app list
             sourceFolder.getContents().forEach { item ->

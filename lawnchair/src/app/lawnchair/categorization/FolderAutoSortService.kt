@@ -262,7 +262,6 @@ class FolderAutoSortService(private val context: Context) {
             folderInfoId = 0,
             title = folderName,
             appInfos = apps,
-            icon = null,
         )
     }
 }
