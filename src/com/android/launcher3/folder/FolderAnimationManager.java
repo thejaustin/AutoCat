@@ -33,9 +33,11 @@ import android.content.res.Resources;
 import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
 import android.util.Property;
+import android.os.VibrationEffect;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
+import android.view.animation.PathInterpolator;
 
 import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.CellLayout;
@@ -49,6 +51,7 @@ import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.graphics.ShapeDelegate;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.util.Themes;
+import com.android.launcher3.util.VibratorWrapper;
 import com.android.launcher3.views.BaseDragLayer;
 import com.androidinternal.graphics.ColorUtils;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
@@ -116,10 +119,10 @@ public class FolderAnimationManager {
         mDuration = res.getInteger(R.integer.config_materialFolderExpandDuration);
         mDelay = res.getInteger(R.integer.config_folderDelay);
 
-        mFolderOpenInterpolator = AnimationUtils.loadInterpolator(mContext,
-                R.interpolator.standard_interpolator);
-        mFolderCloseInterpolator = AnimationUtils.loadInterpolator(mContext,
-                R.interpolator.standard_interpolator);
+        // M3E: Use expressive spatial spring-like interpolators
+        // Matches M3E Expressive Spatial DEFAULT (380/0.8) characteristics
+        mFolderOpenInterpolator = new PathInterpolator(0.05f, 0.7f, 0.1f, 1f);
+        mFolderCloseInterpolator = new PathInterpolator(0.05f, 0.7f, 0.1f, 1f);
         mLargeFolderPreviewItemOpenInterpolator = AnimationUtils.loadInterpolator(mContext,
                 R.interpolator.large_folder_preview_item_open_interpolator);
         mLargeFolderPreviewItemCloseInterpolator = AnimationUtils.loadInterpolator(mContext,

@@ -104,6 +104,8 @@ import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.Thunk;
+import com.android.launcher3.util.VibratorWrapper;
+import android.os.VibrationEffect;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.BaseDragLayer;
 import com.android.launcher3.views.ClipPathView;
@@ -843,6 +845,9 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         anim.setCurrentPlayTime(Math.min(getSingleFrameMs(getContext()), anim.getTotalDuration()));
         anim.start();
 
+        // M3E: Haptic feedback on folder open
+        VibratorWrapper.INSTANCE.get(getContext()).vibrate(VibratorWrapper.EFFECT_CLICK);
+
         // Make sure the folder picks up the last drag move even if the finger doesn't move.
         if (getDragController().isDragging()) {
             getDragController().forceTouchMove();
@@ -956,6 +961,17 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         });
         addAnimationStartListeners(a);
         a.start();
+
+        // M3E: Haptic feedback on folder close
+        if (Utilities.ATLEAST_S) {
+            VibratorWrapper.INSTANCE.get(getContext()).vibrate(
+                VibrationEffect.PRIMITIVE_LOW_TICK, 0.8f, VibratorWrapper.EFFECT_CLICK
+            );
+        } else {
+            VibratorWrapper.INSTANCE.get(getContext()).vibrate(
+                VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+            );
+        }
     }
 
     @Override

@@ -66,8 +66,10 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Property;
 import android.util.TypedValue;
+import android.os.VibrationEffect;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.animation.PathInterpolator;
 import android.view.View;
 import android.view.ViewDebug;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -102,6 +104,7 @@ import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.util.ShortcutUtil;
 import com.android.launcher3.util.Themes;
+import com.android.launcher3.util.VibratorWrapper;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.FloatingIconViewCompanion;
 
@@ -754,6 +757,36 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     public void clearPressedBackground() {
         setPressed(false);
         setStayPressed(false);
+    }
+
+    @Override
+    public void setPressed(boolean pressed) {
+        super.setPressed(pressed);
+        // M3E: Expressive press animation for app icons
+        if (pressed) {
+            // Press down: quick scale down with emphasized easing
+            animate()
+                .scaleX(0.92f)
+                .scaleY(0.92f)
+                .setDuration(150)
+                .setInterpolator(new PathInterpolator(0.2f, 0f, 0f, 1f)) // M3E emphasized
+                .start();
+
+            // M3E: Haptic feedback on icon press
+            if (Utilities.ATLEAST_S) {
+                VibratorWrapper.INSTANCE.get(getContext()).vibrate(
+                    VibrationEffect.PRIMITIVE_LOW_TICK, 0.6f, VibratorWrapper.EFFECT_CLICK
+                );
+            }
+        } else {
+            // Release: spring back with overshoot
+            animate()
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .setDuration(300)
+                .setInterpolator(new PathInterpolator(0.05f, 0.7f, 0.1f, 1f)) // M3E spring curve
+                .start();
+        }
     }
 
     @Override
