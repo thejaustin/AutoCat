@@ -80,7 +80,7 @@ fun DraggableSettingsCategory(
                 label = stringResource(id = category.labelResId),
                 description = description,
                 iconResource = category.iconResId,
-                onNavigate = if (!isEditMode) onNavigate else {{}},
+                onNavigate = if (!isEditMode) onNavigate else {},
                 isSelected = isSelected && !isEditMode,
                 modifier = Modifier.combinedClickable(
                     onClick = { if (!isEditMode) onNavigate() },

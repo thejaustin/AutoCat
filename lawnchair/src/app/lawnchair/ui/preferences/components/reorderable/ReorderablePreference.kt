@@ -30,7 +30,6 @@ import app.lawnchair.ui.theme.preferenceGroupColor
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import sh.calvin.reorderable.ReorderableColumn
-import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableCollectionItemScope
 
 @Composable
@@ -95,43 +94,41 @@ fun <T> ReorderablePreferenceGroup(
                 },
             ) { index, item, isDragging ->
                 key(item.hashCode()) {
-                    ReorderableItem {
-                        Column {
-                            ReorderablePreferenceItem(
-                                isDragging = isDragging,
-                                modifier = Modifier
-                                    .a11yDrag(
-                                        index = index,
-                                        items = items,
-                                        onMoveUp = {
-                                            localItems = it
-                                            onOrderChange(it)
-                                            if (onSettle != null) {
-                                                onSettle(it)
-                                            }
-                                        },
-                                        onMoveDown = {
-                                            localItems = it
-                                            onOrderChange(it)
-                                            if (onSettle != null) {
-                                                onSettle(it)
-                                            }
-                                        },
-                                    ),
+                    Column {
+                        ReorderablePreferenceItem(
+                            isDragging = isDragging,
+                            modifier = Modifier
+                                .a11yDrag(
+                                    index = index,
+                                    items = items,
+                                    onMoveUp = {
+                                        localItems = it
+                                        onOrderChange(it)
+                                        if (onSettle != null) {
+                                            onSettle(it)
+                                        }
+                                    },
+                                    onMoveDown = {
+                                        localItems = it
+                                        onOrderChange(it)
+                                        if (onSettle != null) {
+                                            onSettle(it)
+                                        }
+                                    },
+                                ),
+                        ) {
+                            itemContent(
+                                item,
+                                index,
+                                isDragging,
                             ) {
-                                itemContent(
-                                    item,
-                                    index,
-                                    isDragging,
-                                ) {
-                                    isAnyDragging = it
-                                }
+                                isAnyDragging = it
                             }
-                            AnimatedVisibility(!isAnyDragging && index != localItems.lastIndex) {
-                                HorizontalDivider(
-                                    Modifier.padding(start = 50.dp, end = 16.dp),
-                                )
-                            }
+                        }
+                        AnimatedVisibility(!isAnyDragging && index != localItems.lastIndex) {
+                            HorizontalDivider(
+                                Modifier.padding(start = 50.dp, end = 16.dp),
+                            )
                         }
                     }
                 }
