@@ -74,6 +74,13 @@ public class CustomFeatureFlags implements FeatureFlags {
 
     @Override
 
+    public boolean extendibleThemeManager() {
+        return getValue(Flags.FLAG_EXTENDIBLE_THEME_MANAGER,
+            FeatureFlags::extendibleThemeManager);
+    }
+
+    @Override
+
     public boolean extendedWallpaperEffects() {
         return getValue(Flags.FLAG_EXTENDED_WALLPAPER_EFFECTS,
             FeatureFlags::extendedWallpaperEffects);
@@ -211,6 +218,7 @@ public class CustomFeatureFlags implements FeatureFlags {
             Flags.FLAG_ENABLE_HOME_DELAY,
             Flags.FLAG_ENABLE_LPP_SQUEEZE_EFFECT,
             Flags.FLAG_EXAMPLE_SHARED_FLAG,
+            Flags.FLAG_EXTENDIBLE_THEME_MANAGER,
             Flags.FLAG_EXTENDED_WALLPAPER_EFFECTS,
             Flags.FLAG_LOCKSCREEN_CUSTOM_CLOCKS,
             Flags.FLAG_NEW_CUSTOMIZATION_PICKER_UI,
@@ -240,6 +248,7 @@ public class CustomFeatureFlags implements FeatureFlags {
             Flags.FLAG_ENABLE_HOME_DELAY,
             Flags.FLAG_ENABLE_LPP_SQUEEZE_EFFECT,
             Flags.FLAG_EXAMPLE_SHARED_FLAG,
+            Flags.FLAG_EXTENDIBLE_THEME_MANAGER,
             Flags.FLAG_EXTENDED_WALLPAPER_EFFECTS,
             Flags.FLAG_LOCKSCREEN_CUSTOM_CLOCKS,
             Flags.FLAG_NEW_CUSTOMIZATION_PICKER_UI,
