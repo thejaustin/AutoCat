@@ -53,7 +53,7 @@ jobs:
           fi
         # Release variant is disabled due to build conflict | assembleLawnWithQuickstepNightlyRelease
       - name: Build debug APK
-        run: ./gradlew assembleLawnWithQuickstepGithubDebug assembleLawnWithQuickstepPlayDebug --no-configuration-cache
+        run: ./gradlew assembleLawnWithQuickstepGithubDebug assembleLawnWithQuickstepPlayDebug --build-cache
       - name: Upload artifact
         uses: actions/upload-artifact@v5
         with:
