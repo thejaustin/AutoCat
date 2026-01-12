@@ -172,15 +172,7 @@ class CategoryTabStrip @JvmOverloads constructor(
             // Click listener
             setOnClickListener {
                 // M3E: Haptic feedback on tab switch
-                if (Utilities.ATLEAST_S) {
-                    VibratorWrapper.INSTANCE.get(context).vibrate(
-                        VibrationEffect.PRIMITIVE_LOW_TICK,
-                        0.8f,
-                        VibratorWrapper.EFFECT_CLICK,
-                    )
-                } else {
-                    VibratorWrapper.INSTANCE.get(context).vibrate(VibratorWrapper.EFFECT_CLICK)
-                }
+                VibratorWrapper.INSTANCE.get(context).vibrate(VibratorWrapper.EFFECT_CLICK)
                 setActiveMarker(index)
             }
 
@@ -347,6 +339,10 @@ class CategoryTabStrip @JvmOverloads constructor(
 
     override fun setMarkersCount(numMarkers: Int) {
         // Tabs are set up via setupTabs() instead
+    }
+
+    override fun setArrowClickListener(listener: java.util.function.Consumer<com.android.launcher3.util.PagedView.Direction>?) {
+        // Not applicable for category tabs - no arrows needed
     }
 
     /**

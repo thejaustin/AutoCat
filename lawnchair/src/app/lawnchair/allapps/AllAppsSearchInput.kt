@@ -191,15 +191,7 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
         input.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 // M3E: Haptic feedback on search bar focus
-                if (Utilities.ATLEAST_S) {
-                    VibratorWrapper.INSTANCE.get(launcher).vibrate(
-                        VibrationEffect.PRIMITIVE_LOW_TICK,
-                        0.7f,
-                        VibratorWrapper.EFFECT_CLICK,
-                    )
-                } else {
-                    VibratorWrapper.INSTANCE.get(launcher).vibrate(VibratorWrapper.EFFECT_CLICK)
-                }
+                VibratorWrapper.INSTANCE.get(launcher).vibrate(VibratorWrapper.EFFECT_CLICK)
 
                 if (prefs2.searchAlgorithm.firstBlocking() != LawnchairSearchAlgorithm.APP_SEARCH) {
                     input.setHint(R.string.all_apps_device_search_hint)
