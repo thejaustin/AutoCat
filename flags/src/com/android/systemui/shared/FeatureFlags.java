@@ -39,6 +39,10 @@ public interface FeatureFlags {
 
 
 
+    boolean extendibleThemeManager();
+
+
+
     boolean extendedWallpaperEffects();
 
 

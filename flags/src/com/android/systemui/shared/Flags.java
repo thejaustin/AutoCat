@@ -21,6 +21,8 @@ public final class Flags {
     /** @hide */
     public static final String FLAG_EXAMPLE_SHARED_FLAG = "com.android.systemui.shared.example_shared_flag";
     /** @hide */
+    public static final String FLAG_EXTENDIBLE_THEME_MANAGER = "com.android.systemui.shared.extendible_theme_manager";
+    /** @hide */
     public static final String FLAG_EXTENDED_WALLPAPER_EFFECTS = "com.android.systemui.shared.extended_wallpaper_effects";
     /** @hide */
     public static final String FLAG_LOCKSCREEN_CUSTOM_CLOCKS = "com.android.systemui.shared.lockscreen_custom_clocks";
@@ -111,8 +113,15 @@ public final class Flags {
 
 
 
+    public static boolean extendibleThemeManager() {
+
+        return FEATURE_FLAGS.extendibleThemeManager();
+    }
+
+
+
     public static boolean extendedWallpaperEffects() {
-        
+
         return FEATURE_FLAGS.extendedWallpaperEffects();
     }
 

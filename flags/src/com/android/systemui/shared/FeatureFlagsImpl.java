@@ -62,6 +62,13 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
+    public boolean extendibleThemeManager() {
+        return true;
+    }
+
+    @Override
+
+
     public boolean extendedWallpaperEffects() {
         return false;
     }
