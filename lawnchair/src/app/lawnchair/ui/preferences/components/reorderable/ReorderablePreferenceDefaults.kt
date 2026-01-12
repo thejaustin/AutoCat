@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import sh.calvin.reorderable.ReorderableCollectionItemScope
-import sh.calvin.reorderable.ReorderableListItemScope
 
 @Composable
 fun ReorderablePreferenceItem(
@@ -115,35 +114,7 @@ fun ReorderableDragHandle(
     }
 }
 
-@Composable
-fun ReorderableDragHandle(
-    scope: ReorderableListItemScope,
-    modifier: Modifier = Modifier,
-    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    isDraggable: Boolean = true,
-    onDragStart: () -> Unit = {},
-    onDragStop: () -> Unit = {},
-) {
-    val haptic = rememberReorderHapticFeedback()
 
-    ReorderableDragHandle(
-        modifier = with(scope) {
-            modifier.longPressDraggableHandle(
-                interactionSource = interactionSource,
-                onDragStarted = {
-                    haptic.performHapticFeedback(ReorderHapticFeedbackType.START)
-                    onDragStart()
-                },
-                onDragStopped = {
-                    haptic.performHapticFeedback(ReorderHapticFeedbackType.END)
-                    onDragStop()
-                },
-            )
-        },
-        interactionSource = interactionSource,
-        isDraggable = isDraggable,
-    )
-}
 
 @Composable
 fun ReorderableDragHandle(
@@ -154,18 +125,18 @@ fun ReorderableDragHandle(
     onDragStart: () -> Unit = {},
     onDragStop: () -> Unit = {},
 ) {
-    val haptic = rememberReorderHapticFeedback()
+    val view = androidx.compose.ui.platform.LocalView.current
 
     ReorderableDragHandle(
         modifier = with(scope) {
-            modifier.longPressDraggableHandle(
+            modifier.draggableHandle(
                 interactionSource = interactionSource,
                 onDragStarted = {
-                    haptic.performHapticFeedback(ReorderHapticFeedbackType.START)
+                    view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
                     onDragStart()
                 },
                 onDragStopped = {
-                    haptic.performHapticFeedback(ReorderHapticFeedbackType.END)
+                    view.performHapticFeedback(android.view.HapticFeedbackConstants.GESTURE_END)
                     onDragStop()
                 },
             )

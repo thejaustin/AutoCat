@@ -31,7 +31,7 @@ import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import sh.calvin.reorderable.ReorderableColumn
 import sh.calvin.reorderable.ReorderableItem
-import sh.calvin.reorderable.ReorderableListItemScope
+import sh.calvin.reorderable.ReorderableCollectionItemScope
 
 @Composable
 fun <T> ReorderablePreferenceGroup(
@@ -41,7 +41,7 @@ fun <T> ReorderablePreferenceGroup(
     onOrderChange: (List<T>) -> Unit,
     modifier: Modifier = Modifier,
     onSettle: ((List<T>) -> Unit)? = null,
-    itemContent: @Composable ReorderableListItemScope.(
+    itemContent: @Composable ReorderableCollectionItemScope.(
         item: T,
         index: Int,
         isDragging: Boolean,
