@@ -82,11 +82,6 @@ fun ExperimentalFeaturesPreferences(
                 label = "Hide Settings Warnings",
                 description = "Hides development build warnings and other informational messages at the top of settings.",
             )
-            SwitchPreference(
-                adapter = prefs.hideDefaultLauncherWarning.getAdapter(),
-                label = "Hide Default Launcher Warning",
-                description = "Hides the tip to set AutoCat as your default launcher (you can also swipe to dismiss it).",
-            )
 
             val context = LocalContext.current
             val enableWallpaperBlur = prefs.enableWallpaperBlur.getAdapter()

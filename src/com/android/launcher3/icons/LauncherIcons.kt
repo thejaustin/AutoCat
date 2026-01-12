@@ -71,8 +71,7 @@ internal constructor(
         return themeManager.iconShape.getPath(iconBounds)
     }
 
-    override fun getIconScale(): Float {
-        if (!Flags.enableLauncherIconShapes()) return super.getIconScale()
+    fun getIconScale(): Float {
         return themeManager.iconState.iconScale
     }
 
