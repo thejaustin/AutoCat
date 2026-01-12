@@ -57,6 +57,7 @@ import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.OverflowMenu
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.AnnouncementPreference
+import app.lawnchair.ui.preferences.components.DraggableSettingsCategoryGroup
 import app.lawnchair.ui.preferences.components.cards.CategoryCard
 import app.lawnchair.ui.preferences.components.cards.categoryGradient
 import app.lawnchair.ui.preferences.components.controls.CollapsiblePreferenceGroup
@@ -67,10 +68,6 @@ import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
-import app.lawnchair.ui.preferences.components.layout.SearchPreferenceFAB
-import app.lawnchair.ui.preferences.components.search.PreferenceSearchBar
-import app.lawnchair.ui.preferences.components.search.PreferenceSearchIndex
-import app.lawnchair.ui.preferences.components.search.SearchResultsScreen
 import app.lawnchair.ui.preferences.data.liveinfo.SyncLiveInformation
 import app.lawnchair.ui.preferences.navigation.About
 import app.lawnchair.ui.preferences.navigation.AppDrawer
@@ -113,116 +110,40 @@ fun PreferencesDashboard(
     val categories by categoryManager.categories.collectAsState()
     var isEditMode by remember { mutableStateOf(false) }
 
-    // Initialize search index
-    LaunchedEffect(Unit) {
-        PreferenceSearchIndex.buildIndex()
-    }
-
-    // Search state
-    var searchActive by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-    var searchResults by remember { mutableStateOf(emptyList<app.lawnchair.ui.preferences.components.search.PreferenceMetadata>()) }
-    var isSearching by remember { mutableStateOf(false) }
-    var searchError by remember { mutableStateOf<String?>(null) }
-    var retryTrigger by remember { mutableIntStateOf(0) }
-
-    // Perform search with loading indicator and error handling
-    LaunchedEffect(searchQuery, retryTrigger) {
-        if (searchQuery.isNotEmpty()) {
-            isSearching = true
-            searchError = null
-            try {
-                searchResults = PreferenceSearchIndex.search(searchQuery)
-            } catch (e: Exception) {
-                searchError = "Search failed: ${e.message}"
-                searchResults = emptyList()
-            } finally {
-                isSearching = false
-            }
-        } else {
-            searchResults = emptyList()
-            isSearching = false
-            searchError = null
-        }
-    }
-
     PreferenceLayout(
         label = stringResource(id = R.string.settings),
         modifier = modifier,
         verticalArrangement = Arrangement.Top,
         backArrowVisible = false,
         actions = { PreferencesOverflowMenu(currentRoute = currentRoute, onNavigate = onNavigate) },
-        floatingActionButton = {
-            SearchPreferenceFAB(
-                onClick = { searchActive = true },
-                visible = !searchActive,
-            )
-        },
     ) {
-        // Show search UI when active
-        if (searchActive) {
-            Column {
-                PreferenceSearchBar(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                    onSearch = { /* search performed automatically */ },
-                    active = searchActive,
-                    onActiveChange = { active ->
-                        searchActive = active
-                        if (!active) {
-                            searchQuery = ""
-                        }
-                    },
-                )
+        AnnouncementPreference()
 
-                SearchResultsScreen(
-                    results = searchResults,
-                    query = searchQuery,
-                    isLoading = isSearching,
-                    error = searchError,
-                    onRetry = if (searchError != null) {
-                        { retryTrigger++ }
-                    } else {
-                        null
-                    },
-                    onResultClick = { route ->
-                        navController.navigate(route)
-                        searchActive = false
-                        searchQuery = ""
-                    },
-                )
-            }
-        } else {
-            // Normal dashboard content
-            AnnouncementPreference()
+        val hideSettingsWarnings by prefs.hideSettingsWarnings.observeAsState()
 
-            val hideSettingsWarnings by prefs.hideSettingsWarnings.observeAsState()
-            val hideDefaultLauncherWarning by prefs.hideDefaultLauncherWarning.observeAsState()
-
-            if ((BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) && !hideSettingsWarnings) {
-                PreferencesDebugWarning()
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            if (!context.isDefaultLauncher() && !hideDefaultLauncherWarning) {
-                PreferencesSetDefaultLauncherWarning(
-                    onDismiss = { prefs.hideDefaultLauncherWarning.set(true) },
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            DraggableSettingsCategoryGroup(
-                categories = categories,
-                currentRoute = currentRoute,
-                isEditMode = isEditMode,
-                onNavigate = onNavigate,
-                onToggleEditMode = { isEditMode = !isEditMode },
-                onReorder = { from, to -> categoryManager.reorderCategories(from, to) },
-                onToggleVisibility = { categoryId -> categoryManager.toggleCategoryVisibility(categoryId) },
-                deckLayoutEnabled = pref2.deckLayout.getAdapter().state.value,
-                quickstepEnabled = LawnchairApp.isRecentsEnabled || BuildConfig.DEBUG && !prefs.hideQuickstepSettings.get(),
-            )
+        if ((BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) && !hideSettingsWarnings) {
+            PreferencesDebugWarning()
+            Spacer(modifier = Modifier.height(8.dp))
         }
+
+        if (!context.isDefaultLauncher()) {
+            PreferencesSetDefaultLauncherWarning(
+                onDismiss = { },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        DraggableSettingsCategoryGroup(
+            categories = categories,
+            currentRoute = currentRoute,
+            isEditMode = isEditMode,
+            onNavigate = onNavigate,
+            onToggleEditMode = { isEditMode = !isEditMode },
+            onReorder = { from, to -> categoryManager.reorderCategories(from, to) },
+            onToggleVisibility = { categoryId -> categoryManager.toggleCategoryVisibility(categoryId) },
+            deckLayoutEnabled = pref2.deckLayout.getAdapter().state.value,
+            quickstepEnabled = LawnchairApp.isRecentsEnabled || BuildConfig.DEBUG && !prefs.hideQuickstepSettings.get(),
+        )
     }
 }
 
