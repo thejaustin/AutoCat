@@ -195,7 +195,7 @@ fun DraggableSettingsCategoryGroup(
 
                     Box(
                         modifier = Modifier
-                            //.animateItemPlacement()
+                            // .animateItemPlacement()
                             .then(
                                 if (isEditMode) {
                                     Modifier.combinedClickable(

@@ -114,8 +114,6 @@ fun ReorderableDragHandle(
     }
 }
 
-
-
 @Composable
 fun ReorderableDragHandle(
     scope: ReorderableCollectionItemScope,
