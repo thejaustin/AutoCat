@@ -29,8 +29,8 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceGroupHeading
 import app.lawnchair.ui.theme.preferenceGroupColor
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
-import sh.calvin.reorderable.ReorderableCollectionItemScope
 import sh.calvin.reorderable.ReorderableColumn
+import sh.calvin.reorderable.ReorderableScope
 
 @Composable
 fun <T> ReorderablePreferenceGroup(
@@ -40,7 +40,7 @@ fun <T> ReorderablePreferenceGroup(
     onOrderChange: (List<T>) -> Unit,
     modifier: Modifier = Modifier,
     onSettle: ((List<T>) -> Unit)? = null,
-    itemContent: @Composable ReorderableCollectionItemScope.(
+    itemContent: @Composable ReorderableScope.(
         item: T,
         index: Int,
         isDragging: Boolean,

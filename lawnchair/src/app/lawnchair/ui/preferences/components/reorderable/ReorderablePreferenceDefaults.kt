@@ -22,12 +22,41 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import sh.calvin.reorderable.ReorderableCollectionItemScope
+import sh.calvin.reorderable.ReorderableScope
 
 @Composable
 fun ReorderableCollectionItemScope.ReorderablePreferenceItem(
     isDragging: Boolean,
     modifier: Modifier = Modifier,
     content: @Composable ReorderableCollectionItemScope.() -> Unit,
+) {
+    val scope = this
+    Card(
+        elevation = if (isDragging) {
+            CardDefaults.elevatedCardElevation()
+        } else {
+            CardDefaults.cardElevation(
+                0.dp,
+            )
+        },
+        colors = if (isDragging) {
+            CardDefaults.elevatedCardColors()
+        } else {
+            CardDefaults.cardColors(
+                Color.Transparent,
+            )
+        },
+        modifier = modifier,
+    ) {
+        scope.content()
+    }
+}
+
+@Composable
+fun ReorderableScope.ReorderablePreferenceItem(
+    isDragging: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable ReorderableScope.() -> Unit,
 ) {
     val scope = this
     Card(
@@ -129,6 +158,36 @@ fun ReorderableDragHandle(
     ReorderableDragHandle(
         modifier = with(scope) {
             modifier.draggableHandle(
+                interactionSource = interactionSource,
+                onDragStarted = {
+                    view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+                    onDragStart()
+                },
+                onDragStopped = {
+                    view.performHapticFeedback(android.view.HapticFeedbackConstants.GESTURE_END)
+                    onDragStop()
+                },
+            )
+        },
+        interactionSource = interactionSource,
+        isDraggable = isDraggable,
+    )
+}
+
+@Composable
+fun ReorderableDragHandle(
+    scope: ReorderableScope,
+    modifier: Modifier = Modifier,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    isDraggable: Boolean = true,
+    onDragStart: () -> Unit = {},
+    onDragStop: () -> Unit = {},
+) {
+    val view = androidx.compose.ui.platform.LocalView.current
+
+    ReorderableDragHandle(
+        modifier = with(scope) {
+            modifier.longPressDraggableHandle(
                 interactionSource = interactionSource,
                 onDragStarted = {
                     view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
