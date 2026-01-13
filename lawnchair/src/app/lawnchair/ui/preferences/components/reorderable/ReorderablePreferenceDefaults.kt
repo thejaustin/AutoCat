@@ -27,7 +27,7 @@ import sh.calvin.reorderable.ReorderableCollectionItemScope
 fun ReorderablePreferenceItem(
     isDragging: Boolean,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
+    content: @Composable ReorderableCollectionItemScope.() -> Unit,
 ) {
     Card(
         elevation = if (isDragging) {

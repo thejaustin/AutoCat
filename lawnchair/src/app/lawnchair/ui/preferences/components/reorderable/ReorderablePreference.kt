@@ -118,12 +118,14 @@ fun <T> ReorderablePreferenceGroup(
                                     },
                                 ),
                         ) {
-                            scope.itemContent(
-                                item,
-                                index,
-                                isDragging,
-                            ) {
-                                isAnyDragging = it
+                            with(scope) {
+                                itemContent(
+                                    item,
+                                    index,
+                                    isDragging,
+                                ) {
+                                    isAnyDragging = it
+                                }
                             }
                         }
                         AnimatedVisibility(!isAnyDragging && index != localItems.lastIndex) {
