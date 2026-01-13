@@ -24,11 +24,12 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import sh.calvin.reorderable.ReorderableCollectionItemScope
 
 @Composable
-fun ReorderablePreferenceItem(
+fun ReorderableCollectionItemScope.ReorderablePreferenceItem(
     isDragging: Boolean,
     modifier: Modifier = Modifier,
     content: @Composable ReorderableCollectionItemScope.() -> Unit,
 ) {
+    val scope = this
     Card(
         elevation = if (isDragging) {
             CardDefaults.elevatedCardElevation()
@@ -46,7 +47,7 @@ fun ReorderablePreferenceItem(
         },
         modifier = modifier,
     ) {
-        content()
+        scope.content()
     }
 }
 
