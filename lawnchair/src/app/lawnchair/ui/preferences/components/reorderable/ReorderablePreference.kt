@@ -30,6 +30,7 @@ import app.lawnchair.ui.theme.preferenceGroupColor
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import sh.calvin.reorderable.ReorderableColumn
+import sh.calvin.reorderable.ReorderableCollectionItemScope
 
 @Composable
 fun <T> ReorderablePreferenceGroup(
