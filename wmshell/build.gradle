@@ -11,9 +11,9 @@ compileOnlyCommonJars()
 
 android {
     buildToolsVersion "36.1.0"
-    namespace "com.android.wm.shell"
+    namespace = "com.android.wm.shell"
     buildFeatures {
-        aidl true
+        aidl = true
     }
     sourceSets {
         main {

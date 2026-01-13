@@ -5,9 +5,9 @@ plugins {
 
 android {
     buildToolsVersion "36.1.0"
-    namespace "com.android.systemui.plugins"
+    namespace = "com.android.systemui.plugins"
     buildFeatures {
-        aidl true
+        aidl = true
     }
     sourceSets {
         main {
