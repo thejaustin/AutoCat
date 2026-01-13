@@ -118,7 +118,7 @@ fun <T> ReorderablePreferenceGroup(
                                     },
                                 ),
                         ) {
-                            itemContent(
+                            scope.itemContent(
                                 item,
                                 index,
                                 isDragging,
