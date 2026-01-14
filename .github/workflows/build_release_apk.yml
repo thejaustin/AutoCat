@@ -2,6 +2,12 @@ name: Build release APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - '15-dev'
+    paths-ignore:
+      - '**.md'
+      - '.idea/**'
 
 jobs:
   build-release-apk:
