@@ -114,7 +114,7 @@ public class LauncherIconProvider extends IconProvider {
                     if (d instanceof AdaptiveIconDrawable) {
                         return d;
                     }
-                } catch (PackageManager.NameNotFoundException | Resources.NotFoundException exc) { }
+                } catch (android.content.pm.PackageManager.NameNotFoundException | Resources.NotFoundException exc) { }
             }
         }
         return super.loadPackageIcon(info, appInfo, density);

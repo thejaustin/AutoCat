@@ -67,6 +67,7 @@ import android.util.Log;
 import android.util.Property;
 import android.util.TypedValue;
 import android.os.VibrationEffect;
+import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.animation.PathInterpolator;
