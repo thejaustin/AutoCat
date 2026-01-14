@@ -18,6 +18,7 @@ package com.android.launcher3.icons;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageItemInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.graphics.drawable.AdaptiveIconDrawable;

@@ -773,11 +773,10 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
             // M3E: Haptic feedback on icon press
             if (Utilities.ATLEAST_S) {
-                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                 VibratorWrapper.INSTANCE.get(getContext()).vibrate(
                     VibrationEffect.Composition.PRIMITIVE_LOW_TICK, 0.6f, VibratorWrapper.EFFECT_CLICK
                 );
-                return true;
             }
         } else {
             // Release: spring back with overshoot
