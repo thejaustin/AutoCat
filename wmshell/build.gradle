@@ -5,9 +5,9 @@ plugins {
 }
 
 android {
-    namespace "com.android.wm.shell"
+    namespace = "com.android.wm.shell"
     buildFeatures {
-        aidl true
+        aidl = true
     }
     sourceSets {
         main {

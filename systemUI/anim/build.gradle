@@ -4,9 +4,9 @@ plugins {
 }
 
 android {
-    namespace "com.android.systemui.animation"
+    namespace = "com.android.systemui.animation"
     buildFeatures {
-        aidl true
+        aidl = true
     }
     sourceSets {
         main {

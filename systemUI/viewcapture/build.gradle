@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace "com.android.app.viewcapture"
+    namespace = "com.android.app.viewcapture"
     sourceSets {
         main {
             java.srcDirs = ['src']

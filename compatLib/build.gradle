@@ -3,10 +3,10 @@ plugins {
 }
 
 android {
-    namespace "app.lawnchair.compatlib"
+    namespace = "app.lawnchair.compatlib"
 
     buildFeatures {
-        aidl true
+        aidl = true
     }
 
     sourceSets {

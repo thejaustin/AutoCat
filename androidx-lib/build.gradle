@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace "androidx.dynamicanimation.animation"
+    namespace = "androidx.dynamicanimation.animation"
     sourceSets {
         main {
             java.srcDirs = ['src']

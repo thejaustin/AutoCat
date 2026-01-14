@@ -6,9 +6,9 @@ plugins {
 
 android {
     buildToolsVersion "35.0.1"
-    namespace "com.android.systemui.unfold"
+    namespace = "com.android.systemui.unfold"
     buildFeatures {
-        aidl true
+        aidl = true
     }
     sourceSets {
         main {
