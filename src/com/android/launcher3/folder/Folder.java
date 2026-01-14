@@ -965,7 +965,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         // M3E: Haptic feedback on folder close
         if (Utilities.ATLEAST_S) {
             VibratorWrapper.INSTANCE.get(getContext()).vibrate(
-                VibrationEffect.PRIMITIVE_LOW_TICK, 0.8f, VibratorWrapper.EFFECT_CLICK
+                VibrationEffect.Composition.PRIMITIVE_LOW_TICK, 0.8f, VibratorWrapper.EFFECT_CLICK
             );
         } else {
             VibratorWrapper.INSTANCE.get(getContext()).vibrate(
