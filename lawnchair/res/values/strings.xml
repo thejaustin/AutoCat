@@ -27,7 +27,7 @@
     <string name="autocat_tagline">Intelligent App Categorization</string>
     <string name="autocat_based_on">Based on Lawnchair Launcher</string>
     <string name="autocat_about">AutoCat is a fork of Lawnchair that adds intelligent automatic app categorization to your app drawer.</string>
-    <string name="lawnchair_attribution">Built on Lawnchair — a free, open-source Android launcher</string>
+    <string name="lawnchair_attribution">Built on Lawnchair</string>
     <string name="lawnchair_website">lawnchair.app</string>
     <string name="autocat_github">github.com/thejaustin/AutoCat</string>
     <string name="autocat_issues_url">https://github.com/thejaustin/AutoCat/issues</string>
