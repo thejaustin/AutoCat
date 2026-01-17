@@ -4,7 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.LauncherApps
 import android.util.Log
-import app.lawnchair.categorization.CategoryFolderSyncService
+import app.lawnchair.categorization.TabFolderSyncService
 import app.lawnchair.data.AppDatabase
 import app.lawnchair.data.Converters
 import app.lawnchair.data.folder.FolderInfoEntity
@@ -46,8 +46,8 @@ class FolderService(val context: Context) : SafeCloseable {
             }.toList(),
         )
         // Bidirectional sync: Update categories when folder contents change
-        // TODO: Implement CategoryFolderSyncService
-        // CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
+        // TODO: Implement TabFolderSyncService
+        // TabFolderSyncService.getInstance(context).onFolderItemsChanged(
         //     folderId = folderInfoId,
         //     categoryName = title,
         //     newAppPackages = appInfos.mapNotNull { it.componentName?.packageName },
@@ -75,10 +75,10 @@ class FolderService(val context: Context) : SafeCloseable {
 
     suspend fun deleteFolderInfo(id: Int) = withContext(Dispatchers.IO) {
         // Bidirectional sync: Notify when folder is deleted
-        // TODO: Implement CategoryFolderSyncService
+        // TODO: Implement TabFolderSyncService
         // val folder = getFolderInfo(id, true)
         // if (folder != null) {
-        //     CategoryFolderSyncService.getInstance(context).onFolderDeleted(
+        //     TabFolderSyncService.getInstance(context).onFolderDeleted(
         //         folderId = id,
         //         categoryName = folder.title.toString(),
         //         removeCategories = false, // Don't delete categories by default when folder is deleted

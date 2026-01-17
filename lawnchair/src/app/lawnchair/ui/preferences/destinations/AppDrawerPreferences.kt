@@ -87,9 +87,9 @@ fun AppDrawerPreferences(
                 destination = AppDrawerHiddenApps,
             )
             NavigationActionPreference(
-                label = "Categorization Overview",
-                subtitle = "Configure categories, LLM providers, and app assignments",
-                destination = app.lawnchair.ui.preferences.navigation.AppDrawerCategorizationOverview,
+                label = "App Categorization",
+                subtitle = "Configure tabs, LLM providers, and app assignments",
+                destination = app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorization,
             )
             SearchBarPreference(SearchRoute.DRAWER_SEARCH, showLabel = false)
             SuggestionsPreference()

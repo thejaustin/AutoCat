@@ -33,7 +33,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.lawnchair.categorization.CategoryFolderSyncService
+import app.lawnchair.categorization.TabFolderSyncService
 import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.preferences.getAdapter
@@ -106,10 +106,10 @@ fun AppDrawerFoldersPreference(
         },
         onDeleteFolder = {
             viewModel.deleteFolder(it.id)
-            // TODO: Implement CategoryFolderSyncService
+            // TODO: Implement TabFolderSyncService
             // scope.launch {
             //     // Bidirectional sync: Remove tab when folder is deleted by user
-            //     CategoryFolderSyncService.getInstance(context).onFolderDeleted(
+            //     TabFolderSyncService.getInstance(context).onFolderDeleted(
             //         folderId = it.id,
             //         tabName = it.title.toString(),
             //         removeTabs = true,

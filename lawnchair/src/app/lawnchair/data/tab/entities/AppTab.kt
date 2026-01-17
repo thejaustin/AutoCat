@@ -18,7 +18,7 @@ import androidx.room.PrimaryKey
  * @property lastUpdated Timestamp of last categorization update (milliseconds since epoch)
  * @property reasoning LLM explanation for why the app was categorized (null for non-LLM sources)
  */
-@Entity(tableName = "app_categories")
+@Entity(tableName = "app_tabs")
 data class AppTab(
     @PrimaryKey
     @ColumnInfo(name = "package_name")
@@ -27,8 +27,8 @@ data class AppTab(
     @ColumnInfo(name = "tab_name")
     val tabName: String,
 
-    @ColumnInfo(name = "sub_category")
-    val subCategory: String? = null,
+    @ColumnInfo(name = "folder_name")
+    val folderName: String? = null,
 
     @ColumnInfo(name = "confidence")
     val confidence: Float,

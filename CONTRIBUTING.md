@@ -1,32 +1,17 @@
-# Lawnchair contributing guidelines
+# AutoCat contributing guidelines
 
-<picture>
-    <!-- Avoid image being clickable with slight workaround --->
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/lawnchair-round.webp" width="100">
-    <img alt="" src="docs/assets/lawnchair-round.webp" width="100">
-</picture>
-
-Welcome to the **Lawnchair** project. We appreciate your interest in contributing. For questions,
-feel free to reach out on [Telegram][telegram] or [Discord][discord].
+Welcome to the **AutoCat** project. We appreciate your interest in contributing. AutoCat is a fork of Lawnchair 15.
 
 ## No-code contributions
 
 ### Bug reports and feature requests
 
-> [!TIP]
-> Use the [Lawnchair Nightly builds][nightly] when reporting bugs, as your issue may have already
-> been fixed.
-
-- For **[bug reports][bug-reports]**, please be as detailed as possible and provide clear steps to
+- For **[bug reports](https://github.com/thejaustin/AutoCat/issues/new?template=bug_report.yaml)**, please be as detailed as possible and provide clear steps to
   reproduce the issue.
-- For **[feature requests][feature-requests]**, clearly describe the feature and its potential
+- For **[feature requests](https://github.com/thejaustin/AutoCat/issues/new?template=feature_request.yaml)**, clearly describe the feature and its potential
   benefits.
 
 Please be civil, as outlined in our [Code of Conduct][code-of-conduct].
-
-### Translations
-
-For translations, please visit **[Lawnchair on Crowdin][crowdin]**.
 
 ## Contributing code
 
@@ -35,10 +20,10 @@ For translations, please visit **[Lawnchair on Crowdin][crowdin]**.
 1. Clone the repository with the `--recursive` flag to include the project's
    submodules.
    ```bash
-   git clone --recursive https://github.com/LawnchairLauncher/lawnchair.git
+   git clone --recursive https://github.com/thejaustin/AutoCat.git
    ```
 2. Open the project in Android Studio.
-3. Select the `lawnWithQuickstepGithubDebug` build variant.
+3. Select the `lawnWithQuickstepPlayDebug` build variant.
 
 If you encounter errors with the `iconloaderlib` or `searchuilib` modules, run
 `git submodule update --init --recursive`.
@@ -53,19 +38,18 @@ If you encounter errors with the `iconloaderlib` or `searchuilib` modules, run
 
 Here are some contribution tips to help you get started:
 
-- Always make sure that you're up-to-date with **Lawnchair** by setting your base branch to
-  `15-dev`.
+- Always make sure that you're up-to-date with **AutoCat** by syncing with the upstream Lawnchair repository.
 - Make sure your code is logical and well-formatted. If using Kotlin,
   see [“Coding conventions” in the Kotlin documentation][kotlin-coding-conventions];
 - [The `lawnchair` package][lawnchair-package]
-  houses Lawnchair’s own code, whereas [the `src` package][src-package] includes a clone of
+  houses AutoCat’s and Lawnchair’s code, whereas [the `src` package][src-package] includes a clone of
   the Launcher3 codebase with modifications. Generally, place new files in the former,
   keeping changes to the latter to a minimum.
 
 ### Additional documentation
 
-- [Lawnchair roadmap](ROADMAP.md)
-- [The Lawnchair Wiki](https://github.com/LawnchairLauncher/lawnchair/wiki)
+- [AutoCat roadmap](ROADMAP.md)
+- [AutoCat GitHub](https://github.com/thejaustin/AutoCat)
 - [Lawnchair Visual Guidelines](/docs/assets/README.md)
 - [Lawnchair Quickstep Compat Library](compatLib/README.md)
 - [Lawnchair Preferences Components](lawnchair/src/app/lawnchair/ui/preferences/components/README.md)
@@ -174,13 +158,13 @@ To update Lawnchair's font listing, follow these steps:
 <!-- Links -->
 [telegram]: https://t.me/lccommunity
 [discord]: https://discord.com/invite/3x8qNWxgGZ
-[nightly]: https://github.com/LawnchairLauncher/lawnchair/releases/tag/nightly
-[bug-reports]: https://github.com/LawnchairLauncher/lawnchair/issues/new?assignees=&labels=bug&projects=&template=bug_report.yaml&title=%5BBUG%5D+
-[feature-requests]: https://github.com/LawnchairLauncher/lawnchair/issues/new?assignees=&labels=feature%2Cenhancement&projects=&template=feature_request.yaml&title=%5BFEATURE%5D+
+[nightly]: https://github.com/thejaustin/AutoCat/releases/tag/dev-latest
+[bug-reports]: https://github.com/thejaustin/AutoCat/issues/new?template=bug_report.yaml
+[feature-requests]: https://github.com/thejaustin/AutoCat/issues/new?template=feature_request.yaml
 [code-of-conduct]: CODE_OF_CONDUCT.md
 [crowdin]: https://lawnchair.crowdin.com
 [kotlin-coding-conventions]: https://kotlinlang.org/docs/coding-conventions.html
-[lawnchair-package]: https://github.com/LawnchairLauncher/lawnchair/tree/15-dev/lawnchair
-[src-package]: https://github.com/LawnchairLauncher/lawnchair/tree/15-dev/src
+[lawnchair-package]: https://github.com/thejaustin/AutoCat/tree/15-dev/lawnchair
+[src-package]: https://github.com/thejaustin/AutoCat/tree/15-dev/src
 [conventional-commits]: https://www.conventionalcommits.org/en/v1.0.0/
 [google-fonts-api-key]: https://developers.google.com/fonts/docs/developer_api#APIKey

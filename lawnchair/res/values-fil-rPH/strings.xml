@@ -72,7 +72,7 @@
     General "words" used throughout Lawnchair
 
     -->
-    <string name="others_category_label">Iba pa</string>
+    <string name="others_tab_label">Iba pa</string>
     <!-- Selection options -->
     <string name="dynamic">Dinamika</string>
     <string name="presets">Mga Preset</string>

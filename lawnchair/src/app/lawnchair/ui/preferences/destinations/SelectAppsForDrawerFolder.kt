@@ -111,9 +111,9 @@ fun SelectAppsForDrawerFolder(
                         )
 
                         // Bidirectional sync
-                        // TODO: Implement CategoryFolderSyncService
+                        // TODO: Implement TabFolderSyncService
                         // scope.launch {
-                        //     CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
+                        //     TabFolderSyncService.getInstance(context).onFolderItemsChanged(
                         //         folderId = folderInfoId,
                         //         categoryName = folderInfo?.title.toString(),
                         //         newAppPackages = newSet.mapNotNull { it.targetPackage },
@@ -167,9 +167,9 @@ fun SelectAppsForDrawerFolder(
                                             )
 
                                             // Bidirectional sync
-                                            // TODO: Implement CategoryFolderSyncService
+                                            // TODO: Implement TabFolderSyncService
                                             // scope.launch {
-                                            //     CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
+                                            //     TabFolderSyncService.getInstance(context).onFolderItemsChanged(
                                             //         folderId = folderInfoId,
                                             //         categoryName = folderInfo?.title.toString(),
                                             //         newAppPackages = newSet.mapNotNull { it.targetPackage },

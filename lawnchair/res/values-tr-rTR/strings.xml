@@ -72,7 +72,7 @@
     General "words" used throughout Lawnchair
 
     -->
-    <string name="others_category_label">Diğerleri</string>
+    <string name="others_tab_label">Diğerleri</string>
     <!-- Selection options -->
     <string name="dynamic">Dinamik</string>
     <string name="presets">Ön Ayarlar</string>

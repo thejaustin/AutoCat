@@ -258,7 +258,7 @@ class LawnchairLauncher : QuickstepLauncher() {
                 AppDatabase.INSTANCE.get(this).checkpointSync()
             }
         } catch (e: Throwable) {
-            Log.e("LawnchairLauncher", "Error in LawnchairLauncher onCreate post-super initialization", e)
+            Log.e("AutoCatLauncher", "Error in AutoCatLauncher onCreate post-super initialization", e)
             // If the bug reporter is already set up, it should catch this.
             // If not, logging it here is the best we can do.
             // Re-throwing could cause crash loops. The activity might just finish if it's too broken.

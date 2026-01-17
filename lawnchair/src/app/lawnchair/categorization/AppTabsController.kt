@@ -21,24 +21,24 @@ import kotlinx.coroutines.withContext
  * Controller for managing app tabs in the app drawer.
  * Provides dynamic tabs based on user-defined tabs.
  */
-class CategoryTabsController private constructor(private val context: Context) : SafeCloseable {
+class AppTabsController private constructor(private val context: Context) : SafeCloseable {
 
     companion object {
         @JvmField
-        val INSTANCE = MainThreadInitializedObject<CategoryTabsController>(::CategoryTabsController)
+        val INSTANCE = MainThreadInitializedObject<AppTabsController>(::AppTabsController)
 
         const val TAB_ALL = "All Apps"
         const val TAB_WORK = "Work"
         const val TAB_ALL_INDEX = 0
 
         @JvmStatic
-        fun getInstance(context: Context): CategoryTabsController {
+        fun getInstance(context: Context): AppTabsController {
             return INSTANCE.get(context)
         }
     }
 
     private val database by lazy { TabDatabase.getInstance(context) }
-    private val categoryDao by lazy { database.categoryDao() }
+    private val categoryDao by lazy { database.tabDao() }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _categories = MutableStateFlow<List<CustomTab>>(emptyList())
@@ -68,7 +68,7 @@ class CategoryTabsController private constructor(private val context: Context) :
         scope.launch {
             try {
                 val cats: List<CustomTab> = withContext(Dispatchers.IO) {
-                    categoryDao.getAllCustomCategories()
+                    categoryDao.getAllCustomTabs()
                         .filter { it.isVisible }
                         .sortedBy { it.sortOrder }
                 }
@@ -193,9 +193,9 @@ class CategoryTabsController private constructor(private val context: Context) :
         if (oldTabName == TAB_ALL || oldTabName == TAB_WORK) return
 
         scope.launch(Dispatchers.IO) {
-            val tab = categoryDao.getCustomCategoryByName(oldTabName)
+            val tab = categoryDao.getCustomTabByName(oldTabName)
             if (tab != null) {
-                categoryDao.updateCustomCategory(tab.copy(name = newTabName))
+                categoryDao.updateCustomTab(tab.copy(name = newTabName))
                 categoryDao.updateAppTabName(oldTabName, newTabName)
                 loadCategories()
                 AutoCatAppProvider.getInstance(context).refreshCache()
@@ -210,9 +210,9 @@ class CategoryTabsController private constructor(private val context: Context) :
         if (tabName == TAB_ALL || tabName == TAB_WORK) return
 
         scope.launch(Dispatchers.IO) {
-            val tab = categoryDao.getCustomCategoryByName(tabName)
+            val tab = categoryDao.getCustomTabByName(tabName)
             if (tab != null) {
-                categoryDao.deleteCustomCategory(tab)
+                categoryDao.deleteCustomTab(tab)
                 categoryDao.resetAppTabsForDeletedTab(tabName)
                 loadCategories()
                 AutoCatAppProvider.getInstance(context).refreshCache()

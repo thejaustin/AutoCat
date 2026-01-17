@@ -249,7 +249,7 @@ Show warning when approaching max depth:
 ⚠️ Maximum folder nesting reached (3 levels)
 ```
 
-### 4. CategoryFolderSyncService Integration
+### 4. TabFolderSyncService Integration
 
 Support auto-creating nested folders from tab hierarchies:
 
@@ -342,7 +342,7 @@ CREATE INDEX idx_folder_items_nested ON FolderItems(nested_folder_id);
 #### Phase 2: Service Layer
 1. Implement `moveFolderIntoFolder()`
 2. Add validation logic (circular deps, max depth)
-3. Update `CategoryFolderSyncService` for tab hierarchies
+3. Update `TabFolderSyncService` for tab hierarchies
 4. Add breadcrumb methods
 
 #### Phase 3: UI
@@ -398,7 +398,7 @@ CREATE INDEX idx_folder_items_nested ON FolderItems(nested_folder_id);
 - [ ] Update `FolderItemEntity` with `nestedFolderId`
 - [ ] Add DAO methods for hierarchy queries
 - [ ] Implement validation logic in `FolderService`
-- [ ] Update `CategoryFolderSyncService` for auto-nesting
+- [ ] Update `TabFolderSyncService` for auto-nesting
 - [ ] Design UI for drag-and-drop nesting
 - [ ] Implement breadcrumb navigation
 - [ ] Add unit tests for validation
@@ -410,7 +410,7 @@ CREATE INDEX idx_folder_items_nested ON FolderItems(nested_folder_id);
 - Issue #22: Feature: Nested folders (folderception)
 - `FolderEntity.kt`: Database model
 - `FolderService.kt`: Business logic
-- `CategoryFolderSyncService.kt`: Auto-sync from tabs
+- `TabFolderSyncService.kt`: Auto-sync from tabs
 - Launcher3 `FolderInfo.java`: Domain model
 
 ---

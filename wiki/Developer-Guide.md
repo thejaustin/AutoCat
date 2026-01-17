@@ -199,7 +199,7 @@ app.lawnchair.categorization/ (19 files)
 ├── AccuracyTracker.kt
 ├── AdaptiveModelSelector.kt
 ├── CategorizationManager.kt
-├── CategoryFolderSyncService.kt
+├── TabFolderSyncService.kt
 ├── llm/
 │   ├── GoogleAIProvider.kt
 │   ├── ClaudeProvider.kt
@@ -222,10 +222,12 @@ app.lawnchair.data.tab/ (7 files)
     └── ModelAccuracy.kt
 
 app.lawnchair.ui.preferences.destinations/ (8 files)
-├── AppCategorizationListPreferences.kt
-├── CategorizationSettingsPreferences.kt
-├── CategoryManagementPreferences.kt
-└── LLMSettingsPreferences.kt
+├── AppTabAssignmentPreferences.kt       Phase 4 (renamed)
+├── AppCategorizationPreferences.kt      Phase 20 (renamed)
+├── CategorizationProgress.kt            Phase 6
+├── CategorizationSettingsPreferences.kt Phase 20
+├── TabManagementPreferences.kt          Phase 4 (renamed)
+└── LLMSettingsPreferences.kt            Phase 5
 ```
 
 See [AutoCat vs Upstream](AutoCat-vs-Upstream.md) for complete file list.

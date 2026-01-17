@@ -57,16 +57,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategorizationManager
-import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.categorization.importer.SmartLauncherImporter
 import app.lawnchair.categorization.importer.SmartLauncherImporter.ImportResult
 import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.GoogleAIProvider
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
-import app.lawnchair.categorization.llm.SuggestedCategory
+import app.lawnchair.categorization.llm.SuggestedTab
 import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.CustomTab
@@ -78,7 +78,7 @@ import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
-import app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations
+import app.lawnchair.ui.preferences.navigation.AppDrawerAppTabAssignments
 import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -108,7 +108,7 @@ fun CategorizationSettingsPreferences(
     var showAddDialog by remember { mutableStateOf(false) }
     var editingTab by remember { mutableStateOf<CustomTab?>(null) }
     var showSuggestionsDialog by remember { mutableStateOf(false) }
-    var suggestedCategories by remember { mutableStateOf<List<SuggestedCategory>>(emptyList()) }
+    var suggestedTabs by remember { mutableStateOf<List<SuggestedTab>>(emptyList()) }
     var isLoadingSuggestions by remember { mutableStateOf(false) }
     var suggestionsError by remember { mutableStateOf<String?>(null) }
     var suggestionsProvider by remember { mutableStateOf<String?>(null) }
@@ -121,7 +121,7 @@ fun CategorizationSettingsPreferences(
                 categorizationManager = CategorizationManager.getInstance(context)
                 database = TabDatabase.getInstance(context)
                 appProvider = AutoCatAppProvider.getInstance(context)
-                tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
             } catch (e: Exception) {
                 android.util.Log.e("CategorizationSettings", "Error initializing: ${e.message}", e)
                 initializationError = "Failed to initialize: ${e.message}"
@@ -139,7 +139,7 @@ fun CategorizationSettingsPreferences(
                 val result = importer.importFromUri(uri)
                 categorizationStatus = when (result) {
                     is ImportResult.Success -> {
-                        CategoryTabsController.getInstance(context).refresh()
+                        AppTabsController.getInstance(context).refresh()
                         // Auto-sort apps into folders
                         val sortResult = app.lawnchair.categorization.FolderAutoSortService.getInstance(context).autoSortAll()
                         "✅ Imported ${result.count} apps. Created ${sortResult.foldersCreated} folders with ${sortResult.appsSorted} apps."
@@ -270,13 +270,13 @@ fun CategorizationSettingsPreferences(
                     Column {
                         // Tab List
                         tabs.forEach { tab ->
-                            CategoryItem(
+                            TabItem(
                                 tab = tab,
                                 onEdit = { editingTab = it },
                                 onDelete = { target ->
                                     scope.launch(Dispatchers.IO) {
-                                        database?.categoryDao()?.deleteCustomCategory(target)
-                                        tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                                        database?.tabDao()?.deleteCustomTab(target)
+                                        tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
                                     }
                                 },
                             )
@@ -337,15 +337,15 @@ fun CategorizationSettingsPreferences(
                                                 try {
                                                     if (!provider.isAvailable()) continue
 
-                                                    suggestedCategories = withContext(Dispatchers.IO) {
-                                                        provider.suggestCategories(
+                                                    suggestedTabs = withContext(Dispatchers.IO) {
+                                                        provider.suggestTabs(
                                                             installedApps = appNames,
                                                             existingTabs = existingTabs,
                                                             maxSuggestions = 5,
                                                         )
                                                     }
 
-                                                    if (suggestedCategories.isEmpty()) {
+                                                    if (suggestedTabs.isEmpty()) {
                                                         suggestionsError = "No new tabs suggested."
                                                     } else {
                                                         suggestionsProvider = provider.name
@@ -400,8 +400,8 @@ fun CategorizationSettingsPreferences(
                 PreferenceGroup(heading = "Other Settings") {
                     NavigationActionPreference(
                         label = "Review & Override",
-                        subtitle = "View and manually override app categorizations",
-                        destination = AppDrawerAppCategorizations,
+                        subtitle = "View and manually override app tab assignments",
+                        destination = AppDrawerAppTabAssignments,
                         icon = Icons.Rounded.Edit,
                     )
 
@@ -471,7 +471,7 @@ fun CategorizationSettingsPreferences(
 
     // Add/Edit Dialog
     if (showAddDialog || editingTab != null) {
-        CategoryDialog(
+        TabDialog(
             tab = editingTab,
             onDismiss = {
                 showAddDialog = false
@@ -482,19 +482,19 @@ fun CategorizationSettingsPreferences(
                     try {
                         if (editingTab != null) {
                             withContext(Dispatchers.IO) {
-                                database?.categoryDao()?.updateCustomCategory(editingTab!!.copy(name = name, colorHex = color))
+                                database?.tabDao()?.updateCustomTab(editingTab!!.copy(name = name, colorHex = color))
                             }
                             successMessage = "✓ Tab '$name' updated"
                         } else {
                             withContext(Dispatchers.IO) {
                                 val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
-                                database?.categoryDao()?.insertCustomCategory(
+                                database?.tabDao()?.insertCustomTab(
                                     CustomTab(name = name, colorHex = color, sortOrder = maxSortOrder + 1, isVisible = true),
                                 )
                             }
                             successMessage = "✓ Tab '$name' created!"
                         }
-                        tabs = withContext(Dispatchers.IO) { database?.categoryDao()?.getAllCustomCategories() ?: emptyList() }
+                        tabs = withContext(Dispatchers.IO) { database?.tabDao()?.getAllCustomTabs() ?: emptyList() }
                         appProvider?.refreshCache()
                         showAddDialog = false
                         editingTab = null
@@ -509,8 +509,8 @@ fun CategorizationSettingsPreferences(
 
     // Suggestions Dialog
     if (showSuggestionsDialog) {
-        SuggestionsDialog(
-            suggestions = suggestedCategories,
+        TabSuggestionsDialog(
+            suggestions = suggestedTabs,
             providerName = suggestionsProvider,
             onDismiss = { showSuggestionsDialog = false },
             onAddTab = { suggestion ->
@@ -518,10 +518,10 @@ fun CategorizationSettingsPreferences(
                     try {
                         withContext(Dispatchers.IO) {
                             val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
-                            database?.categoryDao()?.insertCustomCategory(
+                            database?.tabDao()?.insertCustomTab(
                                 CustomTab(name = suggestion.name, colorHex = "#4CAF50", sortOrder = maxSortOrder + 1),
                             )
-                            tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                            tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
                         }
                         appProvider?.refreshCache()
                         successMessage = "✓ Added '${suggestion.name}' tab!"
@@ -536,7 +536,7 @@ fun CategorizationSettingsPreferences(
 }
 
 @Composable
-private fun CategoryItem(
+private fun TabItem(
     tab: CustomTab,
     onEdit: (CustomTab) -> Unit,
     onDelete: (CustomTab) -> Unit,
@@ -585,7 +585,7 @@ private fun CategoryItem(
 }
 
 @Composable
-private fun CategoryDialog(
+private fun TabDialog(
     tab: CustomTab?,
     onDismiss: () -> Unit,
     onSave: (String, String) -> Unit,
@@ -642,7 +642,7 @@ private fun CategoryDialog(
                                 ) {
                                     if (colorHex == color) {
                                         Icon(
-                                            Icons.Default.Add,
+                                            Icons.Default.CheckCircle,
                                             contentDescription = "Selected",
                                             tint = Color.White,
                                         )
@@ -671,11 +671,11 @@ private fun CategoryDialog(
 }
 
 @Composable
-private fun SuggestionsDialog(
-    suggestions: List<SuggestedCategory>,
+private fun TabSuggestionsDialog(
+    suggestions: List<SuggestedTab>,
     providerName: String?,
     onDismiss: () -> Unit,
-    onAddTab: (SuggestedCategory) -> Unit,
+    onAddTab: (SuggestedTab) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,

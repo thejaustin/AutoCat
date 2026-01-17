@@ -22,7 +22,7 @@ import kotlinx.coroutines.withTimeout
  *
  * Uses the caddy folder implementation (FolderService + Room DB).
  */
-class CategoryFolderSyncService(
+class TabFolderSyncService(
     private val context: Context,
 ) {
 
@@ -31,7 +31,7 @@ class CategoryFolderSyncService(
     private val reloadHelper by lazy { ReloadHelper(context) }
 
     companion object {
-        private const val TAG = "CategoryFolderSync"
+        private const val TAG = "TabFolderSync"
     }
 
     /**
@@ -66,22 +66,17 @@ class CategoryFolderSyncService(
     }
 
     /**
-     * Syncs all categorized apps to drawer folders.
+     * Entry point for syncing tabs to folders.
+     * Delegates to specific sync methods based on current mode.
      *
-     * Creates folders for each category and adds apps to them.
-     * Only affects apps that have been categorized.
-     *
-     * @param categorizations Map of package name → tab name
-     * @param allApps Optional list of all apps to avoid recreating AppInfo objects
-     * @return SyncResult with statistics
+     * @param tabAssignments Map of packageName -> tabName
      */
-    suspend fun syncCategoriesToFolders(
-        categorizations: Map<String, String>,
-        allApps: List<com.android.launcher3.model.data.AppInfo>? = null,
+    suspend fun syncTabsToFolders(
+        tabAssignments: Map<String, String>,
     ): SyncResult = withContext(Dispatchers.IO) {
         if (!isSyncEnabled()) {
             LLMLogger.logInfo(
-                provider = "CategoryFolderSync",
+                provider = "TabFolderSync",
                 operation = "SYNC",
                 message = "Folder sync is disabled, skipping",
             )
@@ -96,14 +91,14 @@ class CategoryFolderSyncService(
         try {
             val syncMode = getSyncMode()
             LLMLogger.logInfo(
-                provider = "CategoryFolderSync",
+                provider = "TabFolderSync",
                 operation = "SYNC",
-                message = "Starting folder sync for ${categorizations.size} categorizations (mode: ${syncMode.displayName})",
+                message = "Starting folder sync for ${tabAssignments.size} assignments (mode: ${syncMode.displayName})",
             )
 
             if (!shouldSyncToDrawer() && !shouldSyncToHomeScreen()) {
                 LLMLogger.logWarning(
-                    provider = "CategoryFolderSync",
+                    provider = "TabFolderSync",
                     operation = "SYNC",
                     message = "No sync mode enabled",
                 )
@@ -116,7 +111,7 @@ class CategoryFolderSyncService(
             }
 
             // Group apps by tab, excluding "Other" and system categories
-            val appsByTab = categorizations.entries
+            val appsByTab = tabAssignments.entries
                 .filter { (_, tabName) ->
                     // Exclude "Other" tab and empty tab names
                     tabName.isNotEmpty() && tabName != "Other"
@@ -126,7 +121,7 @@ class CategoryFolderSyncService(
                     valueTransform = { it.key },
                 )
 
-            android.util.Log.d(TAG, "Categorizations: ${categorizations.size} total, ${appsByTab.size} tabs")
+            android.util.Log.d(TAG, "Tab Assignments: ${tabAssignments.size} total, ${appsByTab.size} tabs")
             appsByTab.forEach { (tabName, packages) ->
                 android.util.Log.d(TAG, "Tab '$tabName': ${packages.size} packages - ${packages.take(3)}" + if (packages.size > 3) "..." else "")
             }
@@ -157,7 +152,7 @@ class CategoryFolderSyncService(
                 val userCache = UserCache.INSTANCE.get(context)
                 val launcherApps = context.getSystemService(android.content.pm.LauncherApps::class.java)
 
-                categorizations.keys.flatMap { packageName ->
+                tabAssignments.keys.flatMap { packageName ->
                     userCache.userProfiles.flatMap { userHandle ->
                         try {
                             launcherApps?.getActivityList(packageName, userHandle)
@@ -171,7 +166,7 @@ class CategoryFolderSyncService(
             }
 
             // Build icon map
-            val customTabs = TabDatabase.getInstance(context).categoryDao().getAllCustomCategories()
+            val customTabs = TabDatabase.getInstance(context).tabDao().getAllCustomTabs()
             val tabIconMap = customTabs.associate { it.name to it.icon }
 
             // Sync to drawer folders if enabled
@@ -186,7 +181,7 @@ class CategoryFolderSyncService(
             // TODO: Sync to home screen folders if enabled
             if (shouldSyncToHomeScreen()) {
                 LLMLogger.logWarning(
-                    provider = "CategoryFolderSync",
+                    provider = "TabFolderSync",
                     operation = "SYNC_HOME_SCREEN",
                     message = "Home screen folder sync not yet implemented",
                 )
@@ -200,7 +195,7 @@ class CategoryFolderSyncService(
             )
 
             LLMLogger.logInfo(
-                provider = "CategoryFolderSync",
+                provider = "TabFolderSync",
                 operation = "SYNC",
                 message = result.message,
             )
@@ -212,7 +207,7 @@ class CategoryFolderSyncService(
             result
         } catch (e: Exception) {
             LLMLogger.logError(
-                provider = "CategoryFolderSync",
+                provider = "TabFolderSync",
                 operation = "SYNC",
                 error = e,
             )
@@ -246,7 +241,7 @@ class CategoryFolderSyncService(
             val folderIcon = tabIconMap[tabName]
 
             LLMLogger.logDebug(
-                provider = "CategoryFolderSync",
+                provider = "TabFolderSync",
                 operation = "SYNC_DRAWER_FOLDER",
                 message = "Syncing drawer folder: $folderName",
                 details = mapOf(
@@ -256,7 +251,7 @@ class CategoryFolderSyncService(
                 ),
             )
 
-            // Find apps for this category (FAST - map lookup)
+            // Find apps for this tab (FAST - map lookup)
             val apps = packageNames.flatMap { packageName ->
                 val matchedApps = appsByPackage[packageName] ?: emptyList()
                 if (matchedApps.isEmpty()) {
@@ -323,7 +318,7 @@ class CategoryFolderSyncService(
     suspend fun removeAllSyncedFolders(): Int = withContext(Dispatchers.IO) {
         try {
             LLMLogger.logInfo(
-                provider = "CategoryFolderSync",
+                provider = "TabFolderSync",
                 operation = "REMOVE_DRAWER_FOLDERS",
                 message = "Removing all drawer folders",
             )
@@ -348,7 +343,7 @@ class CategoryFolderSyncService(
             folders.size
         } catch (e: Exception) {
             LLMLogger.logError(
-                provider = "CategoryFolderSync",
+                provider = "TabFolderSync",
                 operation = "REMOVE_DRAWER_FOLDERS",
                 error = e,
             )
@@ -376,7 +371,7 @@ class CategoryFolderSyncService(
     suspend fun onFolderDeleted(folderId: Int, tabName: String, removeTabs: Boolean = false) {
         if (removeTabs) {
             // Remove all AppTab entries for this tab
-            val dao = TabDatabase.getInstance(context).categoryDao()
+            val dao = TabDatabase.getInstance(context).tabDao()
             val apps = dao.getAppsByTab(tabName)
 
             if (apps.isNotEmpty()) {
@@ -393,7 +388,7 @@ class CategoryFolderSyncService(
      * When user manually adds/removes apps from a folder, update categories
      */
     suspend fun onFolderItemsChanged(folderId: Int, tabName: String, newAppPackages: List<String>) {
-        val dao = TabDatabase.getInstance(context).categoryDao()
+        val dao = TabDatabase.getInstance(context).tabDao()
 
         // Update AppTab table to match folder contents
         val existingApps = dao.getAppsByTab(tabName).map { it.packageName }
@@ -404,7 +399,7 @@ class CategoryFolderSyncService(
         val removed = existingApps - newAppPackages.toSet()
 
         added.forEach { packageName ->
-            dao.insertAppCategory(
+            dao.insertAppTab(
                 app.lawnchair.data.tab.entities.AppTab(
                     packageName = packageName,
                     tabName = tabName,

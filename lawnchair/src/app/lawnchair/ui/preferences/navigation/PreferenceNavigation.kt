@@ -21,12 +21,11 @@ import app.lawnchair.ui.preferences.about.acknowledgements.Acknowledgements
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreferenceModelList
 import app.lawnchair.ui.preferences.components.colorpreference.ColorSelection
 import app.lawnchair.ui.preferences.components.search.SearchProviderPreferenceScreen
-import app.lawnchair.ui.preferences.destinations.AppCategorizationListPreferences
+import app.lawnchair.ui.preferences.destinations.AppCategorizationPreferences
 import app.lawnchair.ui.preferences.destinations.AppDrawerFoldersPreference
 import app.lawnchair.ui.preferences.destinations.AppDrawerPreferences
-import app.lawnchair.ui.preferences.destinations.CategorizationOverviewPreferences
+import app.lawnchair.ui.preferences.destinations.AppTabAssignmentPreferences
 import app.lawnchair.ui.preferences.destinations.CategorizationSettingsPreferences
-import app.lawnchair.ui.preferences.destinations.CategoryManagementPreferences
 import app.lawnchair.ui.preferences.destinations.CustomIconShapePreference
 import app.lawnchair.ui.preferences.destinations.DebugMenuPreferences
 import app.lawnchair.ui.preferences.destinations.DockPreferences
@@ -54,6 +53,7 @@ import app.lawnchair.ui.preferences.destinations.SelectAppPreference
 import app.lawnchair.ui.preferences.destinations.SelectAppsForDrawerFolder
 import app.lawnchair.ui.preferences.destinations.SelectIconPreference
 import app.lawnchair.ui.preferences.destinations.SmartspacePreferences
+import app.lawnchair.ui.preferences.destinations.TabManagementPreferences
 import com.android.launcher3.util.ComponentKey
 import soup.compose.material.motion.animation.materialSharedAxisXIn
 import soup.compose.material.motion.animation.materialSharedAxisXOut
@@ -122,11 +122,11 @@ fun PreferenceNavigation(
 
         composable<AppDrawer> { AppDrawerPreferences() }
         composable<AppDrawerHiddenApps> { HiddenAppsPreferences() }
-        composable<AppDrawerManageTabs> { CategoryManagementPreferences() }
+        composable<AppDrawerManageTabs> { TabManagementPreferences() }
         composable<AppDrawerLLMSettings> { LLMSettingsPreferences() }
-        composable<AppDrawerAppCategorizations> { AppCategorizationListPreferences() }
+        composable<AppDrawerAppTabAssignments> { AppTabAssignmentPreferences() }
         composable<AppDrawerCategorizationSettings> { CategorizationSettingsPreferences() }
-        composable<AppDrawerCategorizationOverview> { CategorizationOverviewPreferences() }
+        composable<AppDrawerAppCategorization> { AppCategorizationPreferences() }
         composable<AppDrawerAppListToFolder> { backStackEntry ->
             val args = backStackEntry.arguments!!
             val folderInfoId = args.getInt("id")

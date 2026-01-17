@@ -82,18 +82,18 @@ AutoCat aims to be:
 
 **Links**: [Issue #19](https://github.com/thejaustin/AutoCat/issues/19)
 
-### Per-Category Accuracy Analysis
+### Per-Tab Accuracy Analysis
 
 **Priority**: Medium
 
-**Goal**: Deeper insights into categorization quality
+**Goal**: Deeper insights into assignment quality
 
 **Features**:
-- Accuracy metrics per category (e.g., "Games" accuracy vs "Productivity")
-- Identify which categories need improvement
-- Category-specific model selection
+- Accuracy metrics per tab (e.g., "Games" accuracy vs "Productivity")
+- Identify which tabs need improvement
+- Tab-specific model selection
 
-**Estimated Impact**: Better categorization for difficult categories
+**Estimated Impact**: Better assignment for difficult tabs
 
 ### Smart Launcher Import Enhancements
 
@@ -119,18 +119,18 @@ AutoCat aims to be:
 - Historical accuracy trends
 - Token usage analytics
 - Cost tracking per provider
-- Category distribution charts
+- Tab distribution charts
 - User correction patterns
 
 ### Multi-Device Sync
 
 **Features**:
-- Sync categories across devices
-- Cloud backup of categorizations
-- Shared category configurations
-- Family/team category sharing
+- Sync tab assignments across devices
+- Cloud backup of assignments
+- Shared tab configurations
+- Family/team tab sharing
 
-### Custom Categorization Rules
+### Custom Assignment Rules
 
 **Features**:
 - User-defined rules (e.g., "All Google apps → Productivity")
@@ -143,7 +143,7 @@ AutoCat aims to be:
 **Features**:
 - Third-party categorization plugins
 - Custom LLM provider support
-- Category export/import formats
+- Tab export/import formats
 - API for external tools
 
 ---
@@ -200,7 +200,7 @@ AutoCat aims to be:
 1. ✅ Accuracy tracking (Completed in Phase 21)
 2. ✅ Auto-select best model (Completed in Phase 21)
 3. 🔄 Parallel batch processing (Planned)
-4. 🔄 Per-category analytics (Planned)
+4. 🔄 Per-tab analytics (Planned)
 5. 📅 Multi-device sync (Long-term)
 
 ---
@@ -281,7 +281,7 @@ All development happens in public. Community input shapes priorities.
         │
 2026-Q1 │ 🚀 Performance Optimizations
         │ ├─ Parallel batch processing
-        │ ├─ Per-category analytics
+        │ ├─ Per-tab analytics
         │ └─ Smart Launcher import enhancements
         │
 2026-Q2 │ 📈 Advanced Features

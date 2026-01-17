@@ -41,7 +41,7 @@ import kotlinx.coroutines.delay
  */
 class LLMCategorizer(
     private val context: Context,
-    private val categoryDao: TabDao,
+    private val tabDao: TabDao,
 ) {
 
     // Initialize providers once to avoid overhead in loops
@@ -56,33 +56,33 @@ class LLMCategorizer(
     }
 
     // User correction learner for improving accuracy
-    private val learner by lazy { UserCorrectionLearner.getInstance(context, categoryDao) }
+    private val learner by lazy { UserCorrectionLearner.getInstance(context, tabDao) }
     private val circuitBreaker = ProviderCircuitBreaker()
     private val adaptiveSelector by lazy { AdaptiveModelSelector(context) }
 
     /**
-     * Attempts to categorize an app using LLM analysis with fallback support.
+     * Attempts to assign an app to a tab using LLM analysis with fallback support.
      *
      * Tries providers in order: primary provider (from settings), then fallbacks.
      *
      * @param appInfo App metadata including name and package
-     * @return true if app was categorized, false if LLM couldn't determine a category
+     * @return true if app was assigned to a tab, false if LLM couldn't determine a tab
      */
     suspend fun categorize(appInfo: AppInfo): Boolean {
-        // Get available custom categories
-        val customCategories = categoryDao.getVisibleCustomCategories()
+        // Get available custom tabs
+        val customTabs = tabDao.getVisibleCustomTabs()
 
-        if (customCategories.isEmpty()) {
-            android.util.Log.d(TAG, "No custom categories available for LLM categorization")
+        if (customTabs.isEmpty()) {
+            android.util.Log.d(TAG, "No custom tabs available for LLM tab assignment")
             return false
         }
 
-        val tabNames = customCategories.map { it.name }
+        val tabNames = customTabs.map { it.name }
 
         // Check if we have a strong learned hint for this app
         val hint = learner.getHintForPackage(appInfo.packageName)
         if (hint != null && tabNames.contains(hint.tabName)) {
-            // Apply learned categorization directly (skip LLM)
+            // Apply learned assignment directly (skip LLM)
             val appTab = AppTab(
                 packageName = appInfo.packageName,
                 tabName = hint.tabName,
@@ -91,7 +91,7 @@ class LLMCategorizer(
                 isUserOverride = false,
                 reasoning = "Based on ${hint.sampleCount} previous user corrections for similar apps",
             )
-            categoryDao.insertAppCategory(appTab)
+            tabDao.insertAppTab(appTab)
 
             android.util.Log.d(
                 TAG,
@@ -174,11 +174,11 @@ class LLMCategorizer(
                     model = provider.getCurrentModel()?.id,
                 )
 
-                categoryDao.insertAppCategory(appTab)
+                tabDao.insertAppTab(appTab)
 
                 android.util.Log.d(
                     TAG,
-                    "${provider.name} categorized ${appInfo.packageName} as ${result.tabName} " +
+                    "${provider.name} assigned ${appInfo.packageName} to tab ${result.tabName} " +
                         "(confidence: ${result.confidence}, reason: ${result.reasoning})",
                 )
 
@@ -201,13 +201,13 @@ class LLMCategorizer(
     }
 
     /**
-     * Categorizes multiple apps in batch.
+     * Assigns multiple apps to tabs in batch.
      *
      * Uses LLM batch API when enabled, falls back to sequential processing.
      *
      * @param apps List of apps to categorize
      * @param onProgress Optional callback for progress updates
-     * @return Number of apps successfully categorized
+     * @return Number of apps successfully assigned to tabs
      */
     suspend fun categorizeBatch(
         apps: List<AppInfo>,
@@ -226,7 +226,7 @@ class LLMCategorizer(
     }
 
     /**
-     * Categorizes apps using the batch API (efficient).
+     * Assigns apps using the batch API (efficient).
      */
     private suspend fun categorizeBatchAPI(
         apps: List<AppInfo>,
@@ -234,14 +234,14 @@ class LLMCategorizer(
     ): Int {
         if (apps.isEmpty()) return 0
 
-        // Get available custom categories
-        val customCategories = categoryDao.getVisibleCustomCategories()
-        if (customCategories.isEmpty()) {
-            android.util.Log.d(TAG, "No custom categories available for LLM categorization")
+        // Get available custom tabs
+        val customTabs = tabDao.getVisibleCustomTabs()
+        if (customTabs.isEmpty()) {
+            android.util.Log.d(TAG, "No custom tabs available for LLM tab assignment")
             return 0
         }
 
-        val tabNames = customCategories.map { it.name }
+        val tabNames = customTabs.map { it.name }
 
         // Get user's preferred provider (or auto-selected best provider)
         val prefManager = PreferenceManager.getInstance(context)
@@ -293,7 +293,7 @@ class LLMCategorizer(
 
         android.util.Log.d(
             TAG,
-            "Starting batch categorization: ${apps.size} apps, $totalBatches batches of ~$batchSize apps",
+            "Starting batch tab assignment: ${apps.size} apps, $totalBatches batches of ~$batchSize apps",
         )
 
         // Process batches in parallel chunks to maximize throughput
@@ -311,7 +311,7 @@ class LLMCategorizer(
                         onProgress?.invoke(
                             CategorizationProgress(
                                 isRunning = true,
-                                currentStage = "LLM Categorization",
+                                currentStage = "AI Categorization",
                                 processedCount = categorizedCount,
                                 totalCount = apps.size,
                                 currentBatch = batchIndex,
@@ -360,7 +360,7 @@ class LLMCategorizer(
                             ) {
                                 android.util.Log.d(
                                     TAG,
-                                    "Batch $batchIndex/$totalBatches: Categorizing ${batch.size} apps with ${provider.name}",
+                                    "Batch $batchIndex/$totalBatches: Assigning ${batch.size} apps to tabs with ${provider.name}",
                                 )
                                 try {
                                     val result = provider.categorizeAppBatch(batchInfo, tabNames)
@@ -421,7 +421,7 @@ class LLMCategorizer(
                                 provider = providerName,
                                 model = modelId,
                             )
-                            categoryDao.insertAppCategory(appTab)
+                            tabDao.insertAppTab(appTab)
                             categorizedCount++
 
                             android.util.Log.d(
@@ -439,7 +439,7 @@ class LLMCategorizer(
             onProgress?.invoke(
                 CategorizationProgress(
                     isRunning = true,
-                    currentStage = "LLM Categorization",
+                    currentStage = "AI Categorization",
                     processedCount = categorizedCount,
                     totalCount = apps.size,
                     currentBatch = currentBatchIndex,
@@ -471,7 +471,7 @@ class LLMCategorizer(
 
         android.util.Log.d(
             TAG,
-            "Batch categorization complete: $categorizedCount/${apps.size} apps categorized " +
+            "Batch tab assignment complete: $categorizedCount/${apps.size} apps assigned " +
                 "($successRate% batch success rate, $failedBatches/$totalBatches batches failed, " +
                 "duration: ${totalDuration / 1000}s)",
         )
@@ -533,10 +533,10 @@ class LLMCategorizer(
     }
 
     /**
-     * Categorizes apps sequentially (fallback method).
+     * Assigns apps to tabs sequentially (fallback method).
      */
     private suspend fun categorizeBatchSequential(apps: List<AppInfo>): Int {
-        var categorizedCount = 0
+        var assignedCount = 0
 
         // Check preference for rate limiting
         val prefManager = PreferenceManager.getInstance(context)
@@ -554,7 +554,7 @@ class LLMCategorizer(
 
             try {
                 if (categorize(app)) { // This call internally uses the circuit breaker already
-                    categorizedCount++
+                    assignedCount++
                 }
 
                 if (isGooglePreferred) {
@@ -565,14 +565,14 @@ class LLMCategorizer(
                     kotlinx.coroutines.delay(200)
                 }
             } catch (e: Exception) {
-                android.util.Log.e(TAG, "Error categorizing ${app.packageName} in sequential batch", e)
+                android.util.Log.e(TAG, "Error assigning ${app.packageName} to tab in sequential batch", e)
                 // The circuit breaker would have already recorded a failure inside the categorize(app) call
                 // So no need to call circuitBreaker.recordFailure here again for the provider.
                 // Just continue with next app.
             }
         }
 
-        return categorizedCount
+        return assignedCount
     }
 
     /**

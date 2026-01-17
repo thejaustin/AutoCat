@@ -1,14 +1,14 @@
-# Lawnchair development roadmap
+# AutoCat development roadmap
 
-This document outlines our high-level strategic priorities. It's a living document, not a set of
+This document outlines the high-level strategic priorities for AutoCat, based on the Lawnchair roadmap. It's a living document, not a set of
 unbreakable promises. For the status of individual tasks, see
-our [GitHub Issue Tracker](https://github.com/LawnchairLauncher/lawnchair/issues) and our
-team's [Kanban board](https://github.com/orgs/LawnchairLauncher/projects/9/views/1).
+our [GitHub Issue Tracker](https://github.com/thejaustin/AutoCat/issues).
 
 ## Vision
 
-Lawnchair's goal is to be:
+AutoCat's goal is to be:
 
+* **Intelligent:** Automatically organize your apps using AI.
 * **Simple:** Match the core Pixel Launcher experience.
 * **Powerful:** Offer deep, meaningful customization.
 * **Stable:** Provide a rock-solid, reliable foundation.

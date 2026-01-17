@@ -20,6 +20,22 @@ When Lawnchair releases Beta 2, we'll update to `15.0.b2-autocat.X`
 
 ## [Unreleased]
 
+## [15.0.b1-autocat.7] - 2026-01-14
+
+### Added
+- **Full Branding Update**: Complete transition from Lawnchair to AutoCat branding in UI and code.
+  - Updated app name to "AutoCat" in all relevant string resources.
+  - Rebranded accessibility services and tutorial hints.
+  - Updated APK output filename to `AutoCat-*.apk`.
+  - Updated "About" screen with AutoCat links and team info.
+  - Updated log tags to use `AutoCat` prefix for better identification.
+  - Updated project documentation (README, ROADMAP, CONTRIBUTING, SECURITY, etc.).
+  - Updated package names in testing documentation.
+- **Terminology Refactor**: Renamed 'categories' to 'tabs' throughout the UI and codebase to better reflect the structure.
+  - Renamed 'Category' UI elements to 'Tab' (e.g., Manage Tabs, App Tab Assignments).
+  - Updated database DAO methods and internal variable names.
+  - Updated documentation to use 'tabs' for UI sections and 'categorization' for the process.
+
 ## [15.0.b1-autocat.6] - 2025-11-23 (Upcoming)
 
 ### Changed
@@ -76,18 +92,18 @@ When Lawnchair releases Beta 2, we'll update to `15.0.b2-autocat.X`
 
 ### Added
 - **Room Database Foundation**: Complete database schema for app categorization
-  - `AppCategory` entity: Stores app-to-category mappings with confidence scores
-  - `CustomCategory` entity: User-defined categories with colors and ordering
-  - `CategoryDao`: 30+ database operations with Flow-based reactive queries
-  - `CategoryDatabase`: Singleton Room database with migration support
-  - Unit tests for entity classes (`AppCategoryTest`, `CustomCategoryTest`)
+  - `AppTab` entity: Stores app-to-tab assignments with confidence scores
+  - `CustomTab` entity: User-defined tabs with colors and ordering
+  - `TabDao`: 30+ database operations with Flow-based reactive queries
+  - `TabDatabase`: Singleton Room database with migration support
+  - Unit tests for entity classes (`AppTabTest`, `CustomTabTest`)
 
 ### Technical Details
 - **Database Version**: 1
-- **Entities**: AppCategory, CustomCategory
-- **Package**: `app.lawnchair.data.category`
+- **Entities**: AppTab, CustomTab
+- **Package**: `app.lawnchair.data.tab`
 - **Room Version**: 2.8.4
-- **Confidence Scoring**: 0.0-1.0 scale for categorization reliability
+- **Confidence Scoring**: 0.0-1.0 scale for assignment reliability
 - **Source Tracking**: built-in, rule, ml, user
 
 ### Future Pipeline
@@ -95,7 +111,7 @@ This database supports a planned 4-stage categorization pipeline:
 1. Built-in (Android system categories) - Confidence: 0.95
 2. Rule-based (package patterns, permissions) - Confidence: 0.70-0.80
 3. ML inference (TensorFlow Lite) - Confidence: 0.60+
-4. User overrides (manual categorization) - Always takes precedence
+4. User overrides (manual assignments) - Always takes precedence
 
 ## [15.0.b1-autocat.1] - 2025-11-23
 
@@ -117,20 +133,20 @@ This database supports a planned 4-stage categorization pipeline:
 
 ### Planned Features
 
-**v15.0.b1-autocat.7+**:
+**v15.0.b1-autocat.8+**:
 - [ ] AppMetadataProvider wrapper (wraps PackageManager)
 - [ ] Rule-based categorizer (package patterns, permissions, keywords)
 - [ ] Integration with app drawer
-- [ ] Basic categorized drawer UI (section headers)
+- [ ] Basic tabbed drawer UI (section headers)
 - [ ] Settings UI (Jetpack Compose)
 
 **Future**:
 - [ ] ML categorization (TensorFlow Lite integration)
-- [ ] Custom category creation UI
-- [ ] Category editing and management
-- [ ] App install/uninstall listeners for auto-categorization
-- [ ] Export/import category configurations
-- [ ] Category icons and themes
+- [ ] Custom tab creation UI
+- [ ] Tab editing and management
+- [ ] App install/uninstall listeners for auto-assignment
+- [ ] Export/import tab configurations
+- [ ] Tab icons and themes
 
 ## Testing a Specific Version
 

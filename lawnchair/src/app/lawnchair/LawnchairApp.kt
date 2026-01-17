@@ -247,7 +247,7 @@ class LawnchairApp : Application() {
         val isRecentsComponent = recentsComponent.packageName == packageName &&
             recentsComponent.className == RecentsActivity::class.java.name
         if (!isRecentsComponent) {
-            Log.d(TAG, "config_recentsComponentName ($recentsComponent) is not Lawnchair, disabling recents")
+            Log.d(TAG, "config_recentsComponentName ($recentsComponent) is not AutoCat, disabling recents")
             return false
         }
 
@@ -266,7 +266,7 @@ class LawnchairApp : Application() {
     }
 
     companion object {
-        private const val TAG = "LawnchairApp"
+        private const val TAG = "AutoCatApp"
 
         @JvmStatic
         lateinit var instance: LawnchairApp

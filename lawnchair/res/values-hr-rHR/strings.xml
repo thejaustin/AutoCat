@@ -72,7 +72,7 @@
     General "words" used throughout Lawnchair
 
     -->
-    <string name="others_category_label">Ostalo</string>
+    <string name="others_tab_label">Ostalo</string>
     <!-- Selection options -->
     <string name="dynamic">Dinamično</string>
     <string name="presets">Predlošci</string>

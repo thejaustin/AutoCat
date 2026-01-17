@@ -306,7 +306,7 @@ AutoCat is developed with AI assistance using **Claude Code (Sonnet 4.5)**. All 
 **Size**: 2.8MB
 
 **Topics Covered**:
-- CategorizationOverviewPreferences
+- AppCategorizationPreferences
 - Settings reorganization
 - Filter dropdowns
 - Navigation improvements

@@ -72,7 +72,7 @@
     General "words" used throughout Lawnchair
 
     -->
-    <string name="others_category_label">อื่นๆ</string>
+    <string name="others_tab_label">อื่นๆ</string>
     <!-- Selection options -->
     <string name="dynamic">ไดนามิก</string>
     <string name="presets">ค่าที่ตั้งไว้แล้ว</string>

@@ -175,7 +175,7 @@ class SmartLauncherImporter(private val context: Context) {
                             if (targetIcon != null) {
                                 val key = "$targetTabName|$targetSubCategory"
                                 if (processedIcons.add(key)) {
-                                    provider.saveSubCategoryIcon(targetTabName, targetSubCategory, targetIcon)
+                                    provider.saveFolderIcon(targetTabName, targetSubCategory, targetIcon)
                                 }
                             }
                         }
@@ -183,29 +183,29 @@ class SmartLauncherImporter(private val context: Context) {
                         // Create AppTab entity
                         // Source is 'manual' to take precedence over 'llm' or 'built-in'
                         // isUserOverride = true ensures it sticks
-                        val appCategory = AppTab(
+                        val appTab = AppTab(
                             packageName = packageName,
                             tabName = targetTabName,
-                            subCategory = targetSubCategory,
+                            folderName = targetSubCategory,
                             confidence = 1.0f,
                             source = "import_sl", // Special source tag
                             isUserOverride = true,
                             reasoning = "Imported from Smart Launcher Backup",
                             lastUpdated = System.currentTimeMillis(),
                         )
-                        appsToImport.add(appCategory)
+                        appsToImport.add(appTab)
                         importedCount++
                     } while (appCursor.moveToNext())
                 }
                 appCursor.close()
                 slDb.close()
 
-                val categoryDao = TabDatabase.getInstance(context).categoryDao()
+                val tabDao = TabDatabase.getInstance(context).tabDao()
 
                 // 6.5 Ensure all used tabs exist in CustomTab table
                 val uniqueTabNames = appsToImport.map { it.tabName }.distinct()
-                val existingCategories = categoryDao.getAllCustomCategories()
-                var nextSortOrder = existingCategories.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
+                val existingTabs = tabDao.getAllCustomTabs()
+                var nextSortOrder = existingTabs.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
 
                 // Helper to pick a random default color
                 val defaultColors = listOf(
@@ -219,27 +219,27 @@ class SmartLauncherImporter(private val context: Context) {
                 )
 
                 for (tabName in uniqueTabNames) {
-                    val exists = existingCategories.any { it.name.equals(tabName, ignoreCase = true) }
+                    val exists = existingTabs.any { it.name.equals(tabName, ignoreCase = true) }
                     if (!exists) {
                         // Try to find an icon? For now, leave null or use default.
                         // We could check if there's a folder with the same name to steal its icon.
                         val matchingFolder = folderMap.values.find { it.label.equals(tabName, ignoreCase = true) }
 
-                        val newCategory = CustomTab(
+                        val newTab = CustomTab(
                             name = tabName,
                             colorHex = defaultColors.random(),
                             sortOrder = nextSortOrder++,
                             isVisible = true,
                             icon = matchingFolder?.icon,
                         )
-                        categoryDao.insertCustomCategory(newCategory)
+                        tabDao.insertCustomTab(newTab)
                         android.util.Log.d("SmartLauncherImporter", "Created new custom tab: $tabName")
                     }
                 }
 
                 // 7. Batch Insert into AutoCat Database
                 if (appsToImport.isNotEmpty()) {
-                    appsToImport.forEach { categoryDao.insertAppCategory(it) }
+                    appsToImport.forEach { tabDao.insertAppTab(it) }
                 }
 
                 // Cleanup

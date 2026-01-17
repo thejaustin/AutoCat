@@ -30,8 +30,8 @@ data class ModelAccuracy(
     @ColumnInfo(name = "model")
     val model: String,
 
-    @ColumnInfo(name = "category")
-    val category: String,
+    @ColumnInfo(name = "tab_name")
+    val tabName: String,
 
     @ColumnInfo(name = "was_correct")
     val wasCorrect: Boolean,

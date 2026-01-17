@@ -1,7 +1,6 @@
 package app.lawnchair.categorization
 
 import android.content.Context
-import android.content.pm.PackageManager
 import android.util.Log
 import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.data.apps.AppInfo
@@ -26,19 +25,19 @@ import kotlinx.coroutines.withContext
 class AutoCatAppProvider(private val context: Context) {
 
     private val database by lazy { TabDatabase.getInstance(context) }
-    private val categoryDao by lazy { database.categoryDao() }
-    private val llmCategorizer by lazy { LLMCategorizer(context, categoryDao) }
+    private val tabDao by lazy { database.tabDao() }
+    private val llmCategorizer by lazy { LLMCategorizer(context, tabDao) }
     private val packageManager = context.packageManager
 
-    private data class CategoryInfo(val tabName: String, val subCategory: String?)
+    private data class TabInfo(val tabName: String, val folderName: String?)
 
-    // In-memory cache of app tabs (packageName -> CategoryInfo)
+    // In-memory cache of app tabs (packageName -> TabInfo)
     // Uses AtomicReference for thread-safe swaps and immutable map for consistent reads
-    private val categoryCache = AtomicReference<Map<String, CategoryInfo>>(emptyMap())
+    private val tabCache = AtomicReference<Map<String, TabInfo>>(emptyMap())
 
-    // Cache for subcategory icons (TabName|SubCategory -> IconPath)
-    private val subCategoryIcons = ConcurrentHashMap<String, String>()
-    private val iconsFile by lazy { java.io.File(context.filesDir, "subcategory_icons.json") }
+    // Cache for folder icons (TabName|FolderName -> IconPath)
+    private val folderIcons = ConcurrentHashMap<String, String>()
+    private val iconsFile by lazy { java.io.File(context.filesDir, "folder_icons.json") }
 
     // Coroutine scope for async cache updates
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -60,7 +59,7 @@ class AutoCatAppProvider(private val context: Context) {
                 if (!initializationStarted) {
                     initializationStarted = true
                     initializeCache()
-                    loadSubCategoryIcons()
+                    loadFolderIcons()
                 }
             }
         }
@@ -73,11 +72,11 @@ class AutoCatAppProvider(private val context: Context) {
     private fun initializeCache() {
         scope.launch {
             try {
-                val appCategories = categoryDao.getAllAppCategories()
-                val newCache = appCategories.associate { appCategory ->
-                    appCategory.packageName to CategoryInfo(appCategory.tabName, appCategory.subCategory)
+                val appTabs = tabDao.getAllAppTabs()
+                val newCache = appTabs.associate { appTab ->
+                    appTab.packageName to TabInfo(appTab.tabName, appTab.folderName)
                 }
-                categoryCache.set(newCache)
+                tabCache.set(newCache)
                 cacheInitialized = true
                 Log.d(TAG, "Cache initialized with ${newCache.size} categorized apps")
             } catch (e: Exception) {
@@ -86,7 +85,7 @@ class AutoCatAppProvider(private val context: Context) {
         }
     }
 
-    private fun loadSubCategoryIcons() {
+    private fun loadFolderIcons() {
         scope.launch {
             try {
                 if (iconsFile.exists()) {
@@ -95,34 +94,34 @@ class AutoCatAppProvider(private val context: Context) {
                     val keys = json.keys()
                     while (keys.hasNext()) {
                         val key = keys.next()
-                        subCategoryIcons[key] = json.getString(key)
+                        folderIcons[key] = json.getString(key)
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to load subcategory icons", e)
+                Log.e(TAG, "Failed to load folder icons", e)
             }
         }
     }
 
-    fun saveSubCategoryIcon(tabName: String, subCategory: String, iconPath: String) {
-        val key = "$tabName|$subCategory"
-        subCategoryIcons[key] = iconPath
+    fun saveFolderIcon(tabName: String, folderName: String, iconPath: String) {
+        val key = "$tabName|$folderName"
+        folderIcons[key] = iconPath
 
         scope.launch {
             try {
                 val json = org.json.JSONObject()
-                subCategoryIcons.forEach { (k, v) ->
+                folderIcons.forEach { (k, v) ->
                     json.put(k, v)
                 }
                 iconsFile.writeText(json.toString())
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to save subcategory icons", e)
+                Log.e(TAG, "Failed to save folder icons", e)
             }
         }
     }
 
-    fun getSubCategoryIcon(tabName: String, subCategory: String): String? {
-        return subCategoryIcons["$tabName|$subCategory"]
+    fun getFolderIcon(tabName: String, folderName: String): String? {
+        return folderIcons["$tabName|$folderName"]
     }
 
     /**
@@ -139,21 +138,21 @@ class AutoCatAppProvider(private val context: Context) {
      *
      * @param packageName Package name of the app
      * @param tabName Tab name, or null to remove from cache
-     * @param subCategory Subcategory name, or null
+     * @param folderName Folder name, or null
      */
-    fun updateCacheForApp(packageName: String, tabName: String?, subCategory: String? = null) {
-        val currentCache = categoryCache.get()
+    fun updateCacheForApp(packageName: String, tabName: String?, folderName: String? = null) {
+        val currentCache = tabCache.get()
         val newCache = currentCache.toMutableMap()
 
         if (tabName != null) {
-            newCache[packageName] = CategoryInfo(tabName, subCategory)
-            Log.d(TAG, "Cache updated: $packageName -> $tabName / $subCategory")
+            newCache[packageName] = TabInfo(tabName, folderName)
+            Log.d(TAG, "Cache updated: $packageName -> $tabName / $folderName")
         } else {
             newCache.remove(packageName)
             Log.d(TAG, "Cache entry removed: $packageName")
         }
 
-        categoryCache.set(newCache)
+        tabCache.set(newCache)
     }
 
     /**
@@ -161,53 +160,53 @@ class AutoCatAppProvider(private val context: Context) {
      * Uses in-memory cache for fast lookups, avoiding database queries.
      *
      * @param appList List of all apps to categorize
-     * @return Map of TabName -> (SubCategory -> List<AppInfo>)
-     *         SubCategory key is "" (empty string) if no subcategory exists.
+     * @return Map of TabName -> (FolderName -> List<AppInfo>)
+     *         FolderName key is "" (empty string) if no folder exists.
      */
     fun categorizeApps(appList: List<app.lawnchair.data.apps.AppInfo?>?): Map<String, Map<String, List<AppInfo>>> {
         ensureInitialized()
         if (appList.isNullOrEmpty()) return emptyMap()
 
         val validApps = appList.filterNotNull()
-        // Map<TabName, MutableMap<SubCategory, MutableList<AppInfo>>>
-        val categorizedApps = mutableMapOf<String, MutableMap<String, MutableList<AppInfo>>>()
-        val uncategorizedApps = mutableListOf<AppInfo>()
+        // Map<TabName, MutableMap<FolderName, MutableList<AppInfo>>>
+        val appsByTab = mutableMapOf<String, MutableMap<String, MutableList<AppInfo>>>()
+        val unassignedApps = mutableListOf<AppInfo>()
 
-        // Use cached categories (fast in-memory lookup)
-        val cache = categoryCache.get()
+        // Use cached tabs (fast in-memory lookup)
+        val cache = tabCache.get()
         validApps.forEach { app ->
-            val catInfo = app.packageName.let { cache[it] }
+            val tabInfo = app.packageName.let { cache[it] }
 
-            if (catInfo != null) {
-                val subMap = categorizedApps.getOrPut(catInfo.tabName) { mutableMapOf() }
-                val subCatKey = catInfo.subCategory ?: ""
-                subMap.getOrPut(subCatKey) { mutableListOf() }.add(app)
+            if (tabInfo != null) {
+                val subMap = appsByTab.getOrPut(tabInfo.tabName) { mutableMapOf() }
+                val folderKey = tabInfo.folderName ?: ""
+                subMap.getOrPut(folderKey) { mutableListOf() }.add(app)
             } else {
-                uncategorizedApps.add(app)
+                unassignedApps.add(app)
             }
         }
 
-        // Add uncategorized apps to "Other" tab if any exist
-        if (uncategorizedApps.isNotEmpty()) {
-            val otherMap = categorizedApps.getOrPut("Other") { mutableMapOf() }
-            otherMap.getOrPut("") { mutableListOf() }.addAll(uncategorizedApps)
+        // Add unassigned apps to "Other" tab if any exist
+        if (unassignedApps.isNotEmpty()) {
+            val otherMap = appsByTab.getOrPut("Other") { mutableMapOf() }
+            otherMap.getOrPut("") { mutableListOf() }.addAll(unassignedApps)
         }
 
         // Sort tabs alphabetically, and sub-folders alphabetically
-        return categorizedApps.toSortedMap().mapValues { entry ->
+        return appsByTab.toSortedMap().mapValues { entry ->
             entry.value.toSortedMap()
         }
     }
 
     /**
-     * Gets the color for a category from the database.
+     * Gets the color for a tab from the database.
      *
-     * @param categoryName Name of the category
+     * @param tabName Name of the tab
      * @return Hex color string (e.g., "#4CAF50") or null if not found
      */
     suspend fun getTabColor(tabName: String): String? {
         return withContext(Dispatchers.IO) {
-            categoryDao.getCustomCategoryByName(tabName)?.colorHex
+            tabDao.getCustomTabByName(tabName)?.colorHex
         }
     }
 

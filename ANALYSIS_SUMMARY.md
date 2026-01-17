@@ -84,7 +84,7 @@
 - ✅ 4 LLM providers (Google AI, Claude, OpenAI, Perplexity)
 - ✅ Batch processing (20x faster than sequential)
 - ✅ Dual folder sync (drawer + home screen)
-- ✅ Category management system
+- ✅ Tab management system
 - ✅ User correction learning
 - ✅ Smart Launcher importer
 

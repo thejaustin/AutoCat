@@ -84,7 +84,7 @@
 **Phase 18**: Material 3 Expressive Redesign - Complete
 
 **Features:**
-- 🎨 **Material 3 Expressive** - Category Management screens
+- 🎨 **Material 3 Expressive** - Tab Management screens
   - Expressive animations
   - Enhanced touch feedback
   - Modern card designs
@@ -239,11 +239,11 @@
 
 ### Build autocat.90 (2025-12-14)
 
-**Phase 12**: Category Tabs UI Enhancement
+**Phase 12**: App Tabs UI Enhancement
 
 **Features:**
-- 📱 **Category Tabs at Bottom** ([#23](https://github.com/thejaustin/AutoCat/issues/23))
-  - Moved category tabs to bottom of app drawer
+- 📱 **App Tabs at Bottom** ([#23](https://github.com/thejaustin/AutoCat/issues/23))
+  - Moved app tabs to bottom of app drawer
   - Better thumb reachability on large screens
   - Improved one-handed usage
   - Enhanced UX
@@ -260,7 +260,7 @@
 
 **Features:**
 - ⚙️ **Categorization Settings Consolidation**
-  - Created `CategorizationOverviewPreferences.kt`
+  - Created `AppCategorizationPreferences.kt`
   - Created `CategorizationSettingsPreferences.kt`
   - Reorganized settings navigation
   - Added filter dropdowns
@@ -317,7 +317,7 @@
   - Batch fetching of app data
 
 - ⚡ **Lazy Initialization** ([#9](https://github.com/thejaustin/AutoCat/issues/9))
-  - CategoryFolderSyncService made lazy
+  - TabFolderSyncService made lazy
   - Prevents memory leaks from uncancelled coroutines
   - All categorization properties lazy-loaded
   - Faster startup
@@ -398,7 +398,7 @@
   - 68% token savings
 
 - 📁 **Dual Folder Sync**
-  - Created `CategoryFolderSyncService.kt` (18KB)
+  - Created `TabFolderSyncService.kt` (18KB)
   - Drawer folders (caddy)
   - Home screen folders
   - Three modes: DRAWER/HOME_SCREEN/BOTH
@@ -523,7 +523,7 @@ After:  5 batches × 4s = 20s (20x faster)
 - LLM integration (4 providers)
 - Batch processing
 - Folder sync (dual mode)
-- Category/Tab management
+- Tab management
 - User correction learning
 - Circuit breaker
 - Confidence calibration
@@ -548,7 +548,7 @@ After:  5 batches × 4s = 20s (20x faster)
 
 **UI/UX Enhancements (8)**:
 - Material 3 Expressive design
-- Category tabs at bottom
+- App tabs at bottom
 - Settings consolidation
 - Performance metrics display
 - Progress tracking

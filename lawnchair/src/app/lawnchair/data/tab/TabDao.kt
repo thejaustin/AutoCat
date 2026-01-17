@@ -27,106 +27,106 @@ interface TabDao {
      * On conflict (same package name), replaces the existing entry.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAppCategory(appCategory: AppTab)
+    suspend fun insertAppTab(appTab: AppTab)
 
     /**
      * Inserts or updates multiple app tab assignments in a single transaction.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAppCategories(appCategories: List<AppTab>)
+    suspend fun insertAppTabs(appTabs: List<AppTab>)
 
     /**
      * Updates an existing app tab assignment.
      */
     @Update
-    suspend fun updateAppCategory(appCategory: AppTab)
+    suspend fun updateAppTab(appTab: AppTab)
 
     /**
      * Deletes an app's tab assignment information.
      */
     @Delete
-    suspend fun deleteAppCategory(appCategory: AppTab)
+    suspend fun deleteAppTab(appTab: AppTab)
 
     /**
      * Gets the tab assignment for a specific app by package name.
      */
-    @Query("SELECT * FROM app_categories WHERE package_name = :packageName LIMIT 1")
-    suspend fun getAppCategory(packageName: String): AppTab?
+    @Query("SELECT * FROM app_tabs WHERE package_name = :packageName LIMIT 1")
+    suspend fun getAppTab(packageName: String): AppTab?
 
     /**
      * Observes the tab assignment for a specific app.
      * Returns Flow that emits whenever the tab assignment changes.
      */
-    @Query("SELECT * FROM app_categories WHERE package_name = :packageName LIMIT 1")
-    fun observeAppCategory(packageName: String): Flow<AppTab?>
+    @Query("SELECT * FROM app_tabs WHERE package_name = :packageName LIMIT 1")
+    fun observeAppTab(packageName: String): Flow<AppTab?>
 
     /**
      * Gets all apps with tab assignments.
      */
-    @Query("SELECT * FROM app_categories ORDER BY tab_name, package_name")
-    suspend fun getAllAppCategories(): List<AppTab>
+    @Query("SELECT * FROM app_tabs ORDER BY tab_name, package_name")
+    suspend fun getAllAppTabs(): List<AppTab>
 
     /**
      * Observes all apps with tab assignments with reactive updates.
      */
-    @Query("SELECT * FROM app_categories ORDER BY tab_name, package_name")
-    fun observeAllAppCategories(): Flow<List<AppTab>>
+    @Query("SELECT * FROM app_tabs ORDER BY tab_name, package_name")
+    fun observeAllAppTabs(): Flow<List<AppTab>>
 
     /**
      * Gets all apps in a specific tab.
      */
-    @Query("SELECT * FROM app_categories WHERE tab_name = :tabName ORDER BY package_name")
+    @Query("SELECT * FROM app_tabs WHERE tab_name = :tabName ORDER BY package_name")
     suspend fun getAppsByTab(tabName: String): List<AppTab>
 
     /**
      * Observes all apps in a specific tab.
      */
-    @Query("SELECT * FROM app_categories WHERE tab_name = :tabName ORDER BY package_name")
+    @Query("SELECT * FROM app_tabs WHERE tab_name = :tabName ORDER BY package_name")
     fun observeAppsByTab(tabName: String): Flow<List<AppTab>>
 
     /**
      * Gets all apps that were categorized by a specific source.
      */
-    @Query("SELECT * FROM app_categories WHERE source = :source ORDER BY tab_name, package_name")
+    @Query("SELECT * FROM app_tabs WHERE source = :source ORDER BY tab_name, package_name")
     suspend fun getAppsBySource(source: String): List<AppTab>
 
     /**
      * Gets all apps with user overrides (manually categorized).
      */
-    @Query("SELECT * FROM app_categories WHERE is_user_override = 1 ORDER BY tab_name, package_name")
+    @Query("SELECT * FROM app_tabs WHERE is_user_override = 1 ORDER BY tab_name, package_name")
     suspend fun getUserOverriddenApps(): List<AppTab>
 
     /**
      * Gets count of apps in each tab.
      */
-    @Query("SELECT tab_name as category, COUNT(*) as count FROM app_categories GROUP BY tab_name")
+    @Query("SELECT tab_name as category, COUNT(*) as count FROM app_tabs GROUP BY tab_name")
     suspend fun getTabCounts(): List<TabCount>
 
     /**
      * Deletes all app tab assignments that are not user overrides.
      * Useful for re-categorizing apps when rules or models change.
      */
-    @Query("DELETE FROM app_categories WHERE is_user_override = 0")
+    @Query("DELETE FROM app_tabs WHERE is_user_override = 0")
     suspend fun deleteNonUserOverrides()
 
     /**
      * Deletes tab assignments for apps that no longer exist (cleanup operation).
      */
-    @Query("DELETE FROM app_categories WHERE package_name IN (:packageNames)")
+    @Query("DELETE FROM app_tabs WHERE package_name IN (:packageNames)")
     suspend fun deleteAppsByPackageNames(packageNames: List<String>)
 
     /**
      * Updates the tab name for all apps in a specific tab.
      * Used when renaming a custom tab.
      */
-    @Query("UPDATE app_categories SET tab_name = :newTabName WHERE tab_name = :oldTabName")
+    @Query("UPDATE app_tabs SET tab_name = :newTabName WHERE tab_name = :oldTabName")
     suspend fun updateAppTabName(oldTabName: String, newTabName: String)
 
     /**
      * Resets the tab to 'Other' for all apps in a specific tab.
      * Used when deleting a custom tab.
      */
-    @Query("UPDATE app_categories SET tab_name = 'Other' WHERE tab_name = :tabName")
+    @Query("UPDATE app_tabs SET tab_name = 'Other' WHERE tab_name = :tabName")
     suspend fun resetAppTabsForDeletedTab(tabName: String)
 
     // ==================== CustomTab Operations ====================
@@ -135,79 +135,79 @@ interface TabDao {
      * Inserts a new custom tab.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCustomCategory(customCategory: CustomTab): Long
+    suspend fun insertCustomTab(customTab: CustomTab): Long
 
     /**
      * Inserts multiple custom tabs.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCustomCategories(customCategories: List<CustomTab>)
+    suspend fun insertCustomTabs(customTabs: List<CustomTab>)
 
     /**
      * Updates an existing custom tab.
      */
     @Update
-    suspend fun updateCustomCategory(customCategory: CustomTab)
+    suspend fun updateCustomTab(customTab: CustomTab)
 
     /**
      * Deletes a custom tab.
      */
     @Delete
-    suspend fun deleteCustomCategory(customCategory: CustomTab)
+    suspend fun deleteCustomTab(customTab: CustomTab)
 
     /**
      * Gets all custom tabs ordered by sort order.
      */
-    @Query("SELECT * FROM custom_categories ORDER BY sort_order")
-    suspend fun getAllCustomCategories(): List<CustomTab>
+    @Query("SELECT * FROM custom_tabs ORDER BY sort_order")
+    suspend fun getAllCustomTabs(): List<CustomTab>
 
     /**
      * Observes all custom tabs with reactive updates.
      */
-    @Query("SELECT * FROM custom_categories ORDER BY sort_order")
-    fun observeAllCustomCategories(): Flow<List<CustomTab>>
+    @Query("SELECT * FROM custom_tabs ORDER BY sort_order")
+    fun observeAllCustomTabs(): Flow<List<CustomTab>>
 
     /**
      * Gets only visible custom tabs.
      */
-    @Query("SELECT * FROM custom_categories WHERE is_visible = 1 ORDER BY sort_order")
-    suspend fun getVisibleCustomCategories(): List<CustomTab>
+    @Query("SELECT * FROM custom_tabs WHERE is_visible = 1 ORDER BY sort_order")
+    suspend fun getVisibleCustomTabs(): List<CustomTab>
 
     /**
      * Observes only visible custom tabs.
      */
-    @Query("SELECT * FROM custom_categories WHERE is_visible = 1 ORDER BY sort_order")
-    fun observeVisibleCustomCategories(): Flow<List<CustomTab>>
+    @Query("SELECT * FROM custom_tabs WHERE is_visible = 1 ORDER BY sort_order")
+    fun observeVisibleCustomTabs(): Flow<List<CustomTab>>
 
     /**
      * Gets a custom tab by name.
      */
-    @Query("SELECT * FROM custom_categories WHERE name = :name LIMIT 1")
-    suspend fun getCustomCategoryByName(name: String): CustomTab?
+    @Query("SELECT * FROM custom_tabs WHERE name = :name LIMIT 1")
+    suspend fun getCustomTabByName(name: String): CustomTab?
 
     /**
      * Gets a custom tab by ID.
      */
-    @Query("SELECT * FROM custom_categories WHERE id = :id LIMIT 1")
-    suspend fun getCustomCategoryById(id: Int): CustomTab?
+    @Query("SELECT * FROM custom_tabs WHERE id = :id LIMIT 1")
+    suspend fun getCustomTabById(id: Int): CustomTab?
 
     /**
      * Updates the visibility of a custom tab.
      */
-    @Query("UPDATE custom_categories SET is_visible = :isVisible WHERE id = :id")
-    suspend fun updateCustomCategoryVisibility(id: Int, isVisible: Boolean)
+    @Query("UPDATE custom_tabs SET is_visible = :isVisible WHERE id = :id")
+    suspend fun updateCustomTabVisibility(id: Int, isVisible: Boolean)
 
     /**
      * Updates the sort order for a custom tab.
      */
-    @Query("UPDATE custom_categories SET sort_order = :sortOrder WHERE id = :id")
-    suspend fun updateCustomCategorySortOrder(id: Int, sortOrder: Int)
+    @Query("UPDATE custom_tabs SET sort_order = :sortOrder WHERE id = :id")
+    suspend fun updateCustomTabSortOrder(id: Int, sortOrder: Int)
 
     /**
      * Deletes all custom tabs (useful for reset operations).
      */
-    @Query("DELETE FROM custom_categories")
-    suspend fun deleteAllCustomCategories()
+    @Query("DELETE FROM custom_tabs")
+    suspend fun deleteAllCustomTabs()
 
     // ==================== Transactional Operations ====================
 
@@ -216,10 +216,10 @@ interface TabDao {
      * This ensures users always have standard tabs available.
      */
     @Transaction
-    suspend fun initializeDefaultCategoriesIfNeeded() {
-        val existingCategories = getAllCustomCategories()
-        if (existingCategories.isEmpty()) {
-            insertCustomCategories(CustomTab.getDefaultTabs())
+    suspend fun initializeDefaultTabsIfNeeded() {
+        val existingTabs = getAllCustomTabs()
+        if (existingTabs.isEmpty()) {
+            insertCustomTabs(CustomTab.getDefaultTabs())
         }
     }
 }

@@ -69,7 +69,7 @@ class AboutViewModel(
 
     private suspend fun fetchActiveContributors(): Set<String> {
         return runCatching {
-            nightlyBuildsRepository.api.getRepositoryEvents("LawnchairLauncher", "lawnchair")
+            nightlyBuildsRepository.api.getRepositoryEvents("thejaustin", "AutoCat")
                 .map { it.actor.login.lowercase() }
                 .toSet()
         }.getOrDefault(emptySet())
@@ -77,6 +77,13 @@ class AboutViewModel(
 
     companion object {
         private val team = listOf(
+            TeamMember(
+                name = "thejaustin",
+                role = Role.Development,
+                photoUrl = "https://avatars.githubusercontent.com/u/10834314",
+                socialUrl = "https://github.com/thejaustin",
+                githubUsername = "thejaustin",
+            ),
             TeamMember(
                 name = "Amogh Lele",
                 role = Role.Development,
@@ -171,17 +178,17 @@ class AboutViewModel(
             Link(
                 iconResId = R.drawable.ic_new_releases,
                 labelResId = R.string.news,
-                url = "https://t.me/lawnchairci",
+                url = "https://github.com/thejaustin/AutoCat/releases",
             ),
             Link(
                 iconResId = R.drawable.ic_help,
                 labelResId = R.string.support,
-                url = "https://lawnchair.app/support",
+                url = "https://github.com/thejaustin/AutoCat/issues",
             ),
             Link(
                 iconResId = R.drawable.ic_github,
                 labelResId = R.string.github,
-                url = "https://github.com/LawnchairLauncher/lawnchair",
+                url = "https://github.com/thejaustin/AutoCat",
             ),
             Link(
                 iconResId = R.drawable.ic_translate,
@@ -196,6 +203,11 @@ class AboutViewModel(
         )
 
         private val bottomLinks = listOf(
+            Link(
+                iconResId = R.drawable.ic_github,
+                labelResId = R.string.autocat_based_on,
+                url = "https://github.com/LawnchairLauncher/lawnchair",
+            ),
             Link(
                 iconResId = R.drawable.ic_telegram,
                 labelResId = R.string.telegram,

@@ -325,7 +325,7 @@ llmPerplexityModel = "llama-3.1-sonar-small-128k-online"
 - `LLMLogger.kt` (8.6KB) - Comprehensive logging
 - `ModelConfig.kt` (11KB) - Model registry
 - `BatchCalculator.kt` (5.8KB) - Batch sizing
-- `CategoryFolderSyncService.kt` (18KB) - Dual folder sync
+- `TabFolderSyncService.kt` (18KB) - Dual folder sync
 
 **Files Modified**:
 - `LLMProvider.kt` - Added getCurrentModel()
@@ -397,7 +397,7 @@ After:  5 batches × 4s = 20s (20x faster)
 │  - CategorizationManager (pipeline orchestrator)        │
 │  - CategoryTabsManager (tab generation)                 │
 │  - AutoCatAppProvider (caching)                         │
-│  - CategoryFolderSyncService (folder management)        │
+│  - TabFolderSyncService (folder management)        │
 └─────────────────────────────────────────────────────────┘
                             │
                             ▼
@@ -916,7 +916,7 @@ adb logcat | grep -E "LLM|AutoCat|Category"
 ### Key Files to Understand
 1. **CategorizationManager.kt** - Start here, orchestrates everything
 2. **LLMCategorizer.kt** - Understand batch processing
-3. **CategoryFolderSyncService.kt** - Dual folder sync
+3. **TabFolderSyncService.kt** - Dual folder sync
 4. **LLMProvider.kt** - Provider interface
 5. **PreferenceManager.kt** - All preferences
 
@@ -939,7 +939,7 @@ adb logcat | grep -E "LLM|AutoCat|Category"
 2. Or: User overrides in `llmBatchSize` preference
 
 **Change Folder Sync Mode**:
-1. Modify `CategoryFolderSyncService.getSyncMode()`
+1. Modify `TabFolderSyncService.getSyncMode()`
 2. TODO: Add UI preference
 
 ### Testing

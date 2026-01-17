@@ -30,7 +30,7 @@ Visual timeline of major AutoCat feature milestones and development phases.
         │
    Week 3│ 🎨 UX Enhancement Phase
         │ ├─ Material 3 Expressive design
-        │ ├─ Category tabs at bottom
+        │ ├─ App tabs at bottom
         │ ├─ Progress tracking UI
         │ └─ Error handling improvements
         │
@@ -58,7 +58,7 @@ Visual timeline of major AutoCat feature milestones and development phases.
         │ └─ Better timeout handling
         │
 2025-12-13│ ⚙️ Phase 20: Settings Consolidation
-        │ ├─ CategorizationOverviewPreferences
+        │ ├─ AppCategorizationPreferences
         │ ├─ Settings reorganization
         │ └─ Filter dropdowns
         │
@@ -154,7 +154,7 @@ Visual timeline of major AutoCat feature milestones and development phases.
 
 **Features Delivered**:
 - Material 3 Expressive design system
-- Category tabs at bottom ([#23](https://github.com/thejaustin/AutoCat/issues/23))
+- App tabs at bottom ([#23](https://github.com/thejaustin/AutoCat/issues/23))
 - Real-time progress tracking
 - Live logs viewer
 - Reasoning display

@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
 -->
-<app.lawnchair.allapps.CategoryAllAppsPagedView
+<app.lawnchair.allapps.<app.lawnchair.allapps.AppTabAllAppsPagedView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:launcher="http://schemas.android.com/apk/res-auto"
     android:id="@+id/all_apps_tabs_view_pager"
@@ -29,4 +29,4 @@
     android:paddingTop="@dimen/all_apps_paged_view_top_padding"
     launcher:pageIndicator="@+id/tabs" >
     <!-- Pages will be dynamically added in code -->
-</app.lawnchair.allapps.CategoryAllAppsPagedView>
+</app.lawnchair.allapps.<app.lawnchair.allapps.AppTabAllAppsPagedView>

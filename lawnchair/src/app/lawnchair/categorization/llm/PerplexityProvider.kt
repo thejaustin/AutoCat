@@ -305,11 +305,11 @@ class PerplexityProvider(
         }
     }
 
-    override suspend fun suggestCategories(
+    override suspend fun suggestTabs(
         installedApps: List<String>,
         existingTabs: List<String>,
         maxSuggestions: Int,
-    ): List<SuggestedCategory> = withContext(Dispatchers.IO) {
+    ): List<SuggestedTab> = withContext(Dispatchers.IO) {
         try {
             LLMLogger.logDebug(
                 provider = name,
@@ -811,7 +811,7 @@ Respond ONLY in this JSON format:
         }
     }
 
-    private fun parseSuggestionResponse(responseJson: String): List<SuggestedCategory> {
+    private fun parseSuggestionResponse(responseJson: String): List<SuggestedTab> {
         try {
             val response = JSONObject(responseJson)
             val content = response.getJSONArray("choices")
@@ -838,7 +838,7 @@ Respond ONLY in this JSON format:
                     exampleApps.getString(j)
                 }
 
-                SuggestedCategory(
+                SuggestedTab(
                     name = suggestion.getString("name"),
                     description = suggestion.getString("description"),
                     exampleApps = examples,

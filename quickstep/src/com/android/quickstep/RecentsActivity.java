@@ -303,7 +303,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
                 LawnchairQuickstepCompat.getRemoteTransitionCompat().getRemoteTransition(wrapper.toRemoteTransition(),
                         this.getIApplicationThread(),
                         "LaunchFromRecents"),
-                "Lawnchair");
+                "AutoCat");
         final ActivityOptionsWrapper activityOptions = new ActivityOptionsWrapper(options,
                 onEndCallback);
         if (Utilities.ATLEAST_T) {
@@ -459,7 +459,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
                 LawnchairQuickstepCompat.getRemoteTransitionCompat().getRemoteTransition(runner.toRemoteTransition(),
                         this.getIApplicationThread(),
                         "StartHomeFromRecents"),
-                "Lawnchair");
+                "AutoCat");
         startHomeIntentSafely(this, options.toBundle(), TAG);
     }
 

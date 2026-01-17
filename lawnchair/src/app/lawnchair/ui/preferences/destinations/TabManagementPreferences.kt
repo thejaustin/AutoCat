@@ -60,7 +60,7 @@ import app.lawnchair.categorization.llm.GoogleAIProvider
 import app.lawnchair.categorization.llm.LLMProvider
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
-import app.lawnchair.categorization.llm.SuggestedCategory
+import app.lawnchair.categorization.llm.SuggestedTab
 import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.CustomTab
@@ -85,7 +85,7 @@ fun CategoryManagementPreferences(
     var showAddDialog by remember { mutableStateOf(false) }
     var editingTab by remember { mutableStateOf<CustomTab?>(null) }
     var showSuggestionsDialog by remember { mutableStateOf(false) }
-    var suggestedCategories by remember { mutableStateOf<List<SuggestedCategory>>(emptyList()) }
+    var suggestedTabs by remember { mutableStateOf<List<SuggestedTab>>(emptyList()) }
     var isLoadingSuggestions by remember { mutableStateOf(false) }
     var suggestionsError by remember { mutableStateOf<String?>(null) }
     var suggestionsProvider by remember { mutableStateOf<String?>(null) }
@@ -98,7 +98,7 @@ fun CategoryManagementPreferences(
                 database = TabDatabase.getInstance(context)
                 categorizationManager = CategorizationManager.getInstance(context)
                 appProvider = AutoCatAppProvider.getInstance(context)
-                tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
             } catch (e: Exception) {
                 android.util.Log.e("CategoryManagement", "Error initializing: ${e.message}", e)
                 initializationError = "Failed to initialize: ${e.message}"
@@ -123,13 +123,13 @@ fun CategoryManagementPreferences(
             }
 
             items(tabs, key = { it.id }) { tab ->
-                CategoryItem(
+                TabItem(
                     tab = tab,
                     onEdit = { editingTab = it },
                     onDelete = {
                         scope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                            database?.categoryDao()?.deleteCustomCategory(it)
-                            tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                            database?.tabDao()?.deleteCustomTab(it)
+                            tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
                         }
                     },
                 )
@@ -202,27 +202,27 @@ fun CategoryManagementPreferences(
                                     val appNames = installedApps.map { it.label }
                                     val existingTabs = tabs.map { it.name }
 
-                                    android.util.Log.d("CategoryManagement", "Requesting suggestions for ${appNames.size} apps")
+                                    android.util.Log.d("TabManagement", "Requesting suggestions for ${appNames.size} apps")
 
                                     // Try each provider until one succeeds
                                     var lastError: Exception? = null
                                     for (provider in providers) {
                                         try {
                                             if (!provider.isAvailable()) {
-                                                android.util.Log.d("CategoryManagement", "${provider.name} not available, trying next")
+                                                android.util.Log.d("TabManagement", "${provider.name} not available, trying next")
                                                 continue
                                             }
 
-                                            android.util.Log.d("CategoryManagement", "Trying ${provider.name}")
-                                            suggestedCategories = provider.suggestCategories(
+                                            android.util.Log.d("TabManagement", "Trying ${provider.name}")
+                                            suggestedTabs = provider.suggestTabs(
                                                 installedApps = appNames,
                                                 existingTabs = existingTabs,
                                                 maxSuggestions = 5,
                                             )
 
-                                            android.util.Log.d("CategoryManagement", "Got ${suggestedCategories.size} suggestions from ${provider.name}")
+                                            android.util.Log.d("TabManagement", "Got ${suggestedTabs.size} suggestions from ${provider.name}")
 
-                                            if (suggestedCategories.isEmpty()) {
+                                            if (suggestedTabs.isEmpty()) {
                                                 suggestionsError = "No new tabs suggested. You may already have all the useful tabs for your apps!"
                                             } else {
                                                 suggestionsProvider = provider.name
@@ -230,7 +230,7 @@ fun CategoryManagementPreferences(
                                             }
                                             return@launch // Success, exit
                                         } catch (e: Exception) {
-                                            android.util.Log.e("CategoryManagement", "${provider.name} failed: ${e.message}")
+                                            android.util.Log.e("TabManagement", "${provider.name} failed: ${e.message}")
                                             lastError = e
                                             // Try next provider
                                         }
@@ -238,9 +238,9 @@ fun CategoryManagementPreferences(
 
                                     // All providers failed
                                     suggestionsError = "All LLM providers failed. Please configure at least one API key in LLM Settings.\nLast error: ${lastError?.message}"
-                                    android.util.Log.e("CategoryManagement", "All providers failed", lastError)
+                                    android.util.Log.e("TabManagement", "All providers failed", lastError)
                                 } catch (e: Exception) {
-                                    android.util.Log.e("CategoryManagement", "Failed to get suggestions", e)
+                                    android.util.Log.e("TabManagement", "Failed to get suggestions", e)
                                     suggestionsError = "Error: ${e.message}"
                                 } finally {
                                     isLoadingSuggestions = false
@@ -331,7 +331,7 @@ fun CategoryManagementPreferences(
 
     // Add/Edit Dialog
     if (showAddDialog || editingTab != null) {
-        CategoryDialog(
+        TabDialog(
             tab = editingTab,
             onDismiss = {
                 showAddDialog = false
@@ -342,7 +342,7 @@ fun CategoryManagementPreferences(
                     try {
                         if (editingTab != null) {
                             // Edit existing
-                            database?.categoryDao()?.updateCustomCategory(
+                            database?.tabDao()?.updateCustomTab(
                                 editingTab!!.copy(
                                     name = name,
                                     colorHex = color,
@@ -352,8 +352,8 @@ fun CategoryManagementPreferences(
                         } else {
                             // Add new tab
                             val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
-                            android.util.Log.d("CategoryManagement", "Creating new tab: $name, sortOrder: ${maxSortOrder + 1}, isVisible: true")
-                            val tabId = database?.categoryDao()?.insertCustomCategory(
+                            android.util.Log.d("TabManagement", "Creating new tab: $name, sortOrder: ${maxSortOrder + 1}, isVisible: true")
+                            val tabId = database?.tabDao()?.insertCustomTab(
                                 CustomTab(
                                     name = name,
                                     colorHex = color,
@@ -361,21 +361,21 @@ fun CategoryManagementPreferences(
                                     isVisible = true,
                                 ),
                             )
-                            android.util.Log.d("CategoryManagement", "Tab created with ID: $tabId")
+                            android.util.Log.d("TabManagement", "Tab created with ID: $tabId")
 
-                            successMessage = "✓ Tab '$name' created! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
+                            successMessage = "✓ Tab '$name' created! Use 'Re-categorize All Apps' in App Categorization to assign apps."
                         }
-                        tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
-                        android.util.Log.d("CategoryManagement", "Total tabs after save: ${tabs.size}")
+                        tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
+                        android.util.Log.d("TabManagement", "Total tabs after save: ${tabs.size}")
                         tabs.forEach { t ->
-                            android.util.Log.d("CategoryManagement", "  - ${t.name} (visible: ${t.isVisible}, sortOrder: ${t.sortOrder})")
+                            android.util.Log.d("TabManagement", "  - ${t.name} (visible: ${t.isVisible}, sortOrder: ${t.sortOrder})")
                         }
                         appProvider?.refreshCache()
                         showAddDialog = false
                         editingTab = null
                         suggestionsError = null // Clear any previous errors
                     } catch (e: Exception) {
-                        android.util.Log.e("CategoryManagement", "Error saving tab: ${e.message}", e)
+                        android.util.Log.e("TabManagement", "Error saving tab: ${e.message}", e)
                         successMessage = "❌ Error: ${e.message}"
                     }
                 }
@@ -385,28 +385,28 @@ fun CategoryManagementPreferences(
 
     // Suggestions Dialog
     if (showSuggestionsDialog) {
-        SuggestionsDialog(
-            suggestions = suggestedCategories,
+        TabSuggestionsDialog(
+            suggestions = suggestedTabs,
             providerName = suggestionsProvider,
             onDismiss = { showSuggestionsDialog = false },
             onAddTab = { suggestion ->
                 scope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     try {
                         val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
-                        database?.categoryDao()?.insertCustomCategory(
+                        database?.tabDao()?.insertCustomTab(
                             CustomTab(
                                 name = suggestion.name,
                                 colorHex = "#4CAF50", // Default green color
                                 sortOrder = maxSortOrder + 1,
                             ),
                         )
-                        tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                        tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
                         appProvider?.refreshCache()
 
-                        successMessage = "✓ Added '${suggestion.name}' tab! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
+                        successMessage = "✓ Added '${suggestion.name}' tab! Use 'Re-categorize All Apps' in App Categorization to assign apps."
                         suggestionsError = null
                     } catch (e: Exception) {
-                        android.util.Log.e("CategoryManagement", "Error adding suggested tab: ${e.message}", e)
+                        android.util.Log.e("TabManagement", "Error adding suggested tab: ${e.message}", e)
                         successMessage = "❌ Error: ${e.message}"
                     }
                 }
@@ -416,12 +416,12 @@ fun CategoryManagementPreferences(
 }
 
 @Composable
-private fun CategoryItem(
+private fun TabItem(
     tab: CustomTab,
     onEdit: (CustomTab) -> Unit,
     onDelete: (CustomTab) -> Unit,
 ) {
-    val categoryColor = remember(tab.colorHex) { parseColor(tab.colorHex) }
+    val tabColor = remember(tab.colorHex) { parseColor(tab.colorHex) }
 
     // Material 3 Expressive: Enhanced card with gradient and shadow
     Surface(
@@ -431,8 +431,8 @@ private fun CategoryItem(
             .shadow(
                 elevation = 3.dp,
                 shape = RoundedCornerShape(18.dp),
-                ambientColor = categoryColor.copy(alpha = 0.2f),
-                spotColor = categoryColor.copy(alpha = 0.3f),
+                ambientColor = tabColor.copy(alpha = 0.2f),
+                spotColor = tabColor.copy(alpha = 0.3f),
             )
             .animateContentSize(
                 animationSpec = spring(
@@ -450,7 +450,7 @@ private fun CategoryItem(
                 .background(
                     brush = Brush.horizontalGradient(
                         colors = listOf(
-                            categoryColor.copy(alpha = 0.12f),
+                            tabColor.copy(alpha = 0.12f),
                             MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.0f),
                         ),
                     ),
@@ -470,11 +470,11 @@ private fun CategoryItem(
                         .size(40.dp)
                         .border(
                             width = 2.5.dp,
-                            color = categoryColor.copy(alpha = 0.4f),
+                            color = tabColor.copy(alpha = 0.4f),
                             shape = CircleShape,
                         )
                         .background(
-                            color = categoryColor,
+                            color = tabColor,
                             shape = CircleShape,
                         ),
                 )
@@ -507,7 +507,7 @@ private fun CategoryItem(
 }
 
 @Composable
-private fun CategoryDialog(
+private fun TabDialog(
     tab: CustomTab?,
     onDismiss: () -> Unit,
     onSave: (String, String) -> Unit,
@@ -619,11 +619,11 @@ private fun CategoryDialog(
 }
 
 @Composable
-private fun SuggestionsDialog(
-    suggestions: List<SuggestedCategory>,
+private fun TabSuggestionsDialog(
+    suggestions: List<SuggestedTab>,
     providerName: String?,
     onDismiss: () -> Unit,
-    onAddTab: (SuggestedCategory) -> Unit,
+    onAddTab: (SuggestedTab) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,

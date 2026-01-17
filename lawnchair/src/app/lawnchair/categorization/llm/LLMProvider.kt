@@ -14,18 +14,12 @@ data class CategorizationResult(
 )
 
 /**
- * Represents a suggested category from LLM analysis.
- *
- * @property name The suggested category name
- * @property description Brief description of what apps belong in this category
- * @property exampleApps Example apps that would fit this category
- * @property confidence How confident the LLM is in this suggestion (0.0 to 1.0)
+ * Represents a suggested tab name from an LLM.
  */
-data class SuggestedCategory(
+data class SuggestedTab(
     val name: String,
     val description: String,
-    val exampleApps: List<String>,
-    val confidence: Float,
+    val apps: List<String>,
 )
 
 /**
@@ -127,19 +121,18 @@ interface LLMProvider {
     ): Map<String, CategorizationResult>
 
     /**
-     * Analyzes installed apps and suggests useful categories beyond built-in ones.
+     * Suggests new tabs based on a list of installed apps.
      *
-     * @param installedApps List of app names to analyze
-     * @param existingCategories Categories that already exist (to avoid duplicates)
-     * @param maxSuggestions Maximum number of category suggestions to return
-     * @return List of suggested categories with descriptions and examples
-     * @throws LLMException if suggestion fails
+     * @param installedApps List of app labels
+     * @param existingTabs List of current tab names
+     * @param maxSuggestions Maximum number of suggestions to return
+     * @return List of suggested tabs
      */
-    suspend fun suggestCategories(
+    suspend fun suggestTabs(
         installedApps: List<String>,
         existingTabs: List<String>,
         maxSuggestions: Int = 5,
-    ): List<SuggestedCategory>
+    ): List<SuggestedTab>
 
     /**
      * Analyzes apps within a tab and suggests logical folder groupings.

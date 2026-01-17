@@ -114,8 +114,8 @@ adb shell run-as app.lawnchair.debug ls -la databases/
 adb shell run-as app.lawnchair.debug sqlite3 databases/category_database ".schema"
 
 # Expected tables:
-# app_categories
-# custom_categories
+# app_tabs
+# custom_tabs
 # room_master_table
 ```
 
@@ -140,7 +140,7 @@ The database should auto-create 7 default categories on first launch:
 **Check via ADB**:
 ```bash
 adb shell run-as app.lawnchair.debug sqlite3 databases/category_database \
-  "SELECT name, color_hex, sort_order FROM custom_categories;"
+  "SELECT name, color_hex, sort_order FROM custom_tabs;"
 ```
 
 ---

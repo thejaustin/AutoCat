@@ -618,11 +618,11 @@ fun LLMSettingsPreferences(
 
             // Folder Sync Settings
             item {
-                PreferenceGroup(heading = "Category Folders") {
+                PreferenceGroup(heading = "Tab Folders") {
                     SwitchPreference(
                         adapter = prefs.autoCatSyncFolders.getAdapter(),
-                        label = "Auto-create folders from categories",
-                        description = "Automatically create folders for each category",
+                        label = "Auto-create folders from tabs",
+                        description = "Automatically create folders for each tab",
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -630,7 +630,7 @@ fun LLMSettingsPreferences(
                     ListPreference(
                         adapter = prefs.autoCatFolderSyncMode.getAdapter(),
                         label = "Folder location",
-                        description = "Where category folders should be created",
+                        description = "Where tab folders should be created",
                         entries = listOf(
                             ListPreferenceEntry(
                                 value = "DRAWER",

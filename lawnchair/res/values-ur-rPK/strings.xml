@@ -72,7 +72,7 @@
     General "words" used throughout Lawnchair
 
     -->
-    <string name="others_category_label">دوسرے</string>
+    <string name="others_tab_label">دوسرے</string>
     <!-- Selection options -->
     <string name="dynamic">متحرک</string>
     <string name="presets">پری سیٹس</string>

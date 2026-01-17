@@ -72,7 +72,7 @@
     General "words" used throughout Lawnchair
 
     -->
-    <string name="others_category_label">Ostatní</string>
+    <string name="others_tab_label">Ostatní</string>
     <!-- Selection options -->
     <string name="dynamic">Dynamická</string>
     <string name="presets">Předvolby</string>

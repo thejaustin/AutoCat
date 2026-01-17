@@ -40,7 +40,7 @@ Comprehensive tracking of all modifications, additions, and differences between 
 **New Files**:
 - `app.lawnchair.categorization.*`
   - `CategorizationManager.kt`
-  - `CategoryTabsController.kt`
+  - `AppTabsController.kt`
   - `AccuracyTracker.kt`
   - `AdaptiveModelSelector.kt`
 
@@ -57,7 +57,7 @@ Comprehensive tracking of all modifications, additions, and differences between 
 **Added**: Automatic folder creation and sync
 
 **New Files**:
-- `CategoryFolderSyncService.kt`
+- `TabFolderSyncService.kt`
 - Dual sync modes (Drawer + Home Screen)
 - Automatic folder management
 
@@ -91,9 +91,9 @@ Comprehensive tracking of all modifications, additions, and differences between 
 
 #### New Preference Screens
 **Added**:
-1. `AppCategorizationListPreferences.kt` - Review & override categories
+1. `AppTabAssignmentPreferences.kt` - Review & override tab assignments (formerly AppCategorizationListPreferences)
 2. `CategorizationSettingsPreferences.kt` - Categorization settings
-3. `CategoryManagementPreferences.kt` - Manage tabs/folders
+3. `TabManagementPreferences.kt` - Manage tabs/folders (formerly CategoryManagementPreferences)
 4. `LLMSettingsPreferences.kt` - LLM provider configuration
 
 **Upstream Status**: ❌ Not present
@@ -271,9 +271,9 @@ app.lawnchair.categorization/ (19 files)
 ├── AdaptiveModelSelector.kt             ⭐ Phase 21
 ├── AutoCatAppProvider.kt                Phase 3
 ├── CategorizationManager.kt             Phase 2
-├── CategoryFolderSyncService.kt         Phase 11
-├── CategoryTabsController.kt            Phase 11
-├── CategoryTabsManager.kt               Phase 3
+├── TabFolderSyncService.kt         Phase 11
+├── AppTabsController.kt            Phase 11
+├── AppTabsManager.kt               Phase 3 (renamed)
 ├── FolderAutoSortService.kt             Phase 12
 ├── importer/
 │   └── SmartLauncherImporter.kt         Phase 12
@@ -304,11 +304,11 @@ app.lawnchair.data.tab/ (7 files)
     └── ModelAccuracy.kt                 ⭐ Phase 21
 
 app.lawnchair.ui.preferences.destinations/ (8 files)
-├── AppCategorizationListPreferences.kt  Phase 4
-├── CategorizationOverviewPreferences.kt Phase 20
+├── AppTabAssignmentPreferences.kt       Phase 4 (renamed)
+├── AppCategorizationPreferences.kt      Phase 20
 ├── CategorizationProgress.kt            Phase 6
 ├── CategorizationSettingsPreferences.kt Phase 20
-├── CategoryManagementPreferences.kt     Phase 4
+├── TabManagementPreferences.kt          Phase 4 (renamed)
 └── LLMSettingsPreferences.kt            Phase 5
 
 app.lawnchair.ui.preferences.components/ (2 files)

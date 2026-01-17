@@ -8,8 +8,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.categorization.AutoCatAppProvider
-import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.flowerpot.Flowerpot
@@ -55,7 +55,7 @@ class LawnchairAlphabeticalAppsList<T>(
     private val folderOrder = FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get())
     private val potsManager = Flowerpot.Manager.getInstance(context)
     private val autoCatProvider = AutoCatAppProvider.getInstance(context)
-    private val categoryTabsController = CategoryTabsController.getInstance(context)
+    private val appTabsController = AppTabsController.getInstance(context)
     private var cachedCategorizedApps: Map<String, Map<String, List<app.lawnchair.data.apps.AppInfo>>>? = null
 
     private fun com.android.launcher3.model.data.AppInfo.toAutoCatAppInfo(): app.lawnchair.data.apps.AppInfo {
@@ -184,19 +184,19 @@ class LawnchairAlphabeticalAppsList<T>(
             filteredList.clear()
             var position = startPosition
 
-            // Check if category tabs are enabled
-            val usingAppTabs = categoryTabsController.shouldShowTabs(context)
-            val currentTabName = if (usingAppTabs) {
-                categoryTabsController.getTabNameForTab(categoryTabsController.getCurrentTab())
+            // Check if app tabs are enabled
+            val tabsEnabled = appTabsController.shouldShowTabs(context)
+            val currentTabName = if (tabsEnabled) {
+                appTabsController.getTabNameForTab(appTabsController.getCurrentTab())
             } else {
                 null
             }
 
             // When using app tabs, handle work apps differently
             val isWorkProfile = isWorkOrPrivateSpace(appList)
-            if (isWorkProfile && usingAppTabs) {
+            if (isWorkProfile && tabsEnabled) {
                 // Check if this is the Work tab
-                if (currentTabName == CategoryTabsController.TAB_WORK) {
+                if (currentTabName == AppTabsController.TAB_WORK) {
                     // Show only work apps on Work tab
                     return super.addAppsWithSections(appList, position)
                 }
@@ -222,10 +222,10 @@ class LawnchairAlphabeticalAppsList<T>(
             var folders = folderList.toList()
 
             // Fallback: If no folders exist yet and we are supposed to use tabs (e.g. first run), create temp ones
-            if (folders.isEmpty() && (usingAppTabs || !prefs.drawerList.get())) {
+            if (folders.isEmpty() && (tabsEnabled || !prefs.drawerList.get())) {
                 val tempFolders = mutableListOf<FolderInfo>()
-                categorizedApps.forEach { (tabName, subCategories) ->
-                    val allAppsInTab = subCategories.values.flatten()
+                categorizedApps.forEach { (tabName, tabFolders) ->
+                    val allAppsInTab = tabFolders.values.flatten()
 
                     // Efficiently resolve Launcher3 AppInfos from our map
                     val launcherAppsInTab = allAppsInTab.flatMap { autoCatApp ->
@@ -244,16 +244,16 @@ class LawnchairAlphabeticalAppsList<T>(
                 folders = tempFolders
             }
 
-            if (usingAppTabs && currentTabName != null) {
+            if (tabsEnabled && currentTabName != null) {
                 // We are in a specific tab: Filter folders and apps
 
                 // 1. Folders that belong to this tab
-                val subCategories = categorizedApps[currentTabName]?.keys ?: emptySet()
+                val tabFolders = categorizedApps[currentTabName]?.keys ?: emptySet()
 
                 folders.forEach { folder ->
                     val folderTitle = folder.title.toString()
-                    if (subCategories.contains(folderTitle)) {
-                        // This folder is a subcategory (e.g. "Puzzle" in "Games")
+                    if (tabFolders.contains(folderTitle)) {
+                        // This folder is a logical grouping within the tab (e.g. "Puzzle" in "Games")
                         // Create a copy for display with properly loaded icons
                         val displayFolder = loadFolderWithIcons(folder, appMap)
                         mAdapterItems.add(AdapterItem.asFolder(displayFolder))

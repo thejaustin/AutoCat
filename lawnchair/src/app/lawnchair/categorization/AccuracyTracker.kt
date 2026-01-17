@@ -15,15 +15,15 @@ import kotlinx.coroutines.launch
  * enabling data-driven model selection and performance analysis.
  *
  * Usage:
- * - Call recordUserCorrection() when user manually changes a category
- * - Call recordAcceptedCategorization() when user keeps an LLM categorization
+ * - Call recordUserCorrection() when user manually changes a tab assignment
+ * - Call recordAcceptedCategorization() when user keeps an LLM tab assignment
  *
  * @param context Application context for database access
  */
 class AccuracyTracker(private val context: Context) {
 
     private val database = TabDatabase.getInstance(context)
-    private val categoryDao = database.categoryDao()
+    private val tabDao = database.tabDao()
     private val accuracyDao = database.accuracyDao()
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -40,23 +40,23 @@ class AccuracyTracker(private val context: Context) {
     /**
      * Records that the user corrected a model's prediction.
      *
-     * This indicates the model was INCORRECT - it predicted oldCategory
-     * but the user changed it to newCategory.
+     * This indicates the model was INCORRECT - it predicted oldTab
+     * but the user changed it to newTab.
      *
-     * @param packageName The app that was re-categorized
-     * @param oldCategory The category predicted by the model
-     * @param newCategory The category chosen by the user
+     * @param packageName The app that was re-assigned
+     * @param oldTab The tab predicted by the model
+     * @param newTab The tab chosen by the user
      */
     fun recordUserCorrection(
         packageName: String,
-        oldCategory: String,
-        newCategory: String,
+        oldTab: String,
+        newTab: String,
     ) {
         scope.launch {
             try {
                 // Get the original categorization to find provider/model info
-                val original = categoryDao.getAppCategory(packageName) ?: run {
-                    Log.w(TAG, "Cannot record correction: No category found for $packageName")
+                val original = tabDao.getAppTab(packageName) ?: run {
+                    Log.w(TAG, "Cannot record correction: No tab assignment found for $packageName")
                     return@launch
                 }
 
@@ -70,7 +70,7 @@ class AccuracyTracker(private val context: Context) {
                 val accuracy = ModelAccuracy(
                     provider = original.provider,
                     model = original.model,
-                    category = oldCategory,
+                    tabName = oldTab,
                     wasCorrect = false,
                     confidence = original.confidence,
                     timestamp = System.currentTimeMillis(),
@@ -82,8 +82,8 @@ class AccuracyTracker(private val context: Context) {
                 Log.i(
                     TAG,
                     "Recorded incorrect prediction: ${original.provider}/${original.model} " +
-                        "predicted '$oldCategory' (confidence: ${original.confidence}), " +
-                        "user chose '$newCategory'",
+                        "predicted '$oldTab' (confidence: ${original.confidence}), " +
+                        "user chose '$newTab'",
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to record user correction", e)
@@ -95,22 +95,22 @@ class AccuracyTracker(private val context: Context) {
      * Records that the user accepted a model's prediction.
      *
      * This should be called after a grace period (e.g., 7 days) if the user
-     * has not changed the category, indicating they accept the model's choice.
+     * has not changed the tab assignment, indicating they accept the model's choice.
      *
-     * @param packageName The app whose categorization was accepted
+     * @param packageName The app whose tab assignment was accepted
      */
     fun recordAcceptedCategorization(packageName: String) {
         scope.launch {
             try {
-                val category = categoryDao.getAppCategory(packageName) ?: run {
-                    Log.w(TAG, "Cannot record acceptance: No category found for $packageName")
+                val appTab = tabDao.getAppTab(packageName) ?: run {
+                    Log.w(TAG, "Cannot record acceptance: No tab assignment found for $packageName")
                     return@launch
                 }
 
                 // Only track acceptance for LLM predictions that weren't overridden
-                if (category.provider == null ||
-                    category.model == null ||
-                    category.isUserOverride
+                if (appTab.provider == null ||
+                    appTab.model == null ||
+                    appTab.isUserOverride
                 ) {
                     Log.d(TAG, "Skipping acceptance tracking: Not an LLM prediction or was overridden")
                     return@launch
@@ -118,7 +118,7 @@ class AccuracyTracker(private val context: Context) {
 
                 // Check if enough time has passed since categorization
                 val gracePeriodMillis = ACCEPTANCE_GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000
-                val timeSinceCategorization = System.currentTimeMillis() - category.lastUpdated
+                val timeSinceCategorization = System.currentTimeMillis() - appTab.lastUpdated
 
                 if (timeSinceCategorization < gracePeriodMillis) {
                     Log.d(TAG, "Skipping acceptance tracking: Grace period not yet elapsed")
@@ -127,11 +127,11 @@ class AccuracyTracker(private val context: Context) {
 
                 // Record that the model was CORRECT (user kept it)
                 val accuracy = ModelAccuracy(
-                    provider = category.provider,
-                    model = category.model,
-                    category = category.tabName,
+                    provider = appTab.provider,
+                    model = appTab.model,
+                    tabName = appTab.tabName,
                     wasCorrect = true,
-                    confidence = category.confidence,
+                    confidence = appTab.confidence,
                     timestamp = System.currentTimeMillis(),
                     packageName = packageName,
                 )
@@ -140,8 +140,8 @@ class AccuracyTracker(private val context: Context) {
 
                 Log.i(
                     TAG,
-                    "Recorded accepted prediction: ${category.provider}/${category.model} " +
-                        "predicted '${category.tabName}' (confidence: ${category.confidence})",
+                    "Recorded accepted prediction: ${appTab.provider}/${appTab.model} " +
+                        "predicted '${appTab.tabName}' (confidence: ${appTab.confidence})",
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to record accepted categorization", e)
@@ -158,7 +158,7 @@ class AccuracyTracker(private val context: Context) {
     fun scanAndRecordAcceptances() {
         scope.launch {
             try {
-                val llmApps = categoryDao.getAppsBySource("llm")
+                val llmApps = tabDao.getAppsBySource("llm")
                 val gracePeriodMillis = ACCEPTANCE_GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000
                 val now = System.currentTimeMillis()
 
@@ -179,11 +179,11 @@ class AccuracyTracker(private val context: Context) {
                     val existingCount = accuracyDao.getRecordCount(app.provider, app.model)
 
                     // Simple check: just record it (duplicates are expected since users
-                    // might keep the same category for a long time)
+                    // might keep the same tab assignment for a long time)
                     val accuracy = ModelAccuracy(
                         provider = app.provider,
                         model = app.model,
-                        category = app.tabName,
+                        tabName = app.tabName,
                         wasCorrect = true,
                         confidence = app.confidence,
                         timestamp = now,
@@ -195,7 +195,7 @@ class AccuracyTracker(private val context: Context) {
                 }
 
                 if (acceptedCount > 0) {
-                    Log.i(TAG, "Recorded $acceptedCount accepted categorizations")
+                    Log.i(TAG, "Recorded $acceptedCount accepted tab assignments")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to scan and record acceptances", e)

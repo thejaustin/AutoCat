@@ -72,7 +72,7 @@
     General "words" used throughout Lawnchair
 
     -->
-    <string name="others_category_label">其他</string>
+    <string name="others_tab_label">其他</string>
     <!-- Selection options -->
     <string name="dynamic">動態</string>
     <string name="presets">預設集</string>

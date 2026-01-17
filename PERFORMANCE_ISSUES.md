@@ -18,7 +18,7 @@ This document tracks performance bottlenecks and code quality issues identified 
 **Problem:**
 ```kotlin
 val uncategorizedApps = apps.filter { app ->
-    categoryDao.getAppCategory(app.packageName) == null
+    categoryDao.getAppTab(app.packageName) == null
 }
 ```
 
@@ -26,7 +26,7 @@ Each app triggers an individual database query. With 100 apps, this results in 1
 
 **Recommended Fix:**
 ```kotlin
-val allCategories = categoryDao.getAllAppCategories().associateBy { it.packageName }
+val allCategories = categoryDao.getAllAppTabs().associateBy { it.packageName }
 val uncategorizedApps = apps.filter { app ->
     !allCategories.containsKey(app.packageName)
 }
@@ -49,7 +49,7 @@ val uncategorizedApps = apps.filter { app ->
 ```kotlin
 fun getCategoryColor(categoryName: String): String? {
     return runBlocking {
-        categoryDao.getCustomCategoryByName(categoryName)?.colorHex
+        categoryDao.getCustomTabByName(categoryName)?.colorHex
     }
 }
 ```
@@ -59,7 +59,7 @@ fun getCategoryColor(categoryName: String): String? {
 **Recommended Fix:**
 ```kotlin
 suspend fun getCategoryColor(categoryName: String): String? = withContext(Dispatchers.IO) {
-    categoryDao.getCustomCategoryByName(categoryName)?.colorHex
+    categoryDao.getCustomTabByName(categoryName)?.colorHex
 }
 
 // Or for synchronous callers, use a cache:
@@ -67,7 +67,7 @@ private val categoryColorCache = ConcurrentHashMap<String, String?>()
 
 fun getCategoryColorSync(categoryName: String): String? {
     return categoryColorCache.getOrPut(categoryName) {
-        runBlocking { categoryDao.getCustomCategoryByName(categoryName)?.colorHex }
+        runBlocking { categoryDao.getCustomTabByName(categoryName)?.colorHex }
     }
 }
 ```
@@ -143,7 +143,7 @@ private var cacheInitialized = false
 
 private fun initializeCache() {
     scope.launch {
-        val appCategories = categoryDao.getAllAppCategories()
+        val appCategories = categoryDao.getAllAppTabs()
         categoryCache.clear()
         appCategories.forEach { appCategory ->
             categoryCache[appCategory.packageName] = CategoryInfo(...)
@@ -172,7 +172,7 @@ private val categoryCache = AtomicReference<Map<String, CategoryInfo>>(emptyMap(
 
 private fun initializeCache() {
     scope.launch {
-        val appCategories = categoryDao.getAllAppCategories()
+        val appCategories = categoryDao.getAllAppTabs()
         val newCache = appCategories.associate { appCategory ->
             appCategory.packageName to CategoryInfo(...)
         }
@@ -293,7 +293,7 @@ currentDelay = min(
 suspend fun categorizeBatch(apps: List<AppInfo>): Int {
     var categorizedCount = 0
     apps.forEach { app ->
-        if (categorize(app)) {  // Calls insertAppCategory individually
+        if (categorize(app)) {  // Calls insertAppTab individually
             categorizedCount++
         }
     }
@@ -316,13 +316,13 @@ suspend fun categorizeBatch(apps: List<AppInfo>): Int {
             )
         }
     }
-    categoryDao.insertAppCategories(categories) // Batch insert
+    categoryDao.insertAppTabs(categories) // Batch insert
     return categories.size
 }
 
 // In DAO, ensure batch insert method exists:
 @Insert(onConflict = OnConflictStrategy.REPLACE)
-suspend fun insertAppCategories(categories: List<AppCategory>)
+suspend fun insertAppTabs(categories: List<AppCategory>)
 ```
 
 ---

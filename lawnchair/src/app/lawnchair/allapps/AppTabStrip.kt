@@ -19,7 +19,7 @@ import android.widget.PopupMenu
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
-import app.lawnchair.categorization.CategoryTabsController
+import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.font.FontManager
 import app.lawnchair.theme.color.tokens.ColorStateListTokens
 import app.lawnchair.theme.drawable.DrawableTokens
@@ -38,19 +38,18 @@ import kotlinx.coroutines.launch
  * Scrollable tab strip for app tabs in app drawer.
  * Supports N dynamic tabs unlike PersonalWorkSlidingTabStrip which only supports 2.
  */
-class CategoryTabStrip @JvmOverloads constructor(
+class AppTabStrip @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : HorizontalScrollView(context, attrs, defStyleAttr),
-    PageIndicator {
+) : HorizontalScrollView(context, attrs, defStyleAttr) {
 
     interface OnActivePageChangedListener {
         fun onActivePageChanged(activePage: Int)
     }
 
     private val tabContainer: LinearLayout
-    private val categoryController = CategoryTabsController.getInstance(context)
+    private val appTabsController = AppTabsController.getInstance(context)
     private val fontManager = FontManager.INSTANCE.get(context)
 
     private var onActivePageChangedListener: OnActivePageChangedListener? = null
@@ -99,12 +98,12 @@ class CategoryTabStrip @JvmOverloads constructor(
         super.onAttachedToWindow()
         job = CoroutineScope(Dispatchers.Main).launch {
             launch {
-                categoryController.tabNames.collect {
+                appTabsController.tabNames.collect {
                     setupTabs()
                 }
             }
             launch {
-                categoryController.currentTabIndex.collect { index ->
+                appTabsController.currentTabIndex.collect { index ->
                     setActiveMarker(index)
                 }
             }
@@ -117,13 +116,13 @@ class CategoryTabStrip @JvmOverloads constructor(
     }
 
     /**
-     * Initialize tabs from CategoryTabsController.
+     * Initialize tabs from AppTabsController.
      */
     fun setupTabs() {
         tabContainer.removeAllViews()
         tabs.clear()
 
-        val tabNames = categoryController.tabNames.value
+        val tabNames = appTabsController.tabNames.value
         tabNames.forEachIndexed { index, name ->
             val tab = createTab(name, index)
             tabs.add(tab)
@@ -131,7 +130,7 @@ class CategoryTabStrip @JvmOverloads constructor(
         }
 
         // Select the current tab
-        setActiveMarker(categoryController.getCurrentTab())
+        setActiveMarker(appTabsController.getCurrentTab())
     }
 
     private fun createTab(label: String, index: Int): Button {
@@ -179,7 +178,7 @@ class CategoryTabStrip @JvmOverloads constructor(
     }
 
     private fun showTabOptions(view: View, tabName: String) {
-        if (tabName == CategoryTabsController.TAB_ALL || tabName == CategoryTabsController.TAB_WORK) {
+        if (tabName == AppTabsController.TAB_ALL || tabName == AppTabsController.TAB_WORK) {
             return
         }
 
@@ -216,7 +215,7 @@ class CategoryTabStrip @JvmOverloads constructor(
             .setPositiveButton("Save") { _, _ ->
                 val newTabName = input.text.toString().trim()
                 if (newTabName.isNotEmpty() && newTabName != oldTabName) {
-                    categoryController.renameTab(oldTabName, newTabName)
+                    appTabsController.renameTab(oldTabName, newTabName)
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -228,7 +227,7 @@ class CategoryTabStrip @JvmOverloads constructor(
             .setTitle("Delete Tab")
             .setMessage("Are you sure you want to delete '$tabName'? Apps will be moved to 'Other'.")
             .setPositiveButton("Delete") { _, _ ->
-                categoryController.deleteTab(tabName)
+                appTabsController.deleteTab(tabName)
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -325,7 +324,7 @@ class CategoryTabStrip @JvmOverloads constructor(
      * Refresh tabs when categories change.
      */
     fun refreshTabs() {
-        categoryController.refresh()
+        appTabsController.refresh()
         setupTabs()
     }
 

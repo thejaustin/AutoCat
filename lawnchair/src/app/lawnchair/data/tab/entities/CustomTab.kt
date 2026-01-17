@@ -17,7 +17,7 @@ import androidx.room.PrimaryKey
  * @property isVisible Whether this tab should be shown in the drawer
  * @property createdAt Timestamp of tab creation (milliseconds since epoch)
  */
-@Entity(tableName = "custom_categories")
+@Entity(tableName = "custom_tabs")
 data class CustomTab(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")

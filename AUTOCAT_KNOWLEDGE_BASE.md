@@ -113,7 +113,7 @@ All 4 LLM providers updated with:
 - Batch (size 20): 5 batches × 4s = 20s (20x faster!)
 
 #### Phase 4: Dual Folder Sync ✅
-**CategoryFolderSyncService.kt** - Complete dual implementation:
+**TabFolderSyncService.kt** - Complete dual implementation:
 
 **Drawer Folders (Default)**:
 - Uses FolderService + Room DB (FolderInfoEntity)
@@ -221,7 +221,7 @@ CategorizationManager.recategorizeAll()
 3. AutoCatAppProvider.refreshCache()
    └─ Update in-memory cache
     ↓
-4. CategoryFolderSyncService.syncCategoriesToFolders()
+4. TabFolderSyncService.syncCategoriesToFolders()
    ├─ Get categorizations from DB
    ├─ Group by category
    └─ Create folders (DRAWER mode)
@@ -274,7 +274,7 @@ For each category:
 lawnchair/src/app/lawnchair/
 ├── categorization/
 │   ├── CategorizationManager.kt          [MODIFIED] - Added folder sync
-│   ├── CategoryFolderSyncService.kt      [NEW] - Dual folder sync (18KB)
+│   ├── TabFolderSyncService.kt      [NEW] - Dual folder sync (18KB)
 │   ├── CategoryTabsManager.kt            [EXISTING] - Tab management
 │   ├── AutoCatAppProvider.kt             [EXISTING] - Cache provider
 │   │
@@ -331,7 +331,7 @@ interface LLMProvider {
     suspend fun testConnection(): TestResult
     suspend fun categorizeApp(...): CategorizationResult
     suspend fun categorizeAppBatch(...): Map<String, CategorizationResult>
-    suspend fun suggestCategories(...): List<SuggestedCategory>
+    suspend fun suggestTabs(...): List<SuggestedTab>
 }
 ```
 
@@ -572,7 +572,7 @@ data class FolderItemEntity(
 - [x] Update all 4 LLM providers with getCurrentModel()
 - [x] Update all providers with batch API support
 - [x] Update LLMCategorizer with true batch processing
-- [x] Create CategoryFolderSyncService with dual mode support
+- [x] Create TabFolderSyncService with dual mode support
 - [x] Integrate folder sync into CategorizationManager
 - [x] Add batch processing toggle
 - [x] Add model selection per provider
@@ -960,7 +960,7 @@ data class FolderItemEntity(
 1. **PreferenceManager.kt** - All preferences defined here
 2. **CategorizationManager.kt** - Main categorization pipeline
 3. **LLMCategorizer.kt** - Batch processing logic
-4. **CategoryFolderSyncService.kt** - Dual folder sync
+4. **TabFolderSyncService.kt** - Dual folder sync
 5. **LLMLogger.kt** - View logs here
 
 ### Common Issues & Solutions

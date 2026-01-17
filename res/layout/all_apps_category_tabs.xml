@@ -14,7 +14,7 @@
   ~ limitations under the License.
 -->
 
-<app.lawnchair.allapps.CategoryTabStrip
+<app.lawnchair.allapps.AppTabStrip
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/category_tabs"
     android:tag="category_tabs"

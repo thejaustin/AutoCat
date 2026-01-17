@@ -44,21 +44,21 @@ AutoCat automatically categorizes your apps using multiple LLM providers:
 - **OpenAI** (GPT-4o Mini)
 - **Perplexity** (Llama 3.1 Sonar)
 
-### Category Tabs
+### App Tabs
 
 Apps are organized into tabs at the bottom of the app drawer:
 
-- **Default Categories**: Games, Social, Productivity, Tools, Entertainment, Photography, Communication
-- **Custom Categories**: Create your own categories
-- **Batch Processing**: Categorize 100 apps in ~20 seconds
+- **Default Tabs**: Games, Social, Productivity, Tools, Entertainment, Photography, Communication
+- **Custom Tabs**: Create your own tabs
+- **Batch Processing**: Assign 100 apps to tabs in ~20 seconds
 
 ### Folder Sync
 
-AI categories automatically create persistent folders:
+AI assignments automatically create persistent folders:
 
 - **Drawer Folders**: Organized app drawer
 - **Home Screen Folders**: Optional home screen organization
-- **Auto-Sync**: Folders update when categorization changes
+- **Auto-Sync**: Folders update when tab assignments change
 
 ### Accuracy Tracking
 
@@ -74,7 +74,7 @@ AutoCat learns from your corrections:
 
 ### LLM Provider Setup
 
-**Location**: Settings → Categorization → LLM Settings
+**Location**: Settings → App Categorization → LLM Settings
 
 1. **Choose Provider**: Google AI, Claude, OpenAI, or Perplexity
 2. **Add API Key**: Enter your API key (or set environment variable)
@@ -89,21 +89,21 @@ AutoCat learns from your corrections:
 
 ### Categorization Settings
 
-**Location**: Settings → Categorization
+**Location**: Settings → App Categorization
 
 - **Auto-Select Best Model**: Let AutoCat choose the most accurate provider
-- **Batch Processing**: Enable faster categorization (recommended)
-- **Folder Sync**: Auto-create folders from categories
-- **Use Tabs**: Show category tabs in app drawer
+- **Batch Processing**: Enable faster assignment (recommended)
+- **Folder Sync**: Auto-create folders from tabs
+- **Use Tabs**: Show tabs in app drawer
 
-### Category Management
+### Tab Management
 
-**Location**: Settings → Categorization → Manage Categories
+**Location**: Settings → App Categorization → Manage Tabs
 
-- **Create Custom Categories**: Add your own categories
-- **Edit Category Names**: Rename existing categories
-- **Set Colors**: Customize category colors
-- **Reorder Tabs**: Drag to reorder category tabs
+- **Create Custom Tabs**: Add your own tabs
+- **Edit Tab Names**: Rename existing tabs
+- **Set Colors**: Customize tab colors
+- **Reorder Tabs**: Drag to reorder tabs
 
 ---
 
@@ -113,32 +113,32 @@ AutoCat learns from your corrections:
 
 1. **Install AutoCat** (see Installation above)
 2. **Configure LLM Provider**:
-   - Go to Settings → Categorization → LLM Settings
+   - Go to Settings → App Categorization → LLM Settings
    - Choose a provider (Google AI recommended for free tier)
    - Add your API key
    - Test connection
-3. **Run Initial Categorization**:
-   - Settings → Categorization → "Categorize All Apps"
-   - Wait for categorization to complete (~20 seconds for 100 apps)
+3. **Run Initial Assignment**:
+   - Settings → App Categorization → "Re-categorize All Apps"
+   - Wait for assignment to complete (~20 seconds for 100 apps)
 4. **Review Results**:
-   - Settings → Categorization → "Review App Categories"
+   - Settings → App Categorization → "Review & Override"
    - Correct any misclassified apps
 
 ### Daily Usage
 
 **App Drawer**:
 - Swipe up from home screen to open app drawer
-- Tap category tabs at bottom to filter apps
+- Tap tabs at bottom to filter apps
 - All apps shown by default (no tab selected)
 
-**Correcting Categories**:
-- Settings → Categorization → "Review App Categories"
-- Tap app → Select correct category
+**Correcting Assignments**:
+- Settings → App Categorization → "Review & Override"
+- Tap app → Select correct tab
 - AutoCat learns from your corrections
 
 **Adding New Apps**:
-- New apps automatically categorized on install
-- Manual categorization: Settings → Categorization → "Categorize All Apps"
+- New apps automatically assigned to tabs on install
+- Manual assignment: Settings → App Categorization → "Re-categorize All Apps"
 
 ---
 
@@ -200,7 +200,7 @@ View accuracy metrics for each LLM provider:
 **Problem**: Folders disappear on restart
 
 **Solutions**:
-1. Enable folder sync: Settings → Categorization → "Auto-create folders"
+1. Enable folder sync: Settings → App Categorization → "Auto-create folders"
 2. Run categorization again
 3. Verify folders in Settings → Home Screen → Folders
 
@@ -208,30 +208,30 @@ View accuracy metrics for each LLM provider:
 
 ## 🎨 Customization
 
-### Custom Categories
+### Custom Tabs
 
-1. **Create Category**:
-   - Settings → Categorization → "Manage Categories"
-   - Tap "+" to add new category
+1. **Create Tab**:
+   - Settings → App Categorization → "Manage Tabs"
+   - Tap "+" to add new tab
    - Enter name and choose color
 
 2. **Assign Apps**:
-   - Settings → Categorization → "Review App Categories"
-   - Select app → Choose your custom category
+   - Settings → App Categorization → "Review & Override"
+   - Select app → Choose your custom tab
 
-3. **Delete Category**:
-   - Settings → Categorization → "Manage Categories"
-   - Swipe or long-press category → Delete
+3. **Delete Tab**:
+   - Settings → App Categorization → "Manage Tabs"
+   - Swipe or long-press tab → Delete
 
-### Category Tab Appearance
+### App Tab Appearance
 
 **Tab Position**: Bottom of app drawer (fixed)
 
-**Tab Colors**: Customizable per category
+**Tab Colors**: Customizable per tab
 
-**Tab Order**: Drag to reorder in "Manage Categories"
+**Tab Order**: Drag to reorder in "Manage Tabs"
 
-**Hide/Show Tabs**: Toggle visibility in category settings
+**Hide/Show Tabs**: Toggle visibility in App Categorization settings
 
 ---
 
@@ -254,8 +254,9 @@ Check version: Settings → Apps → AutoCat → Version
 
 AutoCat uses different package names to avoid conflicts:
 
-- **GitHub/Debug builds**: `app.lawnchair.debug`
-- **Future release builds**: `app.lawnchair.autocat` (planned)
+- **GitHub/Debug builds**: `app.autocat.debug`
+- **Play Store builds**: `app.autocat.play`
+- **Nightly builds**: `app.autocat.nightly`
 
 **You can install AutoCat alongside the official Lawnchair launcher.**
 
@@ -268,19 +269,19 @@ Settings → Apps → AutoCat → Uninstall
 
 **Via ADB** (if installation fails):
 ```bash
-adb uninstall app.lawnchair.debug
+adb uninstall app.autocat.debug
 ```
 
 ---
 
 ## 📈 Tips & Best Practices
 
-### Optimize Categorization Accuracy
+### Optimize Assignment Accuracy
 
-1. **Correct Mistakes**: Always correct misclassified apps
+1. **Correct Mistakes**: Always correct misassigned apps
 2. **Use Auto-Select**: Enable "Auto-Select Best Model" for best results
 3. **Check Accuracy Metrics**: Review provider performance regularly
-4. **Batch Process**: Enable batch processing for faster categorization
+4. **Batch Process**: Enable batch processing for faster assignment
 
 ### API Key Management
 
@@ -293,8 +294,8 @@ adb uninstall app.lawnchair.debug
 
 1. **Enable Folder Sync**: Let AutoCat create folders automatically
 2. **Manual Adjustments**: Edit folders manually if needed
-3. **Consistent Naming**: Use clear category names
-4. **Regular Review**: Check categories periodically
+3. **Consistent Naming**: Use clear tab names
+4. **Regular Review**: Check tabs periodically
 
 ---
 

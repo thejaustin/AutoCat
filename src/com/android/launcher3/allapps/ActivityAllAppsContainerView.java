@@ -104,9 +104,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import app.lawnchair.allapps.CategoryTabStrip;
+import app.lawnchair.allapps.AppTabStrip;
 import app.lawnchair.allapps.LawnchairAlphabeticalAppsList;
-import app.lawnchair.categorization.CategoryTabsController;
+import app.lawnchair.categorization.AppTabsController;
 import app.lawnchair.font.FontManager;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
@@ -323,7 +323,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
                 try {
                     if (Math.abs(velocityX) > Math.abs(velocityY) && Math.abs(velocityX) > 2000) {
-                        CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
+                        AppTabsController controller = AppTabsController.getInstance(getContext());
                         if (controller.shouldShowTabs(getContext())) {
                             int current = controller.getCurrentTab();
                             int count = controller.getTabCount();
@@ -818,7 +818,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         // Setup appropriate tab strip based on mode
         boolean usingCategoryTabs = false;
         try {
-            CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
+            AppTabsController controller = AppTabsController.getInstance(getContext());
             usingCategoryTabs = controller.shouldShowTabs(getContext());
         } catch (Exception e) {
             Log.e("AllAppsContainer", "Error checking category tabs", e);
@@ -840,17 +840,17 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         try {
             View personalWorkTabs = mHeader.findViewById(com.android.launcher3.R.id.tabs);
 
-            // Find CategoryTabStrip at bottom of container (moved from header for better reachability)
-            CategoryTabStrip categoryTabStrip = findViewById(com.android.launcher3.R.id.category_tabs);
+            // Find AppTabStrip at bottom of container (moved from header for better reachability)
+            AppTabStrip categoryTabStrip = findViewById(com.android.launcher3.R.id.category_tabs);
 
             if (usingCategoryTabs && categoryTabStrip != null) {
                 categoryTabStrip.setupTabs();
                 categoryTabStrip.setOnActivePageChangedListener(
-                    new CategoryTabStrip.OnActivePageChangedListener() {
+                    new AppTabStrip.OnActivePageChangedListener() {
                         @Override
                         public void onActivePageChanged(int activePage) {
                             // Update controller
-                            CategoryTabsController controller = CategoryTabsController.getInstance(ActivityAllAppsContainerView.this.getContext());
+                            AppTabsController controller = AppTabsController.getInstance(ActivityAllAppsContainerView.this.getContext());
                             controller.setCurrentTab(activePage);
                             
                             boolean isWorkTab = controller.isWorkTab(activePage);
@@ -1413,7 +1413,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         // Add extra padding for category tabs at bottom (if enabled)
         PreferenceManager prefManager = PreferenceManager.getInstance(getContext());
         boolean usingCategoryTabs = prefManager.getUseAppTabs().get();
-        CategoryTabStrip categoryTabStrip = findViewById(com.android.launcher3.R.id.category_tabs);
+        AppTabStrip categoryTabStrip = findViewById(com.android.launcher3.R.id.category_tabs);
         if (usingCategoryTabs && categoryTabStrip != null && categoryTabStrip.getVisibility() == View.VISIBLE) {
             int tabHeight = getResources().getDimensionPixelSize(com.android.launcher3.R.dimen.all_apps_header_pill_height);
             int tabMargin = (int) (8 * getResources().getDisplayMetrics().density); // 8dp margin
@@ -1448,7 +1448,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     public boolean shouldShowTabs() {
         // Check for category tabs first (they take priority)
         try {
-            CategoryTabsController controller = CategoryTabsController.getInstance(getContext());
+            AppTabsController controller = AppTabsController.getInstance(getContext());
             if (controller.shouldShowTabs(getContext())) {
                 // If using category tabs, we DO NOT want the standard ViewPager (which is hardcoded for Personal/Work).
                 // We want a single RecyclerView that we filter.

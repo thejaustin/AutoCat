@@ -72,7 +72,7 @@
     General "words" used throughout Lawnchair
 
     -->
-    <string name="others_category_label">Khác</string>
+    <string name="others_tab_label">Khác</string>
     <!-- Selection options -->
     <string name="dynamic">Linh hoạt</string>
     <string name="presets">Thiết lập sẵn</string>

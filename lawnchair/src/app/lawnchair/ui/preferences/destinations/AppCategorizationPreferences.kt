@@ -53,13 +53,13 @@ import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
-import app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations
+import app.lawnchair.ui.preferences.navigation.AppDrawerAppTabAssignments
 import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
 import app.lawnchair.ui.preferences.navigation.AppDrawerManageTabs
 import kotlinx.coroutines.launch
 
 @Composable
-fun CategorizationOverviewPreferences(
+fun AppCategorizationPreferences(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -76,7 +76,7 @@ fun CategorizationOverviewPreferences(
             try {
                 categorizationManager = CategorizationManager.getInstance(context)
             } catch (e: Exception) {
-                android.util.Log.e("CategorizationOverview", "Error initializing: ${e.message}", e)
+                android.util.Log.e("AppCategorization", "Error initializing: ${e.message}", e)
             }
         }
     }
@@ -88,7 +88,7 @@ fun CategorizationOverviewPreferences(
         ).collectAsState()
 
     PreferenceScaffold(
-        label = "Categorization Overview",
+        label = "App Categorization",
         modifier = modifier,
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
@@ -97,7 +97,7 @@ fun CategorizationOverviewPreferences(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Manage and review your app categorization system. " +
-                            "Configure AI providers, manage categories, and review app assignments.",
+                            "Configure AI providers, manage tabs, and review app assignments.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -165,10 +165,10 @@ fun CategorizationOverviewPreferences(
 
             // Navigation Actions
             item {
-                PreferenceGroup(heading = "Manage Categorization") {
+                PreferenceGroup(heading = "Categorization Settings") {
                     NavigationActionPreference(
-                        label = "Manage Categories",
-                        subtitle = "Create, edit, and delete app categories",
+                        label = "Manage Tabs",
+                        subtitle = "Create, edit, and delete app drawer tabs",
                         destination = AppDrawerManageTabs,
                         icon = Icons.Rounded.Category,
                     )
@@ -176,7 +176,7 @@ fun CategorizationOverviewPreferences(
                     NavigationActionPreference(
                         label = "Review & Override",
                         subtitle = "View and manually override app categorizations",
-                        destination = AppDrawerAppCategorizations,
+                        destination = AppDrawerAppTabAssignments,
                         icon = Icons.Rounded.Edit,
                     )
 
@@ -191,7 +191,7 @@ fun CategorizationOverviewPreferences(
 
             // Material 3 Expressive: Enhanced Re-categorize Action
             item {
-                PreferenceGroup(heading = "Categorization Action") {
+                PreferenceGroup(heading = "Categorization Actions") {
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -258,7 +258,7 @@ fun CategorizationOverviewPreferences(
                                         color = MaterialTheme.colorScheme.primary,
                                     )
                                     Text(
-                                        text = "Use AI to reassign all apps to categories",
+                                        text = "Use AI to reassign all apps to tabs",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )

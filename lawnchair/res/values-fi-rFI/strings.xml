@@ -72,7 +72,7 @@
     General "words" used throughout Lawnchair
 
     -->
-    <string name="others_category_label">Muut</string>
+    <string name="others_tab_label">Muut</string>
     <!-- Selection options -->
     <string name="dynamic">Dynaaminen</string>
     <string name="presets">Esiasetukset</string>

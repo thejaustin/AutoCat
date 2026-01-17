@@ -38,7 +38,7 @@ Understanding AutoCat development:
 - **⚡ Batch Processing** - 20x faster categorization (100 apps in 20 seconds)
 - **📊 Accuracy Tracking** - Learns which provider works best for your apps
 - **🔄 Auto-Selection** - Automatically uses the most accurate model
-- **📁 Folder Sync** - Auto-creates persistent folders from categories
+- **📁 Folder Sync** - Auto-creates persistent folders from tabs
 - **🎨 Material 3 Design** - Beautiful, modern UI
 
 ---

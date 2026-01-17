@@ -72,7 +72,7 @@
     General "words" used throughout Lawnchair
 
     -->
-    <string name="others_category_label">অন্যান্য</string>
+    <string name="others_tab_label">অন্যান্য</string>
     <!-- Selection options -->
     <string name="dynamic">পরিবর্তনশীল</string>
     <string name="presets">পূর্বনির্ধারিত অবস্থাগুলো</string>

@@ -13,10 +13,10 @@ import kotlinx.coroutines.withContext
  * Queries the database for visible tabs and generates tab configurations
  * based on user preferences.
  */
-class CategoryTabsManager(private val context: Context) {
+class AppTabsManager(private val context: Context) {
 
     private val database by lazy { TabDatabase.getInstance(context) }
-    private val categoryDao by lazy { database.categoryDao() }
+    private val tabDao by lazy { database.tabDao() }
     private val prefs by lazy { PreferenceManager.getInstance(context) }
 
     /**
@@ -24,7 +24,7 @@ class CategoryTabsManager(private val context: Context) {
      *
      * @property id Unique identifier for the tab
      * @property name Display name shown on the tab
-     * @property category Category name for filtering apps (null for special tabs like "Other")
+     * @property tabName Tab name for filtering apps (null for special tabs like "Other")
      * @property colorHex Hex color code for the tab (e.g., "#4CAF50")
      * @property isWorkTab True if this is the work profile tab
      * @property isOtherTab True if this is the uncategorized apps tab
@@ -51,22 +51,22 @@ class CategoryTabsManager(private val context: Context) {
         val tabs = mutableListOf<TabInfo>()
 
         // Get visible custom tabs from database (already sorted by sortOrder)
-        val customCategoryTabs = withContext(Dispatchers.IO) {
-            categoryDao.getVisibleCustomCategories()
+        val visibleCustomTabs = withContext(Dispatchers.IO) {
+            tabDao.getVisibleCustomTabs()
         }
 
-        android.util.Log.d(TAG, "getTabs: Found ${customCategoryTabs.size} visible custom tabs")
-        customCategoryTabs.forEach { tab ->
+        android.util.Log.d(TAG, "getTabs: Found ${visibleCustomTabs.size} visible custom tabs")
+        visibleCustomTabs.forEach { tab ->
             android.util.Log.d(TAG, "  - ${tab.name} (id: ${tab.id}, visible: ${tab.isVisible}, sortOrder: ${tab.sortOrder})")
         }
 
         // Group tabs: only create tabs for top-level tabs
-        val topLevelTabs = customCategoryTabs
+        val topLevelTabs = visibleCustomTabs
             .map { it.name.split(" > ").first() }
             .distinct()
-            .mapNotNull { name -> customCategoryTabs.find { it.name == name } ?: customCategoryTabs.find { it.name.startsWith("$name >") }?.copy(name = name) }
+            .mapNotNull { name -> visibleCustomTabs.find { it.name == name } ?: visibleCustomTabs.find { it.name.startsWith("$name >") }?.copy(name = name) }
 
-        android.util.Log.d(TAG, "getTabs: Found ${topLevelTabs.size} top-level tabs from ${customCategoryTabs.size} total")
+        android.util.Log.d(TAG, "getTabs: Found ${topLevelTabs.size} top-level tabs from ${visibleCustomTabs.size} total")
 
         // Add a tab for each top-level tab
         topLevelTabs.forEach { tab ->
@@ -122,17 +122,17 @@ class CategoryTabsManager(private val context: Context) {
     }
 
     companion object {
-        private const val TAG = "CategoryTabsManager"
+        private const val TAG = "AppTabsManager"
 
         @Volatile
-        private var instance: CategoryTabsManager? = null
+        private var instance: AppTabsManager? = null
 
         /**
-         * Gets singleton instance of CategoryTabsManager.
+         * Gets singleton instance of AppTabsManager.
          */
-        fun getInstance(context: Context): CategoryTabsManager {
+        fun getInstance(context: Context): AppTabsManager {
             return instance ?: synchronized(this) {
-                instance ?: CategoryTabsManager(context.applicationContext).also {
+                instance ?: AppTabsManager(context.applicationContext).also {
                     instance = it
                 }
             }

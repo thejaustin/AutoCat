@@ -22,8 +22,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import app.lawnchair.LawnchairLauncher
+import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.categorization.CategorizationManager
-import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.override.CustomizeAppDialog
@@ -235,7 +235,7 @@ class LawnchairShortcut {
                             mItemInfo.user.identifier,
                         )
                     } catch (e: Throwable) {
-                        Log.e("LawnchairShortcut", "Failed to pause app", e)
+                        Log.e("AutoCatShortcut", "Failed to pause app", e)
                     }
                 }
                 .show()
@@ -323,7 +323,7 @@ class LawnchairShortcut {
             val context = view.context
             val packageName = mItemInfo.targetComponent?.packageName ?: return
 
-            val categoryController = CategoryTabsController.getInstance(context)
+            val categoryController = AppTabsController.getInstance(context)
 
             // Tabs are available synchronously from the controller's StateFlow
             val tabs = categoryController.categories.value
@@ -336,7 +336,7 @@ class LawnchairShortcut {
             // Launch a coroutine to fetch current tab and then show dialog
             launcher.lifecycleScope.launch(Dispatchers.Main) {
                 val currentTab = withContext(Dispatchers.IO) {
-                    TabDatabase.getInstance(context).categoryDao().getAppCategory(packageName)?.tabName
+                    TabDatabase.getInstance(context).tabDao().getAppTab(packageName)?.tabName
                 }
 
                 // Create tab names array for dialog
@@ -351,7 +351,7 @@ class LawnchairShortcut {
 
                         // Update tab in database with user override
                         launcher.lifecycleScope.launch(Dispatchers.IO) {
-                            TabDatabase.getInstance(context).categoryDao().insertAppCategory(
+                            TabDatabase.getInstance(context).tabDao().insertAppTab(
                                 AppTab(
                                     packageName = packageName,
                                     tabName = selectedTab.name,

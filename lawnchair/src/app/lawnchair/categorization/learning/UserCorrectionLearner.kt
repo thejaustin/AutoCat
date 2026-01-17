@@ -7,38 +7,38 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Learns from user corrections to improve future categorization.
+ * Learns from user corrections to improve future tab assignments.
  *
- * Analyzes patterns in user-overridden categorizations to:
- * - Identify common miscategorizations
+ * Analyzes patterns in user-overridden assignments to:
+ * - Identify common misassignments
  * - Extract tab preferences for package patterns
  * - Generate hints for LLM providers
  *
  * The learner builds a knowledge base from user corrections that can be
- * used to bias future categorization decisions.
+ * used to bias future tab assignment decisions.
  */
 class UserCorrectionLearner(
     private val context: Context,
-    private val categoryDao: TabDao,
+    private val tabDao: TabDao,
 ) {
 
     /**
-     * Analyzes user corrections and returns categorization hints.
+     * Analyzes user corrections and returns tab assignment hints.
      *
-     * Returns a map of package patterns to preferred categories based on
+     * Returns a map of package patterns to preferred tabs based on
      * user corrections. These hints can be added to LLM prompts to improve
      * accuracy.
      *
      * @return Map of package pattern -> tab preference with confidence
      */
-    suspend fun getCategoryHints(): Map<String, CategoryHint> = withContext(Dispatchers.IO) {
-        val userOverrides = categoryDao.getUserOverriddenApps()
+    suspend fun getTabHints(): Map<String, TabHint> = withContext(Dispatchers.IO) {
+        val userOverrides = tabDao.getUserOverriddenApps()
 
         if (userOverrides.isEmpty()) {
             return@withContext emptyMap()
         }
 
-        // Group by package prefix (e.g., "com.google.*" -> category patterns)
+        // Group by package prefix (e.g., "com.google.*" -> tab patterns)
         val packagePrefixPatterns = mutableMapOf<String, MutableList<String>>()
 
         userOverrides.forEach { override ->
@@ -49,22 +49,22 @@ class UserCorrectionLearner(
         }
 
         // Build hints from patterns with multiple examples
-        val hints = mutableMapOf<String, CategoryHint>()
+        val hints = mutableMapOf<String, TabHint>()
 
-        packagePrefixPatterns.forEach { (prefix, categories) ->
-            if (categories.size >= MIN_SAMPLES_FOR_HINT) {
-                // Find most common category for this prefix
-                val categoryFrequency = categories.groupingBy { it }.eachCount()
-                val mostCommon = categoryFrequency.maxByOrNull { it.value }
+        packagePrefixPatterns.forEach { (prefix, tabs) ->
+            if (tabs.size >= MIN_SAMPLES_FOR_HINT) {
+                // Find most common tab for this prefix
+                val tabFrequency = tabs.groupingBy { it }.eachCount()
+                val mostCommon = tabFrequency.maxByOrNull { it.value }
 
                 if (mostCommon != null) {
-                    val confidence = mostCommon.value.toFloat() / categories.size
+                    val confidence = mostCommon.value.toFloat() / tabs.size
                     if (confidence >= MIN_CONFIDENCE_FOR_HINT) {
-                        hints[prefix] = CategoryHint(
+                        hints[prefix] = TabHint(
                             pattern = "$prefix.*",
                             tabName = mostCommon.key,
                             confidence = confidence,
-                            sampleCount = categories.size,
+                            sampleCount = tabs.size,
                         )
                     }
                 }
@@ -78,7 +78,7 @@ class UserCorrectionLearner(
      * Generates an LLM prompt supplement with learned patterns.
      *
      * Converts user correction patterns into natural language hints that can be
-     * appended to LLM categorization prompts.
+     * appended to LLM tab assignment prompts.
      *
      * Example output:
      * "Based on previous corrections:
@@ -86,7 +86,7 @@ class UserCorrectionLearner(
      *  - Apps from com.facebook tend to be in Social (85% confidence)"
      */
     suspend fun generateLLMHintText(): String = withContext(Dispatchers.IO) {
-        val hints = getCategoryHints()
+        val hints = getTabHints()
 
         if (hints.isEmpty()) {
             return@withContext ""
@@ -95,10 +95,10 @@ class UserCorrectionLearner(
         val hintLines = hints.values
             .sortedByDescending { it.confidence }
             .take(MAX_HINTS_IN_PROMPT)
-            .map { hint ->
-                val confidencePercent = (hint.confidence * 100).toInt()
-                "- Apps from ${hint.pattern.removeSuffix(".*")} tend to be in " +
-                    "${hint.tabName} ($confidencePercent% confidence, ${hint.sampleCount} samples)"
+            .map {
+                val confidencePercent = (it.confidence * 100).toInt()
+                "- Apps from ${it.pattern.removeSuffix(".*")} tend to be in " +
+                    "${it.tabName} ($confidencePercent% confidence, ${it.sampleCount} samples)"
             }
 
         if (hintLines.isEmpty()) {
@@ -109,44 +109,44 @@ class UserCorrectionLearner(
     }
 
     /**
-     * Checks if a specific app should be biased toward a category based on learned patterns.
+     * Checks if a specific app should be biased toward a tab based on learned patterns.
      *
      * @param packageName The app package to check
-     * @return CategoryHint if a strong pattern exists, null otherwise
+     * @return TabHint if a strong pattern exists, null otherwise
      */
-    suspend fun getHintForPackage(packageName: String): CategoryHint? = withContext(Dispatchers.IO) {
-        val hints = getCategoryHints()
+    suspend fun getHintForPackage(packageName: String): TabHint? = withContext(Dispatchers.IO) {
+        val hints = getTabHints()
         val prefix = extractPackagePrefix(packageName)
 
         hints[prefix]?.takeIf { it.confidence >= MIN_CONFIDENCE_FOR_OVERRIDE }
     }
 
     /**
-     * Analyzes categorization accuracy by comparing LLM results with user overrides.
+     * Analyzes tab assignment accuracy by comparing LLM results with user overrides.
      *
-     * @return Statistics about categorization quality
+     * @return Statistics about assignment quality
      */
-    suspend fun analyzeAccuracy(): AccuracyStats = withContext(Dispatchers.IO) {
-        val userOverrides = categoryDao.getUserOverriddenApps()
-        val allCategorizations = categoryDao.getAllAppCategories()
+    suspend fun analyzeAccuracy(): TabAccuracyStats = withContext(Dispatchers.IO) {
+        val userOverrides = tabDao.getUserOverriddenApps()
+        val allAssignments = tabDao.getAllAppTabs()
 
-        val totalCategorizations = allCategorizations.size
+        val totalAssignments = allAssignments.size
         val totalOverrides = userOverrides.size
-        val overrideRate = if (totalCategorizations > 0) {
-            (totalOverrides.toFloat() / totalCategorizations) * 100
+        val overrideRate = if (totalAssignments > 0) {
+            (totalOverrides.toFloat() / totalAssignments) * 100
         } else {
             0f
         }
 
         // Group overrides by original source to see which stage needs improvement
-        val overridesBySource = userOverrides.groupBy { override ->
+        val overridesBySource = userOverrides.groupBy {
             // Try to infer original source before user override
             // In practice, we'd need to store override history
             "llm" // Simplified for now
         }
 
-        AccuracyStats(
-            totalCategorizations = totalCategorizations,
+        TabAccuracyStats(
+            totalAssignments = totalAssignments,
             userOverrides = totalOverrides,
             overrideRate = overrideRate,
             overridesBySource = overridesBySource.mapValues { it.value.size },
@@ -193,9 +193,9 @@ class UserCorrectionLearner(
         @Volatile
         private var instance: UserCorrectionLearner? = null
 
-        fun getInstance(context: Context, categoryDao: TabDao): UserCorrectionLearner {
+        fun getInstance(context: Context, tabDao: TabDao): UserCorrectionLearner {
             return instance ?: synchronized(this) {
-                instance ?: UserCorrectionLearner(context, categoryDao).also { instance = it }
+                instance ?: UserCorrectionLearner(context, tabDao).also { instance = it }
             }
         }
     }
@@ -205,11 +205,11 @@ class UserCorrectionLearner(
  * Represents a learned pattern from user corrections.
  *
  * @property pattern Package pattern (e.g., "com.google.*")
- * @property category Preferred category for this pattern
+ * @property tabName Preferred tab for this pattern
  * @property confidence Confidence in this pattern (0.0 - 1.0)
  * @property sampleCount Number of user corrections supporting this pattern
  */
-data class CategoryHint(
+data class TabHint(
     val pattern: String,
     val tabName: String,
     val confidence: Float,
@@ -217,15 +217,15 @@ data class CategoryHint(
 )
 
 /**
- * Statistics about categorization accuracy and user corrections.
+ * Statistics about tab assignment accuracy and user corrections.
  *
- * @property totalCategorizations Total number of categorized apps
+ * @property totalAssignments Total number of assigned apps
  * @property userOverrides Number of apps with user corrections
  * @property overrideRate Percentage of apps that were corrected (0-100)
- * @property overridesBySource Breakdown of overrides by original categorization source
+ * @property overridesBySource Breakdown of overrides by original assignment source
  */
-data class AccuracyStats(
-    val totalCategorizations: Int,
+data class TabAccuracyStats(
+    val totalAssignments: Int,
     val userOverrides: Int,
     val overrideRate: Float,
     val overridesBySource: Map<String, Int>,

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
  * Data Access Object for model accuracy tracking operations.
  *
  * Provides methods to record and analyze LLM model prediction accuracy
- * based on user acceptance or correction of categorizations.
+ * based on user acceptance or correction of tab assignments.
  */
 @Dao
 interface AccuracyDao {
@@ -170,10 +170,10 @@ interface AccuracyDao {
             SUM(CASE WHEN was_correct = 1 THEN 1 ELSE 0 END) as correct,
             (SUM(CASE WHEN was_correct = 1 THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) as accuracy
         FROM model_accuracy
-        WHERE category = :category AND timestamp >= :since
+        WHERE tab_name = :tabName AND timestamp >= :since
         GROUP BY provider, model
         ORDER BY accuracy DESC
         """,
     )
-    suspend fun getAccuracyByCategory(category: String, since: Long): List<ModelAccuracyStats>
+    suspend fun getAccuracyByTab(tabName: String, since: Long): List<ModelAccuracyStats>
 }

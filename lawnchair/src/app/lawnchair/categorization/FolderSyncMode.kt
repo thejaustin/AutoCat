@@ -1,7 +1,7 @@
 package app.lawnchair.categorization
 
 /**
- * Defines where category folders should be synced.
+ * Defines where tab folders should be synced.
  */
 enum class FolderSyncMode(val displayName: String, val description: String) {
     /** Sync to app drawer folders only (using caddy folder service) */

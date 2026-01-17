@@ -159,7 +159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [15.0.b1-autocat.~88] - 2025-12-13
 
 ### Added
-- Created `CategorizationOverviewPreferences.kt` - New overview screen with categorization stats
+- Created `AppCategorizationPreferences.kt` - New overview screen with categorization stats
 - Created `CategorizationSettingsPreferences.kt` - Centralized settings hub
 - Filter dropdowns for apps by tab
 
@@ -197,7 +197,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Fixed N+1 query problem with 80-90% speedup ([#2](https://github.com/thejaustin/AutoCat/issues/2))
-- Made CategoryFolderSyncService lazy to prevent memory leaks ([#9](https://github.com/thejaustin/AutoCat/issues/9))
+- Made TabFolderSyncService lazy to prevent memory leaks ([#9](https://github.com/thejaustin/AutoCat/issues/9))
 - Optimized object allocations in app drawer hot path ([#6](https://github.com/thejaustin/AutoCat/issues/6))
 - All categorization properties now lazy-loaded for faster startup
 
@@ -254,7 +254,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 20x performance improvement (100 apps: 6.7min → 20sec)
   - 68% token savings
 - Dual folder sync system
-  - Created `CategoryFolderSyncService.kt` for folder management
+  - Created `TabFolderSyncService.kt` for folder management
   - Drawer folders (caddy implementation)
   - Home screen folders (Launcher3 workspace)
   - Three sync modes: DRAWER/HOME_SCREEN/BOTH

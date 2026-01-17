@@ -78,8 +78,9 @@ Each release includes:
 
 AutoCat uses different package names to avoid conflicts:
 
-- **GitHub/Debug builds**: `app.lawnchair.debug`
-- **Future release builds**: `app.lawnchair.autocat` (planned)
+- **GitHub/Debug builds**: `app.autocat.debug`
+- **Play Store builds**: `app.autocat.play`
+- **Nightly builds**: `app.autocat.nightly`
 
 You can install AutoCat alongside the official Lawnchair launcher.
 
@@ -92,12 +93,12 @@ Settings → Apps → AutoCat → Uninstall
 
 **Via ADB** (if installation fails):
 ```bash
-adb uninstall app.lawnchair.debug
+adb uninstall app.autocat.debug
 ```
 
 **Via Termux** (if you have PM permission):
 ```bash
-pm uninstall app.lawnchair.debug
+pm uninstall app.autocat.debug
 ```
 
 ## Testing Checklist
@@ -185,7 +186,7 @@ adb install AutoCat-debug-<commit>.apk
 adb install -r AutoCat-debug-<commit>.apk
 
 # Uninstall
-adb uninstall app.lawnchair.debug
+adb uninstall app.autocat.debug
 
 # View logs
 adb logcat | grep -i "launcher\|autocat\|category"
@@ -198,7 +199,7 @@ adb logcat | grep -i "launcher\|autocat\|category"
 pm install /storage/emulated/0/Download/AutoCat-debug-<commit>.apk
 
 # Grant storage permission
-pm grant app.lawnchair.debug android.permission.READ_EXTERNAL_STORAGE
+pm grant app.autocat.debug android.permission.READ_EXTERNAL_STORAGE
 ```
 
 ## CI/CD Pipeline

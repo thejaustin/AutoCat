@@ -4,7 +4,7 @@ package app.lawnchair.categorization.llm
  * Calculates optimal batch sizes for LLM categorization requests.
  *
  * Takes into account model context windows, prompt overhead,
- * and category list sizes to maximize batching efficiency.
+ * and tab list sizes to maximize batching efficiency.
  */
 object BatchCalculator {
 
@@ -30,18 +30,18 @@ object BatchCalculator {
     fun calculateOptimalBatchSize(
         modelInfo: ModelInfo,
         totalApps: Int,
-        categories: List<String>,
+        tabs: List<String>,
         rateLimitDelayMs: Long = 4000,
     ): BatchConfig {
         val contextWindow = modelInfo.contextWindow
 
-        // Estimate category overhead (roughly 4 chars per token)
-        val categoryText = categories.joinToString("\n") { "- $it" }
-        val categoryTokens = categoryText.length / 4
+        // Estimate tab overhead (roughly 4 chars per token)
+        val tabText = tabs.joinToString("\n") { "- $it" }
+        val tabTokens = tabText.length / 4
 
         // Calculate available tokens for app entries
         val availablePromptTokens = (contextWindow * (1 - SAFETY_MARGIN)).toInt()
-        val tokensForApps = availablePromptTokens - PROMPT_OVERHEAD - categoryTokens
+        val tokensForApps = availablePromptTokens - PROMPT_OVERHEAD - tabTokens
 
         // Calculate max apps per batch
         val maxAppsPerBatch = (tokensForApps / TOKENS_PER_APP).coerceAtLeast(1)
@@ -59,7 +59,7 @@ object BatchCalculator {
         }
 
         val batches = (totalApps + batchSize - 1) / batchSize
-        val estimatedTokens = PROMPT_OVERHEAD + categoryTokens + (batchSize * TOKENS_PER_APP)
+        val estimatedTokens = PROMPT_OVERHEAD + tabTokens + (batchSize * TOKENS_PER_APP)
         val estimatedTime = batches * rateLimitDelayMs
 
         return BatchConfig(
@@ -142,16 +142,16 @@ object BatchCalculator {
     fun validateBatchSize(
         modelInfo: ModelInfo,
         batchSize: Int,
-        categories: List<String>,
+        tabs: List<String>,
     ): ValidationResult {
-        val categoryTokens = categories.joinToString("\n").length / 4
-        val requiredTokens = PROMPT_OVERHEAD + categoryTokens + (batchSize * TOKENS_PER_APP)
+        val tabTokens = tabs.joinToString("\n").length / 4
+        val requiredTokens = PROMPT_OVERHEAD + tabTokens + (batchSize * TOKENS_PER_APP)
         val availableTokens = (modelInfo.contextWindow * (1 - SAFETY_MARGIN)).toInt()
 
         return if (requiredTokens <= availableTokens) {
             ValidationResult.Valid
         } else {
-            val maxSafe = (availableTokens - PROMPT_OVERHEAD - categoryTokens) / TOKENS_PER_APP
+            val maxSafe = (availableTokens - PROMPT_OVERHEAD - tabTokens) / TOKENS_PER_APP
             ValidationResult.TooLarge(
                 requestedSize = batchSize,
                 maxSafeSize = maxSafe,

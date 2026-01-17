@@ -7,7 +7,7 @@
   - [x] Investigate data flow from `appInfo` to `llmCategorizer.categorize()` from `categorizeNewApp()` on line 133.
   - [x] SAST Recon on /data/data/com.termux/files/home/AutoCat/lawnchair/src/app/lawnchair/categorization/CategorizationManager.kt
   - [x] SAST Recon on /data/data/com.termux/files/home/AutoCat/lawnchair/src/app/lawnchair/categorization/stages/BuiltInCategorizer.kt
-  - [x] SAST Recon on /data/data/com.termux/files/home/AutoCat/lawnchair/src/app/lawnchair/categorization/CategoryTabsController.kt
+  - [x] SAST Recon on /data/data/com.termux/files/home/AutoCat/lawnchair/src/app/lawnchair/categorization/AppTabsController.kt
   - [x] SAST Recon on /data/data/com.termux/files/home/AutoCat/lawnchair/src/app/lawnchair/categorization/CategoryTabsManager.kt
   - [x] SAST Recon on /data/data/com.termux/files/home/AutoCat/lawnchair/src/app/lawnchair/categorization/FolderAutoSortService.kt
   - [x] SAST Recon on /data/data/com.termux/files/home/AutoCat/lawnchair/src/app/lawnchair/categorization/importer/SmartLauncherImporter.kt

@@ -106,13 +106,13 @@ data object AppDrawerManageTabs : PreferenceRoute
 data object AppDrawerLLMSettings : PreferenceRoute
 
 @Serializable
-data object AppDrawerAppCategorizations : PreferenceRoute
+data object AppDrawerAppTabAssignments : PreferenceRoute
 
 @Serializable
 data object AppDrawerCategorizationSettings : PreferenceRoute
 
 @Serializable
-data object AppDrawerCategorizationOverview : PreferenceRoute
+data object AppDrawerAppCategorization : PreferenceRoute
 
 @Serializable
 data object AppDrawerFolder : PreferenceRoute

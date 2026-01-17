@@ -31,13 +31,13 @@
 3. **User Overrides** - Manual corrections always respected
 4. **Learning System** - Learns from user corrections to improve over time
 
-#### 🎨 **Rich User Experience**
-- **Category Tabs**: Organized drawer with customizable category tabs
-- **Manual Override UI**: Long-press to change app categories
-- **Smart Launcher Import**: Import categories from Smart Launcher backups (.slbk files)
+#### 🎨 Rich User Experience
+- **App Tabs**: Organized drawer with customizable tabs
+- **Manual Override UI**: Long-press to change app tab assignments
+- **Smart Launcher Import**: Import tab assignments from Smart Launcher backups (.slbk files)
 - **Developer Diagnostics**: Comprehensive error logging and diagnostics
 - **Progress Tracking**: Real-time progress with batch information
-- **App Descriptions**: Display LLM reasoning for categorization decisions
+- **App Descriptions**: Display LLM reasoning for assignment decisions
 
 ### 📊 Development Status
 
@@ -49,7 +49,7 @@
 - ✅ LLM integration (4 providers)
 - ✅ Batch API processing
 - ✅ Dual folder sync (drawer + home)
-- ✅ Category management UI
+- ✅ Tab management UI
 - ✅ User correction learning
 - ✅ Smart Launcher import
 - ✅ Developer diagnostics
@@ -86,7 +86,7 @@
 ```
 CategorizationManager → LLMCategorizer → [4 Providers]
                      ↓
-                CategoryFolderSyncService → [Drawer/Home Folders]
+                TabFolderSyncService → [Drawer/Home Folders]
                      ↓
                 UserCorrectionLearner → [Improve over time]
 ```

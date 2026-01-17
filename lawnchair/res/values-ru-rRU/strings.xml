@@ -72,7 +72,7 @@
     General "words" used throughout Lawnchair
 
     -->
-    <string name="others_category_label">Прочее</string>
+    <string name="others_tab_label">Прочее</string>
     <!-- Selection options -->
     <string name="dynamic">Изменять динамически</string>
     <string name="presets">Предустановки</string>

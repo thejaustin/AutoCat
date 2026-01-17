@@ -144,7 +144,7 @@ fun About(
                             onClick = {},
                             onLongClick = {
                                 val commitUrl =
-                                    "https://github.com/LawnchairLauncher/lawnchair/commit/${BuildConfig.COMMIT_HASH}"
+                                    "https://github.com/thejaustin/AutoCat/commit/${BuildConfig.COMMIT_HASH}"
                                 context.startActivity(Intent(Intent.ACTION_VIEW, commitUrl.toUri()))
                             },
                         ),
@@ -152,7 +152,29 @@ fun About(
             }
         }
         item {
-            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(id = R.string.autocat_about),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp, vertical = 8.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        item {
+            Text(
+                text = stringResource(id = R.string.lawnchair_attribution),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
         }
         item {
             UpdateSection(
@@ -178,7 +200,7 @@ fun About(
                     .padding(horizontal = 16.dp),
             ) {
                 uiState.topLinks.forEach { link ->
-                    LawnchairLink(
+                    AutoCatLink(
                         iconResId = link.iconResId,
                         label = stringResource(id = link.labelResId),
                         modifier = Modifier.weight(weight = 1f),
@@ -192,7 +214,7 @@ fun About(
             key = { _, it -> it.name },
             isFirstChild = false,
             heading = { stringResource(id = R.string.product) },
-        ) { _, it ->
+        ) {
             ContributorRow(
                 member = it,
             )
@@ -202,7 +224,7 @@ fun About(
             key = { _, it -> it.name },
             isFirstChild = false,
             heading = { stringResource(id = R.string.support_and_pr) },
-        ) { _, it ->
+        ) {
             ContributorRow(
                 member = it,
             )
@@ -212,8 +234,8 @@ fun About(
             key = { _, it -> it.labelResId },
             isFirstChild = false,
             heading = { stringResource(id = R.string.community) },
-        ) { _, it ->
-            HorizontalLawnchairLink(
+        ) {
+            HorizontalAutoCatLink(
                 iconResId = it.iconResId,
                 label = stringResource(id = it.labelResId),
                 url = it.url,

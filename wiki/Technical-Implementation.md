@@ -35,27 +35,27 @@ Deep dive into AutoCat's architecture, implementation details, and technical dec
 
 ## Core Systems
 
-### 1. Categorization Pipeline
+### 1. Tab Assignment Pipeline
 
 **File**: `CategorizationManager.kt`
 
-**Purpose**: Orchestrates multi-stage categorization process
+**Purpose**: Orchestrates multi-stage app assignment process
 
 **Stages**:
 
 1. **Built-in Categorizer** (`BuiltInCategorizer.kt`)
-   - Fast, rule-based categorization
+   - Fast, rule-based assignment
    - Uses Android package patterns
    - 60-70% coverage
    - Batch database inserts for performance
 
 2. **LLM Categorizer** (`LLMCategorizer.kt`)
-   - AI-powered categorization
+   - AI-powered assignment to tabs
    - Handles remaining apps
    - Batch API processing (20x faster)
    - Provider fallback logic
 
-3. **Folder Sync** (`CategoryFolderSyncService.kt`)
+3. **Folder Sync** (`TabFolderSyncService.kt`)
    - Creates persistent folders
    - Syncs drawer + home screen
    - Bidirectional sync support
@@ -63,16 +63,16 @@ Deep dive into AutoCat's architecture, implementation details, and technical dec
 **Flow**:
 ```kotlin
 suspend fun initializeCategorization() {
-    // Stage 1: Built-in categorization
-    val uncategorized = builtInCategorizer.categorizeAll()
+    // Stage 1: Built-in assignment
+    val unassigned = builtInCategorizer.categorizeAll()
 
-    // Stage 2: LLM categorization
-    if (uncategorized.isNotEmpty()) {
-        llmCategorizer.categorizeBatch(uncategorized)
+    // Stage 2: AI assignment to tabs
+    if (unassigned.isNotEmpty()) {
+        llmCategorizer.categorizeBatch(unassigned)
     }
 
     // Stage 3: Folder sync
-    folderSyncService.syncCategoriesToFolders()
+    folderSyncService.syncTabsToFolders()
 }
 ```
 
@@ -97,12 +97,12 @@ interface LLMProvider {
         appName: String,
         packageName: String,
         appDescription: String?,
-        availableCategories: List<String>
+        availableTabs: List<String>
     ): CategorizationResult
 
     suspend fun categorizeAppBatch(
         apps: List<AppBatchInfo>,
-        availableCategories: List<String>
+        availableTabs: List<String>
     ): Map<String, CategorizationResult>
 
     suspend fun testConnection(): TestResult
@@ -283,7 +283,7 @@ categoryDao.insertAll(categorizedApps)  // Single transaction
 
 ```kotlin
 val uncategorized = allApps.filter { app ->
-    categoryDao.getAppCategory(app.packageName) == null
+    categoryDao.getAppTab(app.packageName) == null
 }
 ```
 
@@ -645,7 +645,7 @@ app.lawnchair/
 
 ### File Naming Conventions
 
-- **Services**: `*Service.kt` (e.g., `CategoryFolderSyncService.kt`)
+- **Services**: `*Service.kt` (e.g., `TabFolderSyncService.kt`)
 - **Providers**: `*Provider.kt` (e.g., `GoogleAIProvider.kt`)
 - **Managers**: `*Manager.kt` (e.g., `CategorizationManager.kt`)
 - **Preferences**: `*Preferences.kt` (e.g., `LLMSettingsPreferences.kt`)

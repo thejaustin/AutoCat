@@ -36,7 +36,7 @@ abstract class TabDatabase : RoomDatabase() {
     /**
      * Provides access to tab-related data operations.
      */
-    abstract fun categoryDao(): TabDao
+    abstract fun tabDao(): TabDao
 
     /**
      * Provides access to model accuracy tracking operations.
@@ -85,7 +85,7 @@ abstract class TabDatabase : RoomDatabase() {
                     override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                         super.onCreate(db)
                         // Default tabs will be initialized on first DAO access
-                        // via TabDao.initializeDefaultCategoriesIfNeeded()
+                        // via TabDao.initializeDefaultTabsIfNeeded()
                     }
                 })
                 .build()
