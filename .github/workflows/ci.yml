@@ -1,4 +1,4 @@
-name: CI
+name: Lawnchair CI
 
 on:
   push:
@@ -28,12 +28,34 @@ on:
 
 jobs:
   build-debug-apk:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     continue-on-error: true
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           submodules: true
+          fetch-depth: 1
+      - name: Patch submodule for framework-15
+        run: |
+          # Patch submodule build files to use framework-15.jar instead of framework-16.jar
+          # This is needed until a proper fork of the submodule is created
+          find platform_frameworks_libs_systemui -name "build.gradle" -exec \
+            sed -i "s/framework-16.jar/framework-15.jar/g" {} \;
+          # Also fix DSL syntax issues (abortOnError false -> abortOnError = false)
+          find platform_frameworks_libs_systemui -name "build.gradle" -exec \
+            sed -i "s/abortOnError false/abortOnError = false/g" {} \;
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-ccache
+          max-size: 2G
       - uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
@@ -41,21 +63,24 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
         with:
           cache-encryption-key: Da25KUVSE5jbGds2zXmfXw==
+          cache-read-only: ${{ github.ref != 'refs/heads/15-dev' }}
       - name: Write sign info
-        if: github.repository_owner == 'LawnchairLauncher'
         run: |
           if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
             echo storePassword='${{ secrets.KEYSTORE_PASSWORD }}' >> keystore.properties
             echo keyAlias='${{ secrets.KEY_ALIAS }}' >> keystore.properties
             echo keyPassword='${{ secrets.KEY_PASSWORD }}' >> keystore.properties
             echo storeFile='${{ github.workspace }}/key.jks' >> keystore.properties
-            echo ${{ secrets.KEYSTORE }} | base64 --decode > ${{ github.workspace }}/key.jks
+            echo "${{ secrets.KEYSTORE }}" | base64 --decode > ${{ github.workspace }}/key.jks
           fi
-        # Release variant is disabled due to build conflict | assembleLawnWithQuickstepNightlyRelease
       - name: Build debug APK
-        run: ./gradlew assembleLawnWithQuickstepGithubDebug assembleLawnWithQuickstepPlayDebug --build-cache
+        run: |
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          ./gradlew assembleLawnWithQuickstepGithubDebug --parallel --build-cache
+        env:
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: Debug APK
           path: build/outputs/apk/**/*.apk
@@ -66,77 +91,142 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: true
+      - name: Patch submodule for framework-15
+        run: |
+          # Patch submodule build files to use framework-15.jar instead of framework-16.jar
+          find platform_frameworks_libs_systemui -name "build.gradle" -exec \
+            sed -i "s/framework-16.jar/framework-15.jar/g" {} \;
+          find platform_frameworks_libs_systemui -name "build.gradle" -exec \
+            sed -i "s/abortOnError false/abortOnError = false/g" {} \;
       - uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: 21
       - uses: gradle/actions/setup-gradle@v5
-      - run: ./gradlew spotlessCheck
-
-  send-notifications:
-    runs-on: ubuntu-latest
-    if: github.repository_owner == 'LawnchairLauncher'
-    needs: build-debug-apk
-    steps:
-      - uses: actions/checkout@v6
         with:
-          submodules: true
-          fetch-depth: 0
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.x'
-      - name: Install Python packages
-        run: |
-          python -m pip install --upgrade pip
-          pip install gitpython requests
-      - name: Download artifact
-        uses: actions/download-artifact@v6
-        with:
-          name: Debug APK
-          path: artifacts/debug-apk
-      - name: Send notifications
-        run: python ci.py
-        env:
-          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_CI_BOT_TOKEN }}
-          TELEGRAM_CI_CHANNEL_ID: ${{ secrets.TELEGRAM_CI_CHANNEL_ID }}
-          TELEGRAM_TEAM_GROUP_ID: ${{ secrets.NOTIFY_CHANNEL_ID }}
-          ARTIFACT_DIRECTORY: artifacts/debug-apk
-          GITHUB_REF: ${{ github.ref }}
-          ACTION: internal_notifications
+          cache-read-only: true
+      - run: ./gradlew spotlessCheck --no-configuration-cache
 
-  crowdin-auto-merge:
+  autocat-release:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'lawnchair-bot' && github.event.pull_request.title == 'New Crowdin translations by Github Action'
-    needs: build-debug-apk
-    steps:
-      - env:
-          GH_TOKEN: ${{ secrets.LAWNCHAIR_BOT_TOKEN }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-        run: |
-          gh pr comment $PR_URL --body "No issues found, auto-merging the Crowdin pull request."
-          gh pr merge $PR_URL --auto --squash --delete-branch
-
-  nightly-release:
-    runs-on: ubuntu-latest
-    if: false
-    # if: github.repository_owner == 'LawnchairLauncher' && github.event_name == 'push' && github.ref == 'refs/heads/15-dev'
+    if: github.repository_owner == 'thejaustin' && github.event_name == 'push' && (github.ref == 'refs/heads/15-dev' || github.ref == 'refs/heads/autocat-16-dev')
     needs: build-debug-apk
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/download-artifact@v6
+        with:
+          fetch-depth: 10
+          submodules: false
+      - uses: actions/download-artifact@v7
         with:
           name: Debug APK
-      # Note the # and () symbols are not supported in GitHub Release filenames, even manually
-      - name: Export APK_NAME for later use
-        run: echo "APK_NAME=Lawnchair.Debug.${{ github.ref_name }}.Nightly-CI_${{ github.run_number }}-$(echo ${{ github.sha }} | cut -c1-7).apk" >> $GITHUB_ENV
-      - name: Rename .apk file
-        run: mv "./lawnWithQuickstepNightly/release/"*.apk "./$APK_NAME"
-      - name: Delete release if exist then create release
+          path: apk-artifacts
+      - name: Prepare APK and version info
+        run: |
+          # Find the GitHub debug APK (installable variant)
+          APK_FILE=$(find apk-artifacts -name "*GithubDebug.apk" | head -1)
+          if [ -z "$APK_FILE" ]; then
+            echo "No GitHub Debug APK found, trying any debug APK"
+            APK_FILE=$(find apk-artifacts -name "*debug.apk" | head -1)
+          fi
+
+          # Determine version based on branch
+          if [[ "${{ github.ref_name }}" == "autocat-16-dev" ]]; then
+            BASE_VERSION="16.0.dev"
+            BASE_NOTE="Lawnchair 16 Dev (Pre-release)"
+            PRERELEASE_FLAG="--prerelease"
+            DEV_TAG="dev-next"
+            DEV_TITLE="AutoCat Next (Pre-release)"
+          else
+            # Default to 15-dev
+            BASE_VERSION="15.0.b2"
+            BASE_NOTE="Lawnchair 15.0 Beta 2 (b2)"
+            PRERELEASE_FLAG=""
+            DEV_TAG="dev-latest"
+            DEV_TITLE="AutoCat Development Build (Latest)"
+          fi
+
+          # Version info
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          VERSION_TAG="v${BASE_VERSION}-autocat.${{ github.run_number }}"
+          APK_NAME="AutoCat-${VERSION_TAG}-${SHORT_SHA}.apk"
+          DEV_APK_NAME="AutoCat-${DEV_TAG}.apk"
+
+          # Copy APK with versioned name
+          cp "$APK_FILE" "./$APK_NAME"
+          cp "$APK_FILE" "./$DEV_APK_NAME"
+
+          # Export variables
+          echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
+          echo "DEV_APK_NAME=$DEV_APK_NAME" >> $GITHUB_ENV
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+          echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
+          echo "BASE_NOTE=$BASE_NOTE" >> $GITHUB_ENV
+          echo "PRERELEASE_FLAG=$PRERELEASE_FLAG" >> $GITHUB_ENV
+          echo "DEV_TAG=$DEV_TAG" >> $GITHUB_ENV
+          echo "DEV_TITLE=$DEV_TITLE" >> $GITHUB_ENV
+
+      - name: Create versioned release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view "nightly" && gh release delete "nightly" -y --cleanup-tag
-          gh release create "nightly" "./$APK_NAME" -p -t "Lawnchair Nightly" --generate-notes
+          # Create permanent versioned release
+          gh release create "$VERSION_TAG" "./$APK_NAME" \
+            --title "AutoCat $VERSION_TAG" \
+            $PRERELEASE_FLAG \
+            --notes "**AutoCat Build #${{ github.run_number }}**
+
+            ### Version Info
+            - **Version**: $VERSION_TAG
+            - **Channel**: ${{ github.ref_name }}
+            - **Commit**: [\`$SHORT_SHA\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            - **Build Date**: $(date -u +'%Y-%m-%d %H:%M UTC')
+
+            ### Installation
+            1. Download \`$APK_NAME\` below
+            2. Enable 'Install from Unknown Sources' in Android settings
+            3. Install the APK
+
+            ### Changes in this build
+            $(git log -1 --pretty=format:'**%s**%n%n%b')
+
+            ### What's in AutoCat $VERSION_TAG
+            - **Base**: $BASE_NOTE
+            - **Features**: Room database foundation for app categorization
+            - **Infrastructure**: Development logs system, versioning
+
+            ---
+
+            📥 **[Download Latest](https://github.com/${{ github.repository }}/releases/tag/${DEV_TAG})** | 📝 **[All Releases](https://github.com/${{ github.repository }}/releases)"
+      - name: Update rolling release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Delete old rolling release tag
+          gh release view "$DEV_TAG" && gh release delete "$DEV_TAG" -y --cleanup-tag || true
+
+          # Create new rolling release pointing to same build
+          gh release create "$DEV_TAG" "./$DEV_APK_NAME" \
+            --prerelease \
+            --title "$DEV_TITLE" \
+            --notes "**🔄 Rolling release - Always points to latest build on ${{ github.ref_name }}**
+
+            Current version: **$VERSION_TAG** from commit [\`$SHORT_SHA\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+
+            ### Quick Install
+            1. Download \`$DEV_APK_NAME\` below
+            2. Install on your Android device
+            3. Test and report issues
+
+            ### This Build
+            - **Build**: #${{ github.run_number }}
+            - **Date**: $(date -u +'%Y-%m-%d %H:%M UTC')
+
+            $(git log -1 --pretty=format:'**Changes**: %s')
+
+            ---
+
+            💡 **Want a specific version?** See [all versioned releases](https://github.com/${{ github.repository }}/releases)
+
+            ⚠️ **Development Build** - For testing only"

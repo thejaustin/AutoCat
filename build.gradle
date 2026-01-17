@@ -153,11 +153,20 @@ final def ciBuild = System.getenv("CI") == "true"
 final def ciRef = System.getenv("GITHUB_REF") ?: ""
 final def ciRunNumber = System.getenv("GITHUB_RUN_NUMBER") ?: ""
 final def isReleaseBuild = ciBuild && ciRef.contains("beta")
+
+// AutoCat versioning
+final def lawnchairBaseVersion = "16.0"
+final def lawnchairDevStage = "dev"
+final def autocatBuildNumber = ciRunNumber ?: "local"
+final def autocatVersion = "autocat.${autocatBuildNumber}"
+final def autocatVersionName = "${lawnchairBaseVersion}.${lawnchairDevStage}-${autocatVersion}"
+
+// Keep original Lawnchair versioning logic variables for compatibility
 final def devReleaseName = ciBuild ? "Dev.(#${ciRunNumber})" : "Dev.(${buildCommit})"
 final def version = "16"
 final def releaseName = "Development 3 Release 2"
-final def versionDisplayName = "${version}.${isReleaseBuild ? releaseName : devReleaseName}"
-final def majorVersion = versionDisplayName.split("\\.")[0]
+final def versionDisplayName = ciBuild ? autocatVersionName : "${lawnchairBaseVersion}.${lawnchairDevStage}-autocat.dev"
+final def majorVersion = version
 
 final def quickstepMinSdk = "29"
 final def quickstepMaxSdk = "36"
@@ -169,11 +178,16 @@ android {
          * Lawnchair Launcher 16.0 Development 3 Release 2
          * see CONTRIBUTING.md#versioning-scheme
          */
-        versionCode 16_00_01_03_02
+        // AutoCat - Fork of Lawnchair Launcher 16.0
+        // Base versionCode: 16_00_01_03_02 (Lawnchair 16 Dev)
+        def autocatBuildCode = ciRunNumber ? (ciRunNumber.toInteger() % 100) : 0
+        versionCode 16_00_01_03_02 + autocatBuildCode
         versionName "${versionDisplayName}"
         buildConfigField "String", "VERSION_DISPLAY_NAME", "\"${versionDisplayName}\""
         buildConfigField "String", "MAJOR_VERSION", "\"${majorVersion}\""
         buildConfigField "String", "COMMIT_HASH", "\"${buildCommit}\""
+        buildConfigField "String", "AUTOCAT_VERSION", "\"${autocatVersion}\""
+        buildConfigField "String", "AUTOCAT_BUILD_NUMBER", "\"${autocatBuildNumber}\""
         buildConfigField "boolean", "ENABLE_AUTO_INSTALLS_LAYOUT", "false"
 
         manifestPlaceholders.quickstepMinSdk = quickstepMinSdk
