@@ -144,7 +144,7 @@ fun About(
                             onClick = {},
                             onLongClick = {
                                 val commitUrl =
-                                    "https://github.com/shmcfarl/AutoCat/commit/${BuildConfig.COMMIT_HASH}"
+                                    "https://github.com/thejaustin/AutoCat/commit/${BuildConfig.COMMIT_HASH}"
                                 context.startActivity(Intent(Intent.ACTION_VIEW, commitUrl.toUri()))
                             },
                         ),

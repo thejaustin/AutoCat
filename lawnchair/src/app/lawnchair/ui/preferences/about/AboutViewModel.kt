@@ -171,7 +171,12 @@ class AboutViewModel(
             Link(
                 iconResId = R.drawable.ic_github,
                 labelResId = R.string.github,
-                url = "https://github.com/shmcfarl/AutoCat",
+                url = "https://github.com/thejaustin/AutoCat",
+            ),
+            Link(
+                iconResId = R.drawable.ic_bug_notification,
+                labelResId = R.string.autocat_issues,
+                url = "https://github.com/thejaustin/AutoCat/issues",
             ),
         )
 
