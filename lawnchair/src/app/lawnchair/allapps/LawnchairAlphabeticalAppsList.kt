@@ -8,8 +8,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.AppTabsController
+import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.flowerpot.Flowerpot
@@ -106,6 +106,7 @@ class LawnchairAlphabeticalAppsList<T>(
                         }
                         add(matchingApp ?: item)
                     }
+
                     else -> {
                         val packageName = item.targetComponent?.packageName
                         val matchingApps = appMap[packageName]
@@ -176,17 +177,17 @@ class LawnchairAlphabeticalAppsList<T>(
             // 2. Tab Filtering
             if (visible && currentTabFilter != null && currentTabFilter != AppTabsController.TAB_ALL && packageName != null) {
                 // Determine if app belongs to the current tab
-                val appTabInfo = cachedCategorizedApps?.get(currentTabFilter)?.values?.flatten()?.find { 
-                    it.packageName == packageName 
+                val appTabInfo = cachedCategorizedApps?.get(currentTabFilter)?.values?.flatten()?.find {
+                    it.packageName == packageName
                 }
-                
+
                 // If the app is not found in the cached category map for this tab, it shouldn't be shown
                 // Unless it's the "Work" tab, which is handled by the WorkProfileManager/Adapter separate from this list usually,
                 // but if we are enforcing strict tab views, we check here.
                 if (currentTabFilter == AppTabsController.TAB_WORK) {
                     // Work tab filtering is usually handled by the Work adapter's user matcher.
                     // If we rely on this list for work tab, we'd check user profile.
-                    // For now, assume Work Adapter handles user check, so we pass true if it's work tab 
+                    // For now, assume Work Adapter handles user check, so we pass true if it's work tab
                     // (letting the base WorkProfileManager filter handle the user check)
                 } else {
                     visible = appTabInfo != null
@@ -214,7 +215,7 @@ class LawnchairAlphabeticalAppsList<T>(
             }
 
             val isWorkProfile = isWorkOrPrivateSpace(appList)
-            
+
             // Special handling for Work Profile
             if (isWorkProfile && usingAppTabs) {
                 // If we are on the "Work" tab, show work apps
@@ -225,66 +226,65 @@ class LawnchairAlphabeticalAppsList<T>(
                 // For now, assume Work apps ONLY show on Work tab.
                 // But wait, if currentTabName is "All Apps", maybe we should show them?
                 // Standard behavior: Work apps are separate.
-                
+
                 if (currentTabName != AppTabsController.TAB_ALL) {
-                     return position // Skip work apps for custom tabs
+                    return position // Skip work apps for custom tabs
                 }
-                
-                // If "All Apps" tab, maybe show them mixed? 
-                // Currently Lawnchair keeps them separate in PagedView. 
-                // Since we are using PagedView where Work is a separate page (index N+1), 
+
+                // If "All Apps" tab, maybe show them mixed?
+                // Currently Lawnchair keeps them separate in PagedView.
+                // Since we are using PagedView where Work is a separate page (index N+1),
                 // this method will be called specifically for the Work AdapterHolder.
-                
+
                 // Note: ActivityAllAppsContainerView calls setup() for Work AdapterHolder with work matcher.
                 // So this method is called with ONLY work apps.
                 // We should just return super if we are indeed populating the work adapter.
                 // But how do we know which adapter calls us?
                 // We don't easily know. But appList contains work apps.
-                
+
                 // If we are here, it means we are populating a list of work apps.
                 // If the current UI tab is NOT Work, we shouldn't display them?
                 // Actually, the ViewPager handles visibility. Each AdapterHolder populates its own RV.
                 // So if we are populating Work RV, we should just populate it.
-                
+
                 return super.addAppsWithSections(appList, position)
             } else if (isWorkProfile) {
                 return super.addAppsWithSections(appList, position)
             }
 
             // --- PERSONAL APPS HANDLING ---
-            
+
             // If tabs are enabled, we need to filter personal apps based on the *current tab for THIS adapter*.
             // Wait, ActivityAllAppsContainerView creates ONE AdapterHolder for MAIN (Personal).
             // AND dynamic AdapterHolders for Custom Tabs.
             // AND one for WORK.
-            
+
             // Problem: This class (LawnchairAlphabeticalAppsList) doesn't know which AdapterHolder it belongs to.
             // It just knows "context".
-            
+
             // However, ActivityAllAppsContainerView sets up the adapter with a specific Matcher.
             // But `addAppsWithSections` is about *sorting* and *grouping* (sections).
             // If we are in a Custom Tab adapter, we want ONLY apps for that tab.
-            
+
             // We need a way to pass the "Target Tab" to this list.
             // Right now, we only have `currentTabName` from the *global* controller.
             // But `ActivityAllAppsContainerView` creates multiple instances of this list, one for each tab.
             // AND it sets them up.
-            
+
             // CRITICAL: We need to inject the "Tab Name" into this class instance so it knows what to filter.
             // But I cannot easily change the constructor signature without breaking things or doing massive refactor.
-            
+
             // Alternative: `ActivityAllAppsContainerView` calls `updateItemFilter` with a predicate.
             // I can use that predicate to filter apps by tab!
             // In `ActivityAllAppsContainerView.rebindAdapters`:
             // mAH.get(i).setup(rv, matcher);
             // I can wrap the matcher to also check for Tab membership.
-            
+
             // Let's rely on `mItemFilter` which calls `updateItemFilter`.
             // Use that for tab filtering instead of doing it inside `addAppsWithSections`.
             // `addAppsWithSections` should just organize what remains.
-            
+
             return super.addAppsWithSections(appList, position)
-            
         } catch (e: Exception) {
             Log.e(TAG, "Error in AutoCat addAppsWithSections", e)
             return super.addAppsWithSections(appList, startPosition)

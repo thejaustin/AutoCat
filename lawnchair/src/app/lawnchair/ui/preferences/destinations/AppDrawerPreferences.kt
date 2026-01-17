@@ -53,6 +53,7 @@ import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.navigation.AppDrawerHiddenApps
+import app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement
 import com.android.launcher3.R
 
 object AppDrawerRoutes {
@@ -78,10 +79,6 @@ fun AppDrawerPreferences(
         ExpandAndShrink(visible = drawerListAdapter.state.value) {
             AppDrawerFolderPreferenceItem()
         }
-import app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement
-
-// ... imports ...
-
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
             NavigationActionPreference(
                 label = "Manage Tabs",

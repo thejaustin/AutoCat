@@ -40,13 +40,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppTabsView(
     modifier: Modifier = Modifier,
-    onTabSelected: (Int) -> Unit,
+    onTabSelect: (Int) -> Unit,
 ) {
     val context = LocalContext.current
     val controller = remember { AppTabsController.getInstance(context) }
     val tabs by controller.tabNames.collectAsState()
     val currentTab by controller.currentTabIndex.collectAsState()
-    
+
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -64,16 +64,16 @@ fun AppTabsView(
         state = listState,
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         itemsIndexed(tabs) { index, title ->
             TabItem(
                 title = title,
                 isSelected = index == currentTab,
-                onClick = { 
+                onClick = {
                     controller.setCurrentTab(index)
-                    onTabSelected(index)
-                }
+                    onTabSelect(index)
+                },
             )
         }
     }
@@ -92,7 +92,7 @@ private fun TabItem(
             Color.Transparent
         },
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-        label = "tabBackground"
+        label = "tabBackground",
     )
 
     val contentColor by animateColorAsState(
@@ -101,7 +101,7 @@ private fun TabItem(
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         },
-        label = "tabContent"
+        label = "tabContent",
     )
 
     Box(
@@ -112,17 +112,17 @@ private fun TabItem(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onClick
+                onClick = onClick,
             )
             .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = title,
             color = contentColor,
             fontSize = 14.sp,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-            style = MaterialTheme.typography.labelLarge
+            style = MaterialTheme.typography.labelLarge,
         )
     }
 }

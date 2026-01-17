@@ -48,6 +48,7 @@ import app.lawnchair.ui.preferences.destinations.SearchProviderPreferences
 import app.lawnchair.ui.preferences.destinations.SelectAppsForDrawerFolder
 import app.lawnchair.ui.preferences.destinations.SelectIconPreference
 import app.lawnchair.ui.preferences.destinations.SmartspacePreferences
+import app.lawnchair.ui.preferences.destinations.TabManagementPreferences
 import com.android.launcher3.util.ComponentKey
 import soup.compose.material.motion.animation.materialSharedAxisXIn
 import soup.compose.material.motion.animation.materialSharedAxisXOut
@@ -113,10 +114,6 @@ fun PreferenceNavigation(
 
         composable<Smartspace> { SmartspacePreferences(fromWidget = false) }
         composable<SmartspaceWidget> { SmartspacePreferences(fromWidget = true) }
-
-import app.lawnchair.ui.preferences.destinations.TabManagementPreferences
-
-// ... imports ...
 
         composable<AppDrawer> { AppDrawerPreferences() }
         composable<AppDrawerHiddenApps> { HiddenAppsPreferences() }

@@ -6,15 +6,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.AbstractComposeView
 import app.lawnchair.categorization.AppTabsController
+import app.lawnchair.ui.theme.LawnchairTheme
 import com.android.launcher3.pageindicators.PageIndicator
 import com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip.OnActivePageChangedListener
-import app.lawnchair.ui.theme.LawnchairTheme
 
 class AppTabsHeaderView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : AbstractComposeView(context, attrs, defStyleAttr), PageIndicator {
+    defStyleAttr: Int = 0,
+) : AbstractComposeView(context, attrs, defStyleAttr),
+    PageIndicator {
 
     private var onActivePageChangedListener: OnActivePageChangedListener? = null
     private val controller = AppTabsController.getInstance(context)
@@ -23,10 +24,10 @@ class AppTabsHeaderView @JvmOverloads constructor(
     override fun Content() {
         LawnchairTheme {
             AppTabsView(
-                onTabSelected = { page ->
+                onTabSelect = { page ->
                     // Notify listener (ActivityAllAppsContainerView) to switch page
                     onActivePageChangedListener?.onActivePageChanged(page)
-                }
+                },
             )
         }
     }

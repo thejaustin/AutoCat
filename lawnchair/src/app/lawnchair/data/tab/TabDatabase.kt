@@ -32,19 +32,19 @@ abstract class TabDatabase : RoomDatabase() {
         private const val DATABASE_NAME = "app_tabs.db"
 
         @Volatile
-        private var INSTANCE: TabDatabase? = null
+        private var instance: TabDatabase? = null
 
         fun getInstance(context: Context): TabDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
+            return instance ?: synchronized(this) {
+                val newInstance = Room.databaseBuilder(
                     context.applicationContext,
                     TabDatabase::class.java,
                     DATABASE_NAME,
                 )
                     .addMigrations(MIGRATION_1_2) // Placeholder for future
                     .build()
-                INSTANCE = instance
-                instance
+                instance = newInstance
+                newInstance
             }
         }
 
