@@ -109,7 +109,7 @@ jobs:
 
   autocat-release:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'thejaustin' && github.event_name == 'push' && github.ref == 'refs/heads/15-dev'
+    if: github.repository_owner == 'thejaustin' && github.event_name == 'push' && (github.ref == 'refs/heads/15-dev' || github.ref == 'refs/heads/autocat-16-dev')
     needs: build-debug-apk
     permissions:
       contents: write
@@ -131,11 +131,27 @@ jobs:
             APK_FILE=$(find apk-artifacts -name "*debug.apk" | head -1)
           fi
 
+          # Determine version based on branch
+          if [[ "${{ github.ref_name }}" == "autocat-16-dev" ]]; then
+            BASE_VERSION="16.0.dev"
+            BASE_NOTE="Lawnchair 16 Dev (Pre-release)"
+            PRERELEASE_FLAG="--prerelease"
+            DEV_TAG="dev-next"
+            DEV_TITLE="AutoCat Next (Pre-release)"
+          else
+            # Default to 15-dev
+            BASE_VERSION="15.0.b2"
+            BASE_NOTE="Lawnchair 15.0 Beta 2 (b2)"
+            PRERELEASE_FLAG=""
+            DEV_TAG="dev-latest"
+            DEV_TITLE="AutoCat Development Build (Latest)"
+          fi
+
           # Version info
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          VERSION_TAG="v15.0.b1-autocat.${{ github.run_number }}"
+          VERSION_TAG="v${BASE_VERSION}-autocat.${{ github.run_number }}"
           APK_NAME="AutoCat-${VERSION_TAG}-${SHORT_SHA}.apk"
-          DEV_APK_NAME="AutoCat-dev-latest.apk"
+          DEV_APK_NAME="AutoCat-${DEV_TAG}.apk"
 
           # Copy APK with versioned name
           cp "$APK_FILE" "./$APK_NAME"
@@ -146,6 +162,11 @@ jobs:
           echo "DEV_APK_NAME=$DEV_APK_NAME" >> $GITHUB_ENV
           echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
           echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
+          echo "BASE_NOTE=$BASE_NOTE" >> $GITHUB_ENV
+          echo "PRERELEASE_FLAG=$PRERELEASE_FLAG" >> $GITHUB_ENV
+          echo "DEV_TAG=$DEV_TAG" >> $GITHUB_ENV
+          echo "DEV_TITLE=$DEV_TITLE" >> $GITHUB_ENV
+
       - name: Create versioned release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -153,12 +174,13 @@ jobs:
           # Create permanent versioned release
           gh release create "$VERSION_TAG" "./$APK_NAME" \
             --title "AutoCat $VERSION_TAG" \
+            $PRERELEASE_FLAG \
             --notes "**AutoCat Build #${{ github.run_number }}**
 
             ### Version Info
             - **Version**: $VERSION_TAG
+            - **Channel**: ${{ github.ref_name }}
             - **Commit**: [\`$SHORT_SHA\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
-            - **Branch**: ${{ github.ref_name }}
             - **Build Date**: $(date -u +'%Y-%m-%d %H:%M UTC')
 
             ### Installation
@@ -170,25 +192,25 @@ jobs:
             $(git log -1 --pretty=format:'**%s**%n%n%b')
 
             ### What's in AutoCat $VERSION_TAG
-            - **Base**: Lawnchair 15.0 Beta 1 (b1)
+            - **Base**: $BASE_NOTE
             - **Features**: Room database foundation for app categorization
             - **Infrastructure**: Development logs system, versioning
 
             ---
 
-            📥 **[Download Latest](https://github.com/${{ github.repository }}/releases/tag/dev-latest)** | 📝 **[All Releases](https://github.com/${{ github.repository }}/releases)**"
-      - name: Update dev-latest rolling release
+            📥 **[Download Latest](https://github.com/${{ github.repository }}/releases/tag/${DEV_TAG})** | 📝 **[All Releases](https://github.com/${{ github.repository }}/releases)**"
+      - name: Update rolling release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Delete old dev-latest
-          gh release view "dev-latest" && gh release delete "dev-latest" -y --cleanup-tag || true
+          # Delete old rolling release tag
+          gh release view "$DEV_TAG" && gh release delete "$DEV_TAG" -y --cleanup-tag || true
 
-          # Create new dev-latest pointing to same build
-          gh release create "dev-latest" "./$DEV_APK_NAME" \
+          # Create new rolling release pointing to same build
+          gh release create "$DEV_TAG" "./$DEV_APK_NAME" \
             --prerelease \
-            --title "AutoCat Development Build (Latest)" \
-            --notes "**🔄 Rolling release - Always points to latest build**
+            --title "$DEV_TITLE" \
+            --notes "**🔄 Rolling release - Always points to latest build on ${{ github.ref_name }}**
 
             Current version: **$VERSION_TAG** from commit [\`$SHORT_SHA\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
 
