@@ -114,8 +114,13 @@ fun PreferenceNavigation(
         composable<Smartspace> { SmartspacePreferences(fromWidget = false) }
         composable<SmartspaceWidget> { SmartspacePreferences(fromWidget = true) }
 
+import app.lawnchair.ui.preferences.destinations.TabManagementPreferences
+
+// ... imports ...
+
         composable<AppDrawer> { AppDrawerPreferences() }
         composable<AppDrawerHiddenApps> { HiddenAppsPreferences() }
+        composable<AppDrawerTabManagement> { TabManagementPreferences() }
         composable<AppDrawerAppListToFolder> { backStackEntry ->
             val args = backStackEntry.arguments!!
             val folderInfoId = args.getInt("id")

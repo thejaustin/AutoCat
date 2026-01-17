@@ -78,7 +78,15 @@ fun AppDrawerPreferences(
         ExpandAndShrink(visible = drawerListAdapter.state.value) {
             AppDrawerFolderPreferenceItem()
         }
+import app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement
+
+// ... imports ...
+
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
+            NavigationActionPreference(
+                label = "Manage Tabs",
+                destination = AppDrawerTabManagement,
+            )
             val hiddenApps = prefs2.hiddenApps.getAdapter().state.value
             NavigationActionPreference(
                 label = stringResource(id = R.string.hidden_apps_label),
