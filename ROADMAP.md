@@ -19,6 +19,7 @@ Lawnchair's goal is to be:
 
 - **Shipped:** `15 Beta 1` to GitHub & Play Store.
 - **Completed:** A full architectural overhaul of the Search and Permissions systems.
+- **Completed:** App drawer tabs (AutoCat dynamic tab system).
 
 ### Current focus
 
@@ -35,7 +36,6 @@ customization and control.
 
 - Proper icon swipe gestures
 - Folder "cover" mode
-- App drawer tabs
 
 ### The Android 16 rebase
 
