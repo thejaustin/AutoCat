@@ -109,7 +109,7 @@ jobs:
 
   autocat-release:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'thejaustin' && github.event_name == 'push' && (github.ref == 'refs/heads/15-dev' || github.ref == 'refs/heads/autocat-16-dev')
+    if: github.repository_owner == 'thejaustin' && github.event_name == 'push' && (github.ref == 'refs/heads/15-dev' || github.ref == 'refs/heads/16-dev')
     needs: build-debug-apk
     permissions:
       contents: write
@@ -132,7 +132,7 @@ jobs:
           fi
 
           # Determine version based on branch
-          if [[ "${{ github.ref_name }}" == "autocat-16-dev" ]]; then
+          if [[ "${{ github.ref_name }}" == "16-dev" ]]; then
             BASE_VERSION="16.0.dev"
             BASE_NOTE="Lawnchair 16 Dev (Pre-release)"
             PRERELEASE_FLAG="--prerelease"
