@@ -109,9 +109,6 @@ data object AppDrawerLLMSettings : PreferenceRoute
 data object AppDrawerAppTabAssignments : PreferenceRoute
 
 @Serializable
-data object AppDrawerCategorizationSettings : PreferenceRoute
-
-@Serializable
 data object AppDrawerAppCategorization : PreferenceRoute
 
 @Serializable

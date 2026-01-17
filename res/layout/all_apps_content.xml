@@ -47,10 +47,10 @@
 
     <include layout="@layout/all_apps_fast_scroller" />
 
-    <!-- Category tabs moved to bottom for better reachability -->
+    <!-- App tabs moved to bottom for better reachability -->
     <include
-        android:id="@+id/category_tabs_bottom"
-        layout="@layout/all_apps_category_tabs"
+        android:id="@+id/app_tabs_bottom"
+        layout="@layout/all_apps_tabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

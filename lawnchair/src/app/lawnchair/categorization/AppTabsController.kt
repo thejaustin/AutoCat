@@ -38,7 +38,7 @@ class AppTabsController private constructor(private val context: Context) : Safe
     }
 
     private val database by lazy { TabDatabase.getInstance(context) }
-    private val categoryDao by lazy { database.tabDao() }
+    private val tabDao by lazy { database.tabDao() }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _categories = MutableStateFlow<List<CustomTab>>(emptyList())
@@ -68,7 +68,7 @@ class AppTabsController private constructor(private val context: Context) : Safe
         scope.launch {
             try {
                 val cats: List<CustomTab> = withContext(Dispatchers.IO) {
-                    categoryDao.getAllCustomTabs()
+                    tabDao.getAllCustomTabs()
                         .filter { it.isVisible }
                         .sortedBy { it.sortOrder }
                 }
@@ -193,10 +193,10 @@ class AppTabsController private constructor(private val context: Context) : Safe
         if (oldTabName == TAB_ALL || oldTabName == TAB_WORK) return
 
         scope.launch(Dispatchers.IO) {
-            val tab = categoryDao.getCustomTabByName(oldTabName)
+            val tab = tabDao.getCustomTabByName(oldTabName)
             if (tab != null) {
-                categoryDao.updateCustomTab(tab.copy(name = newTabName))
-                categoryDao.updateAppTabName(oldTabName, newTabName)
+                tabDao.updateCustomTab(tab.copy(name = newTabName))
+                tabDao.updateAppTabName(oldTabName, newTabName)
                 loadCategories()
                 AutoCatAppProvider.getInstance(context).refreshCache()
             }
@@ -210,10 +210,10 @@ class AppTabsController private constructor(private val context: Context) : Safe
         if (tabName == TAB_ALL || tabName == TAB_WORK) return
 
         scope.launch(Dispatchers.IO) {
-            val tab = categoryDao.getCustomTabByName(tabName)
+            val tab = tabDao.getCustomTabByName(tabName)
             if (tab != null) {
-                categoryDao.deleteCustomTab(tab)
-                categoryDao.resetAppTabsForDeletedTab(tabName)
+                tabDao.deleteCustomTab(tab)
+                tabDao.resetAppTabsForDeletedTab(tabName)
                 loadCategories()
                 AutoCatAppProvider.getInstance(context).refreshCache()
             }

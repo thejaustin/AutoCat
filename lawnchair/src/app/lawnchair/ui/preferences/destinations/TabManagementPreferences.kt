@@ -1,5 +1,8 @@
 package app.lawnchair.ui.preferences.destinations
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -12,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,7 +36,9 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -53,8 +59,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategorizationManager
+import app.lawnchair.categorization.importer.SmartLauncherImporter
 import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.GoogleAIProvider
 import app.lawnchair.categorization.llm.LLMProvider
@@ -70,7 +78,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import kotlinx.coroutines.launch
 
 @Composable
-fun CategoryManagementPreferences(
+fun TabManagementPreferences(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -91,6 +99,29 @@ fun CategoryManagementPreferences(
     var suggestionsProvider by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
 
+    val slImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ) { uri: Uri? ->
+        if (uri != null) {
+            successMessage = "Importing..."
+            scope.launch {
+                val importer = SmartLauncherImporter(context)
+                val result = importer.importFromUri(uri)
+                successMessage = when (result) {
+                    is SmartLauncherImporter.ImportResult.Success -> {
+                        AppTabsController.getInstance(context).refresh()
+                        tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
+                        // Auto-sort apps into folders
+                        val sortResult = app.lawnchair.categorization.FolderAutoSortService.getInstance(context).autoSortAll()
+                        "✅ Imported ${result.count} apps. Created ${sortResult.foldersCreated} folders with ${sortResult.appsSorted} apps."
+                    }
+
+                    is SmartLauncherImporter.ImportResult.Error -> "❌ Import failed: ${result.message}"
+                }
+            }
+        }
+    }
+
     // Initialize services and load categories safely
     LaunchedEffect(Unit) {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -100,7 +131,7 @@ fun CategoryManagementPreferences(
                 appProvider = AutoCatAppProvider.getInstance(context)
                 tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
             } catch (e: Exception) {
-                android.util.Log.e("CategoryManagement", "Error initializing: ${e.message}", e)
+                android.util.Log.e("TabManagement", "Error initializing: ${e.message}", e)
                 initializationError = "Failed to initialize: ${e.message}"
             }
         }
@@ -262,6 +293,15 @@ fun CategoryManagementPreferences(
                             if (isLoadingSuggestions) "Analyzing..." else "Get AI Suggestions",
                             fontWeight = FontWeight.Medium,
                         )
+                    }
+
+                    // Material 3 Expressive: Import from Smart Launcher button
+                    OutlinedButton(
+                        onClick = { slImportLauncher.launch("*/*") },
+                        modifier = Modifier.fillMaxWidth(0.8f),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        Text("Import from Smart Launcher (.slbk)")
                     }
 
                     // Material 3 Expressive: Enhanced error message card

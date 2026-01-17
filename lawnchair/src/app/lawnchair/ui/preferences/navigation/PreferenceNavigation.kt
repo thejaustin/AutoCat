@@ -125,7 +125,6 @@ fun PreferenceNavigation(
         composable<AppDrawerManageTabs> { TabManagementPreferences() }
         composable<AppDrawerLLMSettings> { LLMSettingsPreferences() }
         composable<AppDrawerAppTabAssignments> { AppTabAssignmentPreferences() }
-        composable<AppDrawerCategorizationSettings> { CategorizationSettingsPreferences() }
         composable<AppDrawerAppCategorization> { AppCategorizationPreferences() }
         composable<AppDrawerAppListToFolder> { backStackEntry ->
             val args = backStackEntry.arguments!!

@@ -186,7 +186,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     protected SearchUiManager mSearchUiManager;
     protected boolean mUsingTabs;
     protected RecyclerViewFastScroller mTouchHandler;
-    private android.view.GestureDetector mCategorySwipeDetector;
+    private android.view.GestureDetector mAppTabSwipeDetector;
 
     /**
      * {@code true} when rendered view is in search state instead of the scroll
@@ -315,7 +315,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         }
         mSearchUiManager = (SearchUiManager) mSearchContainer;
 
-        mCategorySwipeDetector = new android.view.GestureDetector(getContext(), new android.view.GestureDetector.SimpleOnGestureListener() {
+        mAppTabSwipeDetector = new android.view.GestureDetector(getContext(), new android.view.GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDown(MotionEvent e) { return false; } // Don't consume down
             
@@ -816,19 +816,19 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         boolean tabsHidden = !mUsingTabs;
 
         // Setup appropriate tab strip based on mode
-        boolean usingCategoryTabs = false;
+        boolean tabsEnabled = false;
         try {
             AppTabsController controller = AppTabsController.getInstance(getContext());
-            usingCategoryTabs = controller.shouldShowTabs(getContext());
+            tabsEnabled = controller.shouldShowTabs(getContext());
         } catch (Exception e) {
-            Log.e("AllAppsContainer", "Error checking category tabs", e);
+            Log.e("AllAppsContainer", "Error checking app tabs", e);
         }
 
-        if (usingCategoryTabs) {
+        if (tabsEnabled) {
             tabsHidden = false; // Always show tabs if categories are enabled
         }
         
-        mHeader.setUsingCategoryTabs(usingCategoryTabs);
+        mHeader.setUsingAppTabs(tabsEnabled);
 
         mHeader.setup(
                 mAH.get(AdapterHolder.MAIN).mRecyclerView,
@@ -841,11 +841,11 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             View personalWorkTabs = mHeader.findViewById(com.android.launcher3.R.id.tabs);
 
             // Find AppTabStrip at bottom of container (moved from header for better reachability)
-            AppTabStrip categoryTabStrip = findViewById(com.android.launcher3.R.id.category_tabs);
+            AppTabStrip appTabStrip = findViewById(com.android.launcher3.R.id.app_tabs);
 
-            if (usingCategoryTabs && categoryTabStrip != null) {
-                categoryTabStrip.setupTabs();
-                categoryTabStrip.setOnActivePageChangedListener(
+            if (tabsEnabled && appTabStrip != null) {
+                appTabStrip.setupTabs();
+                appTabStrip.setOnActivePageChangedListener(
                     new AppTabStrip.OnActivePageChangedListener() {
                         @Override
                         public void onActivePageChanged(int activePage) {
@@ -882,7 +882,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                 );
             }
         } catch (Exception e) {
-            Log.e("AllAppsContainer", "Error setting up category tabs", e);
+            Log.e("AllAppsContainer", "Error setting up app tabs", e);
         }
 
         int padding = mHeader.getMaxTranslation();
@@ -1217,7 +1217,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        if (mCategorySwipeDetector != null) mCategorySwipeDetector.onTouchEvent(ev);
+        if (mAppTabSwipeDetector != null) mAppTabSwipeDetector.onTouchEvent(ev);
         // The AllAppsContainerView houses the QSB and is hence visible from the
         // Workspace
         // Overview states. We shouldn't intercept for the scrubber in these cases.
@@ -1243,7 +1243,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (mCategorySwipeDetector != null) mCategorySwipeDetector.onTouchEvent(ev);
+        if (mAppTabSwipeDetector != null) mAppTabSwipeDetector.onTouchEvent(ev);
         if (!isInAllApps()) {
             return false;
         }
@@ -1410,11 +1410,11 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     private void applyAdapterSideAndBottomPaddings(DeviceProfile grid) {
         int bottomPadding = Math.max(mInsets.bottom, mNavBarScrimHeight);
 
-        // Add extra padding for category tabs at bottom (if enabled)
+        // Add extra padding for app tabs at bottom (if enabled)
         PreferenceManager prefManager = PreferenceManager.getInstance(getContext());
-        boolean usingCategoryTabs = prefManager.getUseAppTabs().get();
-        AppTabStrip categoryTabStrip = findViewById(com.android.launcher3.R.id.category_tabs);
-        if (usingCategoryTabs && categoryTabStrip != null && categoryTabStrip.getVisibility() == View.VISIBLE) {
+        boolean tabsEnabled = prefManager.getUseAppTabs().get();
+        AppTabStrip appTabStrip = findViewById(com.android.launcher3.R.id.app_tabs);
+        if (tabsEnabled && appTabStrip != null && appTabStrip.getVisibility() == View.VISIBLE) {
             int tabHeight = getResources().getDimensionPixelSize(com.android.launcher3.R.dimen.all_apps_header_pill_height);
             int tabMargin = (int) (8 * getResources().getDisplayMetrics().density); // 8dp margin
             bottomPadding += tabHeight + tabMargin;
@@ -1442,24 +1442,24 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
     }
 
     /**
-     * Returns true if tabs should be shown (either category tabs or work apps tabs).
-     * Category tabs take priority when enabled - they replace personal/work tabs.
+     * Returns true if tabs should be shown (either app tabs or work apps tabs).
+     * App tabs take priority when enabled - they replace personal/work tabs.
      */
     public boolean shouldShowTabs() {
-        // Check for category tabs first (they take priority)
+        // Check for app tabs first (they take priority)
         try {
             AppTabsController controller = AppTabsController.getInstance(getContext());
             if (controller.shouldShowTabs(getContext())) {
-                // If using category tabs, we DO NOT want the standard ViewPager (which is hardcoded for Personal/Work).
+                // If using app tabs, we DO NOT want the standard ViewPager (which is hardcoded for Personal/Work).
                 // We want a single RecyclerView that we filter.
                 // So we return false here to prevent AllAppsPagedView from being inflated.
                 return false; 
             }
         } catch (Exception e) {
-            // Continue to check work apps if category tabs fail
+            // Continue to check work apps if app tabs fail
         }
 
-        // Fall back to work apps tabs only if category tabs are disabled
+        // Fall back to work apps tabs only if app tabs are disabled
         return mHasWorkApps;
     }
 

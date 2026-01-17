@@ -154,12 +154,12 @@ interface AccuracyDao {
     suspend fun getBestModel(minSamples: Int = 10, since: Long): ModelAccuracyStats?
 
     /**
-     * Gets accuracy statistics for a specific category.
+     * Gets accuracy statistics for a specific tab.
      * Helps identify which models perform best for certain types of apps.
      *
-     * @param category The category name (e.g., "Games", "Social")
+     * @param category The tab name (e.g., "Games", "Social")
      * @param since Only include predictions made after this timestamp
-     * @return List of accuracy stats for this category
+     * @return List of accuracy stats for this tab
      */
     @Query(
         """

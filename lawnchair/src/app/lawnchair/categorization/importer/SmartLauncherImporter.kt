@@ -81,18 +81,18 @@ class SmartLauncherImporter(private val context: Context) {
                 }
 
                 // 4. Load Categories (id -> label)
-                val categoryMap = mutableMapOf<String, String>()
-                val catCursor = slDb.rawQuery("SELECT id, customLabel FROM Category", null)
-                if (catCursor.moveToFirst()) {
+                val tabMap = mutableMapOf<String, String>()
+                val tabCursor = slDb.rawQuery("SELECT id, customLabel FROM Category", null)
+                if (tabCursor.moveToFirst()) {
                     do {
-                        val id = catCursor.getString(0)
-                        val label = catCursor.getString(1)
+                        val id = tabCursor.getString(0)
+                        val label = tabCursor.getString(1)
                         // Use custom label if available, otherwise capitalize the ID or generic fallback
                         val finalLabel = label ?: id.replaceFirstChar { it.uppercase() }
-                        categoryMap[id] = finalLabel
-                    } while (catCursor.moveToNext())
+                        tabMap[id] = finalLabel
+                    } while (tabCursor.moveToNext())
                 }
-                catCursor.close()
+                tabCursor.close()
 
                 // 5. Load Folders (id -> label, parentId, icon)
                 data class FolderItem(val id: Int, val label: String, val parentId: Int, val icon: String?)
@@ -146,7 +146,7 @@ class SmartLauncherImporter(private val context: Context) {
 
                 // 6. Load Apps and Map them
                 val appsToImport = mutableListOf<AppTab>()
-                val appCursor = slDb.rawQuery("SELECT parentId, categoryId, packageName FROM DrawerItem WHERE packageName IS NOT NULL", null)
+                val appCursor = slDb.rawQuery("SELECT parentId, tabId, packageName FROM DrawerItem WHERE packageName IS NOT NULL", null)
 
                 var importedCount = 0
 
@@ -156,26 +156,26 @@ class SmartLauncherImporter(private val context: Context) {
                 if (appCursor.moveToFirst()) {
                     do {
                         val parentId = appCursor.getInt(0)
-                        val categoryId = appCursor.getString(1)
+                        val tabId = appCursor.getString(1)
                         val packageName = appCursor.getString(2)
 
                         // Determine Target Tab Name
-                        val targetTabName = categoryMap[categoryId] ?: "Uncategorized"
+                        val name = tabMap[tabId] ?: "Uncategorized"
 
                         // Determine Sub-Category (Folder)
-                        var targetSubCategory: String? = null
+                        var folderName: String? = null
                         var targetIcon: String? = null
 
                         if (parentId != 0 && folderMap.containsKey(parentId)) {
                             val folder = folderMap[parentId]!!
-                            targetSubCategory = folder.label
+                            folderName = folder.label
                             // Use the folder's icon
                             targetIcon = folder.icon
 
                             if (targetIcon != null) {
-                                val key = "$targetTabName|$targetSubCategory"
+                                val key = "$name|$folderName"
                                 if (processedIcons.add(key)) {
-                                    provider.saveFolderIcon(targetTabName, targetSubCategory, targetIcon)
+                                    provider.saveFolderIcon(name, folderName, targetIcon)
                                 }
                             }
                         }
@@ -185,8 +185,8 @@ class SmartLauncherImporter(private val context: Context) {
                         // isUserOverride = true ensures it sticks
                         val appTab = AppTab(
                             packageName = packageName,
-                            tabName = targetTabName,
-                            folderName = targetSubCategory,
+                            name = name,
+                            folderName = folderName,
                             confidence = 1.0f,
                             source = "import_sl", // Special source tag
                             isUserOverride = true,
@@ -203,9 +203,9 @@ class SmartLauncherImporter(private val context: Context) {
                 val tabDao = TabDatabase.getInstance(context).tabDao()
 
                 // 6.5 Ensure all used tabs exist in CustomTab table
-                val uniqueTabNames = appsToImport.map { it.tabName }.distinct()
-                val existingTabs = tabDao.getAllCustomTabs()
-                var nextSortOrder = existingTabs.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
+                val uniqueTabs = appsToImport.map { it.name }.distinct()
+                val tabs = tabDao.getAllCustomTabs()
+                var nextSortOrder = tabs.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
 
                 // Helper to pick a random default color
                 val defaultColors = listOf(
@@ -218,22 +218,22 @@ class SmartLauncherImporter(private val context: Context) {
                     CustomTab.COLOR_COMMUNICATION,
                 )
 
-                for (tabName in uniqueTabNames) {
-                    val exists = existingTabs.any { it.name.equals(tabName, ignoreCase = true) }
+                for (name in uniqueTabs) {
+                    val exists = tabs.any { it.name.equals(name, ignoreCase = true) }
                     if (!exists) {
                         // Try to find an icon? For now, leave null or use default.
                         // We could check if there's a folder with the same name to steal its icon.
-                        val matchingFolder = folderMap.values.find { it.label.equals(tabName, ignoreCase = true) }
+                        val matchingFolder = folderMap.values.find { it.label.equals(name, ignoreCase = true) }
 
                         val newTab = CustomTab(
-                            name = tabName,
+                            name = name,
                             colorHex = defaultColors.random(),
                             sortOrder = nextSortOrder++,
                             isVisible = true,
                             icon = matchingFolder?.icon,
                         )
                         tabDao.insertCustomTab(newTab)
-                        android.util.Log.d("SmartLauncherImporter", "Created new custom tab: $tabName")
+                        android.util.Log.d("SmartLauncherImporter", "Created new custom tab: $name")
                     }
                 }
 

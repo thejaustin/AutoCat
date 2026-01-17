@@ -118,8 +118,8 @@ public class FloatingHeaderView extends LinearLayout implements
 
     private final PreferenceManager2 pref2;
 
-    private View mCategoryTabs;
-    private boolean mUseCategoryTabs;
+    private View mAppTabs;
+    private boolean mUseAppTabs;
 
     public FloatingHeaderView(@NonNull Context context) {
         this(context, null);
@@ -138,7 +138,7 @@ public class FloatingHeaderView extends LinearLayout implements
     protected void onFinishInflate() {
         super.onFinishInflate();
         mTabLayout = findViewById(R.id.tabs);
-        mCategoryTabs = findViewWithTag("category_tabs");
+        mAppTabs = findViewWithTag("app_tabs");
 
         // Find all floating header rows.
         ArrayList<FloatingHeaderRow> rows = new ArrayList<>();
@@ -167,8 +167,8 @@ public class FloatingHeaderView extends LinearLayout implements
         PluginManagerWrapper.INSTANCE.get(getContext()).removePluginListener(this);
     }
 
-    public void setUsingCategoryTabs(boolean use) {
-        mUseCategoryTabs = use;
+    public void setUsingAppTabs(boolean use) {
+        mUseAppTabs = use;
     }
 
     private void recreateAllRowsArray() {
@@ -269,15 +269,15 @@ public class FloatingHeaderView extends LinearLayout implements
 
     /** Update tab visibility to the given state, only if tabs are active (work profile exists). */
     void maybeSetTabVisibility(int visibility) {
-        if (mUseCategoryTabs) {
+        if (mUseAppTabs) {
             mTabLayout.setVisibility(GONE);
-            if (mCategoryTabs != null) {
-                mCategoryTabs.setVisibility(mTabsHidden ? GONE : visibility);
+            if (mAppTabs != null) {
+                mAppTabs.setVisibility(mTabsHidden ? GONE : visibility);
             }
         } else {
             mTabLayout.setVisibility(mTabsHidden ? GONE : visibility);
-            if (mCategoryTabs != null) {
-                mCategoryTabs.setVisibility(GONE);
+            if (mAppTabs != null) {
+                mAppTabs.setVisibility(GONE);
             }
         }
     }
@@ -290,11 +290,11 @@ public class FloatingHeaderView extends LinearLayout implements
         }
         mMaxTranslation += mFloatingRowsHeight;
 
-        // If using category tabs, calculate their height and add it to mMaxTranslation.
-        // The mTabsHidden flag is true when category tabs are active, so we handle it separately.
-        if (mUseCategoryTabs && mCategoryTabs != null) {
-            int categoryTabsHeight = getResources().getDimensionPixelSize(R.dimen.all_apps_header_pill_height);
-            mMaxTranslation += categoryTabsHeight
+        // If using app tabs, calculate their height and add it to mMaxTranslation.
+        // The mTabsHidden flag is true when app tabs are active, so we handle it separately.
+        if (mUseAppTabs && mAppTabs != null) {
+            int appTabsHeight = getResources().getDimensionPixelSize(R.dimen.all_apps_header_pill_height);
+            mMaxTranslation += appTabsHeight
                     + mTabsAdditionalPaddingBottom
                     + getResources().getDimensionPixelSize(R.dimen.all_apps_tabs_margin_top);
         } else if (!mTabsHidden) {
@@ -358,8 +358,8 @@ public class FloatingHeaderView extends LinearLayout implements
         }
 
         mTabLayout.setTranslationY(mTranslationY);
-        if (mCategoryTabs != null) {
-            mCategoryTabs.setTranslationY(mTranslationY);
+        if (mAppTabs != null) {
+            mAppTabs.setTranslationY(mTranslationY);
         }
 
         int clipTop = getPaddingTop() - mTabsAdditionalPaddingTop;
@@ -508,15 +508,15 @@ public class FloatingHeaderView extends LinearLayout implements
      * expected header protection height.
      */
     int getPeripheralProtectionHeight(boolean expected) {
-        if (mUseCategoryTabs && mCategoryTabs != null) {
-            // When using category tabs, its height contributes to the protection.
+        if (mUseAppTabs && mAppTabs != null) {
+            // When using app tabs, its height contributes to the protection.
             if (expected) {
-                 return mCategoryTabs.getBottom() - getPaddingTop() + getPaddingBottom() - mMaxTranslation;
+                 return mAppTabs.getBottom() - getPaddingTop() + getPaddingBottom() - mMaxTranslation;
             }
             if (mFloatingRowsCollapsed || !mHeaderCollapsed) {
                 return 0;
             }
-            return Math.max(0, mCategoryTabs.getBottom() - getPaddingTop() + getPaddingBottom() + mTranslationY);
+            return Math.max(0, mAppTabs.getBottom() - getPaddingTop() + getPaddingBottom() + mTranslationY);
         }
         if (expected) {
             return getTabLayout().getBottom() - getPaddingTop() + getPaddingBottom()

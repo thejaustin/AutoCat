@@ -329,7 +329,7 @@ class PerplexityProvider(
             LLMLogger.logInfo(
                 provider = name,
                 operation = "SUGGEST_CATEGORIES",
-                message = "Successfully generated ${suggestions.size} category suggestions",
+                message = "Successfully generated ${suggestions.size} tab suggestions",
                 details = mapOf(
                     "suggestionsCount" to suggestions.size,
                 ),
@@ -345,7 +345,7 @@ class PerplexityProvider(
                     "appsCount" to installedApps.size,
                 ),
             )
-            throw LLMException("Perplexity category suggestion failed: ${e.message}", e)
+            throw LLMException("Perplexity tab suggestion failed: ${e.message}", e)
         }
     }
 
@@ -531,7 +531,7 @@ class PerplexityProvider(
         val descriptionText = safeDescription?.let { "\nDescription: $it" } ?: ""
 
         return """
-You are an expert at categorizing Android apps. Given an app's information, choose the BEST matching category from the provided list.
+You are an expert at organizing Android apps into tabs. Given an app's information, choose the BEST matching tab from the provided list.
 
 App Name: $safeAppName
 Package: $safeAppPackage$descriptionText
@@ -541,7 +541,7 @@ ${availableTabs.joinToString("\n") { "- $it" }}
 
 Instructions:
 1. Analyze the app's name, package, and description carefully
-2. Choose the MOST SPECIFIC and appropriate category from the list above
+2. Choose the MOST SPECIFIC and appropriate tab from the list above
 3. Prefer narrower, more specific categories over broad parent categories
    - Example: "Notes" is better than "Productivity" for note-taking apps
    - Example: "Finance" is better than "Utilities" for banking apps
@@ -550,7 +550,7 @@ Instructions:
 
 Respond ONLY in this JSON format:
 {
-  "category": "category name",
+  "tab": "tab name",
   "confidence": 0.85,
   "reasoning": "brief explanation"
 }
@@ -577,17 +577,17 @@ $appSample
 
 Instructions:
 1. Analyze the types of apps installed
-2. Suggest $maxSuggestions useful category names that would help organize these apps
+2. Suggest $maxSuggestions useful tab names that would help organize these apps
 3. Categories should be specific and meaningful (e.g., "Finance", "Travel", "Education")
-4. Each category should have at least 2-3 apps that would fit
-5. Provide a brief description and example apps for each category
+4. Each tab should have at least 2-3 apps that would fit
+5. Provide a brief description and example apps for each tab
 6. DO NOT suggest generic categories like "Other" or "Miscellaneous"$existingText
 
 Respond ONLY in this JSON format:
 {
   "suggestions": [
     {
-      "name": "Category Name",
+      "name": "Tab Name",
       "description": "Brief description of what belongs here",
       "exampleApps": ["App 1", "App 2", "App 3"],
       "confidence": 0.85
@@ -651,7 +651,7 @@ Respond ONLY in this JSON format:
         }
 
         return """
-You are an expert at categorizing Android apps. Given a list of apps, categorize each one by choosing the BEST matching category from the provided list.
+You are an expert at organizing Android apps into tabs. Given a list of apps, assign each one to a tab by choosing the BEST matching category from the provided list.
 
 Apps to categorize:
 $appsText
@@ -661,7 +661,7 @@ ${availableTabs.joinToString("\n") { "- $it" }}
 
 Instructions:
 1. Analyze each app's name, package, and description carefully
-2. Choose the MOST SPECIFIC and appropriate category from the list above for each app
+2. Choose the MOST SPECIFIC and appropriate tab from the list above for each app
 3. Prefer narrower, more specific categories over broad parent categories
    - Example: "Notes" is better than "Productivity" for note-taking apps
    - Example: "Finance" is better than "Utilities" for banking apps
@@ -673,12 +673,12 @@ Respond ONLY in this JSON format:
 {
   "results": {
     "com.example.package1": {
-      "category": "category name",
+      "tab": "tab name",
       "confidence": 0.85,
       "reasoning": "brief explanation"
     },
     "com.example.package2": {
-      "category": "category name",
+      "tab": "tab name",
       "confidence": 0.90,
       "reasoning": "brief explanation"
     }
@@ -792,7 +792,7 @@ Respond ONLY in this JSON format:
             val fixedJsonText = fixMalformedJson(jsonText)
 
             val result = JSONObject(fixedJsonText)
-            val tabName = result.getString("category") // LLM still returns 'category'
+            val tabName = result.getString("tab") // LLM still returns 'category'
             val confidence = result.getDouble("confidence").toFloat()
             val reasoning = result.optString("reasoning", null)
 
@@ -918,7 +918,7 @@ Respond ONLY in this JSON format:
             // Iterate through each package in the results
             resultsObj.keys().forEach { packageName ->
                 val appResult = resultsObj.getJSONObject(packageName)
-                val tabName = appResult.getString("category") // LLM still returns 'category'
+                val tabName = appResult.getString("tab") // LLM still returns 'category'
                 val confidence = appResult.getDouble("confidence").toFloat()
                 val reasoning = appResult.optString("reasoning", null)
 

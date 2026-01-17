@@ -360,8 +360,8 @@ class TabFolderSyncService(
     ): Boolean = withContext(Dispatchers.IO) {
         if (!isSyncEnabled()) return@withContext false
 
-        val categorizations = packageNames.associateWith { tabName }
-        val result = syncCategoriesToFolders(categorizations)
+        val tabAssignments = packageNames.associateWith { tabName }
+        val result = syncTabsToFolders(tabAssignments)
         result.success
     }
 

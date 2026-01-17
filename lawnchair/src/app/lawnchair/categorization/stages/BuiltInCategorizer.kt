@@ -9,7 +9,7 @@ import app.lawnchair.data.tab.entities.AppTab
  * First stage categorizer that uses Android's built-in app categories.
  *
  * Available on Android 8.0+ (API 26), this categorizer uses the system-provided
- * category from ApplicationInfo. Has highest confidence (0.95) since it comes
+ * system category from ApplicationInfo. Has highest confidence (0.95) since it comes
  * directly from the app's manifest.
  *
  * Categories supported:
@@ -17,28 +17,28 @@ import app.lawnchair.data.tab.entities.AppTab
  * - Navigation, Productivity, and more
  */
 class BuiltInCategorizer(
-    private val categoryDao: TabDao,
+    private val tabDao: TabDao,
 ) {
 
     /**
-     * Attempts to categorize an app using its system category.
+     * Attempts to assign an app to a tab using its system category.
      *
      * @param appInfo App metadata including system category
-     * @return true if app was categorized, false if no system category available
+     * @return true if app was assigned, false if no system category available
      */
     suspend fun categorize(appInfo: AppInfo): Boolean {
-        val categoryName = AppMetadataProvider.getCategoryName(appInfo.category)
+        val tabName = AppMetadataProvider.getCategoryName(appInfo.category)
             ?: return false
 
-        val appCategory = AppTab(
+        val appTab = AppTab(
             packageName = appInfo.packageName,
-            tabName = categoryName,
+            tabName = tabName,
             confidence = CONFIDENCE_BUILT_IN,
             source = AppTab.SOURCE_BUILT_IN,
             isUserOverride = false,
         )
 
-        categoryDao.insertAppTab(appCategory)
+        tabDao.insertAppTab(appTab)
         return true
     }
 
@@ -50,15 +50,15 @@ class BuiltInCategorizer(
      * and significantly improves categorization speed for bulk operations.
      *
      * @param apps List of apps to categorize
-     * @return Number of apps successfully categorized
+     * @return Number of apps successfully assigned
      */
     suspend fun categorizeBatch(apps: List<AppInfo>): Int {
         // Build list of AppTab objects for all apps with valid system categories
         val appTabs = apps.mapNotNull { app ->
-            AppMetadataProvider.getCategoryName(app.category)?.let { categoryName ->
+            AppMetadataProvider.getCategoryName(app.category)?.let { tabName ->
                 AppTab(
                     packageName = app.packageName,
-                    tabName = categoryName,
+                    tabName = tabName,
                     confidence = CONFIDENCE_BUILT_IN,
                     source = AppTab.SOURCE_BUILT_IN,
                     isUserOverride = false,
@@ -66,9 +66,9 @@ class BuiltInCategorizer(
             }
         }
 
-        // Batch insert all categorized apps in a single transaction
+        // Batch insert all assigned apps in a single transaction
         if (appTabs.isNotEmpty()) {
-            categoryDao.insertAppTabs(appTabs)
+            tabDao.insertAppTabs(appTabs)
         }
 
         return appTabs.size
