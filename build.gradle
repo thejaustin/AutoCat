@@ -22,11 +22,11 @@ plugins {
 
 // ============================================================================
 // BUILD POLICY ENFORCEMENT
-// ============================================================================
+// ============================================================================ 
 // This project uses GitHub Actions exclusively for builds.
 // Local builds on device (Termux) are NOT supported and will FAIL.
 // See CONTRIBUTING.md and NEVER_BUILD_LOCALLY.md for details.
-// ============================================================================
+// ============================================================================ 
 
 def isTermux = System.getenv("PREFIX")?.contains("com.termux") == true
 def isLocalBuild = System.getenv("CI") != "true" && System.getenv("GITHUB_ACTIONS") != "true"
@@ -192,14 +192,14 @@ final def isReleaseBuild = ciBuild && ciRef.contains("beta")
 
 // AutoCat versioning
 final def lawnchairBaseVersion = "15.0"
-final def lawnchairBetaNumber = "b1"  // Tracks Lawnchair 15.0 Beta 1
+final def lawnchairBetaNumber = "b2"  // Tracks Lawnchair 15.0 Beta 2
 final def autocatBuildNumber = ciRunNumber ?: "local"
 final def autocatVersion = "autocat.${autocatBuildNumber}"
 final def autocatVersionName = "${lawnchairBaseVersion}.${lawnchairBetaNumber}-${autocatVersion}"
 
 // Keep original Lawnchair versioning for compatibility
 final def version = "15"
-final def releaseName = "Beta 1"
+final def releaseName = "Beta 2"
 final def devReleaseName = ciBuild ? "Dev.(#${ciRunNumber})" : "Dev.(${buildCommit})"
 final def versionDisplayName = ciBuild ? autocatVersionName : "${lawnchairBaseVersion}.${lawnchairBetaNumber}-autocat.dev"
 final def majorVersion = version
@@ -211,10 +211,10 @@ android {
     namespace = "com.android.launcher3"
     defaultConfig {
         // AutoCat - Fork of Lawnchair Launcher 15.0
-        // Base versionCode: 15_00_02_00 (Lawnchair 15.0 Beta 1 base)
+        // Base versionCode: 15_00_02_02 (Lawnchair 15.0 Beta 2 base)
         // AutoCat build number added as last 2 digits (max 99 builds)
         def autocatBuildCode = ciRunNumber ? (ciRunNumber.toInteger() % 100) : 0
-        versionCode 15_00_02_00 + autocatBuildCode
+        versionCode 15_00_02_02 + autocatBuildCode
         versionName "${versionDisplayName}"
         buildConfigField "String", "VERSION_DISPLAY_NAME", "\"${versionDisplayName}\""
         buildConfigField "String", "MAJOR_VERSION", "\"${majorVersion}\""

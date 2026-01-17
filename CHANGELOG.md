@@ -6,19 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Versioning Scheme
 
-**Format**: `15.0.b1-autocat.{BUILD_NUMBER}`
+**Format**: `15.0.b2-autocat.{BUILD_NUMBER}`
 
-- `15.0.b1` = Lawnchair 15.0 Beta 1 (base version we're forking from)
+- `15.0.b2` = Lawnchair 15.0 Beta 2 (base version we're forking from)
 - `autocat` = Fork identifier
 - `{BUILD_NUMBER}` = Incremental build number from GitHub Actions
 
-Example: `v15.0.b1-autocat.5` = AutoCat build #5 based on Lawnchair 15.0 Beta 1
+Example: `v15.0.b2-autocat.5` = AutoCat build #5 based on Lawnchair 15.0 Beta 2
 
-When Lawnchair releases Beta 2, we'll update to `15.0.b2-autocat.X`
+When Lawnchair releases Beta 3, we'll update to `15.0.b3-autocat.X`
 
 ---
 
 ## [Unreleased]
+
+## [15.0.b2-autocat.1] - 2026-01-16
+
+### Added
+- **Upstream Sync**: Merged Lawnchair 15.0 Beta 2
+  - Includes all upstream fixes and improvements from Beta 2 release.
+  - Rebased AutoCat features on top of Beta 2.
 
 ## [15.0.b1-autocat.7] - 2026-01-14
 
