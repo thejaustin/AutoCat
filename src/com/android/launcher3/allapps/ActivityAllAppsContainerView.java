@@ -622,13 +622,30 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                 mViewPager.addView(rv);
                 
                 Predicate<ItemInfo> matcher = mPersonalMatcher;
+                String tabName = null;
+                
                 if (holder.isWork()) {
                     matcher = mWorkManager.getItemInfoMatcher();
                     rv.setId(R.id.apps_list_view_work);
+                    tabName = AppTabsController.TAB_WORK;
                 } else if (holder.isMain()) {
                     matcher = mPersonalMatcher;
+                    tabName = AppTabsController.TAB_ALL;
+                } else {
+                    // Custom Tab
+                    // Calculate index logic: 
+                    // i=0 is MAIN (All Apps). 
+                    // i=1..N are Custom Tabs. 
+                    // But mAH contains: [MAIN, Tab1, Tab2, ..., SEARCH]
+                    // Loop is i=0 to size-2.
+                    // So i corresponds exactly to the Tab Controller index (since it also has All Apps at 0).
+                    tabName = mTabsController.getTabNameForTab(i);
                 }
-                // Custom Tab Matcher logic would go here
+                
+                // Apply Tab Filter
+                if (holder.mAppsList instanceof LawnchairAlphabeticalAppsList) {
+                    ((LawnchairAlphabeticalAppsList) holder.mAppsList).setTabFilter(tabName);
+                }
                 
                 holder.setup(rv, matcher);
                 

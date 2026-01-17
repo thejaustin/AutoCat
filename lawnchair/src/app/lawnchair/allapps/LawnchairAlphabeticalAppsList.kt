@@ -54,8 +54,16 @@ class LawnchairAlphabeticalAppsList<T>(
     private val folderOrder = FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get())
     private val potsManager = Flowerpot.Manager.getInstance(context)
     private val autoCatProvider = AutoCatAppProvider.getInstance(context)
-    private val appTabsController = AppTabsController.getInstance(context)
+    private val categoryTabsController = AppTabsController.getInstance(context)
     private var cachedCategorizedApps: Map<String, Map<String, List<app.lawnchair.data.apps.AppInfo>>>? = null
+    private var currentTabFilter: String? = null
+
+    fun setTabFilter(tabName: String?) {
+        if (currentTabFilter != tabName) {
+            currentTabFilter = tabName
+            onAppsUpdated()
+        }
+    }
 
     private fun com.android.launcher3.model.data.AppInfo.toAutoCatAppInfo(): app.lawnchair.data.apps.AppInfo {
         return try {
@@ -160,7 +168,32 @@ class LawnchairAlphabeticalAppsList<T>(
         mItemFilter = Predicate { info ->
             require(info is AppInfo) { "`info` must be an instance of `AppInfo`." }
             val componentKey = info.toComponentKey().toString()
-            (itemFilter?.test(info) != false) && !hiddenApps.contains(componentKey)
+            val packageName = info.componentName?.packageName
+
+            // 1. Basic checks (User filter & Hidden apps)
+            var visible = (itemFilter?.test(info) != false) && !hiddenApps.contains(componentKey)
+
+            // 2. Tab Filtering
+            if (visible && currentTabFilter != null && currentTabFilter != AppTabsController.TAB_ALL && packageName != null) {
+                // Determine if app belongs to the current tab
+                val appTabInfo = cachedCategorizedApps?.get(currentTabFilter)?.values?.flatten()?.find { 
+                    it.packageName == packageName 
+                }
+                
+                // If the app is not found in the cached category map for this tab, it shouldn't be shown
+                // Unless it's the "Work" tab, which is handled by the WorkProfileManager/Adapter separate from this list usually,
+                // but if we are enforcing strict tab views, we check here.
+                if (currentTabFilter == AppTabsController.TAB_WORK) {
+                    // Work tab filtering is usually handled by the Work adapter's user matcher.
+                    // If we rely on this list for work tab, we'd check user profile.
+                    // For now, assume Work Adapter handles user check, so we pass true if it's work tab 
+                    // (letting the base WorkProfileManager filter handle the user check)
+                } else {
+                    visible = appTabInfo != null
+                }
+            }
+
+            visible
         }
         onAppsUpdated()
     }
