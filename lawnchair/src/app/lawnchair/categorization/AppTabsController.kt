@@ -1,8 +1,6 @@
 package app.lawnchair.categorization
 
 import android.content.Context
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.CustomTab
 import com.android.launcher3.util.MainThreadInitializedObject
@@ -21,28 +19,28 @@ import kotlinx.coroutines.withContext
  * Controller for managing app tabs in the app drawer.
  * Provides dynamic tabs based on user-defined tabs.
  */
-class CategoryTabsController private constructor(private val context: Context) : SafeCloseable {
+class AppTabsController private constructor(private val context: Context) : SafeCloseable {
 
     companion object {
         @JvmField
-        val INSTANCE = MainThreadInitializedObject<CategoryTabsController>(::CategoryTabsController)
+        val INSTANCE = MainThreadInitializedObject<AppTabsController>(::AppTabsController)
 
         const val TAB_ALL = "All Apps"
         const val TAB_WORK = "Work"
         const val TAB_ALL_INDEX = 0
 
         @JvmStatic
-        fun getInstance(context: Context): CategoryTabsController {
+        fun getInstance(context: Context): AppTabsController {
             return INSTANCE.get(context)
         }
     }
 
     private val database by lazy { TabDatabase.getInstance(context) }
-    private val categoryDao by lazy { database.categoryDao() }
+    private val tabDao by lazy { database.tabDao() }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val _categories = MutableStateFlow<List<CustomTab>>(emptyList())
-    val categories: StateFlow<List<CustomTab>> = _categories.asStateFlow()
+    private val _tabs = MutableStateFlow<List<CustomTab>>(emptyList())
+    val tabs: StateFlow<List<CustomTab>> = _tabs.asStateFlow()
 
     private val _currentTabIndex = MutableStateFlow(TAB_ALL_INDEX)
     val currentTabIndex: StateFlow<Int> = _currentTabIndex.asStateFlow()
@@ -51,40 +49,40 @@ class CategoryTabsController private constructor(private val context: Context) :
     val tabNames: StateFlow<List<String>> = _tabNames.asStateFlow()
 
     @Volatile
-    private var categoriesLoaded = false
+    private var tabsLoaded = false
 
-    private fun ensureCategoriesLoaded() {
-        if (!categoriesLoaded) {
+    private fun ensureTabsLoaded() {
+        if (!tabsLoaded) {
             synchronized(this) {
-                if (!categoriesLoaded) {
-                    loadCategories()
-                    categoriesLoaded = true
+                if (!tabsLoaded) {
+                    loadTabs()
+                    tabsLoaded = true
                 }
             }
         }
     }
 
-    private fun loadCategories() {
+    private fun loadTabs() {
         scope.launch {
             try {
-                val cats: List<CustomTab> = withContext(Dispatchers.IO) {
-                    categoryDao.getAllCustomCategories()
+                val loadedTabs: List<CustomTab> = withContext(Dispatchers.IO) {
+                    tabDao.getAllCustomTabs()
                         .filter { it.isVisible }
                         .sortedBy { it.sortOrder }
                 }
-                _categories.value = cats
-                updateTabNames(cats)
+                _tabs.value = loadedTabs
+                updateTabNames(loadedTabs)
             } catch (e: Exception) {
                 // Fallback to just "All Apps" tab on error
-                _categories.value = emptyList()
+                _tabs.value = emptyList()
                 _tabNames.value = listOf(TAB_ALL)
             }
         }
     }
 
-    private fun updateTabNames(cats: List<CustomTab>) {
+    private fun updateTabNames(loadedTabs: List<CustomTab>) {
         val names = mutableListOf(TAB_ALL)
-        names.addAll(cats.map { it.name })
+        names.addAll(loadedTabs.map { it.name })
 
         // Add Work tab at the end if enabled
         val prefs = app.lawnchair.preferences.PreferenceManager.getInstance(context)
@@ -99,7 +97,7 @@ class CategoryTabsController private constructor(private val context: Context) :
      * Refresh tabs from database. Call this after tab changes.
      */
     fun refresh() {
-        loadCategories()
+        loadTabs()
     }
 
     /**
@@ -115,7 +113,7 @@ class CategoryTabsController private constructor(private val context: Context) :
      * Get the current tab index.
      */
     fun getCurrentTab(): Int {
-        ensureCategoriesLoaded()
+        ensureTabsLoaded()
         return _currentTabIndex.value
     }
 
@@ -123,7 +121,7 @@ class CategoryTabsController private constructor(private val context: Context) :
      * Get the name of the current tab.
      */
     fun getCurrentTabName(): String {
-        ensureCategoriesLoaded()
+        ensureTabsLoaded()
         val index = _currentTabIndex.value
         return if (index >= 0 && index < _tabNames.value.size) {
             _tabNames.value[index]
@@ -142,8 +140,8 @@ class CategoryTabsController private constructor(private val context: Context) :
             null // "All Apps" shows everything
         } else if (isWorkTab(tabIndex)) {
             TAB_WORK // Special marker for work tab
-        } else if (tabIndex > 0 && tabIndex <= _categories.value.size) {
-            _categories.value[tabIndex - 1].name
+        } else if (tabIndex > 0 && tabIndex <= _tabs.value.size) {
+            _tabs.value[tabIndex - 1].name
         } else {
             null
         }
@@ -173,7 +171,7 @@ class CategoryTabsController private constructor(private val context: Context) :
      * Get the number of tabs.
      */
     fun getTabCount(): Int {
-        ensureCategoriesLoaded()
+        ensureTabsLoaded()
         return _tabNames.value.size
     }
 
@@ -182,7 +180,7 @@ class CategoryTabsController private constructor(private val context: Context) :
      * Always shows at minimum "All Apps" tab when enabled, even with no categories.
      */
     fun shouldShowTabs(context: Context): Boolean {
-        ensureCategoriesLoaded()
+        ensureTabsLoaded()
         return areTabsEnabled(context)
     }
 
@@ -193,12 +191,12 @@ class CategoryTabsController private constructor(private val context: Context) :
         if (oldTabName == TAB_ALL || oldTabName == TAB_WORK) return
 
         scope.launch(Dispatchers.IO) {
-            val tab = categoryDao.getCustomCategoryByName(oldTabName)
+            val tab = tabDao.getCustomTabByName(oldTabName)
             if (tab != null) {
-                categoryDao.updateCustomCategory(tab.copy(name = newTabName))
-                categoryDao.updateAppTabName(oldTabName, newTabName)
-                loadCategories()
-                AutoCatAppProvider.getInstance(context).refreshCache()
+                tabDao.updateCustomTab(tab.copy(name = newTabName))
+                tabDao.updateAppTabName(oldTabName, newTabName)
+                loadTabs()
+                app.lawnchair.categorization.AutoCatAppProvider.getInstance(context).refreshCache()
             }
         }
     }
@@ -210,12 +208,12 @@ class CategoryTabsController private constructor(private val context: Context) :
         if (tabName == TAB_ALL || tabName == TAB_WORK) return
 
         scope.launch(Dispatchers.IO) {
-            val tab = categoryDao.getCustomCategoryByName(tabName)
+            val tab = tabDao.getCustomTabByName(tabName)
             if (tab != null) {
-                categoryDao.deleteCustomCategory(tab)
-                categoryDao.resetAppTabsForDeletedTab(tabName)
-                loadCategories()
-                AutoCatAppProvider.getInstance(context).refreshCache()
+                tabDao.deleteCustomTab(tab)
+                tabDao.resetAppTabsForDeletedTab(tabName)
+                loadTabs()
+                app.lawnchair.categorization.AutoCatAppProvider.getInstance(context).refreshCache()
             }
         }
     }

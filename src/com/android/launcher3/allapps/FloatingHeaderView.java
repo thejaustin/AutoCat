@@ -45,8 +45,10 @@ import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import app.lawnchair.allapps.AppTabsHeaderView;
 import app.lawnchair.preferences2.PreferenceManager2;
 
 public class FloatingHeaderView extends LinearLayout implements
@@ -91,8 +93,7 @@ public class FloatingHeaderView extends LinearLayout implements
     private final int mTabsAdditionalPaddingBottom;
 
     protected ViewGroup mTabLayout;
-    private AllAppsRecyclerView mMainRV;
-    private AllAppsRecyclerView mWorkRV;
+    private List<AllAppsRecyclerView> mAllAppsRVs; // AutoCat: List of RVs for tabs
     private SearchRecyclerView mSearchRV;
     private AllAppsRecyclerView mCurrentRV;
     protected int mSnappedScrolledY;
@@ -242,7 +243,8 @@ public class FloatingHeaderView extends LinearLayout implements
         return null;
     }
 
-    void setup(AllAppsRecyclerView mainRV, AllAppsRecyclerView workRV, SearchRecyclerView searchRV,
+    // AutoCat: Updated setup method to take a list of RVs
+    void setup(List<AllAppsRecyclerView> tabRVs, SearchRecyclerView searchRV,
             int activeRV, boolean tabsHidden) {
         for (FloatingHeaderRow row : mAllRows) {
             row.setup(this, mAllRows, tabsHidden);
@@ -251,8 +253,7 @@ public class FloatingHeaderView extends LinearLayout implements
         mTabsHidden = tabsHidden;
         maybeSetTabVisibility(VISIBLE);
         updateExpectedHeight();
-        mMainRV = mainRV;
-        mWorkRV = workRV;
+        mAllAppsRVs = tabRVs;
         mSearchRV = searchRV;
         setActiveRV(activeRV);
         reset(false);
@@ -260,22 +261,44 @@ public class FloatingHeaderView extends LinearLayout implements
 
     /** Whether this header has been set up previously. */
     boolean isSetUp() {
-        return mMainRV != null;
+        return mAllAppsRVs != null && !mAllAppsRVs.isEmpty();
     }
 
     /** Set the active AllApps RV which will adjust the alpha of the header when scrolled. */
-    void setActiveRV(int rvType) {
+    void setActiveRV(int rvIndex) {
         if (mCurrentRV != null) {
             mCurrentRV.removeOnScrollListener(mOnScrollListener);
         }
-        mCurrentRV =
-                rvType == AdapterHolder.MAIN ? mMainRV
-                : rvType == AdapterHolder.WORK ? mWorkRV : mSearchRV;
-        mCurrentRV.addOnScrollListener(mOnScrollListener);
-        maybeSetTabVisibility(rvType == AdapterHolder.SEARCH ? GONE : VISIBLE);
+        
+        // AutoCat: Handle dynamic tabs logic
+        // SEARCH is usually represented by a specific constant or the last index
+        // Here we assume if rvIndex matches the SEARCH holder ID (which is distinct)
+        // But ActivityAllAppsContainerView manages indices.
+        // If rvIndex is out of bounds of mAllAppsRVs, assume it is search or invalid.
+        
+        if (rvIndex == AdapterHolder.SEARCH) {
+             mCurrentRV = mSearchRV;
+             maybeSetTabVisibility(GONE);
+        } else {
+            if (mAllAppsRVs != null && rvIndex >= 0 && rvIndex < mAllAppsRVs.size()) {
+                mCurrentRV = mAllAppsRVs.get(rvIndex);
+            } else if (mAllAppsRVs != null && !mAllAppsRVs.isEmpty()) {
+                mCurrentRV = mAllAppsRVs.get(0); // Fallback
+            }
+            maybeSetTabVisibility(VISIBLE);
+        }
+
+        if (mCurrentRV != null) {
+            mCurrentRV.addOnScrollListener(mOnScrollListener);
+        }
+        
+        // Pass listener to Compose view
+        if (mTabLayout instanceof AppTabsHeaderView) {
+             ((AppTabsHeaderView) mTabLayout).setActiveMarker(rvIndex);
+        }
     }
 
-    /** Update tab visibility to the given state, only if tabs are active (work profile exists). */
+    /** Update tab visibility to the given state, only if tabs are active. */
     void maybeSetTabVisibility(int visibility) {
         mTabLayout.setVisibility(mTabsHidden ? GONE : visibility);
     }
@@ -367,11 +390,11 @@ public class FloatingHeaderView extends LinearLayout implements
         mHeaderClip.top = clipTop;
         // clipping on a draw might cause additional redraw
         setClipBounds(mHeaderClip);
-        if (mMainRV != null) {
-            mMainRV.setClipBounds(mRVClip);
-        }
-        if (mWorkRV != null) {
-            mWorkRV.setClipBounds(mRVClip);
+        
+        if (mAllAppsRVs != null) {
+            for (AllAppsRecyclerView rv : mAllAppsRVs) {
+                if (rv != null) rv.setClipBounds(mRVClip);
+            }
         }
         if (mSearchRV != null) {
             mSearchRV.setClipBounds(mRVClip);

@@ -9,7 +9,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import app.lawnchair.categorization.AutoCatAppProvider
-import app.lawnchair.categorization.CategoryTabsController
+import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.flowerpot.Flowerpot
@@ -54,7 +54,7 @@ class LawnchairAlphabeticalAppsList<T>(
     private val folderOrder = FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get())
     private val potsManager = Flowerpot.Manager.getInstance(context)
     private val autoCatProvider = AutoCatAppProvider.getInstance(context)
-    private val categoryTabsController = CategoryTabsController.getInstance(context)
+    private val appTabsController = AppTabsController.getInstance(context)
     private var cachedCategorizedApps: Map<String, Map<String, List<app.lawnchair.data.apps.AppInfo>>>? = null
 
     private fun com.android.launcher3.model.data.AppInfo.toAutoCatAppInfo(): app.lawnchair.data.apps.AppInfo {
@@ -80,33 +80,25 @@ class LawnchairAlphabeticalAppsList<T>(
 
     /**
      * Creates a FolderInfo for app drawer display with properly loaded icons from icon packs.
-     * This ensures folder preview items have correct icons by using AppInfo objects from the
-     * current app list, which already have icons loaded through IconCache with icon pack applied.
      */
     private fun loadFolderWithIcons(
         sourceFolder: FolderInfo,
         appMap: Map<String?, List<AppInfo>>,
     ): FolderInfo {
         return FolderInfo().apply {
-            // Explicitly mark as app drawer folder
             container = ItemInfo.NO_ID
             title = sourceFolder.title
 
-            // Load contents with proper icons from the current app list
             sourceFolder.getContents().forEach { item ->
                 when (item) {
                     is AppInfo -> {
-                        // AppInfo already has icon from IconCache with icon pack applied
-                        // Try to find the matching AppInfo from current app list to ensure fresh icons
                         val matchingApps = appMap[item.componentName?.packageName]
                         val matchingApp = matchingApps?.firstOrNull {
                             it.componentName == item.componentName
                         }
                         add(matchingApp ?: item)
                     }
-
                     else -> {
-                        // For other ItemInfo types, try to find matching AppInfo from current list
                         val packageName = item.targetComponent?.packageName
                         val matchingApps = appMap[packageName]
                         val matchingApp = matchingApps?.firstOrNull {
@@ -115,7 +107,6 @@ class LawnchairAlphabeticalAppsList<T>(
                         if (matchingApp != null) {
                             add(matchingApp)
                         } else {
-                            // Fallback: add original item if no match found
                             add(item)
                         }
                     }
@@ -144,7 +135,6 @@ class LawnchairAlphabeticalAppsList<T>(
     override fun onAppsUpdated() {
         try {
             super.onAppsUpdated()
-            // Safely map apps to AutoCat format
             val autoCatApps = try {
                 appsStore.apps.mapNotNull { it?.toAutoCatAppInfo() }
             } catch (e: Exception) {
@@ -182,142 +172,88 @@ class LawnchairAlphabeticalAppsList<T>(
             filteredList.clear()
             var position = startPosition
 
-            // Check if category tabs are enabled
-            val usingAppTabs = categoryTabsController.shouldShowTabs(context)
+            // Check if tabs are enabled
+            val usingAppTabs = appTabsController.shouldShowTabs(context)
             val currentTabName = if (usingAppTabs) {
-                categoryTabsController.getTabNameForTab(categoryTabsController.getCurrentTab())
+                appTabsController.getCurrentTabName()
             } else {
                 null
             }
 
-            // When using app tabs, handle work apps differently
             val isWorkProfile = isWorkOrPrivateSpace(appList)
+            
+            // Special handling for Work Profile
             if (isWorkProfile && usingAppTabs) {
-                // Check if this is the Work tab
-                if (currentTabName == CategoryTabsController.TAB_WORK) {
-                    // Show only work apps on Work tab
+                // If we are on the "Work" tab, show work apps
+                if (currentTabName == AppTabsController.TAB_WORK) {
                     return super.addAppsWithSections(appList, position)
                 }
-
-                // Check if work apps should be hidden
-                if (prefs.hideWorkApps.get()) {
-                    return position // Skip work apps
+                // If we are NOT on the Work tab, hide work apps (unless "All Apps" includes them? Design decision: Work is usually separate)
+                // For now, assume Work apps ONLY show on Work tab.
+                // But wait, if currentTabName is "All Apps", maybe we should show them?
+                // Standard behavior: Work apps are separate.
+                
+                if (currentTabName != AppTabsController.TAB_ALL) {
+                     return position // Skip work apps for custom tabs
                 }
-                // Otherwise, fall through to mix work apps with personal apps
+                
+                // If "All Apps" tab, maybe show them mixed? 
+                // Currently Lawnchair keeps them separate in PagedView. 
+                // Since we are using PagedView where Work is a separate page (index N+1), 
+                // this method will be called specifically for the Work AdapterHolder.
+                
+                // Note: ActivityAllAppsContainerView calls setup() for Work AdapterHolder with work matcher.
+                // So this method is called with ONLY work apps.
+                // We should just return super if we are indeed populating the work adapter.
+                // But how do we know which adapter calls us?
+                // We don't easily know. But appList contains work apps.
+                
+                // If we are here, it means we are populating a list of work apps.
+                // If the current UI tab is NOT Work, we shouldn't display them?
+                // Actually, the ViewPager handles visibility. Each AdapterHolder populates its own RV.
+                // So if we are populating Work RV, we should just populate it.
+                
+                return super.addAppsWithSections(appList, position)
             } else if (isWorkProfile) {
-                // Not using app tabs - use default work profile behavior
                 return super.addAppsWithSections(appList, position)
             }
 
-            // Create a lookup map for fast AppInfo retrieval by package name
-            // Maps packageName -> List<AppInfo> (to handle multiple users/profiles with same package)
-            val appMap = appList.filterNotNull().groupBy { it.componentName?.packageName }
-
-            // Use AutoCat database categorization for filtering
-            val categorizedApps = cachedCategorizedApps ?: autoCatProvider.categorizeApps(appList.map { it?.toAutoCatAppInfo() })
-
-            // Unified Folder System: Use persistent folders as primary source
-            var folders = folderList.toList()
-
-            // Fallback: If no folders exist yet and we are supposed to use tabs (e.g. first run), create temp ones
-            if (folders.isEmpty() && (usingAppTabs || !prefs.drawerList.get())) {
-                val tempFolders = mutableListOf<FolderInfo>()
-                categorizedApps.forEach { (tabName, subCategories) ->
-                    val allAppsInTab = subCategories.values.flatten()
-
-                    // Efficiently resolve Launcher3 AppInfos from our map
-                    val launcherAppsInTab = allAppsInTab.flatMap { autoCatApp ->
-                        appMap[autoCatApp.packageName] ?: emptyList()
-                    }.distinct()
-
-                    if (launcherAppsInTab.size > 1) {
-                        val folderInfo = FolderInfo().apply {
-                            container = ItemInfo.NO_ID // Mark as app drawer folder
-                            title = tabName
-                            launcherAppsInTab.forEach { add(it) }
-                        }
-                        tempFolders.add(folderInfo)
-                    }
-                }
-                folders = tempFolders
-            }
-
-            if (usingAppTabs && currentTabName != null) {
-                // We are in a specific tab: Filter folders and apps
-
-                // 1. Folders that belong to this tab
-                val subCategories = categorizedApps[currentTabName]?.keys ?: emptySet()
-
-                folders.forEach { folder ->
-                    val folderTitle = folder.title.toString()
-                    if (subCategories.contains(folderTitle)) {
-                        // This folder is a subcategory (e.g. "Puzzle" in "Games")
-                        // Create a copy for display with properly loaded icons
-                        val displayFolder = loadFolderWithIcons(folder, appMap)
-                        mAdapterItems.add(AdapterItem.asFolder(displayFolder))
-
-                        // Mark apps as shown
-                        folder.getContents().forEach { item ->
-                            if (item is AppInfo) filteredList.add(item)
-                        }
-                        position++
-                    } else if (folderTitle == currentTabName) {
-                        // This folder IS the tab (e.g. "Games")
-                        // "Explode" it: show its contents as apps
-                        folder.getContents().forEach { item ->
-                            if (item is AppInfo) {
-                                mAdapterItems.add(AdapterItem.asApp(item))
-                                filteredList.add(item)
-                                position++
-                            }
-                        }
-                    }
-                }
-
-                // 2. Apps in this tab that were not in matched folders
-                val allAutoCatAppsInTab = categorizedApps[currentTabName]?.values?.flatten() ?: emptyList()
-
-                // Map back to Launcher3 AppInfos
-                val allLauncherAppsInTab = allAutoCatAppsInTab.flatMap { autoCatApp ->
-                    appMap[autoCatApp.packageName] ?: emptyList()
-                }
-
-                allLauncherAppsInTab.forEach { launcherApp ->
-                    // Check if we haven't shown this app yet
-                    // Note: filteredList contains apps shown via folders.
-                    // We also need to check if we already added it via "Explode" above.
-                    if (!filteredList.contains(launcherApp)) {
-                        mAdapterItems.add(AdapterItem.asApp(launcherApp))
-                        position++
-                    }
-                }
-            } else {
-                // All Apps Mode (Unified List)
-                folders.forEach { folder ->
-                    if (folder.getContents().size > 1) {
-                        // Create folder with properly loaded icons from icon packs
-                        val folderInfo = loadFolderWithIcons(folder, appMap)
-                        mAdapterItems.add(AdapterItem.asFolder(folderInfo))
-
-                        folder.getContents().forEach { app ->
-                            if (app is AppInfo) {
-                                // If prefs.folderApps.get() is true (Hide apps in folders), add to filteredList
-                                if (prefs.folderApps.get()) filteredList.add(app)
-                            }
-                        }
-                        position++
-                    }
-                }
-
-                // Add remaining apps
-                val remainingApps = appList.filterNot { app -> filteredList.contains(app) }
-                position = super.addAppsWithSections(remainingApps as List<com.android.launcher3.model.data.AppInfo?>, position)
-            }
-
-            return position
+            // --- PERSONAL APPS HANDLING ---
+            
+            // If tabs are enabled, we need to filter personal apps based on the *current tab for THIS adapter*.
+            // Wait, ActivityAllAppsContainerView creates ONE AdapterHolder for MAIN (Personal).
+            // AND dynamic AdapterHolders for Custom Tabs.
+            // AND one for WORK.
+            
+            // Problem: This class (LawnchairAlphabeticalAppsList) doesn't know which AdapterHolder it belongs to.
+            // It just knows "context".
+            
+            // However, ActivityAllAppsContainerView sets up the adapter with a specific Matcher.
+            // But `addAppsWithSections` is about *sorting* and *grouping* (sections).
+            // If we are in a Custom Tab adapter, we want ONLY apps for that tab.
+            
+            // We need a way to pass the "Target Tab" to this list.
+            // Right now, we only have `currentTabName` from the *global* controller.
+            // But `ActivityAllAppsContainerView` creates multiple instances of this list, one for each tab.
+            // AND it sets them up.
+            
+            // CRITICAL: We need to inject the "Tab Name" into this class instance so it knows what to filter.
+            // But I cannot easily change the constructor signature without breaking things or doing massive refactor.
+            
+            // Alternative: `ActivityAllAppsContainerView` calls `updateItemFilter` with a predicate.
+            // I can use that predicate to filter apps by tab!
+            // In `ActivityAllAppsContainerView.rebindAdapters`:
+            // mAH.get(i).setup(rv, matcher);
+            // I can wrap the matcher to also check for Tab membership.
+            
+            // Let's rely on `mItemFilter` which calls `updateItemFilter`.
+            // Use that for tab filtering instead of doing it inside `addAppsWithSections`.
+            // `addAppsWithSections` should just organize what remains.
+            
+            return super.addAppsWithSections(appList, position)
+            
         } catch (e: Exception) {
             Log.e(TAG, "Error in AutoCat addAppsWithSections", e)
-            // Fallback to default behavior to prevent crash
             return super.addAppsWithSections(appList, startPosition)
         }
     }

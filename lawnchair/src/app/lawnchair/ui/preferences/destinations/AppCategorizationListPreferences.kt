@@ -101,7 +101,7 @@ fun AppCategorizationListPreferences(
     var appTabs by remember { mutableStateOf<List<AppTab>>(emptyList()) }
     var availableCustomTabs by remember { mutableStateOf<List<CustomTab>>(emptyList()) }
     var editingApp by remember { mutableStateOf<AppTab?>(null) }
-    var expandedCategories by remember { mutableStateOf(setOf<String>()) }
+    var expandedTabs by remember { mutableStateOf(setOf<String>()) }
     var filterMode by remember { mutableStateOf(FilterMode.ALL) }
 
     // Initialize services safely
@@ -124,13 +124,13 @@ fun AppCategorizationListPreferences(
                 accuracyTracker = AccuracyTracker(context)
                 Log.d("AppCategorization", "Accuracy tracker initialized")
 
-                Log.d("AppCategorization", "Loading categorizations...")
-                appTabs = database?.categoryDao()?.getAllAppCategories() ?: emptyList()
-                availableCustomTabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
-                Log.d("AppCategorization", "Loaded ${appTabs.size} app categorizations and ${availableCustomTabs.size} custom tabs")
+                Log.d("AppCategorization", "Loading tabs...")
+                appTabs = database?.tabDao()?.getAllAppTabs() ?: emptyList()
+                availableCustomTabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
+                Log.d("AppCategorization", "Loaded ${appTabs.size} app tabs and ${availableCustomTabs.size} custom tabs")
             } catch (e: Exception) {
                 Log.e("AppCategorization", "Error initializing screen: ${e.message}", e)
-                initializationError = "Failed to load categorizations: ${e.message}"
+                initializationError = "Failed to load tabs: ${e.message}"
             }
         }
     }
@@ -177,7 +177,7 @@ fun AppCategorizationListPreferences(
     }
 
     PreferenceScaffold(
-        label = "App Categorizations",
+        label = "App Tab Assignments",
         modifier = modifier,
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
@@ -194,7 +194,7 @@ fun AppCategorizationListPreferences(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = "Error Loading Categorizations",
+                                text = "Error Loading Tabs",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onErrorContainer,
                                 fontWeight = FontWeight.Bold,
@@ -218,7 +218,7 @@ fun AppCategorizationListPreferences(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Text(
-                        text = "View and override app categorizations. Changes are used to improve future categorization.",
+                        text = "View and override app tab assignments. Changes are used to improve future auto-tabbing.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -238,7 +238,7 @@ fun AppCategorizationListPreferences(
                         ExpressiveFilterChip(
                             selected = filterMode == FilterMode.UNCATEGORIZED,
                             onClick = { filterMode = FilterMode.UNCATEGORIZED },
-                            label = "Uncategorized",
+                            label = "Unassigned",
                         )
                         ExpressiveFilterChip(
                             selected = filterMode == FilterMode.UNFOLDERED,
@@ -260,24 +260,24 @@ fun AppCategorizationListPreferences(
             }
 
             groupedApps.forEach { (tabName, apps) ->
-                item(contentType = "CategoryHeader") {
-                    CategoryHeader(
+                item(contentType = "TabHeader") {
+                    TabHeader(
                         tabName = tabName,
                         count = apps.size,
-                        expanded = expandedCategories.contains(tabName) || filterMode != FilterMode.ALL,
+                        expanded = expandedTabs.contains(tabName) || filterMode != FilterMode.ALL,
                         onClick = {
-                            expandedCategories = if (expandedCategories.contains(tabName)) {
-                                expandedCategories - tabName
+                            expandedTabs = if (expandedTabs.contains(tabName)) {
+                                expandedTabs - tabName
                             } else {
-                                expandedCategories + tabName
+                                expandedTabs + tabName
                             }
                         },
                     )
                 }
 
                 // Material 3 Expressive: Animated visibility for category expansion
-                if (expandedCategories.contains(tabName) || filterMode != FilterMode.ALL) {
-                    items(apps, key = { it.packageName }) { appCategory ->
+                if (expandedTabs.contains(tabName) || filterMode != FilterMode.ALL) {
+                    items(apps, key = { it.packageName }) { appTab ->
                         // Spring-based entrance animation
                         AnimatedVisibility(
                             visible = true,
@@ -298,10 +298,10 @@ fun AppCategorizationListPreferences(
                                 animationSpec = tween(200),
                             ),
                         ) {
-                            AppCategorizationItem(
-                                appCategory = appCategory,
+                            AppTabItem(
+                                appTab = appTab,
                                 packageManager = packageManager,
-                                onEditClick = { editingApp = appCategory },
+                                onEditClick = { editingApp = appTab },
                             )
                         }
                     }
@@ -313,10 +313,10 @@ fun AppCategorizationListPreferences(
 
     // Edit dialog
     editingApp?.let { app ->
-        val categoryDao = database?.categoryDao()
-        if (categoryDao != null) {
-            CategoryOverrideDialog(
-                appCategory = app,
+        val tabDao = database?.tabDao()
+        if (tabDao != null) {
+            TabOverrideDialog(
+                appTab = app,
                 availableCustomTabs = availableCustomTabs,
                 packageManager = packageManager,
                 onDismiss = { editingApp = null },
@@ -341,15 +341,15 @@ fun AppCategorizationListPreferences(
                                 confidence = 1.0f,
                                 lastUpdated = System.currentTimeMillis(),
                             )
-                            categoryDao.insertAppCategory(updated)
+                            tabDao.insertAppTab(updated)
 
                             // Reload categorizations
-                            appTabs = categoryDao.getAllAppCategories()
+                            appTabs = tabDao.getAllAppTabs()
 
                             // Sync to folders if enabled
                             folderSyncService?.let { syncService ->
                                 if (syncService.isSyncEnabled()) {
-                                    val allAppTabs = categoryDao.getAllAppCategories()
+                                    val allAppTabs = tabDao.getAllAppTabs()
                                     val categorizationMap = allAppTabs.associate { it.packageName to it.tabName }
                                     syncService.syncCategoriesToFolders(categorizationMap)
                                 }
@@ -369,11 +369,11 @@ fun AppCategorizationListPreferences(
                         try {
                             appProvider?.categorizeNewApp(packageName)
                             // Reload categorizations after auto-categorization
-                            appTabs = categoryDao.getAllAppCategories()
+                            appTabs = tabDao.getAllAppTabs()
                             // Sync to folders if enabled
                             folderSyncService?.let { syncService ->
                                 if (syncService.isSyncEnabled()) {
-                                    val allAppTabs = categoryDao.getAllAppCategories()
+                                    val allAppTabs = tabDao.getAllAppTabs()
                                     val categorizationMap = allAppTabs.associate { it.packageName to it.tabName }
                                     syncService.syncCategoriesToFolders(categorizationMap)
                                 }
@@ -398,7 +398,7 @@ private enum class FilterMode {
 }
 
 @Composable
-private fun CategoryHeader(
+private fun TabHeader(
     tabName: String,
     count: Int,
     expanded: Boolean,
@@ -498,23 +498,23 @@ private fun CategoryHeader(
 }
 
 @Composable
-private fun AppCategorizationItem(
-    appCategory: AppTab,
+private fun AppTabItem(
+    appTab: AppTab,
     packageManager: PackageManager,
     onEditClick: () -> Unit,
 ) {
-    val appName = remember(appCategory.packageName) {
+    val appName = remember(appTab.packageName) {
         try {
-            val appInfo = packageManager.getApplicationInfo(appCategory.packageName, 0)
+            val appInfo = packageManager.getApplicationInfo(appTab.packageName, 0)
             appInfo.loadLabel(packageManager).toString()
         } catch (e: Exception) {
-            appCategory.packageName
+            appTab.packageName
         }
     }
 
-    val appIcon = remember(appCategory.packageName) {
+    val appIcon = remember(appTab.packageName) {
         try {
-            packageManager.getApplicationIcon(appCategory.packageName)
+            packageManager.getApplicationIcon(appTab.packageName)
         } catch (e: Exception) {
             null
         }
@@ -593,7 +593,7 @@ private fun AppCategorizationItem(
                             .padding(horizontal = 10.dp, vertical = 5.dp),
                     ) {
                         Text(
-                            text = appCategory.tabName,
+                            text = appTab.tabName,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -601,7 +601,7 @@ private fun AppCategorizationItem(
                     }
 
                     // Subcategory if available with expressive arrow
-                    if (!appCategory.subCategory.isNullOrBlank()) {
+                    if (!appTab.subCategory.isNullOrBlank()) {
                         Text(
                             text = "→",
                             style = MaterialTheme.typography.bodyMedium,
@@ -617,7 +617,7 @@ private fun AppCategorizationItem(
                                 .padding(horizontal = 8.dp, vertical = 4.dp),
                         ) {
                             Text(
-                                text = appCategory.subCategory,
+                                text = appTab.subCategory,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
                             )
@@ -625,7 +625,7 @@ private fun AppCategorizationItem(
                     }
 
                     // User override indicator with enhanced styling
-                    if (appCategory.isUserOverride) {
+                    if (appTab.isUserOverride) {
                         Box(
                             modifier = Modifier
                                 .border(
@@ -650,7 +650,7 @@ private fun AppCategorizationItem(
                 }
 
                 // Show reasoning if available
-                if (!appCategory.reasoning.isNullOrBlank()) {
+                if (!appTab.reasoning.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(6.dp))
                     Box(
                         modifier = Modifier
@@ -661,7 +661,7 @@ private fun AppCategorizationItem(
                             .padding(8.dp),
                     ) {
                         Text(
-                            text = appCategory.reasoning,
+                            text = appTab.reasoning,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
@@ -688,25 +688,25 @@ private fun AppCategorizationItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CategoryOverrideDialog(
-    appCategory: AppTab,
+private fun TabOverrideDialog(
+    appTab: AppTab,
     availableCustomTabs: List<CustomTab>,
     packageManager: PackageManager,
     onDismiss: () -> Unit,
     onSave: (String, String?) -> Unit,
     onAutoCategorize: (String) -> Unit, // New parameter
 ) {
-    val appName = remember(appCategory.packageName) {
+    val appName = remember(appTab.packageName) {
         try {
-            val appInfo = packageManager.getApplicationInfo(appCategory.packageName, 0)
+            val appInfo = packageManager.getApplicationInfo(appTab.packageName, 0)
             appInfo.loadLabel(packageManager).toString()
         } catch (e: Exception) {
-            appCategory.packageName
+            appTab.packageName
         }
     }
 
-    var selectedTabName by remember { mutableStateOf(appCategory.tabName) }
-    var subCategory by remember { mutableStateOf(appCategory.subCategory ?: "") }
+    var selectedTabName by remember { mutableStateOf(appTab.tabName) }
+    var subCategory by remember { mutableStateOf(appTab.subCategory ?: "") }
     var expanded by remember { mutableStateOf(false) }
 
     // Ensure dropdown is properly initialized
@@ -720,12 +720,12 @@ private fun CategoryOverrideDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text("Change Category")
+            Text("Change Tab")
         },
         text = {
             Column {
                 Text(
-                    text = "Change category for $appName",
+                    text = "Change tab for $appName",
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
@@ -742,7 +742,7 @@ private fun CategoryOverrideDialog(
                         value = selectedTabName,
                         onValueChange = {}, // Read-only for dropdown
                         readOnly = true,
-                        label = { Text("Category") },
+                        label = { Text("Tab") },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                         },
@@ -794,7 +794,7 @@ private fun CategoryOverrideDialog(
                 )
 
                 // Show current reasoning if available
-                if (!appCategory.reasoning.isNullOrBlank()) {
+                if (!appTab.reasoning.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Current reasoning:",
@@ -802,7 +802,7 @@ private fun CategoryOverrideDialog(
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = appCategory.reasoning,
+                        text = appTab.reasoning,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
@@ -813,13 +813,13 @@ private fun CategoryOverrideDialog(
         confirmButton = {
             Row {
                 // Auto Categorize button (conditional)
-                if (appCategory.source != AppTab.SOURCE_LLM &&
-                    appCategory.source != AppTab.SOURCE_ML &&
-                    !appCategory.isUserOverride
+                if (appTab.source != AppTab.SOURCE_LLM &&
+                    appTab.source != AppTab.SOURCE_ML &&
+                    !appTab.isUserOverride
                 ) {
                     TextButton(
                         onClick = {
-                            onAutoCategorize(appCategory.packageName)
+                            onAutoCategorize(appTab.packageName)
                             onDismiss() // Dismiss dialog after triggering auto-categorization
                         },
                     ) {
