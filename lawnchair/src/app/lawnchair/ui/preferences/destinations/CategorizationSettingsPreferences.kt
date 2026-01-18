@@ -59,7 +59,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategorizationManager
-import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.categorization.importer.SmartLauncherImporter
 import app.lawnchair.categorization.importer.SmartLauncherImporter.ImportResult
 import app.lawnchair.categorization.llm.ClaudeProvider
@@ -121,7 +120,7 @@ fun CategorizationSettingsPreferences(
                 categorizationManager = CategorizationManager.getInstance(context)
                 database = TabDatabase.getInstance(context)
                 appProvider = AutoCatAppProvider.getInstance(context)
-                tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
             } catch (e: Exception) {
                 android.util.Log.e("CategorizationSettings", "Error initializing: ${e.message}", e)
                 initializationError = "Failed to initialize: ${e.message}"
@@ -139,7 +138,8 @@ fun CategorizationSettingsPreferences(
                 val result = importer.importFromUri(uri)
                 categorizationStatus = when (result) {
                     is ImportResult.Success -> {
-                        CategoryTabsController.getInstance(context).refresh()
+                        // Refresh tabs from database
+                        tabs = withContext(Dispatchers.IO) { database?.tabDao()?.getAllCustomTabs() ?: emptyList() }
                         // Auto-sort apps into folders
                         val sortResult = app.lawnchair.categorization.FolderAutoSortService.getInstance(context).autoSortAll()
                         "✅ Imported ${result.count} apps. Created ${sortResult.foldersCreated} folders with ${sortResult.appsSorted} apps."
@@ -275,8 +275,8 @@ fun CategorizationSettingsPreferences(
                                 onEdit = { editingTab = it },
                                 onDelete = { target ->
                                     scope.launch(Dispatchers.IO) {
-                                        database?.categoryDao()?.deleteCustomCategory(target)
-                                        tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                                        database?.tabDao()?.deleteCustomTab(target)
+                                        tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
                                     }
                                 },
                             )
@@ -480,19 +480,19 @@ fun CategorizationSettingsPreferences(
                     try {
                         if (editingTab != null) {
                             withContext(Dispatchers.IO) {
-                                database?.categoryDao()?.updateCustomCategory(editingTab!!.copy(name = name, colorHex = color))
+                                database?.tabDao()?.updateCustomTab(editingTab!!.copy(name = name, colorHex = color))
                             }
                             successMessage = "✓ Tab '$name' updated"
                         } else {
                             withContext(Dispatchers.IO) {
                                 val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
-                                database?.categoryDao()?.insertCustomCategory(
+                                database?.tabDao()?.insertCustomTab(
                                     CustomTab(name = name, colorHex = color, sortOrder = maxSortOrder + 1, isVisible = true),
                                 )
                             }
                             successMessage = "✓ Tab '$name' created!"
                         }
-                        tabs = withContext(Dispatchers.IO) { database?.categoryDao()?.getAllCustomCategories() ?: emptyList() }
+                        tabs = withContext(Dispatchers.IO) { database?.tabDao()?.getAllCustomTabs() ?: emptyList() }
                         appProvider?.refreshCache()
                         showAddDialog = false
                         editingTab = null
@@ -516,10 +516,10 @@ fun CategorizationSettingsPreferences(
                     try {
                         withContext(Dispatchers.IO) {
                             val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
-                            database?.categoryDao()?.insertCustomCategory(
+                            database?.tabDao()?.insertCustomTab(
                                 CustomTab(name = suggestion.name, colorHex = "#4CAF50", sortOrder = maxSortOrder + 1),
                             )
-                            tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
+                            tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
                         }
                         appProvider?.refreshCache()
                         successMessage = "✓ Added '${suggestion.name}' tab!"
