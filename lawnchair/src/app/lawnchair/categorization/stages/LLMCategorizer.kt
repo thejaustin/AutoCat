@@ -70,7 +70,7 @@ class LLMCategorizer(
      */
     suspend fun categorize(appInfo: AppInfo): Boolean {
         // Get available custom categories
-        val customCategories = categoryDao.getVisibleCustomCategories()
+        val customCategories = categoryDao.getVisibleCustomTabs()
 
         if (customCategories.isEmpty()) {
             android.util.Log.d(TAG, "No custom categories available for LLM categorization")
@@ -91,7 +91,7 @@ class LLMCategorizer(
                 isUserOverride = false,
                 reasoning = "Based on ${hint.sampleCount} previous user corrections for similar apps",
             )
-            categoryDao.insertAppCategory(appTab)
+            categoryDao.insertAppTab(appTab)
 
             android.util.Log.d(
                 TAG,
@@ -174,7 +174,7 @@ class LLMCategorizer(
                     model = provider.getCurrentModel()?.id,
                 )
 
-                categoryDao.insertAppCategory(appTab)
+                categoryDao.insertAppTab(appTab)
 
                 android.util.Log.d(
                     TAG,
@@ -235,7 +235,7 @@ class LLMCategorizer(
         if (apps.isEmpty()) return 0
 
         // Get available custom categories
-        val customCategories = categoryDao.getVisibleCustomCategories()
+        val customCategories = categoryDao.getVisibleCustomTabs()
         if (customCategories.isEmpty()) {
             android.util.Log.d(TAG, "No custom categories available for LLM categorization")
             return 0
@@ -421,7 +421,7 @@ class LLMCategorizer(
                                 provider = providerName,
                                 model = modelId,
                             )
-                            categoryDao.insertAppCategory(appTab)
+                            categoryDao.insertAppTab(appTab)
                             categorizedCount++
 
                             android.util.Log.d(

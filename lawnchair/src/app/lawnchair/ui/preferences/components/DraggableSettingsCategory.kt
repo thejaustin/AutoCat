@@ -3,11 +3,13 @@ package app.lawnchair.ui.preferences.components
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -193,7 +195,7 @@ fun DraggableSettingsCategoryGroup(
 
                     Box(
                         modifier = Modifier
-                            .animateItemPlacement()
+                            .animateItem()
                             .then(
                                 if (isEditMode) {
                                     Modifier.combinedClickable(

@@ -16,7 +16,7 @@ import kotlinx.coroutines.withContext
 class CategoryTabsManager(private val context: Context) {
 
     private val database by lazy { TabDatabase.getInstance(context) }
-    private val categoryDao by lazy { database.categoryDao() }
+    private val categoryDao by lazy { database.tabDao() }
     private val prefs by lazy { PreferenceManager.getInstance(context) }
 
     /**
@@ -52,7 +52,7 @@ class CategoryTabsManager(private val context: Context) {
 
         // Get visible custom tabs from database (already sorted by sortOrder)
         val customCategoryTabs = withContext(Dispatchers.IO) {
-            categoryDao.getVisibleCustomCategories()
+            categoryDao.getVisibleCustomTabs()
         }
 
         android.util.Log.d(TAG, "getTabs: Found ${customCategoryTabs.size} visible custom tabs")

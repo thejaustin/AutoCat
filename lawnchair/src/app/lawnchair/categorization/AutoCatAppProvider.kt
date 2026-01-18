@@ -26,7 +26,7 @@ import kotlinx.coroutines.withContext
 class AutoCatAppProvider(private val context: Context) {
 
     private val database by lazy { TabDatabase.getInstance(context) }
-    private val categoryDao by lazy { database.categoryDao() }
+    private val categoryDao by lazy { database.tabDao() }
     private val llmCategorizer by lazy { LLMCategorizer(context, categoryDao) }
     private val packageManager = context.packageManager
 
@@ -73,7 +73,7 @@ class AutoCatAppProvider(private val context: Context) {
     private fun initializeCache() {
         scope.launch {
             try {
-                val appCategories = categoryDao.getAllAppCategories()
+                val appCategories = categoryDao.getAllAppTabs()
                 val newCache = appCategories.associate { appCategory ->
                     appCategory.packageName to CategoryInfo(appCategory.tabName, appCategory.subCategory)
                 }
@@ -207,7 +207,7 @@ class AutoCatAppProvider(private val context: Context) {
      */
     suspend fun getTabColor(tabName: String): String? {
         return withContext(Dispatchers.IO) {
-            categoryDao.getCustomCategoryByName(tabName)?.colorHex
+            categoryDao.getCustomTabByName(tabName)?.colorHex
         }
     }
 

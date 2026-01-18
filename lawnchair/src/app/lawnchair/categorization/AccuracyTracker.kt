@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 class AccuracyTracker(private val context: Context) {
 
     private val database = TabDatabase.getInstance(context)
-    private val categoryDao = database.categoryDao()
+    private val categoryDao = database.tabDao()
     private val accuracyDao = database.accuracyDao()
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -55,7 +55,7 @@ class AccuracyTracker(private val context: Context) {
         scope.launch {
             try {
                 // Get the original categorization to find provider/model info
-                val original = categoryDao.getAppCategory(packageName) ?: run {
+                val original = categoryDao.getAppTab(packageName) ?: run {
                     Log.w(TAG, "Cannot record correction: No category found for $packageName")
                     return@launch
                 }
@@ -102,7 +102,7 @@ class AccuracyTracker(private val context: Context) {
     fun recordAcceptedCategorization(packageName: String) {
         scope.launch {
             try {
-                val category = categoryDao.getAppCategory(packageName) ?: run {
+                val category = categoryDao.getAppTab(packageName) ?: run {
                     Log.w(TAG, "Cannot record acceptance: No category found for $packageName")
                     return@launch
                 }

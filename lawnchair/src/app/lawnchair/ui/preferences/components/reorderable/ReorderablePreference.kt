@@ -30,7 +30,6 @@ import app.lawnchair.ui.theme.preferenceGroupColor
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import sh.calvin.reorderable.ReorderableColumn
-import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.ReorderableListItemScope
 
 @Composable
@@ -58,12 +57,18 @@ fun <T> ReorderablePreferenceGroup(
 
     var isAnyDragging by remember { mutableStateOf(false) }
 
+    LaunchedEffect(items) {
+        if (localItems != items) {
+            localItems = items
+        }
+    }
+
+    val view = LocalView.current
+
     val color by animateColorAsState(
         targetValue = if (!isAnyDragging) preferenceGroupColor() else MaterialTheme.colorScheme.surface,
         label = "card background animation",
     )
-
-    val view = LocalView.current
 
     Column(modifier) {
         PreferenceGroupHeading(
@@ -76,16 +81,16 @@ fun <T> ReorderablePreferenceGroup(
         ) {
             ReorderableColumn(
                 list = localItems,
-                onSettle = { from, to ->
+                onSettle = { fromIndex, toIndex ->
                     val newItems = localItems.toMutableList().apply {
-                        add(to, removeAt(from))
-                    }.also {
-                        onOrderChange(it)
-                        if (onSettle != null) {
-                            onSettle(it)
-                        }
-                        isAnyDragging = false
+                        add(toIndex, removeAt(fromIndex))
+                    }.toList()
+                    localItems = newItems
+                    onOrderChange(newItems)
+                    if (onSettle != null) {
+                        onSettle(newItems)
                     }
+                    isAnyDragging = false
                 },
                 onMove = {
                     isAnyDragging = true
@@ -123,10 +128,9 @@ fun <T> ReorderablePreferenceGroup(
                                     item,
                                     index,
                                     isDragging,
-                                ) {
-                                    isAnyDragging = it
-                                }
+                                ) { isAnyDragging = it }
                             }
+
                             AnimatedVisibility(!isAnyDragging && index != localItems.lastIndex) {
                                 HorizontalDivider(
                                     Modifier.padding(start = 50.dp, end = 16.dp),
@@ -140,11 +144,13 @@ fun <T> ReorderablePreferenceGroup(
 
         ExpandAndShrink(visible = localItems != defaultList) {
             PreferenceGroup {
-                ClickablePreference(label = stringResource(id = R.string.action_reset)) {
-                    val resetList = defaultList
-                    onOrderChange(resetList)
-                    if (onSettle != null) {
-                        onSettle(resetList)
+                Item {
+                    ClickablePreference(label = stringResource(id = R.string.action_reset)) {
+                        val resetList = defaultList
+                        onOrderChange(resetList)
+                        if (onSettle != null) {
+                            onSettle(resetList)
+                        }
                     }
                 }
             }

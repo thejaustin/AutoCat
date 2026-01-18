@@ -40,7 +40,7 @@ import org.json.JSONObject
 class FolderAutoSortService(private val context: Context) {
 
     private val tabDatabase by lazy { TabDatabase.getInstance(context) }
-    private val tabDao by lazy { tabDatabase.categoryDao() }
+    private val tabDao by lazy { tabDatabase.tabDao() }
     private val folderService by lazy { FolderService.INSTANCE.get(context) }
     private val launcherApps by lazy { context.getSystemService(LauncherApps::class.java) }
     private val userCache by lazy { UserCache.INSTANCE.get(context) }
@@ -78,7 +78,7 @@ class FolderAutoSortService(private val context: Context) {
     suspend fun detectUnsortedApps(): Map<String, List<AppInfo>> = withContext(Dispatchers.IO) {
         try {
             // Get all apps with tab assignments
-            val appsWithTabs = tabDao.getAllAppCategories()
+            val appsWithTabs = tabDao.getAllAppTabs()
 
             // Get all folder items to know which apps are already in folders
             val existingFolders = folderService.getAllFolders()

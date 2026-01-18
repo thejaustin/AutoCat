@@ -171,7 +171,7 @@ class CategoryFolderSyncService(
             }
 
             // Build icon map
-            val customTabs = TabDatabase.getInstance(context).categoryDao().getAllCustomCategories()
+            val customTabs = TabDatabase.getInstance(context).tabDao().getAllCustomTabs()
             val tabIconMap = customTabs.associate { it.name to it.icon }
 
             // Sync to drawer folders if enabled
@@ -374,7 +374,7 @@ class CategoryFolderSyncService(
     suspend fun onFolderDeleted(folderId: Int, tabName: String, removeTabs: Boolean = false) {
         if (removeTabs) {
             // Remove all AppTab entries for this tab
-            val dao = TabDatabase.getInstance(context).categoryDao()
+            val dao = TabDatabase.getInstance(context).tabDao()
             val apps = dao.getAppsByTab(tabName)
 
             if (apps.isNotEmpty()) {
@@ -391,7 +391,7 @@ class CategoryFolderSyncService(
      * When user manually adds/removes apps from a folder, update categories
      */
     suspend fun onFolderItemsChanged(folderId: Int, tabName: String, newAppPackages: List<String>) {
-        val dao = TabDatabase.getInstance(context).categoryDao()
+        val dao = TabDatabase.getInstance(context).tabDao()
 
         // Update AppTab table to match folder contents
         val existingApps = dao.getAppsByTab(tabName).map { it.packageName }
@@ -402,7 +402,7 @@ class CategoryFolderSyncService(
         val removed = existingApps - newAppPackages.toSet()
 
         added.forEach { packageName ->
-            dao.insertAppCategory(
+            dao.insertAppTab(
                 app.lawnchair.data.tab.entities.AppTab(
                     packageName = packageName,
                     tabName = tabName,

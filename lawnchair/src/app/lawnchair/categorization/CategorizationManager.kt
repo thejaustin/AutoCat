@@ -56,7 +56,7 @@ data class CategorizationProgress(
 class CategorizationManager(private val context: Context) {
 
     private val database by lazy { TabDatabase.getInstance(context) }
-    private val categoryDao by lazy { database.categoryDao() }
+    private val categoryDao by lazy { database.tabDao() }
     private val metadataProvider by lazy { AppMetadataProvider(context) }
     private val builtInCategorizer by lazy { BuiltInCategorizer(categoryDao) }
     private val llmCategorizer by lazy { LLMCategorizer(context, categoryDao) }
@@ -80,13 +80,13 @@ class CategorizationManager(private val context: Context) {
     suspend fun initializeCategorization() = withContext(Dispatchers.IO) {
         try {
             // Ensure default tabs are initialized
-            categoryDao.initializeDefaultCategoriesIfNeeded()
+            categoryDao.initializeDefaultTabsIfNeeded()
 
             // Get all installed apps
             val apps = metadataProvider.getInstalledApps()
 
             // Fetch all categories in one query to avoid N+1 problem
-            val allCategories = categoryDao.getAllAppCategories().associateBy { it.packageName }
+            val allCategories = categoryDao.getAllAppTabs().associateBy { it.packageName }
             val uncategorizedApps = apps.filter { app ->
                 !allCategories.containsKey(app.packageName)
             }
@@ -104,7 +104,7 @@ class CategorizationManager(private val context: Context) {
 
             // Stage 1: LLM categorizer for custom categories (PRIORITY)
             // Only run if custom categories exist
-            val customCategories = categoryDao.getVisibleCustomCategories()
+            val customCategories = categoryDao.getVisibleCustomTabs()
             val llmCount = if (customCategories.isNotEmpty()) {
                 llmCategorizer.categorizeBatch(uncategorizedApps)
             } else {
@@ -119,7 +119,7 @@ class CategorizationManager(private val context: Context) {
 
             // Stage 2: Built-in categorizer for remaining apps (FALLBACK)
             // Re-fetch categories to see which apps are still uncategorized after LLM
-            val categoriesAfterLLM = categoryDao.getAllAppCategories().associateBy { it.packageName }
+            val categoriesAfterLLM = categoryDao.getAllAppTabs().associateBy { it.packageName }
             val stillUncategorized = uncategorizedApps.filter { app ->
                 !categoriesAfterLLM.containsKey(app.packageName)
             }
@@ -140,7 +140,7 @@ class CategorizationManager(private val context: Context) {
 
             android.util.Log.d(
                 TAG,
-                "All stages complete: ${categoryDao.getAllAppCategories().size}/${apps.size} apps categorized",
+                "All stages complete: ${categoryDao.getAllAppTabs().size}/${apps.size} apps categorized",
             )
 
             // Refresh cache after categorization
@@ -151,7 +151,7 @@ class CategorizationManager(private val context: Context) {
                 android.util.Log.d(TAG, "Starting folder sync")
 
                 // Fetch all categories in one query to avoid N+1 problem
-                val allCategories = categoryDao.getAllAppCategories()
+                val allCategories = categoryDao.getAllAppTabs()
                 val categorizations = allCategories.associate { it.packageName to it.tabName }
 
                 // Sync categorizations to folders
@@ -209,7 +209,7 @@ class CategorizationManager(private val context: Context) {
 
             // Get uncategorized apps for built-in stage (FALLBACK)
             // Fetch all categories in one query to avoid N+1 problem
-            val allCategories = categoryDao.getAllAppCategories().associateBy { it.packageName }
+            val allCategories = categoryDao.getAllAppTabs().associateBy { it.packageName }
             val uncategorizedApps = apps.filter { app ->
                 !allCategories.containsKey(app.packageName)
             }
@@ -238,7 +238,7 @@ class CategorizationManager(private val context: Context) {
 
             android.util.Log.d(
                 TAG,
-                "All stages complete: ${categoryDao.getAllAppCategories().size}/${apps.size} apps categorized",
+                "All stages complete: ${categoryDao.getAllAppTabs().size}/${apps.size} apps categorized",
             )
 
             // Refresh cache after categorization
@@ -255,7 +255,7 @@ class CategorizationManager(private val context: Context) {
 
                 android.util.Log.d(TAG, "Starting folder sync")
 
-                val allCategories = categoryDao.getAllAppCategories()
+                val allCategories = categoryDao.getAllAppTabs()
                 val categorizations = allCategories.associate { it.packageName to it.tabName }
 
                 // Sync categorizations to folders
@@ -302,7 +302,7 @@ class CategorizationManager(private val context: Context) {
             var categorized = builtInCategorizer.categorize(appInfo)
 
             if (categorized) {
-                val appTab = categoryDao.getAppCategory(packageName)
+                val appTab = categoryDao.getAppTab(packageName)
                 appProvider.updateCacheForApp(packageName, appTab?.tabName)
                 return@withContext
             }
@@ -313,7 +313,7 @@ class CategorizationManager(private val context: Context) {
             if (categorized) {
                 android.util.Log.d(TAG, "Categorized new app (LLM): $packageName")
                 // Update cache with the new category
-                val appTab = categoryDao.getAppCategory(packageName)
+                val appTab = categoryDao.getAppTab(packageName)
                 appProvider.updateCacheForApp(packageName, appTab?.tabName)
             } else {
                 android.util.Log.d(TAG, "Could not categorize new app: $packageName")

@@ -200,11 +200,11 @@ class SmartLauncherImporter(private val context: Context) {
                 appCursor.close()
                 slDb.close()
 
-                val categoryDao = TabDatabase.getInstance(context).categoryDao()
+                val categoryDao = TabDatabase.getInstance(context).tabDao()
 
                 // 6.5 Ensure all used tabs exist in CustomTab table
                 val uniqueTabNames = appsToImport.map { it.tabName }.distinct()
-                val existingCategories = categoryDao.getAllCustomCategories()
+                val existingCategories = categoryDao.getAllCustomTabs()
                 var nextSortOrder = existingCategories.maxOfOrNull { it.sortOrder }?.plus(1) ?: 0
 
                 // Helper to pick a random default color
@@ -232,14 +232,14 @@ class SmartLauncherImporter(private val context: Context) {
                             isVisible = true,
                             icon = matchingFolder?.icon,
                         )
-                        categoryDao.insertCustomCategory(newCategory)
+                        categoryDao.insertCustomTab(newCategory)
                         android.util.Log.d("SmartLauncherImporter", "Created new custom tab: $tabName")
                     }
                 }
 
                 // 7. Batch Insert into AutoCat Database
                 if (appsToImport.isNotEmpty()) {
-                    appsToImport.forEach { categoryDao.insertAppCategory(it) }
+                    appsToImport.forEach { categoryDao.insertAppTab(it) }
                 }
 
                 // Cleanup
