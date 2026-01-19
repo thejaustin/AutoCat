@@ -55,7 +55,6 @@ fun LazyListScope.preferenceGroupItems(
             if (showDividers && it > 0) {
                 HorizontalDivider(
                     modifier = Modifier,
-//                        .padding(start = dividerStartIndent + 16.dp, end = dividerEndIndent + 16.dp)
                     thickness = 3.dp,
                     color = MaterialTheme.colorScheme.surface,
                 )
