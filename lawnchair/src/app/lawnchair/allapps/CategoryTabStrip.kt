@@ -21,7 +21,7 @@ import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
 import app.lawnchair.animation.M3ESpringConfig
-import app.lawnchair.categorization.CategoryTabsController
+import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.font.FontManager
 import app.lawnchair.theme.color.tokens.ColorStateListTokens
 import app.lawnchair.theme.drawable.DrawableTokens
@@ -55,7 +55,7 @@ class CategoryTabStrip @JvmOverloads constructor(
     }
 
     private val tabContainer: LinearLayout
-    private val categoryController = CategoryTabsController.getInstance(context)
+    private val categoryController = AppTabsController.getInstance(context)
     private val fontManager = FontManager.INSTANCE.get(context)
 
     private var onActivePageChangedListener: OnActivePageChangedListener? = null
@@ -109,7 +109,7 @@ class CategoryTabStrip @JvmOverloads constructor(
                 }
             }
             launch {
-                categoryController.currentTabIndex.collect { index ->
+                categoryController.currentTabIndex.collect { index: Int ->
                     setActiveMarker(index)
                 }
             }
@@ -122,14 +122,14 @@ class CategoryTabStrip @JvmOverloads constructor(
     }
 
     /**
-     * Initialize tabs from CategoryTabsController.
+     * Initialize tabs from AppTabsController.
      */
     fun setupTabs() {
         tabContainer.removeAllViews()
         tabs.clear()
 
         val tabNames = categoryController.tabNames.value
-        tabNames.forEachIndexed { index, name ->
+        tabNames.forEachIndexed { index: Int, name: String ->
             val tab = createTab(name, index)
             tabs.add(tab)
             tabContainer.addView(tab)
@@ -186,7 +186,7 @@ class CategoryTabStrip @JvmOverloads constructor(
     }
 
     private fun showTabOptions(view: View, tabName: String) {
-        if (tabName == CategoryTabsController.TAB_ALL || tabName == CategoryTabsController.TAB_WORK) {
+        if (tabName == AppTabsController.TAB_ALL || tabName == AppTabsController.TAB_WORK) {
             return
         }
 
