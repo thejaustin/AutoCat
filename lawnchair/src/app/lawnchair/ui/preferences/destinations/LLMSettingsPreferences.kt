@@ -21,10 +21,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.rounded.AccountTree
+import androidx.compose.material.icons.rounded.Analytics
+import androidx.compose.material.icons.rounded.ApiKey
+import androidx.compose.material.icons.rounded.AutoFixHigh
+import androidx.compose.material.icons.rounded.ModelTraining
+import androidx.compose.material.icons.rounded.NearbyError
+import androidx.compose.material.icons.rounded.Psychology
+import androidx.compose.material.icons.rounded.SmartToy
+import androidx.compose.material.icons.rounded.Terminal
+import androidx.compose.material.icons.rounded.WifiTethering
+import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -134,6 +141,7 @@ fun LLMSettingsPreferences(
                         } else {
                             "Let AI pick the best provider based on your correction history."
                         },
+                        icon = { Icon(Icons.Rounded.AutoFixHigh, null) },
                     )
 
                     ListPreference(
@@ -146,6 +154,7 @@ fun LLMSettingsPreferences(
                             ListPreferenceEntry("openai") { "OpenAI GPT" },
                             ListPreferenceEntry("perplexity") { "Perplexity" },
                         ),
+                        icon = { Icon(Icons.Rounded.Psychology, null) },
                     )
                 }
             }
@@ -232,6 +241,7 @@ fun LLMSettingsPreferences(
                         adapter = prefs.circuitBreakerEnabled.getAdapter(),
                         label = "Circuit Breaker",
                         description = "Automatically disable a provider if it fails multiple times in a row. Prevents slow performance when APIs are down.",
+                        icon = { Icon(Icons.Rounded.NearbyError, null) },
                     )
 
                     AnimatedVisibility(visible = prefs.circuitBreakerEnabled.get()) {
@@ -242,6 +252,7 @@ fun LLMSettingsPreferences(
                                 valueRange = 1..10,
                                 step = 1,
                                 showUnit = " failures",
+                                icon = { Icon(Icons.Rounded.Terminal, null) },
                             )
                         }
                     }
@@ -303,6 +314,7 @@ fun ProviderConfigSection(
         TextPreference(
             adapter = apiKeyAdapter,
             label = "API Key",
+            icon = { Icon(Icons.Rounded.ApiKey, null) },
         )
 
         ListPreference(
@@ -314,6 +326,7 @@ fun ProviderConfigSection(
                     label = { model.displayName },
                 )
             },
+            icon = { Icon(Icons.Rounded.SmartToy, null) },
         )
 
         Row(
@@ -322,6 +335,8 @@ fun ProviderConfigSection(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             OutlinedButton(onClick = onTestConnection) {
+                Icon(Icons.Rounded.WifiTethering, null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text("Test Connection")
             }
 
@@ -352,25 +367,38 @@ fun CompactAccuracyCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Column {
-                Text(
-                    text = formatProviderName(stats.provider),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                Icon(
+                    imageVector = Icons.Rounded.Analytics,
+                    contentDescription = null,
+                    tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp).padding(end = 12.dp),
                 )
-                Text(
-                    text = "${stats.total} categorizations",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Column {
+                    Text(
+                        text = formatProviderName(stats.provider),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = "${stats.total} categorizations",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
-            Text(
-                text = "${stats.accuracy.toInt()}% Accuracy",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = if (stats.accuracy > 80) Color(0xFF4CAF50) else Color(0xFFFF9800),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (stats.accuracy >= 90) {
+                    Icon(Icons.Rounded.WorkspacePremium, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp).padding(end = 4.dp))
+                }
+                Text(
+                    text = "${stats.accuracy.toInt()}% Accuracy",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (stats.accuracy > 80) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                )
+            }
         }
     }
 }

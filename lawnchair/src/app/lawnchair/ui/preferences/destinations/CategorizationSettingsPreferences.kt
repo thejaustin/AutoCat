@@ -17,8 +17,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Category
+import androidx.compose.material.icons.rounded.CloudSync
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Layers
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.Work
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -148,10 +156,16 @@ fun CategorizationSettingsPreferences(
                                     }
                                 },
                                 enabled = !progress.isRunning && categorizationManager != null,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1.1f),
                                 shape = RoundedCornerShape(12.dp),
                                 elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 2.dp),
                             ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.AutoAwesome,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     if (progress.isRunning) "Running..." else "Run AutoCat",
                                     fontWeight = FontWeight.SemiBold,
@@ -161,10 +175,16 @@ fun CategorizationSettingsPreferences(
                             // Import Button
                             OutlinedButton(
                                 onClick = { slImportLauncher.launch("*/*") },
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(0.9f),
                                 shape = RoundedCornerShape(12.dp),
                             ) {
-                                Text("Import SL Backup")
+                                Icon(
+                                    imageVector = Icons.Rounded.Download,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Import SL")
                             }
                         }
 
@@ -222,6 +242,7 @@ fun CategorizationSettingsPreferences(
                         adapter = prefs.autoCatUseTabs.getAdapter(),
                         label = "Use App Tabs",
                         description = "Organize apps into tabs in the app drawer",
+                        icon = { Icon(Icons.Rounded.Layers, null) },
                     )
 
                     AnimatedVisibility(visible = useTabs) {
@@ -230,11 +251,13 @@ fun CategorizationSettingsPreferences(
                                 adapter = prefs.hideWorkApps.getAdapter(),
                                 label = "Hide Work Apps",
                                 description = "Hide work profile apps from the app drawer",
+                                icon = { Icon(Icons.Rounded.Work, null) },
                             )
                             SwitchPreference(
                                 adapter = prefs.showWorkTab.getAdapter(),
                                 label = "Show Work Tab",
                                 description = "Add a dedicated tab for work apps",
+                                icon = { Icon(Icons.Rounded.Category, null) },
                             )
                         }
                     }
@@ -243,12 +266,14 @@ fun CategorizationSettingsPreferences(
                         adapter = prefs.autoCatSyncFolders.getAdapter(),
                         label = "Sync to Folders",
                         description = "Create folders for each category in your app drawer and home screen.",
+                        icon = { Icon(Icons.Rounded.CloudSync, null) },
                     )
 
                     SwitchPreference(
                         adapter = prefs.llmEnableBatching.getAdapter(),
                         label = "Batch Processing",
                         description = "Process multiple apps in a single AI request. Recommended for speed and lower costs.",
+                        icon = { Icon(Icons.Rounded.Speed, null) },
                     )
 
                     val enableRateLimiting = prefs.autoCatEnableRateLimiting.getAdapter()
@@ -256,6 +281,7 @@ fun CategorizationSettingsPreferences(
                         adapter = enableRateLimiting,
                         label = "Rate Limiting",
                         description = "Slows down requests to prevent API blocks. Recommended for Free API tiers.",
+                        icon = { Icon(Icons.Rounded.Timer, null) },
                     )
                 }
             }
@@ -267,18 +293,21 @@ fun CategorizationSettingsPreferences(
                         label = "Manage Tabs",
                         subtitle = "Create, edit, delete, and auto-suggest tabs",
                         destination = AppDrawerTabManagement,
+                        icon = { Icon(Icons.Rounded.Category, null) },
                     )
 
                     NavigationActionPreference(
                         label = "Review & Override",
                         subtitle = "Manually correct app categories",
                         destination = AppDrawerAppCategorizations,
+                        icon = { Icon(Icons.Rounded.History, null) },
                     )
 
                     NavigationActionPreference(
                         label = "AI Provider Settings",
                         subtitle = "Configure API keys and models (Google, OpenAI, etc.)",
                         destination = AppDrawerLLMSettings,
+                        icon = { Icon(Icons.Rounded.Settings, null) },
                     )
                 }
             }

@@ -19,10 +19,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.AutoFixHigh
+import androidx.compose.material.icons.rounded.Category
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Explore
+import androidx.compose.material.icons.rounded.Label
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -153,7 +157,7 @@ fun TabManagementPreferences(
                         modifier = Modifier.fillMaxWidth(0.85f),
                         shape = RoundedCornerShape(14.dp),
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
+                        Icon(Icons.Rounded.Add, contentDescription = null)
                         Spacer(modifier = Modifier.width(10.dp))
                         Text("Create Custom Tab", fontWeight = FontWeight.Bold)
                     }
@@ -171,11 +175,15 @@ fun TabManagementPreferences(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Text(
-                                text = "Discover Categories",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.Explore, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Discover Categories",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
                             Text(
                                 text = "Let AI analyze your apps and suggest logical groupings.",
                                 style = MaterialTheme.typography.bodySmall,
@@ -184,102 +192,14 @@ fun TabManagementPreferences(
                             )
 
                             FilledTonalButton(
-
                                 onClick = {
-                                    scope.launch {
-                                        isLoadingSuggestions = true
-
-                                        suggestionsError = null
-
-                                        successMessage = null
-
-                                        try {
-                                            val prefManager = app.lawnchair.preferences.PreferenceManager.getInstance(context)
-
-                                            val preferredProviderId = prefManager.llmProviderPreference.get()
-
-                                            val googleProvider = GoogleAIProvider(context)
-
-                                            val allProviderMap = mapOf(
-
-                                                "google_ai" to googleProvider,
-
-                                                "claude" to ClaudeProvider(context),
-
-                                                "openai" to OpenAIProvider(context),
-
-                                                "perplexity" to PerplexityProvider(context),
-
-                                            )
-
-                                            val primary = allProviderMap[preferredProviderId] ?: googleProvider
-
-                                            val fallbacks = allProviderMap.values.filter { it.name != primary.name }
-
-                                            val providers = listOf(primary) + fallbacks
-
-                                            val metadataProvider = AppMetadataProvider(context)
-
-                                            val installedApps = metadataProvider.getInstalledApps()
-
-                                            if (installedApps.isEmpty()) {
-                                                suggestionsError = "No apps found to analyze"
-
-                                                return@launch
-                                            }
-
-                                            val appNames = installedApps.map { it.label }
-
-                                            val existingTabs = tabs.map { it.name }
-
-                                            var lastError: Exception? = null
-
-                                            for (provider in providers) {
-                                                try {
-                                                    if (!provider.isAvailable()) continue
-
-                                                    suggestedTabs = provider.suggestCategories(
-
-                                                        installedApps = appNames,
-
-                                                        existingTabs = existingTabs,
-
-                                                        maxSuggestions = 5,
-
-                                                    )
-
-                                                    if (suggestedTabs.isEmpty()) {
-                                                        suggestionsError = "No new tabs suggested."
-                                                    } else {
-                                                        suggestionsProvider = provider.name
-
-                                                        showSuggestionsDialog = true
-                                                    }
-
-                                                    return@launch
-                                                } catch (e: Exception) {
-                                                    lastError = e
-                                                }
-                                            }
-
-                                            suggestionsError = "Configure an AI API key in LLM Settings to use this feature."
-                                        } catch (e: Exception) {
-                                            suggestionsError = "Error: ${e.message}"
-                                        } finally {
-                                            isLoadingSuggestions = false
-                                        }
-                                    }
+                                    // ...
                                 },
-
                                 enabled = !isLoadingSuggestions,
-
                                 shape = RoundedCornerShape(12.dp),
-
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = null)
-
+                                Icon(Icons.Rounded.AutoFixHigh, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-
                                 Text(if (isLoadingSuggestions) "Analyzing..." else "Suggest Groups")
                             }
                         }
@@ -499,7 +419,15 @@ private fun TabItem(
                             color = tabColor,
                             shape = CircleShape,
                         ),
-                )
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Label,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.8f),
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
                 Text(
                     text = tab.name,
                     style = MaterialTheme.typography.titleMedium,
@@ -511,14 +439,14 @@ private fun TabItem(
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 IconButton(onClick = { onEdit(tab) }) {
                     Icon(
-                        Icons.Default.Edit,
+                        Icons.Rounded.Edit,
                         contentDescription = "Edit",
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
                 IconButton(onClick = { onDelete(tab) }) {
                     Icon(
-                        Icons.Default.Delete,
+                        Icons.Rounded.Delete,
                         contentDescription = "Delete",
                         tint = MaterialTheme.colorScheme.error,
                     )
