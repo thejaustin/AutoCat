@@ -25,6 +25,8 @@ import androidx.compose.material.icons.rounded.AccountTree
 import androidx.compose.material.icons.rounded.Analytics
 import androidx.compose.material.icons.rounded.ApiKey
 import androidx.compose.material.icons.rounded.AutoFixHigh
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.ModelTraining
 import androidx.compose.material.icons.rounded.NearbyError
 import androidx.compose.material.icons.rounded.Psychology
@@ -201,7 +203,7 @@ fun LLMSettingsPreferences(
                             color = MaterialTheme.colorScheme.primary,
                         )
                         Icon(
-                            imageVector = if (showAllProviders) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            imageVector = if (showAllProviders) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                         )
@@ -441,7 +443,7 @@ fun CategorizationStatus(
                         )
                     }
                 }
-                Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+                Icon(if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null)
             }
 
             if (expanded) {

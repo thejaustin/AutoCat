@@ -252,7 +252,7 @@ fun TabManagementPreferences(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
 
                             ) {
-                                Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Rounded.CheckCircle, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
 
                                 Text(
 
@@ -537,7 +537,7 @@ private fun TabDialog(
                                 ) {
                                     if (isSelected) {
                                         Icon(
-                                            Icons.Default.CheckCircle,
+                                            Icons.Rounded.CheckCircle,
                                             contentDescription = "Selected",
                                             tint = Color.White,
                                             modifier = Modifier
