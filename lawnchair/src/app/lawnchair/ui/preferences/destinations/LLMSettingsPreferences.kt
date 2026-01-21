@@ -125,20 +125,20 @@ fun LLMSettingsPreferences(
         PreferenceLazyColumn(it) {
             // ===== PROVIDER SELECTION =====
             item {
-                PreferenceGroup(heading = "Provider Selection") {
+                PreferenceGroup(heading = "AI Provider") {
                     SwitchPreference(
                         adapter = prefs.llmAutoSelectBestModel.getAdapter(),
-                        label = "Auto-Select Best Model",
+                        label = "Auto-Select Provider",
                         description = if (isAutoSelect && autoSelectedProvider != null) {
-                            "Currently using: ${formatProviderName(autoSelectedProvider!!)}"
+                            "Choosing the best provider based on your past corrections. Currently using: ${formatProviderName(autoSelectedProvider!!)}"
                         } else {
-                            "Automatically use the most accurate provider"
+                            "Let AI pick the best provider based on your correction history."
                         },
                     )
 
                     ListPreference(
                         adapter = prefs.llmProviderPreference.getAdapter(),
-                        label = "Preferred Provider",
+                        label = "Manual Provider Selection",
                         enabled = !isAutoSelect,
                         entries = listOf(
                             ListPreferenceEntry("google_ai") { "Google AI (Gemini)" },
@@ -231,14 +231,14 @@ fun LLMSettingsPreferences(
                     SwitchPreference(
                         adapter = prefs.circuitBreakerEnabled.getAdapter(),
                         label = "Circuit Breaker",
-                        description = "Disable providers that fail repeatedly",
+                        description = "Automatically disable a provider if it fails multiple times in a row. Prevents slow performance when APIs are down.",
                     )
 
                     AnimatedVisibility(visible = prefs.circuitBreakerEnabled.get()) {
                         Column {
                             SliderPreference(
                                 adapter = prefs.circuitBreakerFailureThreshold.getAdapter(),
-                                label = "Failure Threshold",
+                                label = "Failure Limit",
                                 valueRange = 1..10,
                                 step = 1,
                                 showUnit = " failures",

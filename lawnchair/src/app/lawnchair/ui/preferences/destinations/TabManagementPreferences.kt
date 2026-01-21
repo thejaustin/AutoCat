@@ -109,11 +109,20 @@ fun TabManagementPreferences(
             item {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Create custom tabs for organizing your apps. The LLM will learn to auto-assign apps to these tabs.",
+                        text = "Custom tabs allow you to organize your app drawer. AI will automatically sort your apps into these categories.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+
+            item {
+                Text(
+                    text = "Your Tabs",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
             }
 
             items(tabs, key = { it.id }) { tab ->
@@ -130,190 +139,209 @@ fun TabManagementPreferences(
             }
 
             item {
+                Spacer(modifier = Modifier.height(16.dp))
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    // Material 3 Expressive: Enhanced primary action button
+                    // Manual Add
                     ElevatedButton(
                         onClick = { showAddDialog = true },
-                        modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .shadow(
-                                elevation = 4.dp,
-                                shape = RoundedCornerShape(16.dp),
-                            ),
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = ButtonDefaults.elevatedButtonElevation(
-                            defaultElevation = 3.dp,
-                            pressedElevation = 6.dp,
-                        ),
+                        modifier = Modifier.fillMaxWidth(0.85f),
+                        shape = RoundedCornerShape(14.dp),
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Tab")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Add Tab",
-                            fontWeight = FontWeight.SemiBold,
-                        )
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text("Create Custom Tab", fontWeight = FontWeight.Bold)
                     }
 
-                    // Material 3 Expressive: Enhanced secondary button with gradient
-                    FilledTonalButton(
-                        onClick = {
-                            scope.launch {
-                                isLoadingSuggestions = true
-                                suggestionsError = null
-                                successMessage = null
-                                try {
-                                    // Get user's preferred provider
-                                    val prefManager = app.lawnchair.preferences.PreferenceManager.getInstance(context)
-                                    val preferredProviderId = prefManager.llmProviderPreference.get()
+                    // AI Discovery Section
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                text = "Discover Categories",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text = "Let AI analyze your apps and suggest logical groupings.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                            )
 
-                                    val googleProvider = GoogleAIProvider(context)
-                                    val allProviderMap = mapOf(
-                                        "google_ai" to googleProvider,
-                                        "claude" to ClaudeProvider(context),
-                                        "openai" to OpenAIProvider(context),
-                                        "perplexity" to PerplexityProvider(context),
-                                    )
+                            FilledTonalButton(
 
-                                    // Order providers: Preferred first, then others as fallback
-                                    val primary = allProviderMap[preferredProviderId] ?: googleProvider
-                                    val fallbacks = allProviderMap.values.filter { it.name != primary.name }
-                                    val providers = listOf(primary) + fallbacks
+                                onClick = {
+                                    scope.launch {
+                                        isLoadingSuggestions = true
 
-                                    val metadataProvider = AppMetadataProvider(context)
-                                    val installedApps = metadataProvider.getInstalledApps()
+                                        suggestionsError = null
 
-                                    if (installedApps.isEmpty()) {
-                                        suggestionsError = "No apps found to analyze"
-                                        return@launch
-                                    }
+                                        successMessage = null
 
-                                    val appNames = installedApps.map { it.label }
-                                    val existingTabs = tabs.map { it.name }
-
-                                    android.util.Log.d("TabManagement", "Requesting suggestions for ${appNames.size} apps")
-
-                                    // Try each provider until one succeeds
-                                    var lastError: Exception? = null
-                                    for (provider in providers) {
                                         try {
-                                            if (!provider.isAvailable()) {
-                                                android.util.Log.d("TabManagement", "${provider.name} not available, trying next")
-                                                continue
-                                            }
+                                            val prefManager = app.lawnchair.preferences.PreferenceManager.getInstance(context)
 
-                                            android.util.Log.d("TabManagement", "Trying ${provider.name}")
-                                            suggestedTabs = provider.suggestCategories(
-                                                installedApps = appNames,
-                                                existingTabs = existingTabs,
-                                                maxSuggestions = 5,
+                                            val preferredProviderId = prefManager.llmProviderPreference.get()
+
+                                            val googleProvider = GoogleAIProvider(context)
+
+                                            val allProviderMap = mapOf(
+
+                                                "google_ai" to googleProvider,
+
+                                                "claude" to ClaudeProvider(context),
+
+                                                "openai" to OpenAIProvider(context),
+
+                                                "perplexity" to PerplexityProvider(context),
+
                                             )
 
-                                            android.util.Log.d("TabManagement", "Got ${suggestedTabs.size} suggestions from ${provider.name}")
+                                            val primary = allProviderMap[preferredProviderId] ?: googleProvider
 
-                                            if (suggestedTabs.isEmpty()) {
-                                                suggestionsError = "No new tabs suggested. You may already have all the useful tabs for your apps!"
-                                            } else {
-                                                suggestionsProvider = provider.name
-                                                showSuggestionsDialog = true
+                                            val fallbacks = allProviderMap.values.filter { it.name != primary.name }
+
+                                            val providers = listOf(primary) + fallbacks
+
+                                            val metadataProvider = AppMetadataProvider(context)
+
+                                            val installedApps = metadataProvider.getInstalledApps()
+
+                                            if (installedApps.isEmpty()) {
+                                                suggestionsError = "No apps found to analyze"
+
+                                                return@launch
                                             }
-                                            return@launch // Success, exit
+
+                                            val appNames = installedApps.map { it.label }
+
+                                            val existingTabs = tabs.map { it.name }
+
+                                            var lastError: Exception? = null
+
+                                            for (provider in providers) {
+                                                try {
+                                                    if (!provider.isAvailable()) continue
+
+                                                    suggestedTabs = provider.suggestCategories(
+
+                                                        installedApps = appNames,
+
+                                                        existingTabs = existingTabs,
+
+                                                        maxSuggestions = 5,
+
+                                                    )
+
+                                                    if (suggestedTabs.isEmpty()) {
+                                                        suggestionsError = "No new tabs suggested."
+                                                    } else {
+                                                        suggestionsProvider = provider.name
+
+                                                        showSuggestionsDialog = true
+                                                    }
+
+                                                    return@launch
+                                                } catch (e: Exception) {
+                                                    lastError = e
+                                                }
+                                            }
+
+                                            suggestionsError = "Configure an AI API key in LLM Settings to use this feature."
                                         } catch (e: Exception) {
-                                            android.util.Log.e("TabManagement", "${provider.name} failed: ${e.message}")
-                                            lastError = e
-                                            // Try next provider
+                                            suggestionsError = "Error: ${e.message}"
+                                        } finally {
+                                            isLoadingSuggestions = false
                                         }
                                     }
+                                },
 
-                                    // All providers failed
-                                    suggestionsError = "All LLM providers failed. Please configure at least one API key in LLM Settings.\nLast error: ${lastError?.message}"
-                                    android.util.Log.e("TabManagement", "All providers failed", lastError)
-                                } catch (e: Exception) {
-                                    android.util.Log.e("TabManagement", "Failed to get suggestions", e)
-                                    suggestionsError = "Error: ${e.message}"
-                                } finally {
-                                    isLoadingSuggestions = false
-                                }
+                                enabled = !isLoadingSuggestions,
+
+                                shape = RoundedCornerShape(12.dp),
+
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null)
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                Text(if (isLoadingSuggestions) "Analyzing..." else "Suggest Groups")
                             }
-                        },
-                        enabled = !isLoadingSuggestions,
-                        modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .shadow(
-                                elevation = 3.dp,
-                                shape = RoundedCornerShape(16.dp),
-                            ),
-                        shape = RoundedCornerShape(16.dp),
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = "AI Suggestions")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            if (isLoadingSuggestions) "Analyzing..." else "Get AI Suggestions",
-                            fontWeight = FontWeight.Medium,
-                        )
+                        }
                     }
 
                     // Material 3 Expressive: Enhanced error message card
+
                     if (suggestionsError != null) {
                         Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                            ),
+
+                            modifier = Modifier.fillMaxWidth(),
+
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+
                             shape = RoundedCornerShape(14.dp),
-                            elevation = CardDefaults.cardElevation(2.dp),
+
                         ) {
                             Text(
+
                                 text = suggestionsError!!,
-                                style = MaterialTheme.typography.bodyMedium,
+
+                                style = MaterialTheme.typography.bodySmall,
+
                                 color = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.padding(16.dp),
+
+                                modifier = Modifier.padding(12.dp),
+
                             )
                         }
                     }
 
                     // Material 3 Expressive: Enhanced success message card
+
                     if (successMessage != null) {
                         Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp)
-                                .shadow(
-                                    elevation = 3.dp,
-                                    shape = RoundedCornerShape(14.dp),
-                                    ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                ),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            ),
+
+                            modifier = Modifier.fillMaxWidth(),
+
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+
                             shape = RoundedCornerShape(14.dp),
-                            elevation = CardDefaults.cardElevation(2.dp),
+
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
+
+                                modifier = Modifier.padding(12.dp),
+
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+
                             ) {
-                                Icon(
-                                    Icons.Default.CheckCircle,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
+                                Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+
                                 Text(
+
                                     text = successMessage!!,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium,
+
+                                    style = MaterialTheme.typography.bodySmall,
+
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.weight(1f),
+
                                 )
                             }
                         }

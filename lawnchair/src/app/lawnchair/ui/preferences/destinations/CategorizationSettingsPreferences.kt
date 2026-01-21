@@ -242,13 +242,20 @@ fun CategorizationSettingsPreferences(
                     SwitchPreference(
                         adapter = prefs.autoCatSyncFolders.getAdapter(),
                         label = "Sync to Folders",
-                        description = "Create folders for each category (drawer/home)",
+                        description = "Create folders for each category in your app drawer and home screen.",
                     )
 
                     SwitchPreference(
                         adapter = prefs.llmEnableBatching.getAdapter(),
                         label = "Batch Processing",
-                        description = "Faster categorization (process multiple apps at once)",
+                        description = "Process multiple apps in a single AI request. Recommended for speed and lower costs.",
+                    )
+
+                    val enableRateLimiting = prefs.autoCatEnableRateLimiting.getAdapter()
+                    SwitchPreference(
+                        adapter = enableRateLimiting,
+                        label = "Rate Limiting",
+                        description = "Slows down requests to prevent API blocks. Recommended for Free API tiers.",
                     )
                 }
             }

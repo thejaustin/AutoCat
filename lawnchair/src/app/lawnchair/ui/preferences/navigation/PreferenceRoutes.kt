@@ -106,6 +106,9 @@ data object AppDrawerFolder : PreferenceRoute
 data object AppDrawerTabManagement : PreferenceRoute
 
 @Serializable
+data object AppDrawerCategorizationSettings : PreferenceRoute
+
+@Serializable
 data class AppDrawerAppListToFolder(val id: Int) : PreferenceRoute
 
 @Serializable

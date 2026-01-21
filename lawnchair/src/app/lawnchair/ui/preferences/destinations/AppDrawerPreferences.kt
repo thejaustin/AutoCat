@@ -52,8 +52,8 @@ import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
+import app.lawnchair.ui.preferences.navigation.AppDrawerCategorizationSettings
 import app.lawnchair.ui.preferences.navigation.AppDrawerHiddenApps
-import app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement
 import com.android.launcher3.R
 
 object AppDrawerRoutes {
@@ -81,8 +81,9 @@ fun AppDrawerPreferences(
         }
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
             NavigationActionPreference(
-                label = "Manage Tabs",
-                destination = AppDrawerTabManagement,
+                label = "AI Categorization",
+                subtitle = "Intelligent app organization & tabs",
+                destination = AppDrawerCategorizationSettings,
             )
             val hiddenApps = prefs2.hiddenApps.getAdapter().state.value
             NavigationActionPreference(
