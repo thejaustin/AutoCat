@@ -227,7 +227,7 @@ batchSize = maxBatchSize.coerceIn(10, 50)
 ```kotlin
 // Google AI
 - gemini-2.0-flash-exp (1M context, FREE)
-- gemini-1.5-flash (DEPRECATED)
+- gemini-1.5-flash (1M context, FREE, Stable)
 - gemini-1.5-pro (DEPRECATED)
 
 // Claude
@@ -237,7 +237,7 @@ batchSize = maxBatchSize.coerceIn(10, 50)
 // OpenAI
 - gpt-4o-mini (128K, LOW cost) ← Recommended
 - gpt-4o (128K, HIGH cost)
-- gpt-3.5-turbo (16K, FREE)
+- gpt-3.5-turbo (16K, LOW cost, Legacy)
 
 // Perplexity
 - sonar (128K, LOW cost)
@@ -330,7 +330,7 @@ Accuracy:
 - [ ] Verify build succeeds with all recent changes
 
 #### 🎯 Next Up (After Build Completes)
-- [ ] Test Smart Launcher import with real .slbk file
+- [x] Test Smart Launcher import with real .slbk file
 - [ ] Test all 4 LLM providers with real API calls
 - [ ] Test batch processing performance (verify 20x speedup)
 - [ ] Test folder sync (drawer mode thoroughly tested, home screen needs testing)
