@@ -47,6 +47,9 @@ jobs:
           # Also fix DSL syntax issues (abortOnError false -> abortOnError = false)
           find platform_frameworks_libs_systemui -name "build.gradle" -exec \
             sed -i "s/abortOnError false/abortOnError = false/g" {} \;
+          # Remove package attribute from manifests as it's no longer supported for namespace
+          find platform_frameworks_libs_systemui -name "AndroidManifest.xml" -exec \
+            sed -i 's/package="[^"]*"//g' {} \;
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet
@@ -98,6 +101,9 @@ jobs:
             sed -i "s/framework-16.jar/framework-15.jar/g" {} \;
           find platform_frameworks_libs_systemui -name "build.gradle" -exec \
             sed -i "s/abortOnError false/abortOnError = false/g" {} \;
+          # Remove package attribute from manifests as it's no longer supported for namespace
+          find platform_frameworks_libs_systemui -name "AndroidManifest.xml" -exec \
+            sed -i 's/package="[^"]*"//g' {} \;
       - uses: actions/setup-java@v5
         with:
           distribution: 'zulu'

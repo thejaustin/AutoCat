@@ -16,7 +16,7 @@
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.android.systemui.plugin_core">
+    >
 
     <uses-sdk
         android:minSdkVersion="28" />
