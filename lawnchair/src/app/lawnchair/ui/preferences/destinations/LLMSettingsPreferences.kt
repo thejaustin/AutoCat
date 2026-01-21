@@ -6,13 +6,12 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,17 +19,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -76,7 +76,6 @@ import app.lawnchair.ui.preferences.components.controls.TextPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
-import kotlin.math.roundToLong
 import kotlinx.coroutines.launch
 
 @Composable
@@ -89,27 +88,25 @@ fun LLMSettingsPreferences(
     var testStatus by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
     var categorizationManager by remember { mutableStateOf<CategorizationManager?>(null) }
-    var initializationError by remember { mutableStateOf<String?>(null) }
     var accuracyTracker by remember { mutableStateOf<AccuracyTracker?>(null) }
     var accuracyStats by remember { mutableStateOf<List<ModelAccuracyStats>>(emptyList()) }
     var autoSelectedProvider by remember { mutableStateOf<String?>(null) }
 
-    // Initialize categorization manager and accuracy tracker safely
+    // Track selected provider locally for UI logic
+    val selectedProvider by prefs.llmProviderPreference.getAdapter()
+    val isAutoSelect by prefs.llmAutoSelectBestModel.getAdapter()
+    var showAllProviders by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             try {
                 categorizationManager = CategorizationManager.getInstance(context)
                 accuracyTracker = AccuracyTracker(context)
-
-                // Load accuracy stats
                 accuracyStats = accuracyTracker!!.getAccuracyStats(daysBack = 30)
-
-                // Get auto-selected provider if enabled
                 val selector = AdaptiveModelSelector(context)
                 autoSelectedProvider = selector.getBestProvider()
             } catch (e: Exception) {
                 android.util.Log.e("LLMSettings", "Error initializing: ${e.message}", e)
-                initializationError = "Failed to initialize: ${e.message}"
             }
         }
     }
@@ -126,395 +123,115 @@ fun LLMSettingsPreferences(
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
         PreferenceLazyColumn(it) {
-            item {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Configure LLM providers for intelligent app categorization. " +
-                            "AutoCat uses AI to automatically assign apps to your custom categories.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-
-            // Provider Selection
+            // ===== PROVIDER SELECTION =====
             item {
                 PreferenceGroup(heading = "Provider Selection") {
                     SwitchPreference(
                         adapter = prefs.llmAutoSelectBestModel.getAdapter(),
                         label = "Auto-Select Best Model",
-                        description = "Automatically use the most accurate provider based on your correction history. " +
-                            "Requires at least 10 categorizations to activate.",
+                        description = if (isAutoSelect && autoSelectedProvider != null) {
+                            "Currently using: ${formatProviderName(autoSelectedProvider!!)}"
+                        } else {
+                            "Automatically use the most accurate provider"
+                        },
                     )
 
                     ListPreference(
                         adapter = prefs.llmProviderPreference.getAdapter(),
-                        label = "Preferred LLM Provider",
-                        description = "Used when auto-select is disabled or has insufficient data",
+                        label = "Preferred Provider",
+                        enabled = !isAutoSelect,
                         entries = listOf(
-                            ListPreferenceEntry(
-                                value = "google_ai",
-                                label = { "Google AI (Gemini 2.0 Flash)" },
-                            ),
-                            ListPreferenceEntry(
-                                value = "claude",
-                                label = { "Anthropic Claude 3.5" },
-                            ),
-                            ListPreferenceEntry(
-                                value = "openai",
-                                label = { "OpenAI GPT" },
-                            ),
-                            ListPreferenceEntry(
-                                value = "perplexity",
-                                label = { "Perplexity (Llama 3.1)" },
-                            ),
+                            ListPreferenceEntry("google_ai") { "Google AI (Gemini)" },
+                            ListPreferenceEntry("claude") { "Anthropic Claude" },
+                            ListPreferenceEntry("openai") { "OpenAI GPT" },
+                            ListPreferenceEntry("perplexity") { "Perplexity" },
                         ),
                     )
                 }
             }
 
-            // Google AI Configuration
+            // ===== ACTIVE PROVIDER CONFIG =====
+            val activeProvider = if (isAutoSelect) autoSelectedProvider ?: "google_ai" else selectedProvider
+
             item {
-                PreferenceGroup(heading = "Google AI (Gemini) - Free Tier") {
-                    TextPreference(
-                        adapter = prefs.llmGoogleAIKey.getAdapter(),
-                        label = "Google AI API Key ${if (prefs.llmGoogleAIKey.get().isNotEmpty()) "✓" else ""}",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ListPreference(
-                        adapter = prefs.llmGoogleAIModel.getAdapter(),
-                        label = "Gemini Model",
-                        entries = ModelRegistry.getAvailableModels("google_ai").map { model ->
-                            ListPreferenceEntry(
-                                value = model.id,
-                                label = { "${model.displayName} - ${model.speedTier.name}" },
-                            )
+                if (activeProvider.isNotEmpty()) {
+                    ProviderConfigSection(
+                        providerId = activeProvider,
+                        prefs = prefs,
+                        testStatus = testStatus,
+                        onTestConnection = {
+                            scope.launch {
+                                val result = when (activeProvider) {
+                                    "google_ai" -> GoogleAIProvider(context).testConnection()
+                                    "claude" -> ClaudeProvider(context).testConnection()
+                                    "openai" -> OpenAIProvider(context).testConnection()
+                                    "perplexity" -> PerplexityProvider(context).testConnection()
+                                    else -> app.lawnchair.categorization.llm.LLMProvider.TestResult(false, "Unknown provider")
+                                }
+                                testStatus = testStatus + (activeProvider to if (result.success) "✅ Connected (${result.latencyMs}ms)" else "❌ ${result.message}")
+                            }
                         },
                     )
+                }
+            }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Material 3 Expressive: Enhanced test button
+            // ===== OTHER PROVIDERS =====
+            item {
+                Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            .clickable { showAllProviders = !showAllProviders }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        FilledTonalButton(
-                            onClick = {
-                                scope.launch {
-                                    val provider = GoogleAIProvider(context)
-                                    val result = provider.testConnection()
-                                    testStatus = testStatus + (
-                                        "google_ai" to if (result.success) {
-                                            "✅ Connected (${result.latencyMs}ms)"
-                                        } else {
-                                            "❌ ${result.message}"
-                                        }
-                                        )
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            elevation = ButtonDefaults.filledTonalButtonElevation(
-                                defaultElevation = 2.dp,
-                                pressedElevation = 4.dp,
-                            ),
-                        ) {
-                            Text("Test Connection", fontWeight = FontWeight.Medium)
-                        }
+                        Text(
+                            text = "Configure Other Providers",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Icon(
+                            imageVector = if (showAllProviders) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
                     }
 
-                    // Material 3 Expressive: Enhanced status card
-                    testStatus["google_ai"]?.let { status ->
-                        Spacer(modifier = Modifier.height(10.dp))
-                        val isSuccess = status.startsWith("✅")
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                                .animateContentSize(
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessMedium,
-                                    ),
-                                ),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (isSuccess) {
-                                    MaterialTheme.colorScheme.primaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.errorContainer
-                                },
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            elevation = CardDefaults.cardElevation(2.dp),
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            ) {
-                                Icon(
-                                    imageVector = if (isSuccess) Icons.Default.CheckCircle else Icons.Default.Error,
-                                    contentDescription = null,
-                                    tint = if (isSuccess) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.error
-                                    },
-                                    modifier = Modifier.size(20.dp),
-                                )
-                                Text(
-                                    text = status.removePrefix("✅ ").removePrefix("❌ "),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Medium,
-                                    color = if (isSuccess) {
-                                        MaterialTheme.colorScheme.onPrimaryContainer
-                                    } else {
-                                        MaterialTheme.colorScheme.onErrorContainer
+                    AnimatedVisibility(visible = showAllProviders) {
+                        Column {
+                            val otherProviders = listOf("google_ai", "claude", "openai", "perplexity").filter { it != activeProvider }
+                            otherProviders.forEach { pid ->
+                                ProviderConfigSection(
+                                    providerId = pid,
+                                    prefs = prefs,
+                                    testStatus = testStatus,
+                                    onTestConnection = {
+                                        scope.launch {
+                                            val result = when (pid) {
+                                                "google_ai" -> GoogleAIProvider(context).testConnection()
+                                                "claude" -> ClaudeProvider(context).testConnection()
+                                                "openai" -> OpenAIProvider(context).testConnection()
+                                                "perplexity" -> PerplexityProvider(context).testConnection()
+                                                else -> app.lawnchair.categorization.llm.LLMProvider.TestResult(false, "Unknown provider")
+                                            }
+                                            testStatus = testStatus + (pid to if (result.success) "✅ Connected (${result.latencyMs}ms)" else "❌ ${result.message}")
+                                        }
                                     },
                                 )
                             }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Get your free API key at ai.google.dev/gemini-api",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    )
                 }
             }
 
-            // Claude Configuration
+            // ===== ADVANCED SETTINGS =====
             item {
-                PreferenceGroup(heading = "Anthropic Claude") {
-                    TextPreference(
-                        adapter = prefs.llmClaudeKey.getAdapter(),
-                        label = "Claude API Key ${if (prefs.llmClaudeKey.get().isNotEmpty()) "✓" else ""}",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ListPreference(
-                        adapter = prefs.llmClaudeModel.getAdapter(),
-                        label = "Claude Model",
-                        entries = ModelRegistry.getAvailableModels("claude").map { model ->
-                            ListPreferenceEntry(
-                                value = model.id,
-                                label = { "${model.displayName} - ${model.costTier.name}" },
-                            )
-                        },
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        OutlinedButton(
-                            onClick = {
-                                scope.launch {
-                                    val provider = ClaudeProvider(context)
-                                    val result = provider.testConnection()
-                                    testStatus = testStatus + (
-                                        "claude" to if (result.success) {
-                                            "✅ Connected (${result.latencyMs}ms)"
-                                        } else {
-                                            "❌ ${result.message}"
-                                        }
-                                        )
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text("Test Connection")
-                        }
-                    }
-
-                    testStatus["claude"]?.let { status ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = status,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (status.startsWith("✅")) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                        )
-                    }
-                }
-            }
-
-            // OpenAI Configuration
-            item {
-                PreferenceGroup(heading = "OpenAI (ChatGPT)") {
-                    TextPreference(
-                        adapter = prefs.llmOpenAIKey.getAdapter(),
-                        label = "OpenAI API Key ${if (prefs.llmOpenAIKey.get().isNotEmpty()) "✓" else ""}",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ListPreference(
-                        adapter = prefs.llmOpenAIModel.getAdapter(),
-                        label = "OpenAI Model",
-                        entries = ModelRegistry.getAvailableModels("openai").map { model ->
-                            ListPreferenceEntry(
-                                value = model.id,
-                                label = { "${model.displayName} - ${model.costTier.name}" },
-                            )
-                        },
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        OutlinedButton(
-                            onClick = {
-                                scope.launch {
-                                    val provider = OpenAIProvider(context)
-                                    val result = provider.testConnection()
-                                    testStatus = testStatus + (
-                                        "openai" to if (result.success) {
-                                            "✅ Connected (${result.latencyMs}ms)"
-                                        } else {
-                                            "❌ ${result.message}"
-                                        }
-                                        )
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text("Test Connection")
-                        }
-                    }
-
-                    testStatus["openai"]?.let { status ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = status,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (status.startsWith("✅")) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                        )
-                    }
-                }
-            }
-
-            // Perplexity Configuration
-            item {
-                PreferenceGroup(heading = "Perplexity") {
-                    TextPreference(
-                        adapter = prefs.llmPerplexityKey.getAdapter(),
-                        label = "Perplexity API Key ${if (prefs.llmPerplexityKey.get().isNotEmpty()) "✓" else ""}",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ListPreference(
-                        adapter = prefs.llmPerplexityModel.getAdapter(),
-                        label = "Perplexity Model",
-                        entries = ModelRegistry.getAvailableModels("perplexity").map { model ->
-                            ListPreferenceEntry(
-                                value = model.id,
-                                label = { "${model.displayName} - ${model.qualityTier.name}" },
-                            )
-                        },
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        OutlinedButton(
-                            onClick = {
-                                scope.launch {
-                                    val provider = PerplexityProvider(context)
-                                    val result = provider.testConnection()
-                                    testStatus = testStatus + (
-                                        "perplexity" to if (result.success) {
-                                            "✅ Connected (${result.latencyMs}ms)"
-                                        } else {
-                                            "❌ ${result.message}"
-                                        }
-                                        )
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text("Test Connection")
-                        }
-                    }
-
-                    testStatus["perplexity"]?.let { status ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = status,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (status.startsWith("✅")) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Get your API key at docs.perplexity.ai. If you get a 401 error, verify your API key is correct and active.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    )
-                }
-            }
-
-            // Circuit Breaker Settings
-            item {
-                PreferenceGroup(heading = "Circuit Breaker Settings") {
+                PreferenceGroup(heading = "Advanced Settings") {
                     SwitchPreference(
                         adapter = prefs.circuitBreakerEnabled.getAdapter(),
-                        label = "Enable Circuit Breaker",
-                        description = "Temporarily disable LLM providers that are consistently failing.",
+                        label = "Circuit Breaker",
+                        description = "Disable providers that fail repeatedly",
                     )
 
                     AnimatedVisibility(visible = prefs.circuitBreakerEnabled.get()) {
@@ -522,145 +239,32 @@ fun LLMSettingsPreferences(
                             SliderPreference(
                                 adapter = prefs.circuitBreakerFailureThreshold.getAdapter(),
                                 label = "Failure Threshold",
-                                valueRange = 1..10, // Use Int range
-                                step = 1, // Use Int step
+                                valueRange = 1..10,
+                                step = 1,
                                 showUnit = " failures",
                             )
-                            SliderPreference(
-                                adapter = rememberTransformAdapter(
-                                    adapter = prefs.circuitBreakerTimeoutMs.getAdapter(),
-                                    transformGet = { (it as Int).toFloat() / 1000f }, // Convert ms to seconds
-                                    transformSet = { (it as Float * 1000f).toInt() }, // Convert seconds to ms
-                                ),
-                                label = "Timeout Duration",
-                                valueRange = 10f..300f, // 10s to 5min in seconds
-                                step = 10f, // 10 second increments
-                                showUnit = " seconds",
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                OutlinedButton(
-                                    onClick = {
-                                        scope.launch {
-                                            categorizationManager?.resetCircuitBreakers()
-                                        }
-                                    },
-                                    enabled = categorizationManager != null,
-                                    modifier = Modifier.weight(1f),
-                                ) {
-                                    Text("Reset All")
-                                }
-                            }
                         }
                     }
                 }
             }
 
-            // Model Accuracy Section
-            item {
-                PreferenceGroup(heading = "Model Performance (Last 30 Days)") {
-                    if (accuracyStats.isEmpty()) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                        ) {
-                            Text(
-                                text = "No accuracy data yet. Accuracy tracking begins when you manually correct app categorizations.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            // Show auto-selection status if enabled
-                            val isAutoSelectEnabled = prefs.llmAutoSelectBestModel.get()
-                            if (isAutoSelectEnabled && autoSelectedProvider != null) {
-                                Text(
-                                    text = "⚡ Auto-selecting: ${formatProviderName(autoSelectedProvider!!)}",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(bottom = 4.dp),
-                                )
-                            }
-
+            // ===== ACCURACY STATS =====
+            if (accuracyStats.isNotEmpty()) {
+                item {
+                    PreferenceGroup(heading = "Accuracy (30 Days)") {
+                        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                             accuracyStats.forEach { stats ->
-                                ModelAccuracyCard(
-                                    stats = stats,
-                                    isAutoSelected = isAutoSelectEnabled && stats.provider == autoSelectedProvider,
-                                )
+                                CompactAccuracyCard(stats, isSelected = stats.provider == activeProvider)
+                                Spacer(modifier = Modifier.height(8.dp))
                             }
                         }
                     }
                 }
             }
 
-            // Folder Sync Settings
+            // ===== LIVE LOGS =====
             item {
-                PreferenceGroup(heading = "Category Folders") {
-                    SwitchPreference(
-                        adapter = prefs.autoCatSyncFolders.getAdapter(),
-                        label = "Auto-create folders from categories",
-                        description = "Automatically create folders for each category",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ListPreference(
-                        adapter = prefs.autoCatFolderSyncMode.getAdapter(),
-                        label = "Folder location",
-                        description = "Where category folders should be created",
-                        entries = listOf(
-                            ListPreferenceEntry(
-                                value = "DRAWER",
-                                label = { "App drawer only" },
-                            ),
-                            ListPreferenceEntry(
-                                value = "HOME_SCREEN",
-                                label = { "Home screen only" },
-                            ),
-                            ListPreferenceEntry(
-                                value = "BOTH",
-                                label = { "Both app drawer and home screen" },
-                            ),
-                        ),
-                        enabled = prefs.autoCatSyncFolders.get(),
-                    )
-                }
-            }
-
-            // Operations Section
-            item {
-                PreferenceGroup(heading = "Categorization Operations") {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        OutlinedButton(
-                            onClick = {
-                                scope.launch {
-                                    categorizationManager?.recategorizeAll()
-                                }
-                            },
-                            enabled = !progress.isRunning && categorizationManager != null,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(if (progress.isRunning) "Processing..." else "Re-categorize All")
-                        }
-                    }
-
+                PreferenceGroup(heading = "System Status") {
                     AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
                         CategorizationStatus(progress)
                     }
@@ -671,274 +275,158 @@ fun LLMSettingsPreferences(
 }
 
 @Composable
-fun CategorizationStatus(
-    progress: app.lawnchair.categorization.CategorizationProgress,
+fun ProviderConfigSection(
+    providerId: String,
+    prefs: app.lawnchair.preferences.PreferenceManager,
+    testStatus: Map<String, String>,
     modifier: Modifier = Modifier,
+    onTestConnection: () -> Unit,
 ) {
-    val logs = remember { mutableStateListOf<LLMLogger.LogEntry>() }
-    val listState = rememberLazyListState()
-
-    LaunchedEffect(Unit) {
-        LLMLogger.logFlow.collect { log ->
-            logs.add(log)
-            if (logs.size > 100) logs.removeFirst()
-            listState.animateScrollToItem(logs.size - 1)
-        }
+    val name = formatProviderName(providerId)
+    val apiKeyAdapter = when (providerId) {
+        "google_ai" -> prefs.llmGoogleAIKey.getAdapter()
+        "claude" -> prefs.llmClaudeKey.getAdapter()
+        "openai" -> prefs.llmOpenAIKey.getAdapter()
+        "perplexity" -> prefs.llmPerplexityKey.getAdapter()
+        else -> return
     }
 
-    // Animate progress bar
-    val progressAnimated by animateFloatAsState(
-        targetValue = progress.progressPercentage,
-        label = "ProgressAnimation",
-    )
+    val modelAdapter = when (providerId) {
+        "google_ai" -> prefs.llmGoogleAIModel.getAdapter()
+        "claude" -> prefs.llmClaudeModel.getAdapter()
+        "openai" -> prefs.llmOpenAIModel.getAdapter()
+        "perplexity" -> prefs.llmPerplexityModel.getAdapter()
+        else -> return
+    }
 
-    // Material 3 Expressive: Enhanced progress monitoring card
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .height(300.dp)
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium,
-                ),
-            ),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-        ),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 3.dp,
-        ),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = progress.currentStage,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+    PreferenceGroup(heading = name) {
+        TextPreference(
+            adapter = apiKeyAdapter,
+            label = "API Key",
+        )
+
+        ListPreference(
+            adapter = modelAdapter,
+            label = "Model",
+            entries = ModelRegistry.getAvailableModels(providerId).map { model ->
+                ListPreferenceEntry(
+                    value = model.id,
+                    label = { model.displayName },
                 )
-                if (progress.isRunning) {
-                    Text(
-                        text = "${(progress.progressPercentage * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
+            },
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            OutlinedButton(onClick = onTestConnection) {
+                Text("Test Connection")
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LinearProgressIndicator(
-                progress = { progressAnimated },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
+            testStatus[providerId]?.let { status ->
                 Text(
-                    text = "Processed: ${progress.processedCount}/${progress.totalCount}",
+                    text = status,
                     style = MaterialTheme.typography.bodySmall,
+                    color = if (status.startsWith("✅")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                 )
-                progress.batchProgressText?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-
-            if (progress.estimatedTimeMs > 0) {
-                Text(
-                    text = "Est. time: ${progress.estimatedTimeMs / 1000}s",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Live Logs",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .background(Color(0xFF1E1E1E), RoundedCornerShape(8.dp))
-                    .padding(8.dp),
-            ) {
-                LazyColumn(state = listState) {
-                    items(logs) { log ->
-                        val color = when (log.level) {
-                            LLMLogger.LogLevel.ERROR -> Color(0xFFFF6B6B)
-                            LLMLogger.LogLevel.WARNING -> Color(0xFFFFD93D)
-                            LLMLogger.LogLevel.DEBUG -> Color(0xFF888888)
-                            else -> Color(0xFF4ECDC4)
-                        }
-
-                        Text(
-                            text = "> ${log.message}",
-                            color = color,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 10.sp,
-                            ),
-                            modifier = Modifier.padding(vertical = 2.dp),
-                        )
-                    }
-                }
             }
         }
     }
 }
 
 @Composable
-fun ModelAccuracyCard(
+fun CompactAccuracyCard(
     stats: ModelAccuracyStats,
+    isSelected: Boolean,
     modifier: Modifier = Modifier,
-    isAutoSelected: Boolean = false,
 ) {
-    Card(
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surfaceContainerLow,
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isAutoSelected) {
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            },
-        ),
-        shape = RoundedCornerShape(12.dp),
-        border = if (isAutoSelected) {
-            androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-        } else {
-            null
-        },
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            // Provider and Model Info
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = formatProviderName(stats.provider),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    if (isAutoSelected) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                        ) {
-                            Text(
-                                text = "⚡ ACTIVE",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                    }
-                }
-                if (stats.model.isNotEmpty()) {
-                    Text(
-                        text = stats.model,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+            Column {
                 Text(
-                    text = "${stats.total} predictions",
+                    text = formatProviderName(stats.provider),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "${stats.total} categorizations",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
-            // Accuracy Score
-            Column(
-                horizontalAlignment = Alignment.End,
+            Text(
+                text = "${stats.accuracy.toInt()}% Accuracy",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (stats.accuracy > 80) Color(0xFF4CAF50) else Color(0xFFFF9800),
+            )
+        }
+    }
+}
+
+@Composable
+fun CategorizationStatus(
+    progress: app.lawnchair.categorization.CategorizationProgress,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val logs = remember { mutableStateListOf<LLMLogger.LogEntry>() }
+
+    LaunchedEffect(Unit) {
+        LLMLogger.logFlow.collect { log ->
+            logs.add(log)
+            if (logs.size > 50) logs.removeFirst()
+        }
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth().padding(16.dp).animateContentSize(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = "${stats.accuracy.toInt()}%",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = when {
-                        stats.accuracy >= 90f -> Color(0xFF4CAF50)
+                Column {
+                    Text(
+                        text = if (progress.isRunning) "Running: ${progress.currentStage}" else "Idle",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    if (progress.isRunning) {
+                        LinearProgressIndicator(
+                            progress = { progress.progressPercentage },
+                            modifier = Modifier.width(150.dp).padding(top = 4.dp).height(4.dp).clip(RoundedCornerShape(2.dp)),
+                        )
+                    }
+                }
+                Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+            }
 
-                        // Green
-                        stats.accuracy >= 80f -> Color(0xFF8BC34A)
-
-                        // Light green
-                        stats.accuracy >= 70f -> Color(0xFFFFC107)
-
-                        // Amber
-                        else -> Color(0xFFFF9800) // Orange
-                    },
-                )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+            if (expanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier.height(150.dp).fillMaxWidth().background(Color(0xFF1E1E1E), RoundedCornerShape(4.dp)).padding(8.dp),
                 ) {
-                    when {
-                        stats.accuracy >= 90f -> {
-                            Icon(
-                                Icons.Default.CheckCircle,
-                                contentDescription = "Excellent",
-                                tint = Color(0xFF4CAF50),
-                                modifier = Modifier.size(16.dp),
-                            )
+                    LazyColumn {
+                        items(logs.reversed()) { log ->
                             Text(
-                                text = "Excellent",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-
-                        stats.accuracy >= 80f -> {
-                            Icon(
-                                Icons.Default.CheckCircle,
-                                contentDescription = "Good",
-                                tint = Color(0xFF8BC34A),
-                                modifier = Modifier.size(16.dp),
-                            )
-                            Text(
-                                text = "Good",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-
-                        else -> {
-                            Text(
-                                text = "Fair",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                text = "> ${log.message}",
+                                color = if (log.level == LLMLogger.LogLevel.ERROR) Color(0xFFFF6B6B) else Color(0xFF4ECDC4),
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, fontSize = 10.sp),
                             )
                         }
                     }
@@ -949,9 +437,9 @@ fun ModelAccuracyCard(
 }
 
 private fun formatProviderName(provider: String): String = when (provider) {
-    "google_ai" -> "Google AI (Gemini)"
-    "claude" -> "Anthropic Claude"
-    "openai" -> "OpenAI (GPT)"
+    "google_ai" -> "Google AI"
+    "claude" -> "Claude"
+    "openai" -> "OpenAI"
     "perplexity" -> "Perplexity"
     else -> provider.replaceFirstChar { it.uppercase() }
 }
