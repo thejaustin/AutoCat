@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'app.lawnchair.compatlib.thirteen'
+    namespace = "app.lawnchair.compatlib.vt"
 }
 
 addFrameworkJar('framework-13.jar')

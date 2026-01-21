@@ -44,8 +44,8 @@ allprojects {
                 vectorDrawables.useSupportLibrary = true
             }
             lint {
-                abortOnError true
-                checkReleaseBuilds false
+                abortOnError = true
+                checkReleaseBuilds = false
             }
             compileOptions {
                 sourceCompatibility = libs.versions.jdkRelease.get()
@@ -172,7 +172,7 @@ final def quickstepMinSdk = "29"
 final def quickstepMaxSdk = "36"
 
 android {
-    namespace "com.android.launcher3"
+    namespace = "com.android.launcher3"
     defaultConfig {
         /*
          * Lawnchair Launcher 16.0 Development 3 Release 2
@@ -204,33 +204,37 @@ android {
     }
 
     androidResources {
-        generateLocaleConfig true
+        generateLocaleConfig = true
     }
 
     buildFeatures {
-        aidl true
-        buildConfig true
-        resValues true
+        aidl = true
+        buildConfig = true
+        resValues = true
     }
 
-    packagingOptions.resources.excludes += [
-        "**/*.proto",
-        "**/*.bin",
-        "**/*.java",
-        "**/*.properties",
-        "**/*.version",
-        "**/*.*_module",
-        "com/**",
-        "google/**",
-        "kotlin/**",
-        "kotlinx/**",
-        "okhttp3/**",
-        "META-INF/services/**",
-        "META-INF/com/**",
-        "META-INF/licenses/**",
-        "META-INF/AL2.0",
-        "META-INF/LGPL2.1",
-    ]
+    packaging {
+        resources {
+            excludes += [
+                "**/*.proto",
+                "**/*.bin",
+                "**/*.java",
+                "**/*.properties",
+                "**/*.version",
+                "**/*.*_module",
+                "com/**",
+                "google/**",
+                "kotlin/**",
+                "kotlinx/**",
+                "okhttp3/**",
+                "META-INF/services/**",
+                "META-INF/com/**",
+                "META-INF/licenses/**",
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1",
+            ]
+        }
+    }
 
     // Load all proguard configs from AOSP
     def proguardFilesFromAosp = allprojects
@@ -254,7 +258,7 @@ android {
 
     buildTypes {
         all {
-            signingConfig releaseSigning
+            signingConfig = releaseSigning
 
             applicationVariants.configureEach { variant ->
                 variant.outputs.configureEach {
@@ -265,7 +269,7 @@ android {
                     }
                 }
             }
-            pseudoLocalesEnabled true
+            pseudoLocalesEnabled = true
         }
 
         debug {
@@ -280,15 +284,15 @@ android {
 
         release {
             resValue("string", "derived_app_name", "Lawnchair")
-            minifyEnabled true
-            shrinkResources true
-            pseudoLocalesEnabled false
+            minifyEnabled = true
+            shrinkResources = true
+            pseudoLocalesEnabled = false
             proguardFiles proguardFilesFromAosp + "proguard.pro"
         }
     }
 
     compileOptions {
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled = true
     }
 
     dependenciesInfo {
@@ -322,7 +326,7 @@ android {
         play {
             applicationId "app.lawnchair.play"
             dimension "channel"
-            isDefault true
+            isDefault = true
         }
 
         configureEach {

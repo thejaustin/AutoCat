@@ -3,9 +3,9 @@ plugins {
 }
 
 android {
-    namespace 'app.lawnchair.hidden_api'
+    namespace = "app.lawnchair.hiddenapi"
     buildFeatures {
-        aidl true
+        aidl = true
     }
 
     sourceSets {

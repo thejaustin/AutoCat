@@ -18,9 +18,9 @@ compileOnlyCommonJars()
 
 android {
     buildToolsVersion "36.1.0"
-    namespace "com.android.systemui.shared"
+    namespace = "com.android.systemui.shared"
     buildFeatures {
-        aidl true
+        aidl = true
     }
     sourceSets {
         main {
