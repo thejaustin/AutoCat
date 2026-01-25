@@ -302,14 +302,12 @@ fun CategorizationSettingsPreferences(
                         label = "Review & Override",
                         subtitle = "Manually correct app categories",
                         destination = AppDrawerAppCategorizations,
-                        icon = { Icon(Icons.Rounded.History, null) },
                     )
 
                     NavigationActionPreference(
                         label = "AI Provider Settings",
                         subtitle = "Configure API keys and models (Google, OpenAI, etc.)",
                         destination = AppDrawerLLMSettings,
-                        icon = { Icon(Icons.Rounded.Settings, null) },
                     )
                 }
             }

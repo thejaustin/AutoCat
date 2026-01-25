@@ -16,22 +16,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccountTree
 import androidx.compose.material.icons.rounded.Analytics
-import androidx.compose.material.icons.rounded.ApiKey
-import androidx.compose.material.icons.rounded.AutoFixHigh
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
-import androidx.compose.material.icons.rounded.ModelTraining
-import androidx.compose.material.icons.rounded.NearbyError
-import androidx.compose.material.icons.rounded.Psychology
-import androidx.compose.material.icons.rounded.SmartToy
-import androidx.compose.material.icons.rounded.Terminal
 import androidx.compose.material.icons.rounded.WifiTethering
 import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material3.ButtonDefaults
@@ -72,6 +65,7 @@ import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.categorization.llm.ModelRegistry
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
+import app.lawnchair.categorization.llm.TestResult
 import app.lawnchair.data.tab.entities.ModelAccuracyStats
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
@@ -143,7 +137,6 @@ fun LLMSettingsPreferences(
                         } else {
                             "Let AI pick the best provider based on your correction history."
                         },
-                        icon = { Icon(Icons.Rounded.AutoFixHigh, null) },
                     )
 
                     ListPreference(
@@ -156,7 +149,6 @@ fun LLMSettingsPreferences(
                             ListPreferenceEntry("openai") { "OpenAI GPT" },
                             ListPreferenceEntry("perplexity") { "Perplexity" },
                         ),
-                        icon = { Icon(Icons.Rounded.Psychology, null) },
                     )
                 }
             }
@@ -177,7 +169,7 @@ fun LLMSettingsPreferences(
                                     "claude" -> ClaudeProvider(context).testConnection()
                                     "openai" -> OpenAIProvider(context).testConnection()
                                     "perplexity" -> PerplexityProvider(context).testConnection()
-                                    else -> app.lawnchair.categorization.llm.LLMProvider.TestResult(false, "Unknown provider")
+                                    else -> TestResult(false, "Unknown provider")
                                 }
                                 testStatus = testStatus + (activeProvider to if (result.success) "✅ Connected (${result.latencyMs}ms)" else "❌ ${result.message}")
                             }
@@ -224,7 +216,7 @@ fun LLMSettingsPreferences(
                                                 "claude" -> ClaudeProvider(context).testConnection()
                                                 "openai" -> OpenAIProvider(context).testConnection()
                                                 "perplexity" -> PerplexityProvider(context).testConnection()
-                                                else -> app.lawnchair.categorization.llm.LLMProvider.TestResult(false, "Unknown provider")
+                                                else -> TestResult(false, "Unknown provider")
                                             }
                                             testStatus = testStatus + (pid to if (result.success) "✅ Connected (${result.latencyMs}ms)" else "❌ ${result.message}")
                                         }
@@ -243,7 +235,6 @@ fun LLMSettingsPreferences(
                         adapter = prefs.circuitBreakerEnabled.getAdapter(),
                         label = "Circuit Breaker",
                         description = "Automatically disable a provider if it fails multiple times in a row. Prevents slow performance when APIs are down.",
-                        icon = { Icon(Icons.Rounded.NearbyError, null) },
                     )
 
                     AnimatedVisibility(visible = prefs.circuitBreakerEnabled.get()) {
@@ -254,7 +245,6 @@ fun LLMSettingsPreferences(
                                 valueRange = 1..10,
                                 step = 1,
                                 showUnit = " failures",
-                                icon = { Icon(Icons.Rounded.Terminal, null) },
                             )
                         }
                     }
@@ -316,7 +306,6 @@ fun ProviderConfigSection(
         TextPreference(
             adapter = apiKeyAdapter,
             label = "API Key",
-            icon = { Icon(Icons.Rounded.ApiKey, null) },
         )
 
         ListPreference(
@@ -328,7 +317,6 @@ fun ProviderConfigSection(
                     label = { model.displayName },
                 )
             },
-            icon = { Icon(Icons.Rounded.SmartToy, null) },
         )
 
         Row(
