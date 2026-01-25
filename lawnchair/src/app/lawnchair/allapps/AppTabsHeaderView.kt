@@ -7,8 +7,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.AbstractComposeView
 import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.ui.theme.LawnchairTheme
+import com.android.launcher3.pageindicators.Direction
 import com.android.launcher3.pageindicators.PageIndicator
 import com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip.OnActivePageChangedListener
+import java.util.function.Consumer
 
 class AppTabsHeaderView @JvmOverloads constructor(
     context: Context,
@@ -43,6 +45,10 @@ class AppTabsHeaderView @JvmOverloads constructor(
 
     override fun setMarkersCount(numMarkers: Int) {
         // No-op, count is managed by controller
+    }
+
+    override fun setArrowClickListener(listener: Consumer<Direction>?) {
+        // No-op, tabs don't use arrow navigation
     }
 
     fun setOnActivePageChangedListener(listener: OnActivePageChangedListener?) {
