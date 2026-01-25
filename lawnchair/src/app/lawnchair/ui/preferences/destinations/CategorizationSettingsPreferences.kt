@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
@@ -244,7 +245,6 @@ fun CategorizationSettingsPreferences(
                         adapter = prefs.autoCatUseTabs.getAdapter(),
                         label = "Use App Tabs",
                         description = "Organize apps into tabs in the app drawer",
-                        icon = { Icon(Icons.Rounded.Layers, null) },
                     )
 
                     AnimatedVisibility(visible = useTabs) {
@@ -253,13 +253,11 @@ fun CategorizationSettingsPreferences(
                                 adapter = prefs.hideWorkApps.getAdapter(),
                                 label = "Hide Work Apps",
                                 description = "Hide work profile apps from the app drawer",
-                                icon = { Icon(Icons.Rounded.Work, null) },
                             )
                             SwitchPreference(
                                 adapter = prefs.showWorkTab.getAdapter(),
                                 label = "Show Work Tab",
                                 description = "Add a dedicated tab for work apps",
-                                icon = { Icon(Icons.Rounded.Category, null) },
                             )
                         }
                     }
@@ -268,14 +266,12 @@ fun CategorizationSettingsPreferences(
                         adapter = prefs.autoCatSyncFolders.getAdapter(),
                         label = "Sync to Folders",
                         description = "Create folders for each category in your app drawer and home screen.",
-                        icon = { Icon(Icons.Rounded.CloudSync, null) },
                     )
 
                     SwitchPreference(
                         adapter = prefs.llmEnableBatching.getAdapter(),
                         label = "Batch Processing",
                         description = "Process multiple apps in a single AI request. Recommended for speed and lower costs.",
-                        icon = { Icon(Icons.Rounded.Speed, null) },
                     )
 
                     val enableRateLimiting = prefs.autoCatEnableRateLimiting.getAdapter()
@@ -283,7 +279,6 @@ fun CategorizationSettingsPreferences(
                         adapter = enableRateLimiting,
                         label = "Rate Limiting",
                         description = "Slows down requests to prevent API blocks. Recommended for Free API tiers.",
-                        icon = { Icon(Icons.Rounded.Timer, null) },
                     )
                 }
             }
@@ -295,7 +290,6 @@ fun CategorizationSettingsPreferences(
                         label = "Manage Tabs",
                         subtitle = "Create, edit, delete, and auto-suggest tabs",
                         destination = AppDrawerTabManagement,
-                        icon = { Icon(Icons.Rounded.Category, null) },
                     )
 
                     NavigationActionPreference(
