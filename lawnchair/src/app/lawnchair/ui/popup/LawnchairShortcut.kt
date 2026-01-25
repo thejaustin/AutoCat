@@ -9,15 +9,18 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherActivityInfo
 import android.content.pm.LauncherApps
+import android.content.pm.PackageManager
 import android.content.pm.SuspendDialogInfo
 import android.net.Uri
 import android.os.UserHandle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.unit.dp
 import app.lawnchair.LawnchairLauncher
+import app.lawnchair.appops.AppBatchOperationService
 import app.lawnchair.override.CustomizeAppDialog
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.views.ComposeBottomSheet
@@ -35,6 +38,9 @@ import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.views.ActivityContext
 import com.patrykmichalik.opto.core.firstBlocking
 import java.net.URISyntaxException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class LawnchairShortcut {
 
@@ -87,6 +93,63 @@ class LawnchairShortcut {
 
             PauseApps(activity, itemInfo, originalView)
         }
+
+        val ARCHIVE =
+            SystemShortcut.Factory { activity: ActivityContext, itemInfo: ItemInfo, view: View ->
+                if (itemInfo.targetComponent == null) {
+                    return@Factory null
+                }
+                if (ApplicationInfoWrapper(
+                        activity.asContext(),
+                        itemInfo.targetComponent!!.packageName,
+                        itemInfo.user,
+                    ).isSystem()
+                ) {
+                    return@Factory null
+                }
+                ArchiveApp(activity, itemInfo, view)
+            }
+
+        val APP_INFO =
+            SystemShortcut.Factory { activity: ActivityContext, itemInfo: ItemInfo, view: View ->
+                if (itemInfo.targetComponent == null) {
+                    return@Factory null
+                }
+                AppInfo(activity, itemInfo, view)
+            }
+
+        val STORE_PAGE =
+            SystemShortcut.Factory { activity: ActivityContext, itemInfo: ItemInfo, view: View ->
+                val packageName = itemInfo.targetComponent?.packageName ?: return@Factory null
+                val context = activity.asContext()
+                val installerPackage = try {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                        context.packageManager.getInstallSourceInfo(packageName).installingPackageName
+                    } else {
+                        @Suppress("DEPRECATION")
+                        context.packageManager.getInstallerPackageName(packageName)
+                    }
+                } catch (e: Exception) {
+                    null
+                }
+                if (installerPackage == null) {
+                    return@Factory null
+                }
+                // Only show for known stores
+                if (installerPackage !in KNOWN_STORES) {
+                    return@Factory null
+                }
+                StorePage(activity, itemInfo, view, installerPackage)
+            }
+
+        private val KNOWN_STORES = setOf(
+            "com.android.vending",           // Google Play Store
+            "com.sec.android.app.samsungapps", // Galaxy Store
+            "org.fdroid.fdroid",              // F-Droid
+            "org.fdroid.basic",              // F-Droid Basic
+            "com.aurora.store",              // Aurora Store
+            "com.amazon.venezia",            // Amazon Appstore
+        )
     }
 
     class Customize(
@@ -236,6 +299,147 @@ class LawnchairShortcut {
             } catch (e: URISyntaxException) {
                 // Do nothing.
             }
+        }
+    }
+
+    class ArchiveApp(
+        private var target: ActivityContext?,
+        private var itemInfo: ItemInfo?,
+        originalView: View?,
+    ) : SystemShortcut<ActivityContext>(
+        R.drawable.ic_archive,
+        R.string.archive_app_label,
+        target,
+        itemInfo,
+        originalView,
+    ) {
+        override fun onClick(view: View) {
+            val context = view.context
+            val packageName = itemInfo?.targetComponent?.packageName ?: return
+            val service = AppBatchOperationService(context)
+            val appLabel = service.getAppLabel(packageName)
+
+            AlertDialog.Builder(context)
+                .setTitle(context.getString(R.string.archive_app_dialog_title, appLabel))
+                .setMessage(R.string.archive_app_dialog_message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.archive_app_label) { _, _ ->
+                    CoroutineScope(Dispatchers.Main).launch {
+                        val result = service.archiveApp(packageName)
+                        when (result) {
+                            is AppBatchOperationService.OperationResult.Success -> {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.archive_app_success, appLabel),
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
+                            is AppBatchOperationService.OperationResult.RequiresUserConfirmation -> {
+                                context.startActivity(service.createUninstallIntent(packageName))
+                            }
+                            is AppBatchOperationService.OperationResult.Failed -> {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.archive_app_failed, appLabel),
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
+                            is AppBatchOperationService.OperationResult.Skipped -> {
+                                Toast.makeText(
+                                    context,
+                                    R.string.archive_app_system_error,
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
+                        }
+                    }
+                }
+                .show()
+            AbstractFloatingView.closeAllOpenViews(target)
+        }
+    }
+
+    class AppInfo(
+        private var target: ActivityContext?,
+        private var itemInfo: ItemInfo?,
+        originalView: View?,
+    ) : SystemShortcut<ActivityContext>(
+        R.drawable.ic_info_no_shadow,
+        R.string.app_info_label,
+        target,
+        itemInfo,
+        originalView,
+    ) {
+        override fun onClick(view: View) {
+            val context = view.context
+            val packageName = itemInfo?.targetComponent?.packageName ?: return
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", packageName, null)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            try {
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("LawnchairShortcut", "Failed to open app info", e)
+            }
+            AbstractFloatingView.closeAllOpenViews(target)
+        }
+    }
+
+    class StorePage(
+        private var target: ActivityContext?,
+        private var itemInfo: ItemInfo?,
+        originalView: View?,
+        private val installerPackage: String,
+    ) : SystemShortcut<ActivityContext>(
+        R.drawable.ic_storefront,
+        R.string.store_page_label,
+        target,
+        itemInfo,
+        originalView,
+    ) {
+        override fun onClick(view: View) {
+            val context = view.context
+            val packageName = itemInfo?.targetComponent?.packageName ?: return
+
+            val intent = when (installerPackage) {
+                "com.android.vending" -> {
+                    Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")).apply {
+                        setPackage("com.android.vending")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                }
+                "com.sec.android.app.samsungapps" -> {
+                    Intent(Intent.ACTION_VIEW, Uri.parse("samsungapps://ProductDetail/$packageName")).apply {
+                        setPackage("com.sec.android.app.samsungapps")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                }
+                else -> {
+                    // Generic fallback: try market:// URI with installer package
+                    Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")).apply {
+                        setPackage(installerPackage)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                }
+            }
+
+            try {
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                // Fallback to web Play Store
+                try {
+                    context.startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://play.google.com/store/apps/details?id=$packageName"),
+                        ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) },
+                    )
+                } catch (e2: Exception) {
+                    Toast.makeText(context, R.string.store_not_found, Toast.LENGTH_SHORT).show()
+                }
+            }
+            AbstractFloatingView.closeAllOpenViews(target)
         }
     }
 }

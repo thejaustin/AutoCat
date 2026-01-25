@@ -707,6 +707,31 @@
     <string name="paused_apps_dialog_message">%1$s was directly paused from the launcher</string>
     <string name="paused_apps_drop_target_label">Pause app</string>
 
+    <!-- Archive app shortcut -->
+    <string name="archive_app_label">Archive</string>
+    <string name="archive_app_dialog_title">Archive %1$s?</string>
+    <string name="archive_app_dialog_message">The app will be removed but its data will be kept. You can restore it later.</string>
+    <string name="archive_app_success">%1$s archived</string>
+    <string name="archive_app_failed">Failed to archive %1$s</string>
+    <string name="archive_app_system_error">System apps cannot be archived</string>
+    <string name="archive_app_no_root">Archiving requires root access or Android 15+</string>
+
+    <!-- Archive all (category/folder) -->
+    <string name="archive_all_label">Archive All</string>
+    <string name="archive_all_dialog_title">Archive all apps in \"%1$s\"?</string>
+    <string name="archive_all_dialog_message">%1$d apps will be archived. %2$d system apps will be skipped.\n\nArchived apps keep their data and can be restored later.</string>
+    <string name="archive_all_progress_title">Archiving apps\u2026</string>
+    <string name="archive_all_progress_message">Archiving %1$s (%2$d/%3$d)</string>
+    <string name="archive_all_complete">Archived %1$d apps (%2$d skipped, %3$d failed)</string>
+    <string name="archive_all_requires_confirmation">Root not available. Each app will require manual confirmation.</string>
+
+    <!-- App info shortcut -->
+    <string name="app_info_label">App info</string>
+
+    <!-- Store page shortcut -->
+    <string name="store_page_label">Store page</string>
+    <string name="store_not_found">Store app not found</string>
+
     <string name="dock_icons">Dock icons</string>
     <string name="hotseat_bottom_space_label">Bottom padding</string>
     <string name="page_indicator_height">Page indicator height</string>

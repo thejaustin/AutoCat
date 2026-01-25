@@ -255,7 +255,13 @@ class LawnchairLauncher : QuickstepLauncher() {
     override fun getSupportedShortcuts(): Stream<SystemShortcut.Factory<*>> = Stream.concat(
         super.getSupportedShortcuts(),
         Stream.concat(
-            Stream.of(LawnchairShortcut.UNINSTALL, LawnchairShortcut.CUSTOMIZE),
+            Stream.of(
+                LawnchairShortcut.UNINSTALL,
+                LawnchairShortcut.ARCHIVE,
+                LawnchairShortcut.CUSTOMIZE,
+                LawnchairShortcut.APP_INFO,
+                LawnchairShortcut.STORE_PAGE,
+            ),
             if (LawnchairApp.isRecentsEnabled) Stream.of(LawnchairShortcut.PAUSE_APPS) else Stream.empty(),
         ),
     )

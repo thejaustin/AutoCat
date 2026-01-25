@@ -21,7 +21,10 @@ import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
 import app.lawnchair.animation.M3ESpringConfig
+import android.widget.Toast
+import app.lawnchair.appops.AppBatchOperationService
 import app.lawnchair.categorization.AppTabsController
+import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.font.FontManager
 import app.lawnchair.theme.color.tokens.ColorStateListTokens
 import app.lawnchair.theme.drawable.DrawableTokens
@@ -38,6 +41,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import withContext
 
 /**
  * Scrollable tab strip for app tabs in app drawer.
@@ -193,6 +197,7 @@ class CategoryTabStrip @JvmOverloads constructor(
         val popup = PopupMenu(context, view)
         popup.menu.add(Menu.NONE, 1, 1, "Rename")
         popup.menu.add(Menu.NONE, 2, 2, "Delete")
+        popup.menu.add(Menu.NONE, 3, 3, context.getString(R.string.archive_all_label))
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -203,6 +208,11 @@ class CategoryTabStrip @JvmOverloads constructor(
 
                 2 -> {
                     showDeleteDialog(tabName)
+                    true
+                }
+
+                3 -> {
+                    showArchiveAllDialog(tabName)
                     true
                 }
 
@@ -239,6 +249,115 @@ class CategoryTabStrip @JvmOverloads constructor(
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun showArchiveAllDialog(tabName: String) {
+        val scope = CoroutineScope(Dispatchers.Main + Job())
+        val service = AppBatchOperationService(context)
+        val tabDao = TabDatabase.getInstance(context).tabDao()
+
+        scope.launch {
+            val appTabs = withContext(Dispatchers.IO) {
+                tabDao.getAppsByTab(tabName)
+            }
+            val packageNames = appTabs.map { it.packageName }
+            val systemAppCount = service.countSystemApps(packageNames)
+            val archivableCount = packageNames.size - systemAppCount
+
+            if (archivableCount == 0) {
+                Toast.makeText(
+                    context,
+                    R.string.archive_app_system_error,
+                    Toast.LENGTH_SHORT,
+                ).show()
+                return@launch
+            }
+
+            AlertDialog.Builder(context)
+                .setTitle(context.getString(R.string.archive_all_dialog_title, tabName))
+                .setMessage(
+                    context.getString(
+                        R.string.archive_all_dialog_message,
+                        archivableCount,
+                        systemAppCount,
+                    ),
+                )
+                .setPositiveButton(R.string.archive_all_label) { _, _ ->
+                    executeArchiveAll(tabName, packageNames, service)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+
+    private fun executeArchiveAll(
+        tabName: String,
+        packages: List<String>,
+        service: AppBatchOperationService,
+    ) {
+        val scope = CoroutineScope(Dispatchers.Main + Job())
+
+        // Show progress dialog
+        val progressDialog = AlertDialog.Builder(context)
+            .setTitle(R.string.archive_all_progress_title)
+            .setMessage(context.getString(R.string.archive_all_progress_message, "", 0, packages.size))
+            .setCancelable(false)
+            .show()
+
+        scope.launch {
+            val results = service.archiveApps(packages) { progress ->
+                withContext(Dispatchers.Main) {
+                    val appLabel = service.getAppLabel(progress.currentPackage)
+                    progressDialog.setMessage(
+                        context.getString(
+                            R.string.archive_all_progress_message,
+                            appLabel,
+                            progress.current,
+                            progress.total,
+                        ),
+                    )
+                }
+            }
+
+            progressDialog.dismiss()
+
+            val successCount = results.values.count { it is AppBatchOperationService.OperationResult.Success }
+            val skippedCount = results.values.count { it is AppBatchOperationService.OperationResult.Skipped }
+            val failedCount = results.values.count {
+                it is AppBatchOperationService.OperationResult.Failed ||
+                    it is AppBatchOperationService.OperationResult.RequiresUserConfirmation
+            }
+
+            Toast.makeText(
+                context,
+                context.getString(R.string.archive_all_complete, successCount, skippedCount, failedCount),
+                Toast.LENGTH_LONG,
+            ).show()
+
+            // For RequiresUserConfirmation results, offer to launch intents sequentially
+            val needsConfirmation = results.entries
+                .filter { it.value is AppBatchOperationService.OperationResult.RequiresUserConfirmation }
+                .map { it.key }
+
+            if (needsConfirmation.isNotEmpty()) {
+                AlertDialog.Builder(context)
+                    .setTitle(R.string.archive_all_requires_confirmation)
+                    .setMessage(
+                        context.getString(
+                            R.string.archive_all_dialog_message,
+                            needsConfirmation.size,
+                            0,
+                        ),
+                    )
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        needsConfirmation.forEach { pkg ->
+                            context.startActivity(service.createUninstallIntent(pkg))
+                        }
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+        }
     }
 
     override fun setActiveMarker(activePage: Int) {
