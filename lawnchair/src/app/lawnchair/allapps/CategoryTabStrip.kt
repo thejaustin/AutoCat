@@ -17,11 +17,11 @@ import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
+import android.widget.Toast
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
 import app.lawnchair.animation.M3ESpringConfig
-import android.widget.Toast
 import app.lawnchair.appops.AppBatchOperationService
 import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.data.tab.TabDatabase

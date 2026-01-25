@@ -116,30 +116,29 @@ class AppBatchOperationService(private val context: Context) {
      * Uninstall a single app.
      * @param keepData If true, keeps app data (similar to archive behavior).
      */
-    suspend fun uninstallApp(packageName: String, keepData: Boolean = false): OperationResult =
-        withContext(Dispatchers.IO) {
-            if (isSystemApp(packageName)) {
-                return@withContext OperationResult.Skipped
-            }
-
-            val hasRoot = try {
-                Shell.getShell().isRoot
-            } catch (e: Exception) {
-                false
-            }
-
-            if (hasRoot) {
-                val flag = if (keepData) "-k" else ""
-                val result = Shell.cmd("pm uninstall $flag $packageName").exec()
-                if (result.isSuccess) {
-                    OperationResult.Success
-                } else {
-                    OperationResult.Failed(result.err.joinToString("\n"))
-                }
-            } else {
-                OperationResult.RequiresUserConfirmation
-            }
+    suspend fun uninstallApp(packageName: String, keepData: Boolean = false): OperationResult = withContext(Dispatchers.IO) {
+        if (isSystemApp(packageName)) {
+            return@withContext OperationResult.Skipped
         }
+
+        val hasRoot = try {
+            Shell.getShell().isRoot
+        } catch (e: Exception) {
+            false
+        }
+
+        if (hasRoot) {
+            val flag = if (keepData) "-k" else ""
+            val result = Shell.cmd("pm uninstall $flag $packageName").exec()
+            if (result.isSuccess) {
+                OperationResult.Success
+            } else {
+                OperationResult.Failed(result.err.joinToString("\n"))
+            }
+        } else {
+            OperationResult.RequiresUserConfirmation
+        }
+    }
 
     /**
      * Uninstall multiple apps with progress reporting.
@@ -237,7 +236,11 @@ class AppBatchOperationService(private val context: Context) {
             } catch (e: SecurityException) {
                 // Not the installer of record — fall back to root or intent
                 Log.w(TAG, "requestArchive failed (not installer of record): ${e.message}")
-                val hasRoot = try { Shell.getShell().isRoot } catch (_: Exception) { false }
+                val hasRoot = try {
+                    Shell.getShell().isRoot
+                } catch (_: Exception) {
+                    false
+                }
                 if (hasRoot) {
                     executeRootArchive(packageName)
                 } else {

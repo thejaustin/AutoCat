@@ -143,12 +143,12 @@ class LawnchairShortcut {
             }
 
         private val KNOWN_STORES = setOf(
-            "com.android.vending",           // Google Play Store
+            "com.android.vending", // Google Play Store
             "com.sec.android.app.samsungapps", // Galaxy Store
-            "org.fdroid.fdroid",              // F-Droid
-            "org.fdroid.basic",              // F-Droid Basic
-            "com.aurora.store",              // Aurora Store
-            "com.amazon.venezia",            // Amazon Appstore
+            "org.fdroid.fdroid", // F-Droid
+            "org.fdroid.basic", // F-Droid Basic
+            "com.aurora.store", // Aurora Store
+            "com.amazon.venezia", // Amazon Appstore
         )
     }
 
@@ -334,9 +334,11 @@ class LawnchairShortcut {
                                     Toast.LENGTH_SHORT,
                                 ).show()
                             }
+
                             is AppBatchOperationService.OperationResult.RequiresUserConfirmation -> {
                                 context.startActivity(service.createUninstallIntent(packageName))
                             }
+
                             is AppBatchOperationService.OperationResult.Failed -> {
                                 Toast.makeText(
                                     context,
@@ -344,6 +346,7 @@ class LawnchairShortcut {
                                     Toast.LENGTH_SHORT,
                                 ).show()
                             }
+
                             is AppBatchOperationService.OperationResult.Skipped -> {
                                 Toast.makeText(
                                     context,
@@ -409,12 +412,14 @@ class LawnchairShortcut {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                 }
+
                 "com.sec.android.app.samsungapps" -> {
                     Intent(Intent.ACTION_VIEW, Uri.parse("samsungapps://ProductDetail/$packageName")).apply {
                         setPackage("com.sec.android.app.samsungapps")
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                 }
+
                 else -> {
                     // Generic fallback: try market:// URI with installer package
                     Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")).apply {
