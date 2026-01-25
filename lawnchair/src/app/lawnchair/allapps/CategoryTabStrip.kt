@@ -41,7 +41,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import withContext
+import kotlinx.coroutines.withContext
 
 /**
  * Scrollable tab strip for app tabs in app drawer.
