@@ -306,7 +306,7 @@ class CategoryTabStrip @JvmOverloads constructor(
 
         scope.launch {
             val results = service.archiveApps(packages) { progress ->
-                withContext(Dispatchers.Main) {
+                scope.launch(Dispatchers.Main) {
                     val appLabel = service.getAppLabel(progress.currentPackage)
                     progressDialog.setMessage(
                         context.getString(
