@@ -8,7 +8,24 @@
 
 **AutoCat** is a personal fork of Lawnchair Launcher that adds **AI-powered automatic app categorization** to the app drawer. It uses a multi-stage intelligent pipeline with LLM integration and automatic folder sync to keep your apps organized.
 
-### ✨ Key Features
+### Differences from Upstream
+
+| Feature | Lawnchair 15 | AutoCat |
+|---|---|---|
+| Multi-provider LLM categorization (Gemini, Claude, GPT, Llama) | No | Yes |
+| Batch API processing (20x faster, auto batch sizing) | No | Yes |
+| Provider fallback & auto-select best model | No | Yes |
+| Model accuracy tracking & analytics | No | Yes |
+| Dual folder sync (drawer + home screen) | No | Yes |
+| Smart categorization pipeline (built-in + LLM + user overrides) | No | Yes |
+| User correction learning system | No | Yes |
+| Category tabs in app drawer | No | Yes |
+| Smart Launcher import (.slbk) | No | Yes |
+| Developer diagnostics & error logging | No | Yes |
+| App description display (LLM reasoning) | No | Yes |
+| Room database for categories & folders | No | Yes |
+
+### Key Features
 
 #### 🤖 **Multi-Provider LLM Categorization**
 - **4 LLM Providers**: Google AI (Gemini 2.0), Claude (Anthropic), OpenAI (GPT-4o), Perplexity (Llama 3.1)
