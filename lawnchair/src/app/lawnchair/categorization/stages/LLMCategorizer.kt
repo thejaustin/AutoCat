@@ -404,11 +404,11 @@ class LLMCategorizer(
             results.forEach { (apiResults, providerName, modelId) ->
                 totalApiCalls++
 
-                if (apiResults != null) {
+                if (apiResults != null && providerName != null) {
                     apiResults.forEach { (packageName, result) ->
                         val calibratedConfidence = ConfidenceCalibrator.calibrate(
                             result.confidence,
-                            providerName!!, // Assert non-null here
+                            providerName,
                         )
                         if (calibratedConfidence >= MIN_CONFIDENCE) {
                             val appTab = AppTab(

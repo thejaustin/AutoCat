@@ -5,10 +5,12 @@ import app.lawnchair.categorization.stages.BuiltInCategorizer
 import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.tab.TabDatabase
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 
 /**
@@ -62,6 +64,9 @@ class CategorizationManager(private val context: Context) {
     private val llmCategorizer by lazy { LLMCategorizer(context, categoryDao) }
     private val appProvider by lazy { AutoCatAppProvider.getInstance(context) }
     private val folderSyncService by lazy { CategoryFolderSyncService(context) }
+
+    // Guard against concurrent categorization runs
+    private val isCategorizationRunning = AtomicBoolean(false)
 
     // Progress tracking
     private val _progress = MutableStateFlow(CategorizationProgress())
@@ -150,11 +155,9 @@ class CategorizationManager(private val context: Context) {
             if (folderSyncService.isSyncEnabled()) {
                 android.util.Log.d(TAG, "Starting folder sync")
 
-                // Fetch all categories in one query to avoid N+1 problem
-                val allCategories = categoryDao.getAllAppTabs()
-                val categorizations = allCategories.associate { it.packageName to it.tabName }
+                val allCats = categoryDao.getAllAppTabs()
+                val categorizations = allCats.associate { it.packageName to it.tabName }
 
-                // Sync categorizations to folders
                 val syncResult = folderSyncService.syncCategoriesToFolders(categorizations)
 
                 android.util.Log.d(TAG, "Folder sync complete: ${syncResult.message}")
@@ -169,120 +172,140 @@ class CategorizationManager(private val context: Context) {
      *
      * Only re-categorizes apps that don't have user overrides.
      * Emits progress updates via the progress StateFlow.
+     *
+     * Returns false if categorization is already running.
      */
-    suspend fun recategorizeAll() = withContext(Dispatchers.IO) {
-        try {
-            _progress.value = CategorizationProgress(
-                isRunning = true,
-                currentStage = "Preparing",
-                processedCount = 0,
-                totalCount = 0,
-            )
+    suspend fun recategorizeAll(): Boolean {
+        // Prevent concurrent execution
+        if (!isCategorizationRunning.compareAndSet(false, true)) {
+            android.util.Log.w(TAG, "Categorization already running, ignoring request")
+            return false
+        }
 
-            // Delete non-user-override categories
-            categoryDao.deleteNonUserOverrides()
+        return withContext(Dispatchers.IO) {
+            try {
+                _progress.update {
+                    CategorizationProgress(
+                        isRunning = true,
+                        currentStage = "Preparing",
+                        processedCount = 0,
+                        totalCount = 0,
+                    )
+                }
 
-            // Get all installed apps
-            val apps = metadataProvider.getInstalledApps()
+                // Delete non-user-override categories
+                categoryDao.deleteNonUserOverrides()
 
-            _progress.value = CategorizationProgress(
-                isRunning = true,
-                currentStage = "LLM",
-                processedCount = 0,
-                totalCount = apps.size,
-            )
+                // Get all installed apps
+                val apps = metadataProvider.getInstalledApps()
 
-            // Stage 1: LLM categorizer for custom categories (PRIORITY)
-            android.util.Log.d(
-                TAG,
-                "Starting Stage 1 (LLM) for ${apps.size} apps",
-            )
+                _progress.update {
+                    CategorizationProgress(
+                        isRunning = true,
+                        currentStage = "LLM",
+                        processedCount = 0,
+                        totalCount = apps.size,
+                    )
+                }
 
-            val llmCount = llmCategorizer.categorizeBatch(apps) { progress ->
-                _progress.value = progress
-            }
-
-            android.util.Log.d(
-                TAG,
-                "Stage 1 (LLM) complete: $llmCount/${apps.size} apps categorized",
-            )
-
-            // Get uncategorized apps for built-in stage (FALLBACK)
-            // Fetch all categories in one query to avoid N+1 problem
-            val allCategories = categoryDao.getAllAppTabs().associateBy { it.packageName }
-            val uncategorizedApps = apps.filter { app ->
-                !allCategories.containsKey(app.packageName)
-            }
-
-            if (uncategorizedApps.isNotEmpty()) {
-                _progress.value = CategorizationProgress(
-                    isRunning = true,
-                    currentStage = "Built-in",
-                    processedCount = 0,
-                    totalCount = uncategorizedApps.size,
+                // Stage 1: LLM categorizer for custom categories (PRIORITY)
+                android.util.Log.d(
+                    TAG,
+                    "Starting Stage 1 (LLM) for ${apps.size} apps",
                 )
+
+                val llmCount = llmCategorizer.categorizeBatch(apps) { progress ->
+                    _progress.value = progress
+                }
 
                 android.util.Log.d(
                     TAG,
-                    "Starting Stage 2 (Built-in) for ${uncategorizedApps.size} uncategorized apps",
+                    "Stage 1 (LLM) complete: $llmCount/${apps.size} apps categorized",
                 )
 
-                // Stage 2: Built-in categorizer as fallback
-                val builtInCount = builtInCategorizer.categorizeBatch(uncategorizedApps)
+                // Get uncategorized apps for built-in stage (FALLBACK)
+                val allCategories = categoryDao.getAllAppTabs().associateBy { it.packageName }
+                val uncategorizedApps = apps.filter { app ->
+                    !allCategories.containsKey(app.packageName)
+                }
+
+                if (uncategorizedApps.isNotEmpty()) {
+                    _progress.update {
+                        CategorizationProgress(
+                            isRunning = true,
+                            currentStage = "Built-in",
+                            processedCount = 0,
+                            totalCount = uncategorizedApps.size,
+                        )
+                    }
+
+                    android.util.Log.d(
+                        TAG,
+                        "Starting Stage 2 (Built-in) for ${uncategorizedApps.size} uncategorized apps",
+                    )
+
+                    val builtInCount = builtInCategorizer.categorizeBatch(uncategorizedApps)
+
+                    android.util.Log.d(
+                        TAG,
+                        "Stage 2 (Built-in) complete: $builtInCount/${uncategorizedApps.size} apps categorized",
+                    )
+                }
 
                 android.util.Log.d(
                     TAG,
-                    "Stage 2 (Built-in) complete: $builtInCount/${uncategorizedApps.size} apps categorized",
-                )
-            }
-
-            android.util.Log.d(
-                TAG,
-                "All stages complete: ${categoryDao.getAllAppTabs().size}/${apps.size} apps categorized",
-            )
-
-            // Refresh cache after categorization
-            appProvider.refreshCache()
-
-            // Sync to folders if enabled
-            if (folderSyncService.isSyncEnabled()) {
-                _progress.value = CategorizationProgress(
-                    isRunning = true,
-                    currentStage = "Syncing folders",
-                    processedCount = apps.size,
-                    totalCount = apps.size,
+                    "All stages complete: ${categoryDao.getAllAppTabs().size}/${apps.size} apps categorized",
                 )
 
-                android.util.Log.d(TAG, "Starting folder sync")
+                // Refresh cache after categorization
+                appProvider.refreshCache()
 
-                val allCategories = categoryDao.getAllAppTabs()
-                val categorizations = allCategories.associate { it.packageName to it.tabName }
+                // Sync to folders if enabled
+                if (folderSyncService.isSyncEnabled()) {
+                    _progress.update {
+                        CategorizationProgress(
+                            isRunning = true,
+                            currentStage = "Syncing folders",
+                            processedCount = apps.size,
+                            totalCount = apps.size,
+                        )
+                    }
 
-                // Sync categorizations to folders
-                val syncResult = folderSyncService.syncCategoriesToFolders(categorizations)
+                    android.util.Log.d(TAG, "Starting folder sync")
 
-                android.util.Log.d(TAG, "Folder sync complete: ${syncResult.message}")
-            }
+                    val allCats = categoryDao.getAllAppTabs()
+                    val categorizations = allCats.associate { it.packageName to it.tabName }
 
-            // Mark as complete
-            _progress.value = CategorizationProgress(
-                isRunning = false,
-                currentStage = "Complete",
-                processedCount = apps.size,
-                totalCount = apps.size,
-            )
-        } catch (e: Exception) {
-            android.util.Log.e(TAG, "Error during re-categorization", e)
-            _progress.value = CategorizationProgress(
-                isRunning = false,
-                currentStage = "Error: ${e.message}",
-                processedCount = 0,
-                totalCount = 0,
-            )
-        } finally {
-            // Ensure running state is cleared even if unexpected error
-            if (_progress.value.isRunning) {
-                _progress.value = _progress.value.copy(isRunning = false)
+                    val syncResult = folderSyncService.syncCategoriesToFolders(categorizations)
+
+                    android.util.Log.d(TAG, "Folder sync complete: ${syncResult.message}")
+                }
+
+                // Mark as complete
+                _progress.update {
+                    CategorizationProgress(
+                        isRunning = false,
+                        currentStage = "Complete",
+                        processedCount = apps.size,
+                        totalCount = apps.size,
+                    )
+                }
+                true
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Error during re-categorization", e)
+                _progress.update {
+                    CategorizationProgress(
+                        isRunning = false,
+                        currentStage = "Error: ${e.message}",
+                        processedCount = 0,
+                        totalCount = 0,
+                    )
+                }
+                false
+            } finally {
+                isCategorizationRunning.set(false)
+                // Ensure running state is cleared even if unexpected error
+                _progress.update { it.copy(isRunning = false) }
             }
         }
     }
@@ -312,7 +335,6 @@ class CategorizationManager(private val context: Context) {
 
             if (categorized) {
                 android.util.Log.d(TAG, "Categorized new app (LLM): $packageName")
-                // Update cache with the new category
                 val appTab = categoryDao.getAppTab(packageName)
                 appProvider.updateCacheForApp(packageName, appTab?.tabName)
             } else {

@@ -11,6 +11,8 @@ import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.pm.UserCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
@@ -29,6 +31,9 @@ class CategoryFolderSyncService(
     private val prefs by lazy { PreferenceManager.getInstance(context) }
     private val drawerFolderService by lazy { FolderService.INSTANCE.get(context) }
     private val reloadHelper by lazy { ReloadHelper(context) }
+
+    // Mutex to serialize folder sync operations and prevent race conditions
+    private val syncMutex = Mutex()
 
     companion object {
         private const val TAG = "CategoryFolderSync"
@@ -79,6 +84,7 @@ class CategoryFolderSyncService(
         categorizations: Map<String, String>,
         allApps: List<com.android.launcher3.model.data.AppInfo>? = null,
     ): SyncResult = withContext(Dispatchers.IO) {
+        syncMutex.withLock {
         if (!isSyncEnabled()) {
             LLMLogger.logInfo(
                 provider = "CategoryFolderSync",
@@ -141,8 +147,13 @@ class CategoryFolderSyncService(
                     drawerFolderService.getAllFolders()
                 }
             } catch (e: TimeoutCancellationException) {
-                android.util.Log.w(TAG, "Timeout getting folders, continuing with empty list")
-                emptyList()
+                android.util.Log.e(TAG, "Timeout getting existing folders, aborting sync to prevent duplicates")
+                return@withContext SyncResult(
+                    success = false,
+                    message = "Timeout reading existing folders, sync aborted",
+                    foldersCreated = 0,
+                    appsMovedToFolders = 0,
+                )
             }
             val existingFolderMap = existingFolders.associateBy { it.title.toString() }
 
@@ -225,6 +236,7 @@ class CategoryFolderSyncService(
                 error = e,
             )
         }
+        } // syncMutex.withLock
     }
 
     /**
@@ -331,8 +343,8 @@ class CategoryFolderSyncService(
                     drawerFolderService.getAllFolders()
                 }
             } catch (e: TimeoutCancellationException) {
-                android.util.Log.w(TAG, "Timeout getting folders to remove")
-                emptyList()
+                android.util.Log.e(TAG, "Timeout getting folders to remove, aborting")
+                return@withContext 0
             }
 
             folders.forEach { folder ->
