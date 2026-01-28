@@ -159,9 +159,14 @@ public class AllAppsList {
         }
         if (loadIcon) {
             mIconCache.getTitleAndIcon(info, activityInfo, DEFAULT_LOOKUP_FLAG);
-            info.sectionName = mIndex.computeSectionName(info.title);
+            info.sectionName = mIndex.computeSectionName(info.title == null ? "" : info.title);
         } else {
-            info.title = "";
+            try {
+                info.title = activityInfo != null ? activityInfo.getLabel() : "";
+            } catch (Throwable t) {
+                info.title = "";
+            }
+            info.sectionName = mIndex.computeSectionName(info.title == null ? "" : info.title);
         }
 
         data.add(info);
@@ -185,7 +190,8 @@ public class AllAppsList {
 
         if (loadIcon) {
             mIconCache.getTitleAndIcon(promiseAppInfo, promiseAppInfo.getMatchingLookupFlag());
-            promiseAppInfo.sectionName = mIndex.computeSectionName(promiseAppInfo.title);
+            promiseAppInfo.sectionName = mIndex.computeSectionName(
+                    promiseAppInfo.title == null ? "" : promiseAppInfo.title);
         } else {
             promiseAppInfo.title = "";
         }
@@ -197,7 +203,7 @@ public class AllAppsList {
     }
 
     public void updateSectionName(AppInfo appInfo) {
-        appInfo.sectionName = mIndex.computeSectionName(appInfo.title);
+        appInfo.sectionName = mIndex.computeSectionName(appInfo.title == null ? "" : appInfo.title);
 
     }
 
@@ -301,9 +307,14 @@ public class AllAppsList {
     public void updateIconsAndLabels(HashSet<String> packages, UserHandle user) {
         for (AppInfo info : data) {
             if (info.user.equals(user) && packages.contains(info.componentName.getPackageName())) {
+                CharSequence oldTitle = info.title;
+                String oldSectionName = info.sectionName;
                 mIconCache.updateTitleAndIcon(info);
-                info.sectionName = mIndex.computeSectionName(info.title);
-                mDataChanged = true;
+                info.sectionName = mIndex.computeSectionName(info.title == null ? "" : info.title);
+                if (!TextUtils.equals(oldTitle, info.title)
+                        || !TextUtils.equals(oldSectionName, info.sectionName)) {
+                    mDataChanged = true;
+                }
             }
         }
     }
@@ -346,7 +357,8 @@ public class AllAppsList {
                     Intent launchIntent = AppInfo.makeLaunchIntent(info);
 
                     mIconCache.getTitleAndIcon(applicationInfo, info, DEFAULT_LOOKUP_FLAG);
-                    applicationInfo.sectionName = mIndex.computeSectionName(applicationInfo.title);
+                    applicationInfo.sectionName = mIndex.computeSectionName(
+                            applicationInfo.title == null ? "" : applicationInfo.title);
                     applicationInfo.intent = launchIntent;
                     AppInfo.updateRuntimeFlagsForActivityTarget(applicationInfo, info,
                             userCache.getUserInfo(user), apiWrapper, pmHelper);

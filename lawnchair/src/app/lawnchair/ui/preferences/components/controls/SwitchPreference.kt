@@ -147,12 +147,14 @@ private fun SwitchPreferencePreview(
 ) {
     LawnchairTheme {
         PreferenceGroupPreviewContainer {
-            SwitchPreference(
-                checked = checked,
-                onCheckedChange = {},
-                label = "Label",
-                description = "Description",
-            )
+            Item {
+                SwitchPreference(
+                    checked = checked,
+                    onCheckedChange = {},
+                    label = "Label",
+                    description = "Description",
+                )
+            }
         }
     }
 }

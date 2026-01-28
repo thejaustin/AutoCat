@@ -120,11 +120,13 @@ fun TextPreferenceDialog(
 private fun TextPreferencePreview() {
     LawnchairTheme {
         PreferenceGroupPreviewContainer {
-            TextPreference(
-                value = "Value",
-                onChange = {},
-                label = "Label",
-            )
+            Item {
+                TextPreference(
+                    value = "Value",
+                    onChange = {},
+                    label = "Label",
+                )
+            }
         }
     }
 }
