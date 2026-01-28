@@ -198,16 +198,14 @@ private fun SliderPreferencePreview(
 ) {
     LawnchairTheme {
         PreferenceGroupPreviewContainer {
-            Item {
-                SliderPreference(
-                    label = "Label",
-                    value = sliderValue,
-                    onValueChangeFinished = {},
-                    valueRange = 0f..1f,
-                    step = 0.1f,
-                    showAsPercentage = true,
-                )
-            }
+            SliderPreference(
+                label = "Label",
+                value = sliderValue,
+                onValueChangeFinished = {},
+                valueRange = 0f..1f,
+                step = 0.1f,
+                showAsPercentage = true,
+            )
         }
     }
 }

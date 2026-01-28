@@ -104,13 +104,11 @@ fun PreferenceClickConfirmation(
 private fun ClickablePreferencePreview() {
     LawnchairTheme {
         PreferenceGroupPreviewContainer {
-            Item {
-                ClickablePreference(
-                    label = "Label",
-                    subtitle = "Subtitle",
-                    onClick = {},
-                )
-            }
+            ClickablePreference(
+                label = "Label",
+                subtitle = "Subtitle",
+                onClick = {},
+            )
         }
     }
 }
