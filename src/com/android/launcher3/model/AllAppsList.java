@@ -29,6 +29,7 @@ import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
 import android.os.LocaleList;
 import android.os.UserHandle;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;

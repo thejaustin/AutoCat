@@ -400,7 +400,7 @@ public class AllAppsTransitionController
                     // User-controlled drag: use LOW_TICK for subtle feedback
                     if (Utilities.ATLEAST_S) {
                         VibratorWrapper.INSTANCE.get(mLauncher).vibrate(
-                                VibrationEffect.PRIMITIVE_LOW_TICK, 0.7f,
+                                VibrationEffect.Composition.PRIMITIVE_LOW_TICK, 0.7f,
                                 VibratorWrapper.EFFECT_CLICK);
                     } else {
                         mLauncher.getAppsView().performHapticFeedback(

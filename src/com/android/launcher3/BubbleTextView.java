@@ -775,7 +775,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             // M3E: Haptic feedback on icon press
             if (Utilities.ATLEAST_S) {
                 VibratorWrapper.INSTANCE.get(getContext()).vibrate(
-                    VibrationEffect.PRIMITIVE_LOW_TICK, 0.6f, VibratorWrapper.EFFECT_CLICK
+                    VibrationEffect.Composition.PRIMITIVE_LOW_TICK, 0.6f, VibratorWrapper.EFFECT_CLICK
                 );
             }
         } else {
@@ -1287,7 +1287,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         if (mIcon instanceof PreloadIconDrawable p) {
             pid = p;
             pid.setLevel(progressLevel);
-            pid.setIsDisabled(isIconDisabled(info));
+            pid.setDisabled(isIconDisabled(info));
         } else {
             pid = makePreloadIcon(info);
             setIcon(pid);
@@ -1310,7 +1310,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         final PreloadIconDrawable preloadDrawable = newPendingIcon(getContext(), info);
 
         preloadDrawable.setLevel(progressLevel);
-        preloadDrawable.setIsDisabled(isIconDisabled(info));
+        preloadDrawable.setDisabled(isIconDisabled(info));
         return preloadDrawable;
     }
 
@@ -1421,7 +1421,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     /** Sets the icon visual state to disabled or not. */
     public void setIconDisabled(boolean isDisabled) {
         if (mIcon != null) {
-            mIcon.setIsDisabled(isDisabled);
+            mIcon.setDisabled(isDisabled);
         }
     }
 

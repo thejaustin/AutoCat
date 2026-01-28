@@ -17,6 +17,7 @@ package com.android.launcher3.icons;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageItemInfo;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.graphics.drawable.AdaptiveIconDrawable;
@@ -99,20 +100,23 @@ public class LauncherIconProvider extends IconProvider {
 
     @Nullable
     @Override
-    protected Drawable loadAppInfoIcon(ApplicationInfo info, Resources resources, int density) {
+    protected Drawable loadPackageIcon(
+            @NonNull PackageItemInfo info, @NonNull ApplicationInfo appInfo, int density) {
         // Tries to load the round icon res, if the app defines it as an adaptive icon
         if (mThemeManager.getIconShape() instanceof ShapeDelegate.Circle) {
-            int roundIconRes = mApiWrapper.getRoundIconRes(info);
-            if (roundIconRes != 0 && roundIconRes != info.icon) {
+            int roundIconRes = mApiWrapper.getRoundIconRes(appInfo);
+            if (roundIconRes != 0 && roundIconRes != appInfo.icon) {
                 try {
+                    Resources resources = mContext.getPackageManager()
+                            .getResourcesForApplication(appInfo);
                     Drawable d = resources.getDrawableForDensity(roundIconRes, density);
                     if (d instanceof AdaptiveIconDrawable) {
                         return d;
                     }
-                } catch (Resources.NotFoundException exc) { }
+                } catch (Resources.NotFoundException | android.content.pm.PackageManager.NameNotFoundException exc) { }
             }
         }
-        return super.loadAppInfoIcon(info, resources, density);
+        return super.loadPackageIcon(info, appInfo, density);
     }
 
     private Map<String, ThemeData> getThemedIconMap() {
