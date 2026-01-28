@@ -41,10 +41,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import app.lawnchair.ui.util.addIf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
+import app.lawnchair.ui.util.addIf
 import com.android.launcher3.R
 import com.android.systemui.shared.system.BlurUtils
 import kotlinx.coroutines.launch

@@ -85,158 +85,158 @@ class CategoryFolderSyncService(
         allApps: List<com.android.launcher3.model.data.AppInfo>? = null,
     ): SyncResult = withContext(Dispatchers.IO) {
         syncMutex.withLock {
-        if (!isSyncEnabled()) {
-            LLMLogger.logInfo(
-                provider = "CategoryFolderSync",
-                operation = "SYNC",
-                message = "Folder sync is disabled, skipping",
-            )
-            return@withContext SyncResult(
-                success = false,
-                message = "Folder sync is disabled",
-                foldersCreated = 0,
-                appsMovedToFolders = 0,
-            )
-        }
-
-        try {
-            val syncMode = getSyncMode()
-            LLMLogger.logInfo(
-                provider = "CategoryFolderSync",
-                operation = "SYNC",
-                message = "Starting folder sync for ${categorizations.size} categorizations (mode: ${syncMode.displayName})",
-            )
-
-            if (!shouldSyncToDrawer() && !shouldSyncToHomeScreen()) {
-                LLMLogger.logWarning(
+            if (!isSyncEnabled()) {
+                LLMLogger.logInfo(
                     provider = "CategoryFolderSync",
                     operation = "SYNC",
-                    message = "No sync mode enabled",
+                    message = "Folder sync is disabled, skipping",
                 )
                 return@withContext SyncResult(
                     success = false,
-                    message = "No sync mode enabled",
+                    message = "Folder sync is disabled",
                     foldersCreated = 0,
                     appsMovedToFolders = 0,
                 )
             }
 
-            // Group apps by tab, excluding "Other" and system categories
-            val appsByTab = categorizations.entries
-                .filter { (_, tabName) ->
-                    // Exclude "Other" tab and empty tab names
-                    tabName.isNotEmpty() && tabName != "Other"
-                }
-                .groupBy(
-                    keySelector = { it.value },
-                    valueTransform = { it.key },
-                )
-
-            android.util.Log.d(TAG, "Categorizations: ${categorizations.size} total, ${appsByTab.size} tabs")
-            appsByTab.forEach { (tabName, packages) ->
-                android.util.Log.d(TAG, "Tab '$tabName': ${packages.size} packages - ${packages.take(3)}" + if (packages.size > 3) "..." else "")
-            }
-
-            var foldersCreated = 0
-            var appsMovedToFolders = 0
-
-            // Get existing drawer folders (with timeout to prevent hanging)
-            val existingFolders = try {
-                withTimeout(10000) {
-                    // 10 second timeout
-                    drawerFolderService.getAllFolders()
-                }
-            } catch (e: TimeoutCancellationException) {
-                android.util.Log.e(TAG, "Timeout getting existing folders, aborting sync to prevent duplicates")
-                return@withContext SyncResult(
-                    success = false,
-                    message = "Timeout reading existing folders, sync aborted",
-                    foldersCreated = 0,
-                    appsMovedToFolders = 0,
-                )
-            }
-            val existingFolderMap = existingFolders.associateBy { it.title.toString() }
-
-            // Build app lookup map for fast access
-            val appsByPackage = if (allApps != null) {
-                // Use provided apps (FAST - no system calls)
-                allApps.filter { it.componentName != null }
-                    .groupBy { it.componentName!!.packageName }
-            } else {
-                // Fallback: create AppInfo from scratch (SLOW)
-                android.util.Log.w(TAG, "No apps provided, creating AppInfo from scratch (slow)")
-                val userCache = UserCache.INSTANCE.get(context)
-                val launcherApps = context.getSystemService(android.content.pm.LauncherApps::class.java)
-
-                categorizations.keys.flatMap { packageName ->
-                    userCache.userProfiles.flatMap { userHandle ->
-                        try {
-                            launcherApps?.getActivityList(packageName, userHandle)
-                                ?.map { AppInfo(context, it, userHandle) } ?: emptyList()
-                        } catch (e: Exception) {
-                            emptyList()
-                        }
-                    }
-                }.filter { it.componentName != null }
-                    .groupBy { it.componentName!!.packageName }
-            }
-
-            // Build icon map
-            val customTabs = TabDatabase.getInstance(context).tabDao().getAllCustomTabs()
-            val tabIconMap = customTabs.associate { it.name to it.icon }
-
-            // Sync to drawer folders if enabled
-            if (shouldSyncToDrawer()) {
-                syncToDrawer(appsByTab, appsByPackage, existingFolderMap, tabIconMap)
-                    .also { result ->
-                        foldersCreated += result.first
-                        appsMovedToFolders += result.second
-                    }
-            }
-
-            // TODO: Sync to home screen folders if enabled
-            if (shouldSyncToHomeScreen()) {
-                LLMLogger.logWarning(
+            try {
+                val syncMode = getSyncMode()
+                LLMLogger.logInfo(
                     provider = "CategoryFolderSync",
-                    operation = "SYNC_HOME_SCREEN",
-                    message = "Home screen folder sync not yet implemented",
+                    operation = "SYNC",
+                    message = "Starting folder sync for ${categorizations.size} categorizations (mode: ${syncMode.displayName})",
+                )
+
+                if (!shouldSyncToDrawer() && !shouldSyncToHomeScreen()) {
+                    LLMLogger.logWarning(
+                        provider = "CategoryFolderSync",
+                        operation = "SYNC",
+                        message = "No sync mode enabled",
+                    )
+                    return@withContext SyncResult(
+                        success = false,
+                        message = "No sync mode enabled",
+                        foldersCreated = 0,
+                        appsMovedToFolders = 0,
+                    )
+                }
+
+                // Group apps by tab, excluding "Other" and system categories
+                val appsByTab = categorizations.entries
+                    .filter { (_, tabName) ->
+                        // Exclude "Other" tab and empty tab names
+                        tabName.isNotEmpty() && tabName != "Other"
+                    }
+                    .groupBy(
+                        keySelector = { it.value },
+                        valueTransform = { it.key },
+                    )
+
+                android.util.Log.d(TAG, "Categorizations: ${categorizations.size} total, ${appsByTab.size} tabs")
+                appsByTab.forEach { (tabName, packages) ->
+                    android.util.Log.d(TAG, "Tab '$tabName': ${packages.size} packages - ${packages.take(3)}" + if (packages.size > 3) "..." else "")
+                }
+
+                var foldersCreated = 0
+                var appsMovedToFolders = 0
+
+                // Get existing drawer folders (with timeout to prevent hanging)
+                val existingFolders = try {
+                    withTimeout(10000) {
+                        // 10 second timeout
+                        drawerFolderService.getAllFolders()
+                    }
+                } catch (e: TimeoutCancellationException) {
+                    android.util.Log.e(TAG, "Timeout getting existing folders, aborting sync to prevent duplicates")
+                    return@withContext SyncResult(
+                        success = false,
+                        message = "Timeout reading existing folders, sync aborted",
+                        foldersCreated = 0,
+                        appsMovedToFolders = 0,
+                    )
+                }
+                val existingFolderMap = existingFolders.associateBy { it.title.toString() }
+
+                // Build app lookup map for fast access
+                val appsByPackage = if (allApps != null) {
+                    // Use provided apps (FAST - no system calls)
+                    allApps.filter { it.componentName != null }
+                        .groupBy { it.componentName!!.packageName }
+                } else {
+                    // Fallback: create AppInfo from scratch (SLOW)
+                    android.util.Log.w(TAG, "No apps provided, creating AppInfo from scratch (slow)")
+                    val userCache = UserCache.INSTANCE.get(context)
+                    val launcherApps = context.getSystemService(android.content.pm.LauncherApps::class.java)
+
+                    categorizations.keys.flatMap { packageName ->
+                        userCache.userProfiles.flatMap { userHandle ->
+                            try {
+                                launcherApps?.getActivityList(packageName, userHandle)
+                                    ?.map { AppInfo(context, it, userHandle) } ?: emptyList()
+                            } catch (e: Exception) {
+                                emptyList()
+                            }
+                        }
+                    }.filter { it.componentName != null }
+                        .groupBy { it.componentName!!.packageName }
+                }
+
+                // Build icon map
+                val customTabs = TabDatabase.getInstance(context).tabDao().getAllCustomTabs()
+                val tabIconMap = customTabs.associate { it.name to it.icon }
+
+                // Sync to drawer folders if enabled
+                if (shouldSyncToDrawer()) {
+                    syncToDrawer(appsByTab, appsByPackage, existingFolderMap, tabIconMap)
+                        .also { result ->
+                            foldersCreated += result.first
+                            appsMovedToFolders += result.second
+                        }
+                }
+
+                // TODO: Sync to home screen folders if enabled
+                if (shouldSyncToHomeScreen()) {
+                    LLMLogger.logWarning(
+                        provider = "CategoryFolderSync",
+                        operation = "SYNC_HOME_SCREEN",
+                        message = "Home screen folder sync not yet implemented",
+                    )
+                }
+
+                val result = SyncResult(
+                    success = true,
+                    message = "Synced $appsMovedToFolders apps to $foldersCreated folders (mode: ${syncMode.displayName})",
+                    foldersCreated = foldersCreated,
+                    appsMovedToFolders = appsMovedToFolders,
+                )
+
+                LLMLogger.logInfo(
+                    provider = "CategoryFolderSync",
+                    operation = "SYNC",
+                    message = result.message,
+                )
+
+                // Reload app drawer to display new/updated folders
+                reloadHelper.reloadGrid()
+                android.util.Log.d(TAG, "Triggered app drawer reload to display folders")
+
+                result
+            } catch (e: Exception) {
+                LLMLogger.logError(
+                    provider = "CategoryFolderSync",
+                    operation = "SYNC",
+                    error = e,
+                )
+
+                SyncResult(
+                    success = false,
+                    message = "Folder sync failed: ${e.message}",
+                    foldersCreated = 0,
+                    appsMovedToFolders = 0,
+                    error = e,
                 )
             }
-
-            val result = SyncResult(
-                success = true,
-                message = "Synced $appsMovedToFolders apps to $foldersCreated folders (mode: ${syncMode.displayName})",
-                foldersCreated = foldersCreated,
-                appsMovedToFolders = appsMovedToFolders,
-            )
-
-            LLMLogger.logInfo(
-                provider = "CategoryFolderSync",
-                operation = "SYNC",
-                message = result.message,
-            )
-
-            // Reload app drawer to display new/updated folders
-            reloadHelper.reloadGrid()
-            android.util.Log.d(TAG, "Triggered app drawer reload to display folders")
-
-            result
-        } catch (e: Exception) {
-            LLMLogger.logError(
-                provider = "CategoryFolderSync",
-                operation = "SYNC",
-                error = e,
-            )
-
-            SyncResult(
-                success = false,
-                message = "Folder sync failed: ${e.message}",
-                foldersCreated = 0,
-                appsMovedToFolders = 0,
-                error = e,
-            )
         }
-        } // syncMutex.withLock
     }
 
     /**
