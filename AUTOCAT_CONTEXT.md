@@ -326,6 +326,7 @@ Accuracy:
 
 #### 🔄 In Progress
 - [x] Fixed build errors (missing imports)
+- [x] **FIXED**: Corrected APK naming (Lawnchair -> AutoCat) in build.gradle
 - [ ] **CURRENT**: Build and compilation test (GitHub Actions running - Run #19925486170)
 - [ ] Verify build succeeds with all recent changes
 
@@ -336,6 +337,7 @@ Accuracy:
 - [ ] Test folder sync (drawer mode thoroughly tested, home screen needs testing)
 - [ ] Test learning system with user corrections
 - [ ] Verify developer diagnostics UI works correctly
+- [ ] **Verify fix for crash on launch** (Needs logs if persists)
 
 #### 🚀 Future Enhancements
 - [ ] Add retry logic with exponential backoff
