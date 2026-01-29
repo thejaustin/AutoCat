@@ -1,7 +1,7 @@
 # AutoCat Development Context & Memory
 **Last Updated**: December 4, 2025
 **Project**: AutoCat - AI-Powered App Categorization for Android Launcher
-**Base**: Lawnchair 15 (15-dev branch)
+**Base**: Lawnchair 16 (16-dev branch)
 **Environment**: Termux on Android
 
 ---
@@ -12,8 +12,8 @@
 - **Name**: AutoCat
 - **Purpose**: Intelligent app categorization for Android launchers
 - **Tech Stack**: Kotlin, Android, Room DB, Coroutines, 4 LLM providers
-- **Branch**: 15-dev
-- **Version**: 15.0 (beta)
+- **Branch**: 16-dev
+- **Version**: 16.0 (beta)
 
 ### Current Working Directory
 ```
@@ -497,7 +497,7 @@ adb shell "run-as com.app.lawnchair sqlite3 /data/data/com.app.lawnchair/databas
    ```bash
    git add .
    git commit -m "feat: description of change"
-   git push origin 15-dev
+   git push origin 16-dev
    ```
 
 3. **Wait for GitHub Actions**
