@@ -116,7 +116,7 @@ class FolderService @Inject constructor(
     }
 
     override fun close() {
-        TODO("Not yet implemented")
+        // No resources to release
     }
 
     companion object {
