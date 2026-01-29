@@ -586,21 +586,16 @@ adb shell "run-as com.app.lawnchair sqlite3 /data/data/com.app.lawnchair/databas
 
 ## 📝 Session Notes
 
-### Current Session Context (Dec 4, 2025)
+### Current Session Context (Jan 28, 2026)
 **Completed This Session:**
-- ✅ Merged Gemini CLI and Claude Code knowledge management systems
-- ✅ Created unified context files (AUTOCAT_CONTEXT.md, .claude/README.md)
-- ✅ **SECURITY INCIDENT RESOLVED**: Removed exposed API key from git history
-- ✅ Installed pre-commit hook to prevent future secret exposure
-- ✅ Applied code formatting (spotless)
-- ✅ Force-pushed clean git history (no secrets)
-- ✅ Updated TODOs to reflect work done between Gemini/Claude sessions
+- ✅ Fixed APK naming issue in build.gradle (Lawnchair -> AutoCat)
+- ✅ **Fixed crash on launch**: Implemented `FolderService.close()`
+- ✅ Pushed all fixes to `16-dev` branch
+- ✅ Updated context files
 
 **Current Status:**
-- 🔄 GitHub Actions build in progress (testing compilation)
-- 📝 Context files secured in .gitignore (device-local only)
-- 🔐 Pre-commit hook scanning for secrets
-- ⏭️ Next: Wait for build, then test recent features
+- 🔄 GitHub Actions build in progress (testing crash fix + APK rename)
+- ⏭️ Next: Wait for build, download APK, and verify fix
 
 ### Important Reminders
 - NEVER build directly - use GitHub Actions
