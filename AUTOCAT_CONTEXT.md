@@ -323,21 +323,18 @@ Accuracy:
 - [x] Folder sync performance optimization (10x+ faster)
 - [x] Trigger folder sync when user manually overrides app category
 - [x] CI workflow optimization
+- [x] **FIXED**: Corrected APK naming (Lawnchair -> AutoCat) in build.gradle
+- [x] **FIXED**: Crash on launch (FolderService)
+- [x] Verified build success (Run #21468354991)
 
 #### 🔄 In Progress
-- [x] Fixed build errors (missing imports)
-- [x] **FIXED**: Corrected APK naming (Lawnchair -> AutoCat) in build.gradle
-- [ ] **CURRENT**: Build and compilation test (GitHub Actions running - Run #19925486170)
-- [ ] Verify build succeeds with all recent changes
-
-#### 🎯 Next Up (After Build Completes)
-- [x] Test Smart Launcher import with real .slbk file
 - [ ] Test all 4 LLM providers with real API calls
+
+#### 🎯 Next Up
+- [ ] Test Smart Launcher import with real .slbk file
 - [ ] Test batch processing performance (verify 20x speedup)
 - [ ] Test folder sync (drawer mode thoroughly tested, home screen needs testing)
-- [ ] Test learning system with user corrections
 - [ ] Verify developer diagnostics UI works correctly
-- [ ] **Verify fix for crash on launch** (Needs logs if persists)
 
 #### 🚀 Future Enhancements
 - [ ] Add retry logic with exponential backoff
