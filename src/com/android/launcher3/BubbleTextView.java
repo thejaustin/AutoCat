@@ -306,7 +306,6 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     public BubbleTextView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mActivity = ActivityContext.lookupContext(context);
-        FastBitmapDrawable.setFlagHoverEnabled(enableCursorHoverStates());
         pref2 = PreferenceManager2.getInstance(context);
         mMinimizedStateDescription = getContext().getString(
                 R.string.app_minimized_state_description);
