@@ -322,7 +322,8 @@ Accuracy:
 - [x] Batch progress improvements
 - [x] Folder sync performance optimization (10x+ faster)
 - [x] Trigger folder sync when user manually overrides app category
-- [x] CI workflow optimization
+- [x] CI workflow optimization (Corrected framework-16.jar patching and updated cache settings)
+- [x] **FIXED**: Gradle wrapper version (Pinned to 9.2.1 for CI stability)
 - [x] **FIXED**: Corrected APK naming (Lawnchair -> AutoCat) in build.gradle
 - [x] **FIXED**: Crash on launch (FolderService)
 - [x] Verified build success (Run #21468354991)

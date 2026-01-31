@@ -38,13 +38,9 @@ jobs:
         with:
           submodules: true
           fetch-depth: 1
-      - name: Patch submodule for framework-15
+      - name: Patch submodule for framework-16
         run: |
-          # Patch submodule build files to use framework-15.jar instead of framework-16.jar
-          # This is needed until a proper fork of the submodule is created
-          find platform_frameworks_libs_systemui -name "build.gradle" -exec \
-            sed -i "s/framework-16.jar/framework-15.jar/g" {} \;
-          # Also fix DSL syntax issues (abortOnError false -> abortOnError = false)
+          # Fix DSL syntax issues (abortOnError false -> abortOnError = false)
           find platform_frameworks_libs_systemui -name "build.gradle" -exec \
             sed -i "s/abortOnError false/abortOnError = false/g" {} \;
           # Remove package attribute from manifests as it's no longer supported for namespace
@@ -66,7 +62,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@612dd05f89ee058bebdfa61e9263939766404537 # v5
         with:
           cache-encryption-key: Da25KUVSE5jbGds2zXmfXw==
-          cache-read-only: ${{ github.ref != 'refs/heads/15-dev' }}
+          cache-read-only: ${{ github.ref != 'refs/heads/16-dev' }}
       - name: Write sign info
         run: |
           if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
@@ -94,11 +90,9 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
         with:
           submodules: true
-      - name: Patch submodule for framework-15
+      - name: Patch submodule for framework-16
         run: |
-          # Patch submodule build files to use framework-15.jar instead of framework-16.jar
-          find platform_frameworks_libs_systemui -name "build.gradle" -exec \
-            sed -i "s/framework-16.jar/framework-15.jar/g" {} \;
+          # Fix DSL syntax issues (abortOnError false -> abortOnError = false)
           find platform_frameworks_libs_systemui -name "build.gradle" -exec \
             sed -i "s/abortOnError false/abortOnError = false/g" {} \;
           # Remove package attribute from manifests as it's no longer supported for namespace
