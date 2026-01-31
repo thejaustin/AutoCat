@@ -71,6 +71,7 @@ import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences.rememberTransformAdapter
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.controls.ListPreference
 import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
 import app.lawnchair.ui.preferences.components.controls.SliderPreference
@@ -248,6 +249,21 @@ fun LLMSettingsPreferences(
                             )
                         }
                     }
+                }
+            }
+
+            // ===== ACTIONS =====
+            item {
+                PreferenceGroup(heading = "Actions") {
+                    ClickablePreference(
+                        label = "Restart Categorization",
+                        description = "Retry failed batches and re-evaluate all apps",
+                        onClick = {
+                            scope.launch {
+                                categorizationManager?.recategorizeAll()
+                            }
+                        },
+                    )
                 }
             }
 

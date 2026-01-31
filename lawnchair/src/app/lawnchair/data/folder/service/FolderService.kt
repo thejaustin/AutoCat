@@ -51,7 +51,7 @@ class FolderService @Inject constructor(
         )
     }
 
-    suspend fun saveFolderInfo(folderInfo: FolderInfo) = withContext(Dispatchers.IO) {
+    suspend fun saveFolderInfo(folderInfo: FolderInfo): Long = withContext(Dispatchers.IO) {
         folderDao.insertFolder(FolderInfoEntity(title = folderInfo.title.toString()))
     }
 

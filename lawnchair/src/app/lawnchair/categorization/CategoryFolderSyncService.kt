@@ -296,20 +296,10 @@ class CategoryFolderSyncService(
                         title = folderName
                         // Launcher3 auto-generates ID if not set
                     }
-                    drawerFolderService.saveFolderInfo(newFolder)
+                    val folderIdLong = drawerFolderService.saveFolderInfo(newFolder)
+                    val folderId = folderIdLong.toInt()
 
-                    // Use database query instead of timeout-based getAllFolders() - much faster
-                    kotlinx.coroutines.delay(100) // Small delay for DB write
-                    val folderId = try {
-                        // Get folder ID from Room directly (no timeout)
-                        val allFolders = drawerFolderService.getAllFolders()
-                        allFolders.find { it.title.toString() == folderName }?.id
-                    } catch (e: Exception) {
-                        android.util.Log.w(TAG, "Failed to get folder ID for $folderName", e)
-                        null
-                    }
-
-                    if (folderId != null) {
+                    if (folderId > 0) {
                         drawerFolderService.updateFolderWithItems(
                             folderInfoId = folderId,
                             title = folderName,
@@ -317,6 +307,8 @@ class CategoryFolderSyncService(
                         )
                         android.util.Log.d(TAG, "Created drawer folder: $folderName (${apps.size} apps)")
                         foldersCreated++
+                    } else {
+                        android.util.Log.w(TAG, "Failed to get valid folder ID for $folderName (id=$folderId)")
                     }
                 }
 

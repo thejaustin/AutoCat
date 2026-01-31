@@ -700,7 +700,7 @@ Respond ONLY in this JSON format:
                     "generationConfig",
                     JSONObject().apply {
                         put("temperature", 0.2) // Lower temperature for more consistent categorization
-                        put("maxOutputTokens", 200)
+                        put("maxOutputTokens", 2048)
                     },
                 )
             }

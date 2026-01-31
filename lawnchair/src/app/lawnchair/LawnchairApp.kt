@@ -71,6 +71,11 @@ class LawnchairApp : Application() {
         Flowerpot.Manager.getInstance(this)
     }
 
+    override fun onTerminate() {
+        super.onTerminate()
+        app.lawnchair.categorization.llm.LLMLogger.cleanup()
+    }
+
     fun hideClockInStatusBar() {
         if (!isRecentsEnabled) return
         try {

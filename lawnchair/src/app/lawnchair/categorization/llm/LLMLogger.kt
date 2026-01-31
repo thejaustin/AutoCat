@@ -211,9 +211,10 @@ object LLMLogger {
         // Add to buffer
         logBuffer.offer(entry)
 
-        // Trim buffer if too large
-        while (logBuffer.size > MAX_LOG_ENTRIES) {
-            logBuffer.poll()
+        // Trim buffer if too large (amortized check to avoid O(N) on every insert)
+        // Only trim when we're significantly over the limit to reduce overhead
+        if (logBuffer.size > MAX_LOG_ENTRIES + 20) {
+            repeat(20) { logBuffer.poll() }
         }
 
         // Emit to flow
