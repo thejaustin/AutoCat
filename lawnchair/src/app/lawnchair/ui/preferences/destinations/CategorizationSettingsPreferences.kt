@@ -34,6 +34,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -139,6 +140,8 @@ fun CategorizationSettingsPreferences(
             }
         }
     }
+
+    val devMode by prefs.autoCatDevMode.getAdapter().state
 
     PreferenceScaffold(
         label = "AI Categorization",
@@ -333,7 +336,6 @@ fun CategorizationSettingsPreferences(
                 }
             }
 
-            val devMode by prefs.autoCatDevMode.getAdapter().state
             if (devMode) {
                 item {
                     PreferenceGroup(heading = "Developer") {

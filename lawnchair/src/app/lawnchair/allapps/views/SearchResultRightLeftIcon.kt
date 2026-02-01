@@ -9,8 +9,8 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.ViewCompat
-import app.lawnchair.font.FontManager
 import app.lawnchair.autoCatLauncher
+import app.lawnchair.font.FontManager
 import app.lawnchair.search.adapter.SearchTargetCompat
 import app.lawnchair.util.AppInfo
 import app.lawnchair.util.AppInfoHelper

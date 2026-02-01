@@ -31,8 +31,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import app.lawnchair.gestures.type.GestureType
 import app.lawnchair.autoCatLauncher
+import app.lawnchair.gestures.type.GestureType
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.asState

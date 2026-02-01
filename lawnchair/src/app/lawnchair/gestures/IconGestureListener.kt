@@ -3,9 +3,9 @@ package app.lawnchair.gestures
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
+import app.lawnchair.autoCatLauncher
 import app.lawnchair.gestures.config.GestureHandlerConfig
 import app.lawnchair.gestures.type.GestureType
-import app.lawnchair.autoCatLauncher
 import app.lawnchair.preferences2.PreferenceManager2
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.util.VibratorWrapper

@@ -44,8 +44,8 @@ import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.root.RootHelperManager
 import app.lawnchair.root.RootNotAvailableException
 import app.lawnchair.theme.ThemeProvider
-import app.lawnchair.ui.popup.LauncherOptionsPopup
 import app.lawnchair.ui.popup.AutoCatShortcut
+import app.lawnchair.ui.popup.LauncherOptionsPopup
 import app.lawnchair.util.getThemedIconPacksInstalled
 import app.lawnchair.util.unsafeLazy
 import app.lawnchair.views.AutoCatFloatingSurfaceView

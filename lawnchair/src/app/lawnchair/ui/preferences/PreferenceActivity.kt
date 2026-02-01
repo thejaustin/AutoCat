@@ -25,8 +25,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
-import app.lawnchair.ui.theme.EdgeToEdge
 import app.lawnchair.ui.theme.AutoCatTheme
+import app.lawnchair.ui.theme.EdgeToEdge
 import com.google.accompanist.adaptive.calculateDisplayFeatures
 import kotlinx.serialization.json.Json
 

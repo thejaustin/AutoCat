@@ -1,8 +1,8 @@
 package app.lawnchair.categorization.llm
 
 import android.util.Log
-import kotlinx.coroutines.delay
 import kotlin.math.pow
+import kotlinx.coroutines.delay
 
 /**
  * Utility functions for LLM operations.

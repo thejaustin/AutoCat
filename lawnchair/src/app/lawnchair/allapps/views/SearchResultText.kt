@@ -5,8 +5,8 @@ import android.util.AttributeSet
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.ViewCompat
-import app.lawnchair.font.FontManager
 import app.lawnchair.autoCatLauncher
+import app.lawnchair.font.FontManager
 import app.lawnchair.search.adapter.SPACE
 import app.lawnchair.search.adapter.SPACE_MINI
 import app.lawnchair.search.adapter.SearchTargetCompat

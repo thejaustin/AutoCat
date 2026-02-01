@@ -4,8 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.os.Bundle
-import app.lawnchair.FeedBridge
 import app.lawnchair.AutoCatLauncher
+import app.lawnchair.FeedBridge
 import app.lawnchair.preferences2.PreferenceManager2
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherPrefs

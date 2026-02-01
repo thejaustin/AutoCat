@@ -3,9 +3,9 @@ package app.lawnchair.deck
 import android.content.Context
 import android.util.Log
 import app.lawnchair.AutoCatLauncher
-import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.autoCatLauncher
 import app.lawnchair.autoCatLauncherNullable
+import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.util.restartLauncher
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState

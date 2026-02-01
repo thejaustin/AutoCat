@@ -8,12 +8,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import app.lawnchair.autoCatLauncher
 import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.flowerpot.Flowerpot
-import app.lawnchair.autoCatLauncher
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
 import com.android.launcher3.InvariantDeviceProfile.OnIDPChangeListener
