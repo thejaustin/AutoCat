@@ -207,8 +207,9 @@ fun CategorizationSettingsPreferences(
                         // Progress indicator
                         AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
                             Column {
+                                val currentPercentage = progress.progressPercentage
                                 LinearProgressIndicator(
-                                    progress = { progress.progressPercentage },
+                                    progress = { currentPercentage },
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                                 if (progress.isRunning) {
