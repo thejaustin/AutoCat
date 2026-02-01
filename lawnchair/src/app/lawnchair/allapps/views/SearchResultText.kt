@@ -17,7 +17,7 @@ class SearchResultText(context: Context, attrs: AttributeSet?) :
     LinearLayout(context, attrs),
     SearchResultView {
 
-    private val launcher = context.autoCatLauncher
+    private val launcher = (context as Context).autoCatLauncher
     private lateinit var title: TextView
 
     override fun onFinishInflate() {

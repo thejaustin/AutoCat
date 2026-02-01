@@ -207,7 +207,10 @@ fun CategorizationSettingsPreferences(
                         // Progress indicator
                         AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
                             Column {
-                                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                                LinearProgressIndicator(
+                                    progress = { progress.progressPercentage },
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
                                 if (progress.isRunning) {
                                     Text(
                                         text = "Processed: ${progress.processedCount}/${progress.totalCount}",

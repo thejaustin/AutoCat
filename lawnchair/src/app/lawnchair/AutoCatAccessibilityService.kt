@@ -41,3 +41,10 @@ class AutoCatAccessibilityService : AccessibilityService() {
         autoCatApp.accessibilityService = null
         super.onDestroy()
     }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
+
+    override fun onInterrupt() {}
+
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+}

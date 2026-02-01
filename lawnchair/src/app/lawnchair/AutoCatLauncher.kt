@@ -95,7 +95,7 @@ class AutoCatLauncher : QuickstepLauncher() {
     private val prefs by unsafeLazy { PreferenceManager.getInstance(this) }
     private val preferenceManager2 by unsafeLazy { PreferenceManager2.getInstance(this) }
     private val insetsController: WindowInsetsControllerCompat by lazy {
-        val window = launcher.window
+        val window = this.window
             ?: throw Exception("WindowInsetsControllerCompat not available.")
         WindowInsetsControllerCompat(window, rootView)
     }
@@ -161,7 +161,7 @@ class AutoCatLauncher : QuickstepLauncher() {
         preferenceManager2.enableFeed.get().distinctUntilChanged().onEach { enable ->
             defaultOverlay.setEnableFeed(enable)
         }.launchIn(scope = lifecycleScope)
-        launcher.stateManager.addStateListener(clearSearchStateListener)
+        this.stateManager.addStateListener(clearSearchStateListener)
 
         if (prefs.autoLaunchRoot.get()) {
             lifecycleScope.launch {
@@ -180,7 +180,7 @@ class AutoCatLauncher : QuickstepLauncher() {
                     hide(WindowInsetsCompat.Type.statusBars())
                 }
             }
-            with(launcher.stateManager) {
+            with(this@AutoCatLauncher.stateManager) {
                 if (it) {
                     removeStateListener(noStatusBarStateListener)
                 } else {
@@ -190,7 +190,7 @@ class AutoCatLauncher : QuickstepLauncher() {
         }.launchIn(scope = lifecycleScope)
 
         preferenceManager2.statusBarClock.get().onEach {
-            with(launcher.stateManager) {
+            with(this@AutoCatLauncher.stateManager) {
                 if (it) {
                     addStateListener(statusBarClockListener)
                 } else {
@@ -201,7 +201,7 @@ class AutoCatLauncher : QuickstepLauncher() {
             }
         }
         preferenceManager2.rememberPosition.get().onEach {
-            with(launcher.stateManager) {
+            with(this@AutoCatLauncher.stateManager) {
                 if (it) {
                     addStateListener(rememberPositionStateListener)
                 } else {
@@ -227,8 +227,8 @@ class AutoCatLauncher : QuickstepLauncher() {
             hasBackGesture = handler !is GestureHandlerConfig.NoOp
         }
 
-        LauncherOptionsPopup.restoreMissingPopupOptions(launcher)
-        LauncherOptionsPopup.migrateLegacyPreferences(launcher)
+        LauncherOptionsPopup.restoreMissingPopupOptions(this)
+        LauncherOptionsPopup.migrateLegacyPreferences(this)
 
         // Handle update from version 12 Alpha 4 to version 12 Alpha 5.
         if (
@@ -326,7 +326,7 @@ class AutoCatLauncher : QuickstepLauncher() {
         val showWallpaperCarousel = "+carousel" in preferenceManager2.launcherPopupOrder.firstBlocking()
 
         if (showWallpaperCarousel) {
-            show<AutoCatLauncher>(
+            this.show<AutoCatLauncher>(
                 this,
                 getPopupTarget(x, y),
                 OptionsPopupView.getOptions(this),

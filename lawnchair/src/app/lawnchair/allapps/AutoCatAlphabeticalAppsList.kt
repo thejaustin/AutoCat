@@ -125,9 +125,9 @@ class AutoCatAlphabeticalAppsList<T>(
     }
 
     init {
-        context.autoCatLauncher.deviceProfile.inv.addOnChangeListener(this)
+        (context as Context).autoCatLauncher.deviceProfile.inv.addOnChangeListener(this)
         try {
-            prefs2.hiddenApps.onEach(launchIn = context.autoCatLauncher.lifecycleScope) {
+            prefs2.hiddenApps.onEach(launchIn = (context as Context).autoCatLauncher.lifecycleScope) {
                 hiddenApps = it
                 try {
                     onAppsUpdated()

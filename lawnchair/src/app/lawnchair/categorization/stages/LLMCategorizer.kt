@@ -8,6 +8,7 @@ import app.lawnchair.categorization.llm.AppBatchInfo
 import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.ConfidenceCalibrator
 import app.lawnchair.categorization.llm.GoogleAIProvider
+import app.lawnchair.categorization.llm.LLMException
 import app.lawnchair.categorization.llm.LLMProvider
 import app.lawnchair.categorization.llm.LLMUtils
 import app.lawnchair.categorization.llm.OpenAIProvider
