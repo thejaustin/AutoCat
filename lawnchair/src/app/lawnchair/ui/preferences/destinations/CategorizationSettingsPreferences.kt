@@ -77,6 +77,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CategorizationSettingsPreferences(
     modifier: Modifier = Modifier,
@@ -207,9 +208,8 @@ fun CategorizationSettingsPreferences(
                         // Progress indicator
                         AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
                             Column {
-                                val currentPercentage = progress.progressPercentage
                                 LinearProgressIndicator(
-                                    progress = { currentPercentage },
+                                    progress = { progress.progressPercentage },
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                                 if (progress.isRunning) {
