@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.AbstractComposeView
 import app.lawnchair.categorization.AppTabsController
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.AutoCatTheme
 import com.android.launcher3.pageindicators.Direction
 import com.android.launcher3.pageindicators.PageIndicator
 import com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip.OnActivePageChangedListener
@@ -24,7 +24,7 @@ class AppTabsHeaderView @JvmOverloads constructor(
 
     @Composable
     override fun Content() {
-        LawnchairTheme {
+        AutoCatTheme {
             AppTabsView(
                 onTabSelect = { page ->
                     // Notify listener (ActivityAllAppsContainerView) to switch page

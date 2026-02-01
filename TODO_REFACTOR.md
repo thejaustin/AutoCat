@@ -6,16 +6,16 @@ This document tracks planned internal code refactors to finalize the transition 
 
 - [ ] **Class Renaming**
   - Rename `LawnchairApp` to `AutoCatApp`.
-  - Rename `LawnchairLauncher` to `AutoCatLauncher`.
-  - Rename `LawnchairAccessibilityService` to `AutoCatAccessibilityService`.
-  - Rename `LawnchairBugReporter` to `AutoCatBugReporter`.
+  - Rename `AutoCatLauncher` to `AutoCatLauncher`.
+  - Rename `AutoCatAccessibilityService` to `AutoCatAccessibilityService`.
+  - Rename `AutoCatBugReporter` to `AutoCatBugReporter`.
   - Rename other utility classes prefixed with `Lawnchair`.
 
 - [ ] **Package/Directory Structure**
   - Consider migrating `app.lawnchair` package to `app.autocat` (High risk, requires extensive manifest and resource updates).
 
 - [ ] **Theme Renaming**
-  - Rename `@style/Theme.Lawnchair` to `@style/Theme.AutoCat`.
+  - Rename `@style/Theme.AutoCat` to `@style/Theme.AutoCat`.
 
 - [ ] **Manifest Cleanup**
   - Update all `android:name` references in `AndroidManifest.xml` after class renames.

@@ -18,7 +18,7 @@ package app.lawnchair.preferences2
 
 import android.content.Context
 import androidx.annotation.Discouraged
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.AutoCatLauncher
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.quickstep.TouchInteractionService
@@ -36,7 +36,7 @@ class ReloadHelper(private val context: Context) {
     }
 
     fun recreate() {
-        LawnchairLauncher.instance?.recreateIfNotScheduled()
+        AutoCatLauncher.instance?.recreateIfNotScheduled()
     }
 
     fun restart() {

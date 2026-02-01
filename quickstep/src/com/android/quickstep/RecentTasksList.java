@@ -71,8 +71,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.AutoCatApp;
+import app.lawnchair.compat.AutoCatQuickstepCompat;
 
 /**
  * Manages the recent task list from the system, caching it as necessary.
@@ -115,7 +115,7 @@ public class RecentTasksList implements WindowManagerProxy.DesktopVisibilityList
         mChangeId = 1;
         mSysUiProxy = sysUiProxy;
         mDesktopVisibilityController = desktopVisibilityController;
-        if (LawnchairApp.isRecentsEnabled()) {
+        if (AutoCatApp.isRecentsEnabled()) {
             final IRecentTasksListener recentTasksListener = new IRecentTasksListener.Stub() {
                 @Override
                 public void onRecentTasksChanged() throws RemoteException {

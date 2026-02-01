@@ -19,7 +19,7 @@ package app.lawnchair.preferences
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.AutoCatLauncher
 import app.lawnchair.font.FontCache
 import app.lawnchair.util.isOnePlusStock
 import com.android.launcher3.InvariantDeviceProfile
@@ -45,7 +45,7 @@ class PreferenceManager @Inject constructor(
     private val reloadGrid: () -> Unit = { idp.onPreferencesChanged(context) }
 
     private val recreate = {
-        LawnchairLauncher.instance?.recreateIfNotScheduled()
+        AutoCatLauncher.instance?.recreateIfNotScheduled()
         Unit
     }
 

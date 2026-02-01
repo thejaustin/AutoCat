@@ -149,24 +149,12 @@ final def buildCommit = providers.exec {
     commandLine('git', 'rev-parse', '--short=7', 'HEAD')
 }.standardOutput.asText.get().trim()
 
-final def ciBuild = System.getenv("CI") == "true"
-final def ciRef = System.getenv("GITHUB_REF") ?: ""
-final def ciRunNumber = System.getenv("GITHUB_RUN_NUMBER") ?: ""
-final def isReleaseBuild = ciBuild && ciRef.contains("beta")
+final def ciRunNumber = System.getenv("GITHUB_RUN_NUMBER") ?: "local"
 
 // AutoCat versioning
-final def lawnchairBaseVersion = "16.0"
-final def lawnchairDevStage = "dev"
-final def autocatBuildNumber = ciRunNumber ?: "local"
-final def autocatVersion = "autocat.${autocatBuildNumber}"
-final def autocatVersionName = "${lawnchairBaseVersion}.${lawnchairDevStage}-${autocatVersion}"
-
-// Keep original Lawnchair versioning logic variables for compatibility
-final def devReleaseName = ciBuild ? "Dev.(#${ciRunNumber})" : "Dev.(${buildCommit})"
-final def version = "16"
-final def releaseName = "Development 3 Release 2"
-final def versionDisplayName = ciBuild ? autocatVersionName : "${lawnchairBaseVersion}.${lawnchairDevStage}-autocat.dev"
-final def majorVersion = version
+final def baseVersion = "16-dev"
+final def versionDisplayName = "${baseVersion} (#${ciRunNumber})"
+final def majorVersion = "16"
 
 final def quickstepMinSdk = "29"
 final def quickstepMaxSdk = "36"
@@ -174,20 +162,13 @@ final def quickstepMaxSdk = "36"
 android {
     namespace = "com.android.launcher3"
     defaultConfig {
-        /*
-         * Lawnchair Launcher 16.0 Development 3 Release 2
-         * see CONTRIBUTING.md#versioning-scheme
-         */
         // AutoCat - Fork of Lawnchair Launcher 16.0
-        // Base versionCode: 16_00_01_03_02 (Lawnchair 16 Dev)
-        def autocatBuildCode = ciRunNumber ? (ciRunNumber.toInteger() % 100) : 0
-        versionCode 16_00_01_03_02 + autocatBuildCode
+        def autocatBuildCode = ciRunNumber != "local" ? (ciRunNumber.toInteger()) : 0
+        versionCode 160000 + autocatBuildCode
         versionName "${versionDisplayName}"
         buildConfigField "String", "VERSION_DISPLAY_NAME", "\"${versionDisplayName}\""
         buildConfigField "String", "MAJOR_VERSION", "\"${majorVersion}\""
         buildConfigField "String", "COMMIT_HASH", "\"${buildCommit}\""
-        buildConfigField "String", "AUTOCAT_VERSION", "\"${autocatVersion}\""
-        buildConfigField "String", "AUTOCAT_BUILD_NUMBER", "\"${autocatBuildNumber}\""
         buildConfigField "boolean", "ENABLE_AUTO_INSTALLS_LAYOUT", "false"
 
         manifestPlaceholders.quickstepMinSdk = quickstepMinSdk
@@ -330,7 +311,7 @@ android {
         }
 
         configureEach {
-            resValue("string", "launcher_component", "${applicationId}/app.lawnchair.LawnchairLauncher")
+            resValue("string", "launcher_component", "${applicationId}/app.lawnchair.AutoCatLauncher")
         }
     }
 

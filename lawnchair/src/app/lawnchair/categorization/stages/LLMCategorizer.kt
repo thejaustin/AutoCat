@@ -8,8 +8,8 @@ import app.lawnchair.categorization.llm.AppBatchInfo
 import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.ConfidenceCalibrator
 import app.lawnchair.categorization.llm.GoogleAIProvider
-import app.lawnchair.categorization.llm.LLMException
 import app.lawnchair.categorization.llm.LLMProvider
+import app.lawnchair.categorization.llm.LLMUtils
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.categorization.llm.ProviderCircuitBreaker
@@ -137,13 +137,24 @@ class LLMCategorizer(
 
                 android.util.Log.d(TAG, "Trying provider: ${provider.name}")
 
-                // Call LLM to categorize
-                val result = provider.categorizeApp(
-                    appName = appInfo.label,
-                    appPackage = appInfo.packageName,
-                    appDescription = appInfo.description,
-                    availableTabs = tabNames,
-                )
+                // Call LLM to categorize with retry logic
+                val result = LLMUtils.retryWithBackoff(
+                    maxRetries = MAX_RETRIES,
+                    initialDelayMs = INITIAL_RETRY_DELAY_MS,
+                    onRetry = { attempt, exception, nextDelayMs ->
+                        android.util.Log.w(
+                            TAG,
+                            "${provider.name} attempt $attempt failed for ${appInfo.packageName}, retrying in ${nextDelayMs}ms: ${exception.message}",
+                        )
+                    },
+                ) {
+                    provider.categorizeApp(
+                        appName = appInfo.label,
+                        appPackage = appInfo.packageName,
+                        appDescription = appInfo.description,
+                        availableTabs = tabNames,
+                    )
+                }
 
                 // Record success with circuit breaker
                 circuitBreaker.recordSuccess(provider.name)
@@ -354,22 +365,24 @@ class LLMCategorizer(
 
                             // Retry with exponential backoff
                             val batchStartTime = System.currentTimeMillis()
-                            val apiResults = retryWithBackoff(
-                                maxRetries = MAX_RETRIES,
-                                initialDelayMs = INITIAL_RETRY_DELAY_MS,
-                            ) {
-                                android.util.Log.d(
-                                    TAG,
-                                    "Batch $batchIndex/$totalBatches: Categorizing ${batch.size} apps with ${provider.name}",
-                                )
-                                try {
+                            val apiResults = try {
+                                LLMUtils.retryWithBackoff(
+                                    maxRetries = MAX_RETRIES,
+                                    initialDelayMs = INITIAL_RETRY_DELAY_MS,
+                                    onRetry = { attempt, exception, nextDelayMs ->
+                                        android.util.Log.w(
+                                            TAG,
+                                            "Batch $batchIndex: ${provider.name} attempt $attempt failed, retrying in ${nextDelayMs}ms: ${exception.message}",
+                                        )
+                                    },
+                                ) {
                                     val result = provider.categorizeAppBatch(batchInfo, tabNames)
                                     circuitBreaker.recordSuccess(provider.name)
                                     result
-                                } catch (e: Exception) {
-                                    circuitBreaker.recordFailure(provider.name, e)
-                                    throw e // Re-throw to trigger retryWithBackoff's retry logic
                                 }
+                            } catch (e: Exception) {
+                                circuitBreaker.recordFailure(provider.name, e)
+                                null
                             }
                             val batchDuration = System.currentTimeMillis() - batchStartTime
 
@@ -494,42 +507,6 @@ class LLMCategorizer(
         val remainingBatches = totalBatches - currentBatch
 
         return avgTimePerBatch * remainingBatches
-    }
-
-    /**
-     * Retries an operation with exponential backoff.
-     *
-     * @param maxRetries Maximum number of retry attempts
-     * @param initialDelayMs Initial delay in milliseconds (doubles each retry)
-     * @param operation The operation to retry
-     * @return Result of the operation, or null if all retries failed
-     */
-    private suspend fun <T> retryWithBackoff(
-        maxRetries: Int,
-        initialDelayMs: Long,
-        operation: suspend () -> T,
-    ): T? {
-        var lastException: Exception? = null
-
-        repeat(maxRetries) { attempt ->
-            try {
-                return operation()
-            } catch (e: Exception) {
-                lastException = e
-                if (attempt < maxRetries - 1) {
-                    // True exponential backoff: delay = initialDelay * 2^attempt
-                    val currentDelay = (initialDelayMs * 2.0.pow(attempt.toDouble())).toLong()
-                    android.util.Log.w(
-                        TAG,
-                        "Attempt ${attempt + 1}/$maxRetries failed, retrying in ${currentDelay}ms: ${e.message}",
-                    )
-                    delay(currentDelay)
-                }
-            }
-        }
-
-        android.util.Log.e(TAG, "All $maxRetries retry attempts failed", lastException)
-        return null
     }
 
     /**

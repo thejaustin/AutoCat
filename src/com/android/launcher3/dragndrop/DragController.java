@@ -50,7 +50,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.AutoCatApp;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
 
@@ -135,7 +135,7 @@ public abstract class DragController<T extends ActivityContext>
      */
     public DragController(T activity) {
         mActivity = activity;
-        pref2 = PreferenceManager2.getInstance(LawnchairApp.getInstance());
+        pref2 = PreferenceManager2.getInstance(AutoCatApp.getInstance());
     }
 
     /**

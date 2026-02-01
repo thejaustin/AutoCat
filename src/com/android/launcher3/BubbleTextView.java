@@ -114,7 +114,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.AutoCatApp;
 import app.lawnchair.font.FontManager;
 import app.lawnchair.gestures.IconGestureListener;
 import app.lawnchair.preferences.PreferenceManager;

@@ -26,6 +26,7 @@ import app.lawnchair.ui.preferences.destinations.AppDrawerPreferences
 import app.lawnchair.ui.preferences.destinations.CategorizationSettingsPreferences
 import app.lawnchair.ui.preferences.destinations.CustomIconShapePreference
 import app.lawnchair.ui.preferences.destinations.DebugMenuPreferences
+import app.lawnchair.ui.preferences.destinations.DiagnosticsPreferences
 import app.lawnchair.ui.preferences.destinations.DockPreferences
 import app.lawnchair.ui.preferences.destinations.DummyPreference
 import app.lawnchair.ui.preferences.destinations.ExperimentalFeaturesPreferences
@@ -126,6 +127,8 @@ fun PreferenceNavigation(
             SelectAppsForDrawerFolder(folderInfoId)
         }
         composable<AppDrawerFolder> { AppDrawerFoldersPreference() }
+        composable<AppDrawerLLMSettings> { LLMSettingsPreferences() }
+        composable<AppDrawerDiagnostics> { DiagnosticsPreferences() }
 
         composable<Search> { backStackEntry ->
             val route: Search = backStackEntry.toRoute()

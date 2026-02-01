@@ -312,6 +312,11 @@ Accuracy:
 ### TODO (High Priority)
 
 #### ✅ Recently Completed (Between Sessions)
+- [x] Overhauled versioning system: `160000 + Build#` and `16-dev (#Build#)`
+- [x] Branding Refactor: Renamed core classes to `AutoCatApp`, `AutoCatLauncher`, `AutoCatAccessibilityService`, `AutoCatBugReporter`
+- [x] Implemented LLM Retry Logic: Added `LLMUtils.withRetry` with exponential backoff and 429 handling
+- [x] Added Folder Sync Mode UI: Users can now choose between Drawer, Home Screen, or Both
+- [x] Created `GITHUB_ISSUES_BACKLOG.md` to track all project tasks locally
 - [x] Smart Launcher backup importer (import categories from Smart Launcher)
 - [x] Reorganize categorization settings for better UX
 - [x] Developer mode with diagnostics UI

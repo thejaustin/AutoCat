@@ -20,7 +20,7 @@ import static android.app.ActivityManager.LOCK_TASK_MODE_LOCKED;
 import static android.app.ActivityManager.LOCK_TASK_MODE_NONE;
 import static android.app.ActivityManager.RECENT_IGNORE_UNAVAILABLE;
 import static android.app.ActivityTaskManager.getService;
-import static app.lawnchair.compat.LawnchairQuickstepCompat.ATLEAST_R;
+import static app.lawnchair.compat.AutoCatQuickstepCompat.ATLEAST_R;
 
 import android.annotation.NonNull;
 import android.annotation.Nullable;

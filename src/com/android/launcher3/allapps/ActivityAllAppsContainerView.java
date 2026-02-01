@@ -106,7 +106,7 @@ import java.util.stream.Stream;
 
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import app.lawnchair.allapps.AppTabsHeaderView;
-import app.lawnchair.allapps.LawnchairAlphabeticalAppsList;
+import app.lawnchair.allapps.AutoCatAlphabeticalAppsList;
 import app.lawnchair.categorization.AppTabsController;
 import app.lawnchair.font.FontManager;
 import app.lawnchair.preferences.PreferenceManager;
@@ -273,7 +273,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
         // Initialize MAIN adapter
         mAH.add(new AdapterHolder(AdapterHolder.MAIN,
-                new LawnchairAlphabeticalAppsList<>(mActivityContext,
+                new AutoCatAlphabeticalAppsList<>(mActivityContext,
                         mAllAppsStore,
                         null,
                         mPrivateProfileManager)));
@@ -281,7 +281,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         // Initialize SEARCH adapter (initially as second element, but list will grow)
         // We add it now so we can access it during inflation
         mAH.add(new AdapterHolder(AdapterHolder.SEARCH,
-                new LawnchairAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, null, null)));
+                new AutoCatAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, null, null)));
 
         getLayoutInflater().inflate(R.layout.all_apps_content, this);
         mHeader = findViewById(R.id.all_apps_header);
@@ -573,7 +573,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         // Add MAIN (Always index 0)
         if (mainHolder == null) {
              mainHolder = new AdapterHolder(AdapterHolder.MAIN,
-                new LawnchairAlphabeticalAppsList<>(mActivityContext,
+                new AutoCatAlphabeticalAppsList<>(mActivityContext,
                         mAllAppsStore,
                         null,
                         mPrivateProfileManager));
@@ -590,12 +590,12 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                 if (AppTabsController.TAB_WORK.equals(tabName)) {
                     // Work Tab
                     mAH.add(new AdapterHolder(AdapterHolder.WORK,
-                        new LawnchairAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, mWorkManager, null)));
+                        new AutoCatAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, mWorkManager, null)));
                 } else {
                     // Custom Tab - Use standard list for now, filtering handled by adapter
-                    // AutoCat TODO: Implement filter for custom tabs in LawnchairAlphabeticalAppsList
+                    // AutoCat TODO: Implement filter for custom tabs in AutoCatAlphabeticalAppsList
                     mAH.add(new AdapterHolder(AdapterHolder.WORK, // Reusing WORK type for generic secondary tab for now
-                        new LawnchairAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, null, null)));
+                        new AutoCatAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, null, null)));
                 }
             }
         }
@@ -603,7 +603,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         // Add SEARCH (Always last)
         if (searchHolder == null) {
             searchHolder = new AdapterHolder(AdapterHolder.SEARCH,
-                new LawnchairAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, null, null));
+                new AutoCatAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, null, null));
         }
         mAH.add(searchHolder);
 
@@ -643,8 +643,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                 }
                 
                 // Apply Tab Filter
-                if (holder.mAppsList instanceof LawnchairAlphabeticalAppsList) {
-                    ((LawnchairAlphabeticalAppsList) holder.mAppsList).setTabFilter(tabName);
+                if (holder.mAppsList instanceof AutoCatAlphabeticalAppsList) {
+                    ((AutoCatAlphabeticalAppsList) holder.mAppsList).setTabFilter(tabName);
                 }
                 
                 holder.setup(rv, matcher);

@@ -50,7 +50,7 @@ import com.android.launcher3.Utilities
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun LawnchairTheme(
+fun AutoCatTheme(
     darkTheme: Boolean = isSelectedThemeDark,
     content: @Composable () -> Unit,
 ) {

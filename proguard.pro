@@ -50,8 +50,8 @@
 
 # Lawnchair specific rules.
 -keep class app.lawnchair.LawnchairProto$* { *; }
--keep class app.lawnchair.LawnchairApp { *; }
--keep class app.lawnchair.LawnchairLauncher { *; }
+-keep class app.lawnchair.AutoCatApp { *; }
+-keep class app.lawnchair.AutoCatLauncher { *; }
 -keep class app.lawnchair.compatlib.** { *; }
 -keep class android.view.** { *; }
 

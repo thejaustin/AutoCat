@@ -13,7 +13,7 @@ import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.data.folder.model.FolderOrderUtils
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.flowerpot.Flowerpot
-import app.lawnchair.launcher
+import app.lawnchair.autoCatLauncher
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
 import com.android.launcher3.InvariantDeviceProfile.OnIDPChangeListener
@@ -30,7 +30,7 @@ import com.patrykmichalik.opto.core.onEach
 import java.util.function.Predicate
 
 @Suppress("SYNTHETIC_PROPERTY_WITHOUT_JAVA_ORIGIN")
-class LawnchairAlphabeticalAppsList<T>(
+class AutoCatAlphabeticalAppsList<T>(
     private val context: T,
     private val appsStore: AllAppsStore<T>,
     workProfileManager: WorkProfileManager?,
@@ -40,7 +40,7 @@ class LawnchairAlphabeticalAppsList<T>(
     where T : Context, T : ActivityContext {
 
     companion object {
-        private const val TAG = "LawnchairAlphabeticalAppsList"
+        private const val TAG = "AutoCatAlphabeticalAppsList"
     }
 
     private var hiddenApps: Set<String> = setOf()
@@ -125,9 +125,9 @@ class LawnchairAlphabeticalAppsList<T>(
     }
 
     init {
-        context.launcher.deviceProfile.inv.addOnChangeListener(this)
+        context.autoCatLauncher.deviceProfile.inv.addOnChangeListener(this)
         try {
-            prefs2.hiddenApps.onEach(launchIn = context.launcher.lifecycleScope) {
+            prefs2.hiddenApps.onEach(launchIn = context.autoCatLauncher.lifecycleScope) {
                 hiddenApps = it
                 try {
                     onAppsUpdated()
@@ -259,7 +259,7 @@ class LawnchairAlphabeticalAppsList<T>(
             // AND dynamic AdapterHolders for Custom Tabs.
             // AND one for WORK.
 
-            // Problem: This class (LawnchairAlphabeticalAppsList) doesn't know which AdapterHolder it belongs to.
+            // Problem: This class (AutoCatAlphabeticalAppsList) doesn't know which AdapterHolder it belongs to.
             // It just knows "context".
 
             // However, ActivityAllAppsContainerView sets up the adapter with a specific Matcher.

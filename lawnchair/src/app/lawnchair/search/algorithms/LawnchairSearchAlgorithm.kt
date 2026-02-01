@@ -1,7 +1,7 @@
 package app.lawnchair.search.algorithms
 
 import android.content.Context
-import app.lawnchair.LawnchairApp
+import app.lawnchair.AutoCatApp
 import app.lawnchair.allapps.views.SearchItemBackground
 import app.lawnchair.allapps.views.SearchResultView.Companion.EXTRA_QUICK_LAUNCH
 import app.lawnchair.preferences2.PreferenceManager2
@@ -207,7 +207,7 @@ sealed class LawnchairSearchAlgorithm(
 
         fun isASISearchEnabled(context: Context): Boolean {
             if (!Utilities.ATLEAST_S) return false
-            if (!LawnchairApp.isRecentsEnabled) return false
+            if (!AutoCatApp.isRecentsEnabled) return false
 
             if (!ranCompatibilityCheck) {
                 ranCompatibilityCheck = true

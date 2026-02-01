@@ -144,8 +144,8 @@ import java.util.stream.Collectors;
 
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import static app.lawnchair.util.LawnchairUtilsKt.toBitmap;
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.LawnchairAppKt;
+import app.lawnchair.AutoCatApp;
+import app.lawnchair.AutoCatAppKt;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.smartspace.DoubleShadowTextView;
@@ -509,7 +509,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
         if (mDragInfo != null && mDragInfo.cell != null) {
             CellLayout layout = (CellLayout) (mDragInfo.cell instanceof LauncherAppWidgetHostView
-                    // LC: https://github.com/LawnchairLauncher/lawnchair/issues/3143
+                    // LC: https://github.com/AutoCatLauncher/lawnchair/issues/3143
                     && dragObject.dragView.getContentViewParent() != null
                     ? dragObject.dragView.getContentViewParent().getParent()
                     : mDragInfo.cell.getParent().getParent());
@@ -607,9 +607,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
     public void updateStatusbarClock() {
         if (mCurrentPage == 0 && PreferenceExtensionsKt.firstBlocking(mPreferenceManager2.getStatusBarClock())) {
-            LawnchairAppKt.getLawnchairApp(mLauncher).hideClockInStatusBar();
+            AutoCatAppKt.getAutoCatApp(mLauncher).hideClockInStatusBar();
         } else {
-            LawnchairAppKt.getLawnchairApp(mLauncher).restoreClockInStatusBar();
+            AutoCatAppKt.getAutoCatApp(mLauncher).restoreClockInStatusBar();
         }
     }
 

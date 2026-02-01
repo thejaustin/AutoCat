@@ -26,7 +26,7 @@ import com.android.launcher3.Utilities;
 import java.util.ArrayList;
 import java.util.function.BooleanSupplier;
 
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.compat.AutoCatQuickstepCompat;
 
 /**
  * Utility class for helpful methods related to {@link View} objects.

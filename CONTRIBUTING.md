@@ -39,7 +39,7 @@ For translations, please visit **[Lawnchair on Crowdin][crowdin]**.
 1. Clone the repository with the `--recursive` flag to include the project's
    submodules.
    ```bash
-   git clone --recursive https://github.com/LawnchairLauncher/lawnchair.git
+   git clone --recursive https://github.com/AutoCatLauncher/lawnchair.git
    ```
 2. Open the project in Android Studio.
 3. Select the `lawnWithQuickstepGithubDebug` build variant.
@@ -62,7 +62,7 @@ Here are some contribution tips to help you get started:
 
 - [Lawnchair roadmap](ROADMAP.md)
 - [Lawnchair verification](VERIFICATION.md)
-- [The Lawnchair Wiki](https://github.com/LawnchairLauncher/lawnchair/wiki)
+- [The Lawnchair Wiki](https://github.com/AutoCatLauncher/lawnchair/wiki)
 - [Lawnchair Visual Guidelines](/docs/assets/README.md)
 - [Lawnchair Quickstep Compat Library](compatLib/README.md)
 - [Lawnchair Preferences Components](lawnchair/src/app/lawnchair/ui/preferences/components/README.md)
@@ -158,16 +158,16 @@ Lawnchair’s documentations are written in Markdown and follow a style guides f
 <!-- Links -->
 [telegram]: https://t.me/lccommunity
 [discord]: https://discord.com/invite/3x8qNWxgGZ
-[nightly]: https://github.com/LawnchairLauncher/lawnchair/releases/tag/nightly
-[security-report]: https://github.com/LawnchairLauncher/lawnchair/security/advisories/new
-[security-policy]: https://github.com/LawnchairLauncher/lawnchair/security/policy
-[bug-reports]: https://github.com/LawnchairLauncher/lawnchair/issues/new?assignees=&labels=bug&projects=&template=bug_report.yaml&title=%5BBUG%5D+
-[feature-requests]: https://github.com/LawnchairLauncher/lawnchair/issues/new?assignees=&labels=feature%2Cenhancement&projects=&template=feature_request.yaml&title=%5BFEATURE%5D+
+[nightly]: https://github.com/AutoCatLauncher/lawnchair/releases/tag/nightly
+[security-report]: https://github.com/AutoCatLauncher/lawnchair/security/advisories/new
+[security-policy]: https://github.com/AutoCatLauncher/lawnchair/security/policy
+[bug-reports]: https://github.com/AutoCatLauncher/lawnchair/issues/new?assignees=&labels=bug&projects=&template=bug_report.yaml&title=%5BBUG%5D+
+[feature-requests]: https://github.com/AutoCatLauncher/lawnchair/issues/new?assignees=&labels=feature%2Cenhancement&projects=&template=feature_request.yaml&title=%5BFEATURE%5D+
 [code-of-conduct]: CODE_OF_CONDUCT.md
 [crowdin]: https://lawnchair.crowdin.com
 [kotlin-coding-conventions]: https://kotlinlang.org/docs/coding-conventions.html
-[lawnchair-package]: https://github.com/LawnchairLauncher/lawnchair/tree/16-dev/lawnchair
-[src-package]: https://github.com/LawnchairLauncher/lawnchair/tree/16-dev/src
+[lawnchair-package]: https://github.com/AutoCatLauncher/lawnchair/tree/16-dev/lawnchair
+[src-package]: https://github.com/AutoCatLauncher/lawnchair/tree/16-dev/src
 [conventional-commits]: https://www.conventionalcommits.org/en/v1.0.0/
 [google-fonts-api-key]: https://developers.google.com/fonts/docs/developer_api#APIKey
 

@@ -224,8 +224,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.AutoCatApp;
+import app.lawnchair.compat.AutoCatQuickstepCompat;
 
 public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         SystemShortcut.BubbleActivityStarter {
@@ -310,9 +310,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                         getDepthController(), getStatsLogManager(),
                         systemUiProxy, RecentsModel.INSTANCE.get(this),
                         () -> onStateBack());
-        if (DesktopModeStatus.canEnterDesktopMode(this) && LawnchairApp.isRecentsEnabled()) {
+        if (DesktopModeStatus.canEnterDesktopMode(this) && AutoCatApp.isRecentsEnabled()) {
             mDesktopRecentsTransitionController = new DesktopRecentsTransitionController(
-                    getStateManager(), systemUiProxy, LawnchairApp.getInstance().getIApplicationThread(),
+                    getStateManager(), systemUiProxy, AutoCatApp.getInstance().getIApplicationThread(),
                     getDepthController());
         }
         overviewPanel.init(mActionsView, mSplitSelectStateController,
@@ -324,7 +324,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         mActionsView.updateDimension(getDeviceProfile(), overviewPanel.getLastComputedTaskSize());
         mActionsView.updateVerticalMargin(DisplayController.getNavigationMode(this));
 
-        if (LawnchairApp.isRecentsEnabled()) {
+        if (AutoCatApp.isRecentsEnabled()) {
             mAppTransitionManager = buildAppTransitionManager();
             mAppTransitionManager.registerRemoteAnimations();
             mAppTransitionManager.registerRemoteTransitions();
@@ -337,7 +337,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
         mHotseatPredictionController = new HotseatPredictionController(this);
 
-        mEnableWidgetDepth = LawnchairApp.isRecentsEnabled() ? SystemProperties.getBoolean("ro.launcher.depth.widget", true) : false;
+        mEnableWidgetDepth = AutoCatApp.isRecentsEnabled() ? SystemProperties.getBoolean("ro.launcher.depth.widget", true) : false;
         getWorkspace().addOverlayCallback(progress ->
                 onTaskbarInAppDisplayProgressUpdate(progress, MINUS_ONE_PAGE_PROGRESS_INDEX));
         if (Utilities.ATLEAST_U) {
@@ -912,7 +912,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     public void onUiChangedWhileSleeping() {
         // Remove the snapshot because the content view may have obvious changes.
         UI_HELPER_EXECUTOR.execute(
-                () -> LawnchairQuickstepCompat.getActivityManagerCompat().invalidateHomeTaskSnapshot(this));
+                () -> AutoCatQuickstepCompat.getActivityManagerCompat().invalidateHomeTaskSnapshot(this));
     }
 
     @Override

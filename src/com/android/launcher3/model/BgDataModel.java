@@ -83,7 +83,7 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.AutoCatApp;
 
 /**
  * All the data stored in-memory and managed by the LauncherModel

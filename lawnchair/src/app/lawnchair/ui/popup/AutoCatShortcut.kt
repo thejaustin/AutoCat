@@ -19,7 +19,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.unit.dp
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.AutoCatLauncher
 import app.lawnchair.appops.AppBatchOperationService
 import app.lawnchair.override.CustomizeAppDialog
 import app.lawnchair.preferences2.PreferenceManager2
@@ -42,12 +42,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class LawnchairShortcut {
+class AutoCatShortcut {
 
     companion object {
 
         val CUSTOMIZE =
-            SystemShortcut.Factory { activity: LawnchairLauncher, itemInfo, originalView ->
+            SystemShortcut.Factory { activity: AutoCatLauncher, itemInfo, originalView ->
                 if (PreferenceManager2.getInstance(activity).lockHomeScreen.firstBlocking()) {
                     null
                 } else {
@@ -55,7 +55,7 @@ class LawnchairShortcut {
                 }
             }
 
-        private fun getAppInfo(launcher: LawnchairLauncher, itemInfo: ItemInfo): ModelAppInfo? {
+        private fun getAppInfo(launcher: AutoCatLauncher, itemInfo: ItemInfo): ModelAppInfo? {
             if (itemInfo is ModelAppInfo) return itemInfo
             if (itemInfo.itemType != ITEM_TYPE_APPLICATION) return null
             val key = ComponentKey(itemInfo.targetComponent, itemInfo.user)
@@ -78,7 +78,7 @@ class LawnchairShortcut {
                 UnInstall(activity, itemInfo, view)
             }
 
-        val PAUSE_APPS = SystemShortcut.Factory { activity: LawnchairLauncher, itemInfo: ItemInfo, originalView: View ->
+        val PAUSE_APPS = SystemShortcut.Factory { activity: AutoCatLauncher, itemInfo: ItemInfo, originalView: View ->
             val targetCmp = itemInfo.targetComponent
             val packageName = targetCmp?.packageName ?: return@Factory null
 
@@ -153,11 +153,11 @@ class LawnchairShortcut {
     }
 
     class Customize(
-        private val launcher: LawnchairLauncher,
+        private val launcher: AutoCatLauncher,
         private val appInfo: ModelAppInfo,
         itemInfo: ItemInfo,
         originalView: View,
-    ) : SystemShortcut<LawnchairLauncher>(R.drawable.ic_edit, R.string.action_customize, launcher, itemInfo, originalView) {
+    ) : SystemShortcut<AutoCatLauncher>(R.drawable.ic_edit, R.string.action_customize, launcher, itemInfo, originalView) {
 
         override fun onClick(v: View) {
             val outObj = Array<Any?>(1) { null }
@@ -189,10 +189,10 @@ class LawnchairShortcut {
     }
 
     class PauseApps(
-        target: LawnchairLauncher,
+        target: AutoCatLauncher,
         itemInfo: ItemInfo,
         originalView: View,
-    ) : SystemShortcut<LawnchairLauncher>(
+    ) : SystemShortcut<AutoCatLauncher>(
         R.drawable.ic_hourglass_top,
         R.string.paused_apps_drop_target_label,
         target,
@@ -229,7 +229,7 @@ class LawnchairShortcut {
                             mItemInfo.user.identifier,
                         )
                     } catch (e: Throwable) {
-                        Log.e("LawnchairShortcut", "Failed to pause app", e)
+                        Log.e("AutoCatShortcut", "Failed to pause app", e)
                     }
                 }
                 .show()
@@ -383,7 +383,7 @@ class LawnchairShortcut {
             try {
                 context.startActivity(intent)
             } catch (e: Exception) {
-                Log.e("LawnchairShortcut", "Failed to open app info", e)
+                Log.e("AutoCatShortcut", "Failed to open app info", e)
             }
             AbstractFloatingView.closeAllOpenViews(target)
         }

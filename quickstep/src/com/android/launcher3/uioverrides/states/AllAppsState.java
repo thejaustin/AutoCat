@@ -34,7 +34,7 @@ import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 
 import java.util.concurrent.TimeUnit;
 
-import app.lawnchair.LawnchairLauncher;
+import app.lawnchair.AutoCatLauncher;
 import app.lawnchair.util.LawnchairUtilsKt;
 
 /**

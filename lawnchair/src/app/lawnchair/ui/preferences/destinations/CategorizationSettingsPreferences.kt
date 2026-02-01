@@ -50,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.AutoCatAppProvider
@@ -61,13 +62,17 @@ import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.NavigationActionPreference
+import app.lawnchair.ui.preferences.components.controls.ListPreference
+import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations
+import app.lawnchair.ui.preferences.navigation.AppDrawerDiagnostics
 import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
 import app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement
+import com.android.launcher3.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -91,6 +96,14 @@ fun CategorizationSettingsPreferences(
         ).collectAsState()
 
     var categorizationStatus by remember { mutableStateOf("") }
+
+    val folderSyncModeEntries = remember {
+        listOf(
+            ListPreferenceEntry("DRAWER") { stringResource(id = R.string.folder_sync_mode_drawer) },
+            ListPreferenceEntry("HOME_SCREEN") { stringResource(id = R.string.folder_sync_mode_home) },
+            ListPreferenceEntry("BOTH") { stringResource(id = R.string.folder_sync_mode_both) },
+        )
+    }
 
     // Initialize services
     LaunchedEffect(Unit) {
@@ -262,11 +275,21 @@ fun CategorizationSettingsPreferences(
                         }
                     }
 
+                    val syncFolders by prefs.autoCatSyncFolders.getAdapter().state
+
                     SwitchPreference(
                         adapter = prefs.autoCatSyncFolders.getAdapter(),
                         label = "Sync to Folders",
-                        description = "Create folders for each category in your app drawer and home screen.",
+                        description = "Automatically organize apps into folders based on their category.",
                     )
+
+                    AnimatedVisibility(visible = syncFolders) {
+                        ListPreference(
+                            adapter = prefs.autoCatFolderSyncMode.getAdapter(),
+                            entries = folderSyncModeEntries,
+                            label = stringResource(id = R.string.folder_sync_mode_label),
+                        )
+                    }
 
                     SwitchPreference(
                         adapter = prefs.llmEnableBatching.getAdapter(),
@@ -303,6 +326,19 @@ fun CategorizationSettingsPreferences(
                         subtitle = "Configure API keys and models (Google, OpenAI, etc.)",
                         destination = AppDrawerLLMSettings,
                     )
+                }
+            }
+
+            val devMode by prefs.autoCatDevMode.getAdapter().state
+            if (devMode) {
+                item {
+                    PreferenceGroup(heading = "Developer") {
+                        NavigationActionPreference(
+                            label = "Diagnostics",
+                            subtitle = "View database stats and live LLM logs",
+                            destination = AppDrawerDiagnostics,
+                        )
+                    }
                 }
             }
         }

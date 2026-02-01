@@ -41,7 +41,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.theme.dividerColor
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
 import app.lawnchair.ui.util.preview.PreviewLawnchair
@@ -145,7 +145,7 @@ fun SwitchPreference(
 private fun SwitchPreferencePreview(
     @PreviewParameter(SwitchPreferencePreviewParameterProvider::class) checked: Boolean,
 ) {
-    LawnchairTheme {
+    AutoCatTheme {
         PreferenceGroupPreviewContainer {
             SwitchPreference(
                 checked = checked,

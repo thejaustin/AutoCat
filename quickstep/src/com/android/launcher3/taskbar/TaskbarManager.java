@@ -106,7 +106,7 @@ import java.io.PrintWriter;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.AutoCatApp;
 
 /**
  * Class to manage taskbar lifecycle
@@ -479,7 +479,7 @@ public class TaskbarManager implements DisplayDecorationListener {
         } else {
             mGrowthBroadcastReceiver = null;
         }
-        if (LawnchairApp.isRecentsEnabled()) {
+        if (AutoCatApp.isRecentsEnabled()) {
             SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .register(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
             SettingsCache.INSTANCE.get(mPrimaryWindowContext)
@@ -1114,7 +1114,7 @@ public class TaskbarManager implements DisplayDecorationListener {
             DisplayController.INSTANCE.get(mPrimaryWindowContext).removeChangeListener(
                     mRecreationListener);
         }
-        if (LawnchairApp.isRecentsEnabled()) {
+        if (AutoCatApp.isRecentsEnabled()) {
             SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .unregister(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
             SettingsCache.INSTANCE.get(mPrimaryWindowContext)

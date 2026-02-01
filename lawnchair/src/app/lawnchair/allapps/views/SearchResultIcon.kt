@@ -10,7 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import app.lawnchair.launcher
+import app.lawnchair.autoCatLauncher
 import app.lawnchair.search.adapter.SearchTargetCompat
 import app.lawnchair.util.runOnMainThread
 import com.android.launcher3.BubbleTextView
@@ -37,7 +37,7 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
     View.OnClickListener,
     View.OnLongClickListener {
 
-    private val launcher = context.launcher
+    private val launcher = context.autoCatLauncher
     private var boundId = ""
     private var flags = 0
     private var allowLongClick = false

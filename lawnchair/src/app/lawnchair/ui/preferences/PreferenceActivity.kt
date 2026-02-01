@@ -26,7 +26,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
 import app.lawnchair.ui.theme.EdgeToEdge
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.AutoCatTheme
 import com.google.accompanist.adaptive.calculateDisplayFeatures
 import kotlinx.serialization.json.Json
 
@@ -45,7 +45,7 @@ class PreferenceActivity : ComponentActivity() {
         }
 
         setContent {
-            LawnchairTheme {
+            AutoCatTheme {
                 EdgeToEdge()
                 Preferences(
                     windowSizeClass = calculateWindowSizeClass(this),

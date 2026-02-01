@@ -32,7 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.gestures.type.GestureType
-import app.lawnchair.launcher
+import app.lawnchair.autoCatLauncher
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.asState
@@ -194,7 +194,7 @@ fun CustomizeAppDialog(
             )
         }
 
-        if (preferenceManager2.iconSwipeGestures.asState().value && context.launcher.stateManager.state != LauncherState.ALL_APPS) {
+        if (preferenceManager2.iconSwipeGestures.asState().value && context.autoCatLauncher.stateManager.state != LauncherState.ALL_APPS) {
             PreferenceGroup(heading = stringResource(R.string.gestures_label)) {
                 listOf(
                     GestureType.SWIPE_LEFT,

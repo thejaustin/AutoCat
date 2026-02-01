@@ -8,9 +8,9 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
-import app.lawnchair.LawnchairLauncher
-import app.lawnchair.launcher
-import app.lawnchair.launcherNullable
+import app.lawnchair.AutoCatLauncher
+import app.lawnchair.autoCatLauncher
+import app.lawnchair.autoCatLauncherNullable
 import app.lawnchair.ui.preferences.PreferenceActivity
 import app.lawnchair.ui.preferences.navigation.Smartspace
 import com.android.launcher3.CheckLongPressHelper
@@ -31,7 +31,7 @@ class SmartspaceViewContainer @JvmOverloads constructor(
         val inflater = LayoutInflater.from(context)
         smartspaceView = inflater.inflate(R.layout.smartspace_enhanced, this, false) as BcSmartspaceView
         smartspaceView.previewMode = previewMode
-        val ctx = LawnchairLauncher.instance?.launcherNullable
+        val ctx = AutoCatLauncher.instance?.autoCatLauncherNullable
         val dp = ctx?.deviceProfile
         val leftPadding = dp?.widgetPadding?.left
         smartspaceView.setPadding(leftPadding ?: (left + 48), top, right, bottom)
@@ -45,10 +45,10 @@ class SmartspaceViewContainer @JvmOverloads constructor(
     private fun openOptions() {
         if (previewMode) return
 
-        val launcher = context.launcher
+        val launcher = context.autoCatLauncher
         val pos = Rect()
         launcher.dragLayer.getDescendantRectRelativeToSelf(smartspaceView, pos)
-        OptionsPopupView.show<LawnchairLauncher>(launcher, RectF(pos), listOf(getCustomizeOption()), true)
+        OptionsPopupView.show<AutoCatLauncher>(launcher, RectF(pos), listOf(getCustomizeOption()), true)
     }
 
     private fun getCustomizeOption() = OptionsPopupView.OptionItem(

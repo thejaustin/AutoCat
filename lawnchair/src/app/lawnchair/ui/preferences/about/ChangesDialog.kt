@@ -170,7 +170,7 @@ private fun CommitItem(
 }
 
 private fun openCommitInBrowser(context: Context, commitSha: String) {
-    val commitUrl = "https://github.com/LawnchairLauncher/lawnchair/commit/$commitSha"
+    val commitUrl = "https://github.com/AutoCatLauncher/lawnchair/commit/$commitSha"
     val intent = Intent(Intent.ACTION_VIEW, commitUrl.toUri())
     context.startActivity(intent)
 }

@@ -7,8 +7,8 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import androidx.viewpager.widget.ViewPager
-import app.lawnchair.LawnchairLauncher
-import app.lawnchair.launcher
+import app.lawnchair.AutoCatLauncher
+import app.lawnchair.autoCatLauncher
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.preferences2.subscribeBlocking
 import app.lawnchair.ui.preferences.PreferenceActivity
@@ -50,7 +50,7 @@ class SmartspacerView(context: Context, attrs: AttributeSet?) : BcSmartspaceView
                 feedbackIntent: Intent?,
                 settingsIntent: Intent?,
             ): Popup {
-                val launcher = context.launcher
+                val launcher = context.autoCatLauncher
                 val pos = Rect()
                 launcher.dragLayer.getDescendantRectRelativeToSelf(anchorView, pos)
                 val options = listOfNotNull(
@@ -60,7 +60,7 @@ class SmartspacerView(context: Context, attrs: AttributeSet?) : BcSmartspaceView
                     getDismissOption(target, dismissAction),
                 ).ifEmpty { listOf(getCustomizeOptionFallback()) }
                 val popup = OptionsPopupView
-                    .show<LawnchairLauncher>(launcher, RectF(pos), options, true)
+                    .show<AutoCatLauncher>(launcher, RectF(pos), options, true)
                 return object : Popup {
                     override fun dismiss() {
                         popup.close(true)

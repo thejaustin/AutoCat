@@ -73,8 +73,8 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.LawnchairAppKt;
+import app.lawnchair.AutoCatApp;
+import app.lawnchair.AutoCatAppKt;
 
 /**
  * Utility class which maintains an instance of Launcher database and provides utility methods
@@ -149,7 +149,7 @@ public class ModelDbController {
 
         try {
             if (!forMigration && dbName != null) {
-                LawnchairApp app = LawnchairAppKt.getLawnchairApp(mContext);
+                AutoCatApp app = AutoCatAppKt.getAutoCatApp(mContext);
                 app.renameRestoredDb(dbName);
                 app.migrateDbName(dbName);
             }
@@ -631,7 +631,7 @@ public class ModelDbController {
         createDbIfNotExists();
 
         if (!(mContext instanceof LauncherPreviewRenderer.PreviewContext)) {
-            LawnchairAppKt.getLawnchairApp(mContext).cleanUpDatabases();
+            AutoCatAppKt.getAutoCatApp(mContext).cleanUpDatabases();
         }
 
         if (mPrefs.get(getEmptyDbCreatedKey())) {

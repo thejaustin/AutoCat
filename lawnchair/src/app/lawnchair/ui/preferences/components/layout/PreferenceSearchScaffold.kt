@@ -38,7 +38,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.preview.PreviewLawnchair
 
 @Composable
@@ -171,7 +171,7 @@ private fun SearchTextField(
 @PreviewLawnchair
 @Composable
 private fun SearchTextFieldPreview() {
-    LawnchairTheme {
+    AutoCatTheme {
         SearchTextField(
             value = "Example",
             onValueChange = {},

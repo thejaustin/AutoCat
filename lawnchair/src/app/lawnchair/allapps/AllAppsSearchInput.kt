@@ -27,7 +27,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.lifecycleScope
-import app.lawnchair.launcher
+import app.lawnchair.autoCatLauncher
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.preferences2.subscribeBlocking
@@ -39,7 +39,7 @@ import app.lawnchair.qsb.providers.Google
 import app.lawnchair.qsb.providers.GoogleGo
 import app.lawnchair.qsb.providers.PixelSearch
 import app.lawnchair.qsb.setThemedIconResource
-import app.lawnchair.search.LawnchairRecentSuggestionProvider
+import app.lawnchair.search.AutoCatRecentSuggestionProvider
 import app.lawnchair.search.algorithms.LawnchairSearchAlgorithm
 import app.lawnchair.theme.drawable.DrawableTokens
 import app.lawnchair.util.viewAttachedScope
@@ -81,13 +81,13 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     private val qsbMarginTopAdjusting = resources.getDimensionPixelSize(R.dimen.qsb_margin_top_adjusting)
     private val allAppsSearchVerticalOffset = resources.getDimensionPixelSize(R.dimen.all_apps_search_vertical_offset)
 
-    private val launcher = context.launcher
+    private val launcher = context.autoCatLauncher
     private val searchBarController = AllAppsSearchBarController()
     private val searchQueryBuilder = SpannableStringBuilder().apply {
         Selection.setSelection(this, 0)
     }
 
-    private lateinit var apps: LawnchairAlphabeticalAppsList<*>
+    private lateinit var apps: AutoCatAlphabeticalAppsList<*>
     private lateinit var appsView: ActivityAllAppsContainerView<*>
     private var searchAlgorithm: LawnchairSearchAlgorithm? = null
 
@@ -101,7 +101,7 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     }
     private var bgVisible = true
     private var bgAlpha = 1f
-    private val suggestionsRecent = SearchRecentSuggestions(launcher, LawnchairRecentSuggestionProvider.AUTHORITY, LawnchairRecentSuggestionProvider.MODE)
+    private val suggestionsRecent = SearchRecentSuggestions(launcher, AutoCatRecentSuggestionProvider.AUTHORITY, AutoCatRecentSuggestionProvider.MODE)
     private val prefs = PreferenceManager.getInstance(launcher)
     private val prefs2 = PreferenceManager2.getInstance(launcher)
 
@@ -165,7 +165,7 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
                 )
 
                 setOnClickListener {
-                    val launcher = context.launcher
+                    val launcher = context.autoCatLauncher
                     launcher.lifecycleScope.launch {
                         searchProvider.launch(launcher)
                     }
@@ -351,7 +351,7 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     }
 
     override fun initializeSearch(appsView: ActivityAllAppsContainerView<*>) {
-        apps = appsView.searchResultList as LawnchairAlphabeticalAppsList<*>
+        apps = appsView.searchResultList as AutoCatAlphabeticalAppsList<*>
         this.appsView = appsView
         val algorithm = LawnchairSearchAlgorithm.create(context)
         this.searchAlgorithm = algorithm

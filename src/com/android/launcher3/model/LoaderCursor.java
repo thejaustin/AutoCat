@@ -80,7 +80,7 @@ import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
 
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.AutoCatApp;
 import app.lawnchair.preferences2.PreferenceManager2;
 
 /**

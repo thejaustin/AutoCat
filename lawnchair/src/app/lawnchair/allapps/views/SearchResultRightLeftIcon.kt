@@ -10,7 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import app.lawnchair.font.FontManager
-import app.lawnchair.launcher
+import app.lawnchair.autoCatLauncher
 import app.lawnchair.search.adapter.SearchTargetCompat
 import app.lawnchair.util.AppInfo
 import app.lawnchair.util.AppInfoHelper
@@ -23,7 +23,7 @@ class SearchResultRightLeftIcon(context: Context, attrs: AttributeSet?) :
     LinearLayout(context, attrs),
     SearchResultView {
 
-    private val launcher = context.launcher
+    private val launcher = context.autoCatLauncher
     private var grid: DeviceProfile = launcher.deviceProfile
     private lateinit var title: TextView
     private lateinit var avatar: SearchResultIcon

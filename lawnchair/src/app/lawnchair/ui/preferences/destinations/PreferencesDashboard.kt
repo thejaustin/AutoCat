@@ -47,8 +47,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
-import app.lawnchair.LawnchairApp
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.AutoCatApp
+import app.lawnchair.AutoCatLauncher
 import app.lawnchair.backup.ui.restoreBackupOpener
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.observeAsState
@@ -139,7 +139,7 @@ fun PreferencesDashboard(
             onReorder = { from, to -> categoryManager.reorderCategories(from, to) },
             onToggleVisibility = { categoryId -> categoryManager.toggleCategoryVisibility(categoryId) },
             deckLayoutEnabled = pref2.deckLayout.getAdapter().state.value,
-            quickstepEnabled = LawnchairApp.isRecentsEnabled || BuildConfig.DEBUG && !prefs.hideQuickstepSettings.get(),
+            quickstepEnabled = AutoCatApp.isRecentsEnabled || BuildConfig.DEBUG && !prefs.hideQuickstepSettings.get(),
         )
     }
 }
@@ -357,6 +357,6 @@ fun PreferencesSetDefaultLauncherWarning(
 
 fun openAppInfo(context: Context) {
     val launcherApps = context.getSystemService<LauncherApps>()
-    val componentName = ComponentName(context, LawnchairLauncher::class.java)
+    val componentName = ComponentName(context, AutoCatLauncher::class.java)
     launcherApps?.startAppDetailsActivity(componentName, Process.myUserHandle(), null, null)
 }

@@ -70,8 +70,8 @@
     <uses-permission android:name="${applicationId}.permission.WRITE_SETTINGS" />
 
     <application
-        android:backupAgent="com.android.launcher3.LauncherBackupAgent"
-        android:name="app.lawnchair.LawnchairApp"
+        android:name="app.lawnchair.AutoCatApp"
+        android:backupAgent="app.lawnchair.backup.LawnchairBackupAgent"
         android:fullBackupOnly="true"
         android:backupInForeground="true"
         android:fullBackupContent="@xml/backupscheme"

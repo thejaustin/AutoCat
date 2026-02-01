@@ -44,7 +44,7 @@ import com.android.quickstep.SystemUiProxy;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 
-import app.lawnchair.LawnchairAppKt;
+import app.lawnchair.AutoCatAppKt;
 import app.lawnchair.util.CompatibilityKt;
 
 /**

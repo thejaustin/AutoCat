@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.preferences.rememberTransformAdapter
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
 import app.lawnchair.ui.util.preview.PreviewLawnchair
 import com.android.launcher3.R
@@ -196,7 +196,7 @@ fun snapSliderValue(start: Float, value: Float, step: Float): Float {
 private fun SliderPreferencePreview(
     @PreviewParameter(SliderPreferencePreviewParameterProvider::class) sliderValue: Float,
 ) {
-    LawnchairTheme {
+    AutoCatTheme {
         PreferenceGroupPreviewContainer {
             SliderPreference(
                 label = "Label",

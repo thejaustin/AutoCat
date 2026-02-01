@@ -19,8 +19,8 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import app.lawnchair.HeadlessWidgetsManager
 import app.lawnchair.animateToAllApps
-import app.lawnchair.launcher
-import app.lawnchair.launcherNullable
+import app.lawnchair.autoCatLauncher
+import app.lawnchair.autoCatLauncherNullable
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.preferences2.subscribeBlocking
@@ -107,7 +107,7 @@ class LawnQsbLayout(context: Context, attrs: AttributeSet?) : FrameLayout(contex
         if (supportsLens) setUpLensIcon()
 
         setOnClickListener {
-            val launcher = context.launcher
+            val launcher = context.autoCatLauncher
             launcher.lifecycleScope.launch {
                 if (preferenceManager2.matchHotseatQsbStyle.firstBlocking()) {
                     launcher.appsView.searchUiManager.editText?.showKeyboard()
@@ -155,7 +155,7 @@ class LawnQsbLayout(context: Context, attrs: AttributeSet?) : FrameLayout(contex
 
     private fun subscribeGoogleSearchWidget() {
         val info = QsbContainerView.getSearchWidgetProviderInfo(context, Google.packageName) ?: return
-        context.launcherNullable?.lifecycleScope?.launch {
+        context.autoCatLauncherNullable?.lifecycleScope?.launch {
             val headlessWidgetsManager = HeadlessWidgetsManager.INSTANCE.get(context)
             headlessWidgetsManager.subscribeUpdates(info, "hotseatWidgetId")
                 .collect { findSearchIntent(it) }

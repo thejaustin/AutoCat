@@ -63,7 +63,7 @@
             android:autoRemoveFromRecents="true"
             android:exported="true"
             android:label="@string/settings_button_text"
-            android:theme="@style/Theme.Lawnchair"
+            android:theme="@style/Theme.AutoCat"
             android:windowSoftInputMode="adjustResize"
             android:enableOnBackInvokedCallback="true">
             <intent-filter android:priority="1">
@@ -99,7 +99,7 @@
         </receiver>
 
         <service
-            android:name="app.lawnchair.LawnchairAccessibilityService"
+            android:name="app.lawnchair.AutoCatAccessibilityService"
             android:exported="false"
             android:label="@string/derived_app_name"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
@@ -122,8 +122,8 @@
         </provider>
 
         <provider
-            android:name="app.lawnchair.search.LawnchairRecentSuggestionProvider"
-            android:authorities="${applicationId}.search.LawnchairRecentSuggestionProvider"
+            android:name="app.lawnchair.search.AutoCatRecentSuggestionProvider"
+            android:authorities="${applicationId}.search.AutoCatRecentSuggestionProvider"
             android:syncable="true"
             android:exported="false" />
 

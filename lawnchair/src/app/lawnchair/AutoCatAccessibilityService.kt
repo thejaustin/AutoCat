@@ -21,7 +21,7 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
 
-class LawnchairAccessibilityService : AccessibilityService() {
+class AutoCatAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         serviceInfo = AccessibilityServiceInfo().apply {
@@ -34,17 +34,10 @@ class LawnchairAccessibilityService : AccessibilityService() {
             // to events from all applications.
             packageNames = emptyArray()
         }
-        lawnchairApp.accessibilityService = this
+        autoCatApp.accessibilityService = this
     }
 
     override fun onDestroy() {
-        lawnchairApp.accessibilityService = null
+        autoCatApp.accessibilityService = null
         super.onDestroy()
     }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
-
-    override fun onInterrupt() {}
-
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
-}

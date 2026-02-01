@@ -82,8 +82,8 @@ import java.util.function.Consumer;
 
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import app.lawnchair.DeviceProfileOverrides;
-import app.lawnchair.LawnchairApp;
-import app.lawnchair.LawnchairAppKt;
+import app.lawnchair.AutoCatApp;
+import app.lawnchair.AutoCatAppKt;
 import app.lawnchair.hotseat.HotseatMode;
 import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.theme.color.ColorOption;

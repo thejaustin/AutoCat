@@ -209,7 +209,7 @@ check-style	Run actions/checkout@v6	2026-01-17T05:21:06.1281078Z ##[endgroup]
 check-style	Run actions/checkout@v6	2026-01-17T05:21:06.1281519Z ##[group]Fetching submodules
 check-style	Run actions/checkout@v6	2026-01-17T05:21:06.1286890Z [command]/usr/bin/git submodule sync
 check-style	Run actions/checkout@v6	2026-01-17T05:21:06.1525295Z [command]/usr/bin/git -c protocol.version=2 submodule update --init --force --depth=1
-check-style	Run actions/checkout@v6	2026-01-17T05:21:06.1759290Z Submodule 'platform_frameworks_libs_systemui' (https://github.com/LawnchairLauncher/platform_frameworks_libs_systemui) registered for path 'platform_frameworks_libs_systemui'
+check-style	Run actions/checkout@v6	2026-01-17T05:21:06.1759290Z Submodule 'platform_frameworks_libs_systemui' (https://github.com/AutoCatLauncher/platform_frameworks_libs_systemui) registered for path 'platform_frameworks_libs_systemui'
 check-style	Run actions/checkout@v6	2026-01-17T05:21:06.1785389Z Cloning into '/home/runner/work/AutoCat/AutoCat/platform_frameworks_libs_systemui'...
 check-style	Run actions/checkout@v6	2026-01-17T05:21:06.6205691Z Submodule path 'platform_frameworks_libs_systemui': checked out '19e0b6e2510fe35a2a3b91ccb2875b668fd811b9'
 check-style	Run actions/checkout@v6	2026-01-17T05:21:06.6220738Z [command]/usr/bin/git submodule foreach git config --local gc.auto 0
@@ -389,10 +389,10 @@ check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:2
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1259382Z            import·androidx.compose.runtime.LaunchedEffect
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1260272Z            import·androidx.compose.ui.platform.AbstractComposeView
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1261261Z            import·app.lawnchair.categorization.AppTabsController
-check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1262101Z           +import·app.lawnchair.ui.theme.LawnchairTheme
+check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1262101Z           +import·app.lawnchair.ui.theme.AutoCatTheme
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1263182Z            import·com.android.launcher3.pageindicators.PageIndicator
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1264508Z            import·com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip.OnActivePageChangedListener
-check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1265683Z           -import·app.lawnchair.ui.theme.LawnchairTheme
+check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1265683Z           -import·app.lawnchair.ui.theme.AutoCatTheme
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1266245Z            
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1266793Z            class·AppTabsHeaderView·@JvmOverloads·constructor(
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1267436Z            ····context:·Context,
@@ -414,7 +414,7 @@ check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:2
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1279916Z            ············)
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1280352Z            ········}
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1280768Z            ····}
-check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1281338Z       lawnchair/src/app/lawnchair/allapps/LawnchairAlphabeticalAppsList.kt
+check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1281338Z       lawnchair/src/app/lawnchair/allapps/AutoCatAlphabeticalAppsList.kt
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1282021Z           @@ -8,8 +8,8 @@
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1282717Z            import·androidx.activity.viewModels
 check-style	Run ./gradlew spotlessCheck --no-configuration-cache	2026-01-17T05:21:57.1283372Z            import·androidx.lifecycle.LifecycleOwner
@@ -713,7 +713,7 @@ build-debug-apk	Run actions/checkout@v6	2026-01-17T05:21:06.2446389Z ##[endgroup
 build-debug-apk	Run actions/checkout@v6	2026-01-17T05:21:06.2447430Z ##[group]Fetching submodules
 build-debug-apk	Run actions/checkout@v6	2026-01-17T05:21:06.2450769Z [command]/usr/bin/git submodule sync
 build-debug-apk	Run actions/checkout@v6	2026-01-17T05:21:06.2689823Z [command]/usr/bin/git -c protocol.version=2 submodule update --init --force --depth=1
-build-debug-apk	Run actions/checkout@v6	2026-01-17T05:21:06.2919149Z Submodule 'platform_frameworks_libs_systemui' (https://github.com/LawnchairLauncher/platform_frameworks_libs_systemui) registered for path 'platform_frameworks_libs_systemui'
+build-debug-apk	Run actions/checkout@v6	2026-01-17T05:21:06.2919149Z Submodule 'platform_frameworks_libs_systemui' (https://github.com/AutoCatLauncher/platform_frameworks_libs_systemui) registered for path 'platform_frameworks_libs_systemui'
 build-debug-apk	Run actions/checkout@v6	2026-01-17T05:21:06.2947020Z Cloning into '/home/runner/work/AutoCat/AutoCat/platform_frameworks_libs_systemui'...
 build-debug-apk	Run actions/checkout@v6	2026-01-17T05:21:06.5848466Z Submodule path 'platform_frameworks_libs_systemui': checked out '19e0b6e2510fe35a2a3b91ccb2875b668fd811b9'
 build-debug-apk	Run actions/checkout@v6	2026-01-17T05:21:06.5864418Z [command]/usr/bin/git submodule foreach git config --local gc.auto 0

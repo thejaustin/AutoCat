@@ -86,7 +86,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import app.lawnchair.icons.LawnchairIconProvider;
+import app.lawnchair.icons.AutoCatIconProvider;
 
 /**
  * Cache of application icons.  Icons can be made from any thread.
@@ -122,7 +122,7 @@ public class IconCache extends BaseIconCache {
             idp,
             LauncherFiles.APP_ICONS_DB,
             UserCache.INSTANCE.get(context),
-            new LawnchairIconProvider(context),
+            new AutoCatIconProvider(context),
             InstallSessionHelper.INSTANCE.get(context),
             iconPool,
             lifecycle

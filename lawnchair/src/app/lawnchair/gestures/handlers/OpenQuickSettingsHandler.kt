@@ -2,13 +2,13 @@ package app.lawnchair.gestures.handlers
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.AutoCatLauncher
 import com.android.launcher3.R
 
 class OpenQuickSettingsHandler(
     context: Context,
 ) : GestureHandler(context) {
-    override suspend fun onTrigger(launcher: LawnchairLauncher) {
+    override suspend fun onTrigger(launcher: AutoCatLauncher) {
         GestureWithAccessibilityHandler.onTrigger(
             launcher,
             R.string.quick_settings_a11y_hint,

@@ -17,16 +17,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import app.lawnchair.LawnchairLauncher
-import app.lawnchair.lawnchairApp
+import app.lawnchair.AutoCatLauncher
+import app.lawnchair.autoCatApp
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.views.ComposeBottomSheet
 import com.android.launcher3.R
 
 object GestureWithAccessibilityHandler {
 
-    fun onTrigger(launcher: LawnchairLauncher, stringAction: Int, action: Int) {
-        val app = launcher.lawnchairApp
+    fun onTrigger(launcher: AutoCatLauncher, stringAction: Int, action: Int) {
+        val app = launcher.autoCatApp
         if (!app.isAccessibilityServiceBound()) {
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -112,4 +112,4 @@ Builds run via GitHub Actions on every push. See [CI workflow](.github/workflows
 
 ## Credits
 
-Based on [Lawnchair Launcher](https://github.com/LawnchairLauncher/lawnchair). All credit for the base launcher goes to the Lawnchair team.
+Based on [Lawnchair Launcher](https://github.com/AutoCatLauncher/lawnchair). All credit for the base launcher goes to the Lawnchair team.

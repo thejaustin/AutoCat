@@ -31,8 +31,8 @@ import android.window.SplashScreen
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
-import app.lawnchair.LawnchairApp.Companion.showQuickstepWarningIfNecessary
-import app.lawnchair.compat.LawnchairQuickstepCompat
+import app.lawnchair.AutoCatApp.Companion.showQuickstepWarningIfNecessary
+import app.lawnchair.compat.AutoCatQuickstepCompat
 import app.lawnchair.data.AppDatabase
 import app.lawnchair.data.wallpaper.service.WallpaperService
 import app.lawnchair.gestures.GestureController
@@ -45,10 +45,10 @@ import app.lawnchair.root.RootHelperManager
 import app.lawnchair.root.RootNotAvailableException
 import app.lawnchair.theme.ThemeProvider
 import app.lawnchair.ui.popup.LauncherOptionsPopup
-import app.lawnchair.ui.popup.LawnchairShortcut
+import app.lawnchair.ui.popup.AutoCatShortcut
 import app.lawnchair.util.getThemedIconPacksInstalled
 import app.lawnchair.util.unsafeLazy
-import app.lawnchair.views.LawnchairFloatingSurfaceView
+import app.lawnchair.views.AutoCatFloatingSurfaceView
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.BaseActivity
 import com.android.launcher3.BubbleTextView
@@ -90,7 +90,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class LawnchairLauncher : QuickstepLauncher() {
+class AutoCatLauncher : QuickstepLauncher() {
     private val defaultOverlay by unsafeLazy { OverlayCallbackImpl(this) }
     private val prefs by unsafeLazy { PreferenceManager.getInstance(this) }
     private val preferenceManager2 by unsafeLazy { PreferenceManager2.getInstance(this) }
@@ -127,7 +127,7 @@ class LawnchairLauncher : QuickstepLauncher() {
                 is OverviewState,
                 is AllAppsState,
                 -> {
-                    LawnchairApp.instance.restoreClockInStatusBar()
+                    AutoCatApp.instance.restoreClockInStatusBar()
                 }
 
                 else -> {
@@ -153,7 +153,7 @@ class LawnchairLauncher : QuickstepLauncher() {
     val gestureController by unsafeLazy { GestureController(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        layoutInflater.factory2 = LawnchairLayoutFactory(this)
+        layoutInflater.factory2 = AutoCatLayoutFactory(this)
         super.onCreate(savedInstanceState)
 
         prefs.launcherTheme.subscribeChanges(this, ::updateTheme)
@@ -166,7 +166,7 @@ class LawnchairLauncher : QuickstepLauncher() {
         if (prefs.autoLaunchRoot.get()) {
             lifecycleScope.launch {
                 try {
-                    RootHelperManager.INSTANCE.get(this@LawnchairLauncher)
+                    RootHelperManager.INSTANCE.get(this@AutoCatLauncher)
                 } catch (_: RootNotAvailableException) {
                 }
             }
@@ -196,7 +196,7 @@ class LawnchairLauncher : QuickstepLauncher() {
                 } else {
                     removeStateListener(statusBarClockListener)
                     // Make sure status bar clock is restored when the preference is toggled off
-                    LawnchairApp.instance.restoreClockInStatusBar()
+                    AutoCatApp.instance.restoreClockInStatusBar()
                 }
             }
         }
@@ -256,13 +256,13 @@ class LawnchairLauncher : QuickstepLauncher() {
         super.getSupportedShortcuts(),
         Stream.concat(
             Stream.of(
-                LawnchairShortcut.UNINSTALL,
-                LawnchairShortcut.ARCHIVE,
-                LawnchairShortcut.CUSTOMIZE,
-                LawnchairShortcut.APP_INFO,
-                LawnchairShortcut.STORE_PAGE,
+                AutoCatShortcut.UNINSTALL,
+                AutoCatShortcut.ARCHIVE,
+                AutoCatShortcut.CUSTOMIZE,
+                AutoCatShortcut.APP_INFO,
+                AutoCatShortcut.STORE_PAGE,
             ),
-            if (LawnchairApp.isRecentsEnabled) Stream.of(LawnchairShortcut.PAUSE_APPS) else Stream.empty(),
+            if (AutoCatApp.isRecentsEnabled) Stream.of(AutoCatShortcut.PAUSE_APPS) else Stream.empty(),
         ),
     )
 
@@ -284,7 +284,7 @@ class LawnchairLauncher : QuickstepLauncher() {
     }
 
     override fun registerBackDispatcher() {
-        if (LawnchairApp.isAtleastT) {
+        if (AutoCatApp.isAtleastT) {
             super.registerBackDispatcher()
         }
     }
@@ -303,7 +303,7 @@ class LawnchairLauncher : QuickstepLauncher() {
     }
 
     override fun handleGestureContract(intent: Intent?) {
-        if (!LawnchairApp.isRecentsEnabled) {
+        if (!AutoCatApp.isRecentsEnabled) {
             val gnc = GestureNavContract.fromIntent(intent)
             if (gnc != null) {
                 AbstractFloatingView.closeOpenViews(
@@ -311,7 +311,7 @@ class LawnchairLauncher : QuickstepLauncher() {
                     false,
                     AbstractFloatingView.TYPE_ICON_SURFACE,
                 )
-                LawnchairFloatingSurfaceView.show(this, gnc)
+                AutoCatFloatingSurfaceView.show(this, gnc)
             }
         }
     }
@@ -326,7 +326,7 @@ class LawnchairLauncher : QuickstepLauncher() {
         val showWallpaperCarousel = "+carousel" in preferenceManager2.launcherPopupOrder.firstBlocking()
 
         if (showWallpaperCarousel) {
-            show<LawnchairLauncher>(
+            show<AutoCatLauncher>(
                 this,
                 getPopupTarget(x, y),
                 OptionsPopupView.getOptions(this),
@@ -379,7 +379,7 @@ class LawnchairLauncher : QuickstepLauncher() {
     override fun makeDefaultActivityOptions(splashScreenStyle: Int): ActivityOptionsWrapper {
         val callbacks = RunnableList()
         val options = if (Utilities.ATLEAST_Q) {
-            LawnchairQuickstepCompat.activityOptionsCompat.makeCustomAnimation(
+            AutoCatQuickstepCompat.activityOptionsCompat.makeCustomAnimation(
                 this,
                 0,
                 0,
@@ -479,7 +479,7 @@ class LawnchairLauncher : QuickstepLauncher() {
 
     private fun restartIfPending() {
         when {
-            sRestartFlags and FLAG_RESTART != 0 -> lawnchairApp.restart(false)
+            sRestartFlags and FLAG_RESTART != 0 -> autoCatApp.restart(false)
 
             sRestartFlags and FLAG_RECREATE != 0 -> {
                 sRestartFlags = 0
@@ -505,15 +505,15 @@ class LawnchairLauncher : QuickstepLauncher() {
 
         var sRestartFlags = 0
 
-        val instance get() = LauncherAppState.getInstance(LawnchairApp.instance) as? LawnchairLauncher
+        val instance get() = LauncherAppState.getInstance(AutoCatApp.instance) as? AutoCatLauncher
     }
 }
 
-val Context.launcher: LawnchairLauncher
+val Context.autoCatLauncher: AutoCatLauncher
     get() = BaseActivity.fromContext(this)
 
-val Context.launcherNullable: LawnchairLauncher? get() = try {
-    launcher
+val Context.autoCatLauncherNullable: AutoCatLauncher? get() = try {
+    autoCatLauncher
 } catch (_: IllegalArgumentException) {
     null
 }

@@ -966,6 +966,12 @@
     <!-- AutoCat: Category management -->
     <string name="change_category_title">Change Category</string>
 
+    <!-- AutoCat: Folder sync strings -->
+    <string name="folder_sync_mode_label">Folder Sync Mode</string>
+    <string name="folder_sync_mode_drawer">App drawer only</string>
+    <string name="folder_sync_mode_home">Home screen only</string>
+    <string name="folder_sync_mode_both">Drawer and home screen</string>
+
     <!-- Message shown when all home screen views are removed -->
     <string name="home_screen_all_views_removed_msg">Home screen cleared</string>
 </resources>

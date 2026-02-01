@@ -42,7 +42,7 @@ import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.SafeCloseable
 import org.xmlpull.v1.XmlPullParser
 
-class LawnchairIconProvider @JvmOverloads constructor(
+class AutoCatIconProvider @JvmOverloads constructor(
     private val context: Context,
     supportsIconTheme: Boolean = false,
 ) : IconProvider(context) {
@@ -380,7 +380,7 @@ class LawnchairIconProvider @JvmOverloads constructor(
     }
 
     companion object {
-        const val TAG = "LawnchairIconProvider"
+        const val TAG = "AutoCatIconProvider"
 
         val DISABLED_MAP = emptyMap<String, ThemeData>()
     }

@@ -30,7 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.bottomSheetHandler
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
 import app.lawnchair.ui.util.preview.PreviewLawnchair
@@ -102,7 +102,7 @@ fun PreferenceClickConfirmation(
 @PreviewLawnchair
 @Composable
 private fun ClickablePreferencePreview() {
-    LawnchairTheme {
+    AutoCatTheme {
         PreferenceGroupPreviewContainer {
             ClickablePreference(
                 label = "Label",

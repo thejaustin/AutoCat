@@ -25,8 +25,8 @@ import androidx.core.graphics.createBitmap
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
-import app.lawnchair.LawnchairLauncher
-import app.lawnchair.launcher
+import app.lawnchair.AutoCatLauncher
+import app.lawnchair.autoCatLauncher
 import com.android.app.animation.Interpolators
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.CellLayout
@@ -45,7 +45,7 @@ import com.android.launcher3.views.FloatingIconViewCompanion.setPropertiesVisibl
 import java.util.function.Consumer
 import kotlin.math.roundToInt
 
-class LawnchairFloatingSurfaceView @JvmOverloads constructor(
+class AutoCatFloatingSurfaceView @JvmOverloads constructor(
     context: Context?,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -55,7 +55,7 @@ class LawnchairFloatingSurfaceView @JvmOverloads constructor(
     SurfaceHolder.Callback2 {
     private val mTmpPosition = RectF()
 
-    private val mLauncher: LawnchairLauncher = context!!.launcher
+    private val mLauncher: AutoCatLauncher = context!!.autoCatLauncher
     private val mIconPosition = RectF()
     private val mDeviceProfile = mLauncher.deviceProfile
 
@@ -168,7 +168,7 @@ class LawnchairFloatingSurfaceView @JvmOverloads constructor(
 
     private fun getBackgroundAnimator(): ObjectAnimator {
         val depthController = LaunchDepthController(mLauncher)
-        val targetDepth = mLauncher.stateManager.state.getDepth<LawnchairLauncher?>(mLauncher)
+        val targetDepth = mLauncher.stateManager.state.getDepth<AutoCatLauncher?>(mLauncher)
 
         val backgroundRadiusAnim = createDepthAnimator(
             depthController,
@@ -395,9 +395,9 @@ class LawnchairFloatingSurfaceView @JvmOverloads constructor(
         /**
          * Shows the surfaceView for the provided contract
          */
-        fun show(launcher: LawnchairLauncher, contract: GestureNavContract?) {
-            val view: LawnchairFloatingSurfaceView =
-                launcher.viewCache.getView<LawnchairFloatingSurfaceView?>(
+        fun show(launcher: AutoCatLauncher, contract: GestureNavContract?) {
+            val view: AutoCatFloatingSurfaceView =
+                launcher.viewCache.getView<AutoCatFloatingSurfaceView?>(
                     R.layout.floating_surface_view,
                     launcher,
                     launcher.dragLayer,

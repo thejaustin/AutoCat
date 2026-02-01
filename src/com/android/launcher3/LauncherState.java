@@ -52,7 +52,7 @@ import com.android.launcher3.views.ActivityContext;
 
 import java.util.Arrays;
 
-import app.lawnchair.LawnchairLauncher;
+import app.lawnchair.AutoCatLauncher;
 
 /**
  * Base state for various states used for the Launcher
@@ -128,8 +128,8 @@ public abstract class LauncherState implements BaseState<LauncherState> {
 
         @Override
         public void onBackPressed(Launcher launcher) {
-            if (launcher instanceof LawnchairLauncher) {
-                ((LawnchairLauncher) launcher).getGestureController().onBackPressed();
+            if (launcher instanceof AutoCatLauncher) {
+                ((AutoCatLauncher) launcher).getGestureController().onBackPressed();
             }
             super.onBackPressed(launcher);
         }

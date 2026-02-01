@@ -2,10 +2,10 @@ package app.lawnchair.deck
 
 import android.content.Context
 import android.util.Log
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.AutoCatLauncher
 import app.lawnchair.flowerpot.Flowerpot
-import app.lawnchair.launcher
-import app.lawnchair.launcherNullable
+import app.lawnchair.autoCatLauncher
+import app.lawnchair.autoCatLauncherNullable
 import app.lawnchair.util.restartLauncher
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
@@ -27,7 +27,7 @@ class LawndeckManager(private val context: Context) {
 
     // TODO
 
-    private val launcher = context.launcherNullable ?: LawnchairLauncher.instance?.launcher
+    private val launcher = context.autoCatLauncherNullable ?: AutoCatLauncher.instance?.autoCatLauncher
 
     suspend fun enableLawndeck(
         onProgress: ((String) -> Unit)? = null,
@@ -107,7 +107,7 @@ class LawndeckManager(private val context: Context) {
 
         onProgress?.invoke("Adding apps to workspace...")
 
-        val launcher = this.launcher ?: return
+        val launcher = this.autoCatLauncher ?: return
         val model = launcher.model
 
         // Collect folders to add and count single apps

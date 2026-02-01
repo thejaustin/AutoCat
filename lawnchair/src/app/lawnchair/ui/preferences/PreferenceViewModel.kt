@@ -34,9 +34,9 @@ import kotlinx.coroutines.flow.stateIn
 
 private val iconPackIntents = listOf(
     Intent("com.novalauncher.THEME"),
-    Intent("org.adw.launcher.icons.ACTION_PICK_ICON"),
-    Intent("com.dlto.atom.launcher.THEME"),
-    Intent("android.intent.action.MAIN").addCategory("com.anddoes.launcher.THEME"),
+    Intent("org.adw.autoCatLauncher.icons.ACTION_PICK_ICON"),
+    Intent("com.dlto.atom.autoCatLauncher.THEME"),
+    Intent("android.intent.action.MAIN").addCategory("com.anddoes.autoCatLauncher.THEME"),
 )
 
 class PreferenceViewModel(private val app: Application) :

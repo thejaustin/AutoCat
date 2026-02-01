@@ -1,25 +1,26 @@
-# Lawnchair development roadmap
+# AutoCat development roadmap
 
 This document outlines our high-level strategic priorities. It's a living document, not a set of
 unbreakable promises. For the status of individual tasks, see
-our [GitHub Issue Tracker](https://github.com/LawnchairLauncher/lawnchair/issues) and our
-team's [Kanban board](https://github.com/orgs/LawnchairLauncher/projects/9/views/1).
+our [GitHub Issue Tracker](https://github.com/thejaustin/AutoCat/issues).
 
 ## Vision
 
-Lawnchair's goal is to be:
+AutoCat's goal is to be:
 
-* **Simple:** Match the core Pixel Launcher experience.
-* **Powerful:** Offer deep, meaningful customization.
-* **Stable:** Provide a rock-solid, reliable foundation.
+* **Intelligent:** Use AI to make app organization effortless.
+* **Simple:** Match the core Pixel Launcher experience while adding power.
+* **Stable:** Provide a rock-solid, reliable foundation based on Lawnchair 16.
 
 ## Roadmap
 
-### Recently completed
+### Recently completed (AutoCat Overhaul)
 
-- **Shipped:** `15 Beta 1` to GitHub & Play Store.
-- **Completed:** A full architectural overhaul of the Search and Permissions systems.
-- **Completed:** App drawer tabs (AutoCat dynamic tab system).
+- **Versioning:** Migrated to clean 6-digit `160000+` versioning scheme for the fork.
+- **Branding:** Full internal codebase refactor from Lawnchair to AutoCat (Classes, Styles, Log Tags).
+- **LLM Reliability:** Implemented exponential backoff and rate-limit handling for AI providers.
+- **Diagnostics:** Added a dedicated Developer Diagnostics UI for database and log inspection.
+- **Parallelism:** Optimized LLM batch categorization with parallel coroutine processing.
 
 ### Current focus
 
@@ -27,6 +28,7 @@ This is our active development sprint. The goal is to address key bugs and deliv
 user experience.
 
 - UI/UX overhaul of all Settings screens to Material 3 Expressive.
+- Syncing AutoCat categories to Home Screen folders (Workspace support).
 
 ### Up next
 
@@ -34,19 +36,18 @@ Once the UX overhaul is stable, our focus will shift to delivering highly-reques
 enhance
 customization and control.
 
-- Proper icon swipe gestures
+- Proper icon swipe gestures (AutoCat style)
 - Folder "cover" mode
 
-### The Android 16 rebase
+### The Android 16 Base
 
-This is the massive, foundational undertaking to migrate our codebase to the latest Android 16
-(AOSP) source. Its completion will be the foundation for our **Lawnchair 16** release.
-
-**Status:** Actively in progress, led by a core community contributor.
+We have successfully rebased onto the latest Android 16 (AOSP) source. AutoCat is now tracking
+the `16-dev` branch as its primary development target.
 
 ### Long term or blocked
 
 Highly-requested features that are blocked by external dependencies or require significant research.
 
 - **Widget Stacking:** A highly complex feature requiring deep architectural investigation.
-- **QuickSwitch Stability:** An ongoing effort to mitigate upstream AOSP/OEM bugs.
+- **On-Device ML:** Exploring local categorization models to reduce API dependency.
+

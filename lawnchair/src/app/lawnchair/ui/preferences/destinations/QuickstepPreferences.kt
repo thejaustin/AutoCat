@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import app.lawnchair.LawnchairApp
+import app.lawnchair.AutoCatApp
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.observeAsState
 import app.lawnchair.preferences.preferenceManager
@@ -72,7 +72,7 @@ fun QuickstepPreferences(
         label = stringResource(id = R.string.quickstep_label),
         modifier = modifier,
     ) {
-        if (!LawnchairApp.isRecentsEnabled) QuickSwitchIgnoredWarning()
+        if (!AutoCatApp.isRecentsEnabled) QuickSwitchIgnoredWarning()
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
             SwitchPreference(
                 adapter = prefs.recentsTranslucentBackground.getAdapter(),

@@ -32,8 +32,8 @@
     -->
 
     <application
-        android:name="app.lawnchair.LawnchairApp"
-        android:backupAgent="com.android.launcher3.LauncherBackupAgent"
+        android:name="app.lawnchair.AutoCatApp"
+        android:backupAgent="app.lawnchair.backup.LawnchairBackupAgent"
         android:fullBackupOnly="true"
         android:fullBackupContent="@xml/backupscheme"
         android:hardwareAccelerated="true"
@@ -49,7 +49,7 @@
         attributes and intent filters the same
         -->
         <activity
-            android:name="app.lawnchair.LawnchairLauncher"
+            android:name="app.lawnchair.AutoCatLauncher"
             android:launchMode="singleTask"
             android:clearTaskOnLaunch="true"
             android:stateNotNeeded="true"

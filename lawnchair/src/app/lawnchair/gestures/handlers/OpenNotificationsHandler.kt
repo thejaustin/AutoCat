@@ -4,13 +4,13 @@ import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.AutoCatLauncher
 import com.android.launcher3.R
 
 class OpenNotificationsHandler(context: Context) : GestureHandler(context) {
 
     @SuppressLint("WrongConstant")
-    override suspend fun onTrigger(launcher: LawnchairLauncher) {
+    override suspend fun onTrigger(launcher: AutoCatLauncher) {
         try {
             Log.v(OpenNotificationsHandler::class.java.simpleName, "(Tried reflection)")
             Class.forName("android.app.StatusBarManager")

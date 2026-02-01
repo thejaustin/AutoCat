@@ -56,12 +56,12 @@ import com.android.quickstep.RecentsActivity
 import com.android.systemui.shared.system.QuickStepContract
 import java.io.File
 
-class LawnchairApp : Application() {
+class AutoCatApp : Application() {
     private val compatible = Build.VERSION.SDK_INT in BuildConfig.QUICKSTEP_MIN_SDK..BuildConfig.QUICKSTEP_MAX_SDK
     private val isRecentsComponent: Boolean by unsafeLazy { checkRecentsComponent() }
     private val recentsEnabled: Boolean get() = compatible && isRecentsComponent
     private val isAtleastT = Utilities.ATLEAST_T
-    internal var accessibilityService: LawnchairAccessibilityService? = null
+    internal var accessibilityService: AutoCatAccessibilityService? = null
     val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
 
     override fun onCreate() {
@@ -229,10 +229,10 @@ class LawnchairApp : Application() {
     }
 
     companion object {
-        private const val TAG = "LawnchairApp"
+        private const val TAG = "AutoCatApp"
 
         @JvmStatic
-        lateinit var instance: LawnchairApp
+        lateinit var instance: AutoCatApp
             private set
 
         @JvmStatic
@@ -244,7 +244,7 @@ class LawnchairApp : Application() {
         @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
         fun Launcher.showQuickstepWarningIfNecessary() {
             val launcher = this
-            if (!lawnchairApp.isRecentsComponent || isRecentsEnabled) return
+            if (!autoCatApp.isRecentsComponent || isRecentsEnabled) return
             ComposeBottomSheet.show(this) {
                 ModalBottomSheetContent(
                     title = { Text(text = stringResource(id = R.string.quickstep_incompatible)) },
@@ -284,4 +284,4 @@ class LawnchairApp : Application() {
     }
 }
 
-val Context.lawnchairApp get() = applicationContext as LawnchairApp
+val Context.autoCatApp get() = applicationContext as AutoCatApp

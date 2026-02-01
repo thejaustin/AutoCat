@@ -14,7 +14,7 @@ Lawnchair repository is SLSA-Level 2 compliance and can be verified using a prov
 
 1. Install GitHub CLI
 2. Download the APK and attestation from [GitHub Attestation][github-attestation]
-3. Run `gh attestation verify APK -R LawnchairLauncher/lawnchair`, replace {APK} with the 
+3. Run `gh attestation verify APK -R AutoCatLauncher/lawnchair`, replace {APK} with the 
    actual APK file
 4. Done
 
@@ -28,6 +28,6 @@ Lawnchair have two app certificates:
 
 On Android, using a verification app like [AppVerifier][3p-appverifier] can ease up the verifying process.
 
-[github-attestation]: https://github.com/LawnchairLauncher/lawnchair/attestations
+[github-attestation]: https://github.com/AutoCatLauncher/lawnchair/attestations
 [sigstore-rekor]: https://search.sigstore.dev/
 [3p-appverifier]: https://github.com/soupslurpr/AppVerifier

@@ -32,7 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.preview.PreviewLawnchair
 import com.android.launcher3.R
 
@@ -82,7 +82,7 @@ fun PreferenceCategory(
 @PreviewLawnchair
 @Composable
 private fun PreferenceCategoryPreview() {
-    LawnchairTheme {
+    AutoCatTheme {
         PreferenceCategory(
             label = "Example",
             description = "Example description here",
