@@ -26,7 +26,8 @@
     -->
 
     <application
-        android:backupAgent="com.android.launcher3.LauncherBackupAgent"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:backupAgent="app.lawnchair.backup.LawnchairBackupAgent"
         android:fullBackupOnly="true"
         android:fullBackupContent="@xml/backupscheme"
         android:hardwareAccelerated="true"
@@ -35,7 +36,8 @@
         android:theme="@style/AppTheme"
         android:largeHeap="@bool/config_largeHeap"
         android:restoreAnyVersion="true"
-        android:supportsRtl="true" >
+        android:supportsRtl="true"
+        tools:replace="android:backupAgent" >
 
         <!--
         Main launcher activity. When extending only change the name, and keep all the

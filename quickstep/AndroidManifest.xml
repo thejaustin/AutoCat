@@ -53,7 +53,7 @@
     <permission android:name="${applicationId}.permission.START_WIDGET_PICKER_ACTIVITY"
         android:protectionLevel="signature|privileged" />
 
-    <application android:backupAgent="com.android.launcher3.LauncherBackupAgent"
+    <application android:backupAgent="app.lawnchair.backup.LawnchairBackupAgent"
          android:enableOnBackInvokedCallback="true"
          android:fullBackupOnly="true"
          android:fullBackupContent="@xml/backupscheme"
@@ -63,7 +63,8 @@
          android:theme="@style/AppTheme"
          android:largeHeap="@bool/config_largeHeap"
          android:restoreAnyVersion="true"
-         android:supportsRtl="true">
+         android:supportsRtl="true"
+         tools:replace="android:backupAgent">
 
         <service android:name="com.android.quickstep.TouchInteractionService"
              android:permission="android.permission.STATUS_BAR_SERVICE"
