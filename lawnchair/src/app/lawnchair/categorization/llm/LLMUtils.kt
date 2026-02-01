@@ -71,7 +71,9 @@ object LLMUtils {
 
             // Network timeouts/connectivity
             message.contains("timeout", ignoreCase = true) -> true
+
             message.contains("network", ignoreCase = true) -> true
+
             message.contains("connectivity", ignoreCase = true) -> true
 
             // Server errors (5xx)
