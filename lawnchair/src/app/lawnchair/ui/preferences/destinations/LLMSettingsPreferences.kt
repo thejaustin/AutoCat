@@ -257,7 +257,7 @@ fun LLMSettingsPreferences(
                 PreferenceGroup(heading = "Actions") {
                     ClickablePreference(
                         label = "Restart Categorization",
-                        description = "Retry failed batches and re-evaluate all apps",
+                        subtitle = "Retry failed batches and re-evaluate all apps",
                         onClick = {
                             scope.launch {
                                 categorizationManager?.recategorizeAll()
