@@ -68,14 +68,18 @@ object LLMUtils {
         return when {
             // Rate limits (429)
             isRateLimitException(e) -> true
+
             // Network timeouts/connectivity
             message.contains("timeout", ignoreCase = true) -> true
             message.contains("network", ignoreCase = true) -> true
             message.contains("connectivity", ignoreCase = true) -> true
+
             // Server errors (5xx)
             message.contains("500") || message.contains("502") || message.contains("503") || message.contains("504") -> true
+
             // Gemini-specific overloaded error
             message.contains("overloaded", ignoreCase = true) -> true
+
             else -> false
         }
     }

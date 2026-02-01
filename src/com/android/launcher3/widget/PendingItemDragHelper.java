@@ -91,8 +91,8 @@ public class PendingItemDragHelper extends DragPreviewProvider {
     public void setAppWidgetHostViewPreview(
             @Nullable NavigableAppWidgetHostView appWidgetHostViewPreview) {
         mAppWidgetHostViewPreview = appWidgetHostViewPreview;
-        if (appWidgetHostViewPreview instanceof LawnchairAppWidgetHostView) {
-            ((LawnchairAppWidgetHostView) appWidgetHostViewPreview).disablePreviewMode();
+        if (appWidgetHostViewPreview instanceof AutoCatAppWidgetHostView) {
+            ((AutoCatAppWidgetHostView) appWidgetHostViewPreview).disablePreviewMode();
         }
     }
 
@@ -130,7 +130,7 @@ public class PendingItemDragHelper extends DragPreviewProvider {
             int[] previewSizeBeforeScale = new int[1];
 
             if (mRemoteViewsPreview != null) {
-                mAppWidgetHostViewPreview = new LawnchairAppWidgetHostView(launcher);
+                mAppWidgetHostViewPreview = new AutoCatAppWidgetHostView(launcher);
                 mAppWidgetHostViewPreview.setAppWidget(/* appWidgetId= */ -1,
                         ((PendingAddWidgetInfo) mAddInfo).info);
                 DeviceProfile deviceProfile = launcher.getDeviceProfile();
