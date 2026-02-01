@@ -168,9 +168,10 @@ fun LogViewer() {
                             color = getLogColor(log.level),
                             style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, fontSize = 10.sp),
                         )
-                        if (log.details.isNotEmpty()) {
+                        val details = log.details
+                        if (details != null && details.isNotEmpty()) {
                             Text(
-                                text = log.details?.toString() ?: "",
+                                text = details.toString(),
                                 color = Color.Gray,
                                 style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontSize = 8.sp),
                                 maxLines = 2,

@@ -27,7 +27,7 @@ class LawndeckManager(private val context: Context) {
 
     // TODO
 
-    private val launcher = context.autoCatLauncherNullable ?: AutoCatLauncher.instance?.autoCatLauncher
+    private val launcher: AutoCatLauncher? = context.autoCatLauncherNullable ?: AutoCatLauncher.instance
 
     suspend fun enableLawndeck(
         onProgress: ((String) -> Unit)? = null,
@@ -93,7 +93,7 @@ class LawndeckManager(private val context: Context) {
         onProgress: ((String) -> Unit)?,
         onComplete: (() -> Unit)?,
     ) {
-        val apps = launcher?.mAppsView?.appsStore?.apps ?: return
+        val apps = launcher?.appsView?.appsStore?.apps ?: return
         if (apps.isEmpty()) {
             onComplete?.invoke()
             return
@@ -107,7 +107,7 @@ class LawndeckManager(private val context: Context) {
 
         onProgress?.invoke("Adding apps to workspace...")
 
-        val launcher = this.autoCatLauncher ?: return
+        val launcher = this.launcher ?: return
         val model = launcher.model
 
         // Collect folders to add and count single apps
