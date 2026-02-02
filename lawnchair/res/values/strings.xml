@@ -176,14 +176,15 @@
     <string name="reorderable_disabled_hint">Disabled items will appear here. Drag an item here or tap the remove button to make an item active.</string>
     <string name="reorderable_add_hint_items">Active items will appear here. Drag an item here or tap the add button to make an item active.</string>
 
-    <!--
+        <!-- Preference Dashboard -->
 
-    Preference Dashboard
+        <string name="settings">Settings</string>
 
-    -->
-    <string name="settings">Settings</string>
+        <string name="search_settings">Search settings</string>
 
-    <string name="general_label">General</string>
+    
+
+        <string name="general_label">General</string>
     <string name="general_description">Colors, icon packs, notification dots</string>
 
     <string name="home_screen_label">Home screen</string>

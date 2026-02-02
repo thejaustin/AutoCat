@@ -25,6 +25,13 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.TipsAndUpdates
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.IconButton
+import app.lawnchair.ui.preferences.navigation.Search
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -90,6 +97,37 @@ import com.android.launcher3.R
 import kotlinx.coroutines.launch
 
 @Composable
+fun SettingsSearchBar(onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .androidx.compose.foundation.layout.fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 8.dp)
+            .height(52.dp)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        androidx.compose.foundation.layout.Row(
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = stringResource(id = R.string.search_settings),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
 fun PreferencesDashboard(
     currentRoute: PreferenceRootRoute,
     onNavigate: (PreferenceRootRoute) -> Unit,
@@ -112,8 +150,19 @@ fun PreferencesDashboard(
         modifier = modifier,
         verticalArrangement = Arrangement.Top,
         backArrowVisible = false,
-        actions = { PreferencesOverflowMenu(currentRoute = currentRoute, onNavigate = onNavigate) },
+        actions = {
+            IconButton(onClick = { isEditMode = !isEditMode }) {
+                Icon(
+                    imageVector = if (isEditMode) Icons.Rounded.Check else Icons.Rounded.Edit,
+                    contentDescription = stringResource(id = R.string.action_customize),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            PreferencesOverflowMenu(currentRoute = currentRoute, onNavigate = onNavigate)
+        },
     ) {
+        SettingsSearchBar(onClick = { onNavigate(Search()) })
+
         AnnouncementPreference()
 
         val hideSettingsWarnings by prefs.hideSettingsWarnings.observeAsState()
