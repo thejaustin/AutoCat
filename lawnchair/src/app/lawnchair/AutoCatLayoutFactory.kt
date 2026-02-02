@@ -41,6 +41,6 @@ class AutoCatLayoutFactory(context: Context) :
     }
 
     override fun close() {
-        TODO("Not yet implemented")
+        // No resources to release
     }
 }
