@@ -1,6 +1,7 @@
 package app.lawnchair.ui.preferences.components
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.preferences.SettingsCategory
@@ -49,14 +51,15 @@ fun DraggableSettingsCategory(
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val elevation by animateDpAsState(
-        targetValue = if (isEditMode) 4.dp else 0.dp,
-        label = "elevation",
+    val scale by animateFloatAsState(
+        targetValue = if (isEditMode) 0.95f else 1f,
+        label = "scale",
     )
 
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .scale(scale)
             .alpha(if (!category.isVisible && !isEditMode) 0.5f else 1f),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -66,7 +69,7 @@ fun DraggableSettingsCategory(
                 imageVector = Icons.Rounded.DragHandle,
                 contentDescription = "Drag to reorder",
                 modifier = Modifier
-                    .padding(start = 8.dp)
+                    .padding(start = 16.dp)
                     .size(24.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -143,32 +146,34 @@ fun DraggableSettingsCategoryGroup(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                 ),
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                        .padding(16.dp)
                 ) {
-                    androidx.compose.material3.Text(
-                        text = "Customize Settings",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        androidx.compose.material3.Text(
+                            text = "Customize Settings",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
                         androidx.compose.material3.TextButton(
                             onClick = onToggleEditMode,
                         ) {
                             androidx.compose.material3.Text("Done")
                         }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    androidx.compose.material3.Text(
+                        text = "Drag items to reorder them.\nTap the visibility icon to hide or show categories.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
                 }
-                androidx.compose.material3.Text(
-                    text = "Drag to reorder • Tap eye icon to hide/show",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp).padding(bottom = 16.dp),
-                )
             }
         }
 
