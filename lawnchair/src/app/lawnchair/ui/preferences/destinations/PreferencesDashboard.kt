@@ -97,7 +97,7 @@ import com.android.launcher3.R
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsSearchBar(onClick: () -> Unit) {
+fun SettingsSearchBar(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()

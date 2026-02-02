@@ -138,7 +138,7 @@ fun StatRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String
 }
 
 @Composable
-fun LogViewer() {
+fun LogViewer(modifier: Modifier = Modifier) {
     val logs = remember { mutableStateListOf<LLMLogger.LogEntry>() }
 
     LaunchedEffect(Unit) {
