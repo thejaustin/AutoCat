@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -58,9 +59,9 @@ fun DiagnosticsPreferences(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var appCount by remember { mutableStateOf(0) }
-    var tabCount by remember { mutableStateOf(0) }
-    var overrideCount by remember { mutableStateOf(0) }
+    var appCount by remember { mutableIntStateOf(0) }
+    var tabCount by remember { mutableIntStateOf(0) }
+    var overrideCount by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
