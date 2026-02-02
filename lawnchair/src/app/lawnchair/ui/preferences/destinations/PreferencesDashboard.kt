@@ -27,10 +27,9 @@ import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.TipsAndUpdates
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Search as SearchIcon
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.IconButton
-import app.lawnchair.ui.preferences.navigation.Search
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -100,7 +99,7 @@ import kotlinx.coroutines.launch
 fun SettingsSearchBar(onClick: () -> Unit) {
     Surface(
         modifier = Modifier
-            .androidx.compose.foundation.layout.fillMaxWidth()
+            .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .padding(bottom = 8.dp)
             .height(52.dp)
@@ -113,7 +112,7 @@ fun SettingsSearchBar(onClick: () -> Unit) {
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
             Icon(
-                imageVector = Icons.Rounded.Search,
+                imageVector = SearchIcon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
