@@ -108,3 +108,32 @@ Ensure that key decisions and context from CLI sessions are persisted into `AUTO
 **Source:** Conversation
 **Description:**
 Regularly update `ROADMAP.md` to reflect completed tasks (like the Android 16 rebase progress or AutoCat fork status).
+
+### Issue #17: Fix CI Build - Gradle Version Update
+**Description:**
+The GitHub Actions build was failing due to a missing Gradle 9.3 distribution.
+- [x] Update `gradle-wrapper.properties` to Gradle 9.3.1 (latest stable)
+- **Commit:** `build: update gradle wrapper to 9.3.1 to fix CI build error`
+
+### Issue #18: Add Search Bar to Settings Dashboard
+**Description:**
+Improve discoverability of settings by adding a dedicated search bar at the top of the main Settings screen.
+- [x] Implement `SettingsSearchBar` composable
+- [x] Integrate search bar in `PreferencesDashboard.kt`
+- [x] Add `search_settings` string resource
+- **Commit:** `feat(settings): add interactive search bar to settings dashboard`
+
+### Issue #19: Add Top-Level "Customize" Action
+**Description:**
+Make category reordering and hiding more accessible by adding an edit button to the top app bar.
+- [x] Add Pencil/Check icon toggle to `PreferenceLayout` actions
+- [x] Link toggle to Settings edit mode state
+- **Commit:** `feat(settings): add top-level customize action for easier layout editing`
+
+### Issue #20: Enhance Settings Customization UI
+**Description:**
+Provide better visual feedback when users are customizing their settings layout.
+- [x] Add scale animation (0.95x) to categories in Edit Mode
+- [x] Refine "Customize Settings" header card with better typography and instructions
+- [x] Improve drag handle positioning
+- **Commit:** `ui(settings): polish customization mode with animations and refined layout`

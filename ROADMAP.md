@@ -16,6 +16,7 @@ AutoCat's goal is to be:
 
 ### Recently completed (AutoCat Overhaul)
 
+- **Settings UI Enhancement:** Integrated Material 3 search bar, top-level customization actions, and polished animations for settings category reordering.
 - **Versioning:** Migrated to clean 6-digit `160000+` versioning scheme for the fork.
 - **Branding:** Full internal codebase refactor from Lawnchair to AutoCat (Classes, Styles, Log Tags).
 - **LLM Reliability:** Implemented exponential backoff and rate-limit handling for AI providers.
@@ -27,7 +28,7 @@ AutoCat's goal is to be:
 This is our active development sprint. The goal is to address key bugs and deliver a highly polished
 user experience.
 
-- UI/UX overhaul of all Settings screens to Material 3 Expressive.
+- Continuing UI/UX overhaul of sub-settings screens to Material 3 Expressive.
 - Syncing AutoCat categories to Home Screen folders (Workspace support).
 
 ### Up next
