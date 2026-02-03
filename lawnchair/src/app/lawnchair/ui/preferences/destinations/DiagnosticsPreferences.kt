@@ -120,9 +120,14 @@ fun DiagnosticsPreferences(
 }
 
 @Composable
-fun StatRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
+fun StatRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
