@@ -102,7 +102,7 @@ fun DiagnosticsPreferences(
                             LLMLogger.cleanup()
                         },
                     )
-                    
+
                     ClickablePreference(
                         label = "Clear Categorization Database",
                         subtitle = "CAUTION: Deletes all app assignments (not overrides)",
