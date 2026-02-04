@@ -86,20 +86,20 @@ fun PreferenceGroupHeading(
         Column(
             verticalArrangement = Arrangement.Center,
             modifier = modifier
-                .height(48.dp)
+                .height(56.dp)
                 .padding(horizontal = 32.dp)
                 .fillMaxWidth(),
         ) {
             Text(
                 text = heading,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.semantics { this.heading() },
             )
         }
     } else {
-        Spacer(modifier = modifier.requiredHeight(8.dp))
+        Spacer(modifier = modifier.requiredHeight(16.dp))
     }
 }
 
