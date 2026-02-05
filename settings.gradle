@@ -39,6 +39,7 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven { url = 'https://api.rikka.app/maven' }
         maven { url = 'https://jitpack.io' }
     }
 }

@@ -54,7 +54,7 @@ slice = "1.1.0-alpha02"
 smartspacer = "1.1.2"
 uiautomator = "2.3.0"
 window = "1.5.1"
-shizuku = "13.5.5"
+shizuku = "13.1.5"
 
 agp = "8.13.1"
 baselineprofile = "1.4.1"
