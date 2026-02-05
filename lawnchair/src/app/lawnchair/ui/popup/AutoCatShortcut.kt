@@ -446,6 +446,7 @@ class AutoCatShortcut {
                                     Toast.LENGTH_SHORT,
                                 ).show()
                             }
+
                             is AppBatchOperationService.OperationResult.Failed -> {
                                 Toast.makeText(
                                     context,
@@ -453,6 +454,7 @@ class AutoCatShortcut {
                                     Toast.LENGTH_SHORT,
                                 ).show()
                             }
+
                             else -> {}
                         }
                     }
@@ -489,6 +491,7 @@ class AutoCatShortcut {
                             Toast.LENGTH_SHORT,
                         ).show()
                     }
+
                     is AppBatchOperationService.OperationResult.Failed -> {
                         Toast.makeText(
                             context,
@@ -496,6 +499,7 @@ class AutoCatShortcut {
                             Toast.LENGTH_SHORT,
                         ).show()
                     }
+
                     else -> {}
                 }
             }

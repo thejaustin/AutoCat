@@ -265,6 +265,7 @@ fun RowScope.PreferencesOverflowMenu(
                         val wsMsg = if (result.workspaceImported) " & Workspace" else ""
                         Toast.makeText(context, "✅ Imported ${result.count} apps$wsMsg. Created ${sortResult.foldersCreated} folders.", Toast.LENGTH_LONG).show()
                     }
+
                     is ImportResult.Error -> {
                         Toast.makeText(context, "❌ Import failed: ${result.message}", Toast.LENGTH_LONG).show()
                     }

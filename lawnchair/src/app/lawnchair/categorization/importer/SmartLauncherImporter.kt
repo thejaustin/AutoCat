@@ -180,7 +180,7 @@ class SmartLauncherImporter(private val context: Context) {
                     val hasIconPackage = appColumns.firstOrNull { it.equals("iconPackage", ignoreCase = true) || it.equals("icon_package", ignoreCase = true) }
                     val hasIconName = appColumns.firstOrNull { it.equals("iconName", ignoreCase = true) || it.equals("icon_name", ignoreCase = true) }
                     // 'icon' column often holds the drawable name or file path
-                    val iconColumn = hasIconName ?: "icon" 
+                    val iconColumn = hasIconName ?: "icon"
 
                     val queryBuilder = StringBuilder("SELECT parentId, categoryId, packageName")
                     if (hasIconPackage != null) queryBuilder.append(", $hasIconPackage") else queryBuilder.append(", NULL")
@@ -188,7 +188,7 @@ class SmartLauncherImporter(private val context: Context) {
                     queryBuilder.append(" FROM DrawerItem WHERE packageName IS NOT NULL")
 
                     val appCursor = slDb.rawQuery(queryBuilder.toString(), null)
-                    
+
                     val provider = app.lawnchair.categorization.AutoCatAppProvider.getInstance(context)
                     val iconRepo = app.lawnchair.data.iconoverride.IconOverrideRepository.INSTANCE.get(context)
                     val processedIcons = mutableSetOf<String>()
@@ -229,24 +229,24 @@ class SmartLauncherImporter(private val context: Context) {
                                 try {
                                     // Verify the icon pack exists
                                     // val iconPackInfo = packageManager.getPackageInfo(iconPackage, 0) // Optional check
-                                    
+
                                     // Try to resolve the class name for the component key
                                     val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
                                     val className = launchIntent?.component?.className
-                                    
+
                                     if (className != null) {
                                         val componentKey = com.android.launcher3.util.ComponentKey(
                                             ComponentName(packageName, className),
-                                            user
+                                            user,
                                         )
-                                        
+
                                         val iconItem = app.lawnchair.icons.IconPickerItem(
                                             packPackageName = iconPackage,
                                             drawableName = iconName,
                                             label = packageName, // label isn't strictly used for lookup
-                                            type = app.lawnchair.icons.IconType.Normal
+                                            type = app.lawnchair.icons.IconType.Normal,
                                         )
-                                        
+
                                         iconRepo.setOverride(componentKey, iconItem)
                                     }
                                 } catch (e: Exception) {
@@ -274,12 +274,12 @@ class SmartLauncherImporter(private val context: Context) {
                     }
                     appCursor.close()
                 } catch (e: Exception) {
-                   e.printStackTrace()
+                    e.printStackTrace()
                 }
 
                 // 7. Batch Insert into AutoCat Database
                 val categoryDao = TabDatabase.getInstance(context).tabDao()
-                
+
                 // 7.5 Ensure all used tabs exist in CustomTab table
                 val uniqueTabNames = appsToImport.map { it.tabName }.distinct()
                 val existingCategories = categoryDao.getAllCustomTabs()
@@ -326,7 +326,7 @@ class SmartLauncherImporter(private val context: Context) {
                 } catch (e: Exception) {
                     android.util.Log.e("SmartLauncherImporter", "Workspace import failed", e)
                 }
-                
+
                 slDb.close()
 
                 // Cleanup
@@ -340,7 +340,7 @@ class SmartLauncherImporter(private val context: Context) {
             }
         }
     }
-    
+
     private fun importWorkspace(slDb: SQLiteDatabase): Boolean {
         // Attempt to find workspace table
         val tables = mutableListOf<String>()
@@ -351,39 +351,39 @@ class SmartLauncherImporter(private val context: Context) {
             } while (cursor.moveToNext())
         }
         cursor.close()
-        
+
         android.util.Log.d("SmartLauncherImporter", "Found tables: $tables")
-        
+
         // Potential workspace tables
-        val workspaceTable = tables.firstOrNull { 
-            it.contains("Home", ignoreCase = true) || 
-            it.contains("Desktop", ignoreCase = true) || 
-            it.contains("Bubble", ignoreCase = true) ||
-            it.contains("Item", ignoreCase = true) // Generic fallback
+        val workspaceTable = tables.firstOrNull {
+            it.contains("Home", ignoreCase = true) ||
+                it.contains("Desktop", ignoreCase = true) ||
+                it.contains("Bubble", ignoreCase = true) ||
+                it.contains("Item", ignoreCase = true) // Generic fallback
         } ?: return false
 
         android.util.Log.d("SmartLauncherImporter", "Attempting to import from table: $workspaceTable")
-        
+
         val columns = mutableListOf<String>()
         val colCursor = slDb.rawQuery("PRAGMA table_info($workspaceTable)", null)
         if (colCursor.moveToFirst()) {
-             do {
+            do {
                 columns.add(colCursor.getString(1))
             } while (colCursor.moveToNext())
         }
         colCursor.close()
-        
+
         if (!columns.contains("packageName") && !columns.contains("intent")) {
             return false
         }
-        
+
         // Construct query
         val hasPackageName = columns.contains("packageName")
         val hasIntent = columns.contains("intent")
         val hasCellX = columns.contains("cellX")
         val hasCellY = columns.contains("cellY")
         val hasScreen = columns.contains("screen")
-        
+
         val queryBuilder = StringBuilder("SELECT ")
         if (hasPackageName) queryBuilder.append("packageName") else queryBuilder.append("NULL")
         queryBuilder.append(", ")
@@ -391,24 +391,24 @@ class SmartLauncherImporter(private val context: Context) {
         if (hasCellX) queryBuilder.append(", cellX")
         if (hasCellY) queryBuilder.append(", cellY")
         if (hasScreen) queryBuilder.append(", screen")
-        
+
         queryBuilder.append(" FROM $workspaceTable")
-        
+
         val builder = LauncherLayoutBuilder()
         val itemsCursor = slDb.rawQuery(queryBuilder.toString(), null)
-        
+
         var currentX = 0
         var currentY = 0
         var currentScreen = 0
         val maxY = 5 // Arbitrary grid height
         val maxX = 4 // Arbitrary grid width
         var itemsFound = 0
-        
+
         if (itemsCursor.moveToFirst()) {
             do {
                 val packageName = itemsCursor.getString(0)
                 val intent = itemsCursor.getString(1)
-                
+
                 var x = if (hasCellX) itemsCursor.getInt(2) else currentX
                 var y = if (hasCellY && hasCellX) itemsCursor.getInt(3) else currentY // shift index if cellX exists
                 var screen = if (hasScreen && hasCellY && hasCellX) itemsCursor.getInt(4) else currentScreen
@@ -426,7 +426,7 @@ class SmartLauncherImporter(private val context: Context) {
                     x = currentX
                     y = currentY
                     screen = currentScreen
-                    
+
                     currentY++
                 }
 
@@ -437,11 +437,10 @@ class SmartLauncherImporter(private val context: Context) {
                     // Try to parse package from intent if possible, or just ignore
                     // Simple intent parsing might be too complex here without URI parser
                 }
-
             } while (itemsCursor.moveToNext())
         }
         itemsCursor.close()
-        
+
         if (itemsFound > 0) {
             try {
                 val xml = builder.build()
@@ -449,8 +448,8 @@ class SmartLauncherImporter(private val context: Context) {
                 android.util.Log.d("SmartLauncherImporter", "Workspace import requested")
                 return true
             } catch (e: Exception) {
-                 android.util.Log.e("SmartLauncherImporter", "Failed to build/import workspace XML", e)
-                 return false
+                android.util.Log.e("SmartLauncherImporter", "Failed to build/import workspace XML", e)
+                return false
             }
         }
         return false

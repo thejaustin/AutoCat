@@ -10,13 +10,13 @@ import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.util.DaggerSingletonObject
-import rikka.shizuku.Shizuku
 import javax.inject.Inject
+import rikka.shizuku.Shizuku
 
 @LauncherAppSingleton
 class ShizukuManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val preferenceManager: PreferenceManager
+    private val preferenceManager: PreferenceManager,
 ) {
 
     private var userService: IUserService? = null
@@ -34,7 +34,7 @@ class ShizukuManager @Inject constructor(
     }
 
     private val userServiceArgs = Shizuku.UserServiceArgs(
-        ComponentName(context.packageName, UserService::class.java.name)
+        ComponentName(context.packageName, UserService::class.java.name),
     )
         .daemon(false)
         .processNameSuffix("service")
@@ -100,7 +100,7 @@ class ShizukuManager @Inject constructor(
     }
 
     fun enableApp(packageName: String): Boolean {
-         return runCommand(arrayOf("pm", "enable", packageName))
+        return runCommand(arrayOf("pm", "enable", packageName))
     }
 
     private fun runCommand(command: Array<String>): Boolean {
