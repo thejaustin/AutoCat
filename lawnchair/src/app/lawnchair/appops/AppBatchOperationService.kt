@@ -8,6 +8,8 @@ import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
+import app.lawnchair.preferences.PreferenceManager
+import app.lawnchair.shizuku.ShizukuManager
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,12 +17,16 @@ import kotlinx.coroutines.withContext
 /**
  * Service for performing batch app operations (archive, uninstall).
  * Uses a privilege fallback hierarchy similar to SleepGestureHandler:
- * 1. API 35 PackageInstaller.requestArchive() (if installer-of-record)
- * 2. Root shell: pm archive (Android 15+)
- * 3. Root shell: pm uninstall -k (keeps data)
- * 4. System intent fallback (user confirms each)
+ * 1. User Preference (Shizuku or Root)
+ * 2. API 35 PackageInstaller.requestArchive() (if installer-of-record)
+ * 3. Root shell: pm archive (Android 15+)
+ * 4. Root shell: pm uninstall -k (keeps data)
+ * 5. System intent fallback (user confirms each)
  */
 class AppBatchOperationService(private val context: Context) {
+
+    private val prefs = PreferenceManager.getInstance(context)
+    private val shizukuManager = ShizukuManager.getInstance(context)
 
     companion object {
         private const val TAG = "AppBatchOpService"
@@ -51,10 +57,20 @@ class AppBatchOperationService(private val context: Context) {
      * Determines the best available archive method based on device capabilities.
      */
     suspend fun getArchiveMethod(): ArchiveMethod = withContext(Dispatchers.IO) {
+        val preferredMethod = prefs.archivalMethod.get()
+
+        if (preferredMethod == "shizuku" && shizukuManager.isShizukuAvailable()) {
+            return@withContext ArchiveMethod.ShizukuArchive
+        }
+
         val hasRoot = try {
             Shell.getShell().isRoot
         } catch (e: Exception) {
             false
+        }
+
+        if (preferredMethod == "root" && hasRoot) {
+            return@withContext if (Build.VERSION.SDK_INT >= 35) ArchiveMethod.RootArchive else ArchiveMethod.RootUninstallKeepData
         }
 
         when {
@@ -76,6 +92,32 @@ class AppBatchOperationService(private val context: Context) {
 
         val method = getArchiveMethod()
         executeArchive(packageName, method)
+    }
+
+    /**
+     * Unarchive (Restore) a single app.
+     */
+    suspend fun unarchiveApp(packageName: String): OperationResult = withContext(Dispatchers.IO) {
+        if (Build.VERSION.SDK_INT >= 35) {
+            try {
+                val installer = context.packageManager.packageInstaller
+                val intent = Intent("app.lawnchair.UNARCHIVE_STATUS")
+                    .setPackage(context.packageName)
+                val pendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    ARCHIVE_REQUEST_CODE_BASE + packageName.hashCode() + 1,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
+                )
+                installer.requestUnarchive(packageName, pendingIntent.intentSender)
+                OperationResult.Success
+            } catch (e: Exception) {
+                Log.e(TAG, "requestUnarchive failed", e)
+                OperationResult.Failed(e.message ?: "Unknown error")
+            }
+        } else {
+            OperationResult.RequiresUserConfirmation
+        }
     }
 
     /**
@@ -180,6 +222,70 @@ class AppBatchOperationService(private val context: Context) {
     }
 
     /**
+     * Disable a single app.
+     */
+    suspend fun disableApp(packageName: String): OperationResult = withContext(Dispatchers.IO) {
+        val preferredMethod = prefs.archivalMethod.get()
+
+        if (preferredMethod == "shizuku" && shizukuManager.isShizukuAvailable()) {
+            return@withContext if (shizukuManager.disableApp(packageName)) {
+                OperationResult.Success
+            } else {
+                OperationResult.Failed("Shizuku disable failed")
+            }
+        }
+
+        val hasRoot = try {
+            Shell.getShell().isRoot
+        } catch (e: Exception) {
+            false
+        }
+
+        if (hasRoot) {
+            val result = Shell.cmd("pm disable-user --user 0 $packageName").exec()
+            return@withContext if (result.isSuccess) {
+                OperationResult.Success
+            } else {
+                OperationResult.Failed(result.err.joinToString("\n"))
+            }
+        }
+
+        OperationResult.RequiresUserConfirmation
+    }
+
+    /**
+     * Enable a single app.
+     */
+    suspend fun enableApp(packageName: String): OperationResult = withContext(Dispatchers.IO) {
+        val preferredMethod = prefs.archivalMethod.get()
+
+        if (preferredMethod == "shizuku" && shizukuManager.isShizukuAvailable()) {
+            return@withContext if (shizukuManager.enableApp(packageName)) {
+                OperationResult.Success
+            } else {
+                OperationResult.Failed("Shizuku enable failed")
+            }
+        }
+
+        val hasRoot = try {
+            Shell.getShell().isRoot
+        } catch (e: Exception) {
+            false
+        }
+
+        if (hasRoot) {
+            val result = Shell.cmd("pm enable $packageName").exec()
+            return@withContext if (result.isSuccess) {
+                OperationResult.Success
+            } else {
+                OperationResult.Failed(result.err.joinToString("\n"))
+            }
+        }
+
+        OperationResult.RequiresUserConfirmation
+    }
+
+    /**
      * Get the count of system apps in a package list (for UI display).
      */
     fun countSystemApps(packages: List<String>): Int {
@@ -214,8 +320,17 @@ class AppBatchOperationService(private val context: Context) {
         return when (method) {
             is ArchiveMethod.Api35Archive -> executeApi35Archive(packageName)
             is ArchiveMethod.RootArchive -> executeRootArchive(packageName)
+            is ArchiveMethod.ShizukuArchive -> executeShizukuArchive(packageName)
             is ArchiveMethod.RootUninstallKeepData -> executeRootUninstallKeepData(packageName)
             is ArchiveMethod.IntentFallback -> OperationResult.RequiresUserConfirmation
+        }
+    }
+
+    private fun executeShizukuArchive(packageName: String): OperationResult {
+        return if (shizukuManager.archiveApp(packageName)) {
+            OperationResult.Success
+        } else {
+            OperationResult.Failed("Shizuku operation failed")
         }
     }
 

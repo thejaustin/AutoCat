@@ -99,15 +99,63 @@ class AutoCatShortcut {
                 if (itemInfo.targetComponent == null) {
                     return@Factory null
                 }
-                if (ApplicationInfoWrapper(
-                        activity.asContext(),
-                        itemInfo.targetComponent!!.packageName,
-                        itemInfo.user,
-                    ).isSystem()
-                ) {
+                val wrapper = ApplicationInfoWrapper(
+                    activity.asContext(),
+                    itemInfo.targetComponent!!.packageName,
+                    itemInfo.user,
+                )
+                if (wrapper.isSystem() || wrapper.isArchived()) {
                     return@Factory null
                 }
                 ArchiveApp(activity, itemInfo, view)
+            }
+
+        val DISABLE =
+            SystemShortcut.Factory { activity: ActivityContext, itemInfo: ItemInfo, view: View ->
+                if (itemInfo.targetComponent == null) {
+                    return@Factory null
+                }
+                val wrapper = ApplicationInfoWrapper(
+                    activity.asContext(),
+                    itemInfo.targetComponent!!.packageName,
+                    itemInfo.user,
+                )
+                if (wrapper.isSystem() || !wrapper.isEnabled()) {
+                    return@Factory null
+                }
+                DisableApp(activity, itemInfo, view)
+            }
+
+        val ENABLE =
+            SystemShortcut.Factory { activity: ActivityContext, itemInfo: ItemInfo, view: View ->
+                if (itemInfo.targetComponent == null) {
+                    return@Factory null
+                }
+                val wrapper = ApplicationInfoWrapper(
+                    activity.asContext(),
+                    itemInfo.targetComponent!!.packageName,
+                    itemInfo.user,
+                )
+                if (wrapper.isEnabled()) {
+                    return@Factory null
+                }
+                EnableApp(activity, itemInfo, view)
+            }
+
+        val UNARCHIVE =
+            SystemShortcut.Factory { activity: ActivityContext, itemInfo: ItemInfo, view: View ->
+                if (itemInfo.targetComponent == null) {
+                    return@Factory null
+                }
+                if (!ApplicationInfoWrapper(
+                        activity.asContext(),
+                        itemInfo.targetComponent!!.packageName,
+                        itemInfo.user,
+                    ).isArchived()
+                ) {
+                    return@Factory null
+                }
+                RestoreApp(activity, itemInfo, view)
             }
 
         val APP_INFO =
@@ -313,6 +361,10 @@ class AutoCatShortcut {
         itemInfo,
         originalView,
     ) {
+        init {
+            mAccessibilityActionId = R.id.action_archive
+        }
+
         override fun onClick(view: View) {
             val context = view.context
             val packageName = itemInfo?.targetComponent?.packageName ?: return
@@ -358,6 +410,95 @@ class AutoCatShortcut {
                     }
                 }
                 .show()
+            AbstractFloatingView.closeAllOpenViews(target)
+        }
+    }
+
+    class DisableApp(
+        private var target: ActivityContext?,
+        private var itemInfo: ItemInfo?,
+        originalView: View?,
+    ) : SystemShortcut<ActivityContext>(
+        R.drawable.ic_block_no_shadow,
+        R.string.disable_app_label,
+        target,
+        itemInfo,
+        originalView,
+    ) {
+        override fun onClick(view: View) {
+            val context = view.context
+            val packageName = itemInfo?.targetComponent?.packageName ?: return
+            val service = AppBatchOperationService(context)
+            val appLabel = service.getAppLabel(packageName)
+
+            AlertDialog.Builder(context)
+                .setTitle(context.getString(R.string.disable_app_dialog_title, appLabel))
+                .setMessage(R.string.disable_app_dialog_message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.disable_app_label) { _, _ ->
+                    CoroutineScope(Dispatchers.Main).launch {
+                        val result = service.disableApp(packageName)
+                        when (result) {
+                            is AppBatchOperationService.OperationResult.Success -> {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.disable_app_success, appLabel),
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
+                            is AppBatchOperationService.OperationResult.Failed -> {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.disable_app_failed, appLabel),
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
+                            else -> {}
+                        }
+                    }
+                }
+                .show()
+            AbstractFloatingView.closeAllOpenViews(target)
+        }
+    }
+
+    class EnableApp(
+        private var target: ActivityContext?,
+        private var itemInfo: ItemInfo?,
+        originalView: View?,
+    ) : SystemShortcut<ActivityContext>(
+        R.drawable.ic_install_no_shadow,
+        R.string.enable_app_label,
+        target,
+        itemInfo,
+        originalView,
+    ) {
+        override fun onClick(view: View) {
+            val context = view.context
+            val packageName = itemInfo?.targetComponent?.packageName ?: return
+            val service = AppBatchOperationService(context)
+            val appLabel = service.getAppLabel(packageName)
+
+            CoroutineScope(Dispatchers.Main).launch {
+                val result = service.enableApp(packageName)
+                when (result) {
+                    is AppBatchOperationService.OperationResult.Success -> {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.enable_app_success, appLabel),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
+                    is AppBatchOperationService.OperationResult.Failed -> {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.enable_app_failed, appLabel),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
+                    else -> {}
+                }
+            }
             AbstractFloatingView.closeAllOpenViews(target)
         }
     }
@@ -442,6 +583,58 @@ class AutoCatShortcut {
                     )
                 } catch (e2: Exception) {
                     Toast.makeText(context, R.string.store_not_found, Toast.LENGTH_SHORT).show()
+                }
+            }
+            AbstractFloatingView.closeAllOpenViews(target)
+        }
+    }
+
+    class RestoreApp(
+        private var target: ActivityContext?,
+        private var itemInfo: ItemInfo?,
+        originalView: View?,
+    ) : SystemShortcut<ActivityContext>(
+        R.drawable.ic_install_no_shadow,
+        R.string.action_restore,
+        target,
+        itemInfo,
+        originalView,
+    ) {
+        init {
+            mAccessibilityActionId = R.id.action_unarchive
+        }
+
+        override fun onClick(view: View) {
+            val context = view.context
+            val packageName = itemInfo?.targetComponent?.packageName ?: return
+            val service = AppBatchOperationService(context)
+            val appLabel = service.getAppLabel(packageName)
+
+            CoroutineScope(Dispatchers.Main).launch {
+                val result = service.unarchiveApp(packageName)
+                when (result) {
+                    is AppBatchOperationService.OperationResult.Success -> {
+                        Toast.makeText(
+                            context,
+                            "Restoring $appLabel...",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
+
+                    is AppBatchOperationService.OperationResult.RequiresUserConfirmation -> {
+                        // Launch the app, which usually triggers restore
+                        target?.startActivitySafely(view, itemInfo?.intent, itemInfo)
+                    }
+
+                    is AppBatchOperationService.OperationResult.Failed -> {
+                        Toast.makeText(
+                            context,
+                            "Failed to restore $appLabel",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
+
+                    else -> {}
                 }
             }
             AbstractFloatingView.closeAllOpenViews(target)

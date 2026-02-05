@@ -5,8 +5,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.LauncherApps
+import android.net.Uri
 import android.os.Process
 import android.provider.Settings
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +29,7 @@ import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Science
@@ -57,6 +62,8 @@ import androidx.core.content.getSystemService
 import app.lawnchair.AutoCatApp
 import app.lawnchair.AutoCatLauncher
 import app.lawnchair.backup.ui.restoreBackupOpener
+import app.lawnchair.categorization.importer.SmartLauncherImporter
+import app.lawnchair.categorization.importer.SmartLauncherImporter.ImportResult
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.observeAsState
 import app.lawnchair.preferences.preferenceManager
@@ -240,6 +247,32 @@ fun RowScope.PreferencesOverflowMenu(
     val navController = LocalNavController.current
     val openCreateBackup = { navController.navigate(CreateBackup) }
     val openRestoreBackup = restoreBackupOpener()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val slImportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ) { uri: Uri? ->
+        if (uri != null) {
+            Toast.makeText(context, "Importing Smart Launcher backup...", Toast.LENGTH_SHORT).show()
+            scope.launch {
+                val importer = SmartLauncherImporter(context)
+                val result = importer.importFromUri(uri)
+                when (result) {
+                    is ImportResult.Success -> {
+                        // Auto-sort apps into folders
+                        val sortResult = app.lawnchair.categorization.FolderAutoSortService.getInstance(context).autoSortAll()
+                        val wsMsg = if (result.workspaceImported) " & Workspace" else ""
+                        Toast.makeText(context, "✅ Imported ${result.count} apps$wsMsg. Created ${sortResult.foldersCreated} folders.", Toast.LENGTH_LONG).show()
+                    }
+                    is ImportResult.Error -> {
+                        Toast.makeText(context, "❌ Import failed: ${result.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+    }
+
     OverflowMenu(
         modifier = modifier.addIf(
             listOf(ExperimentalFeatures).any {
@@ -251,7 +284,6 @@ fun RowScope.PreferencesOverflowMenu(
                 .background(highlightColor)
         },
     ) {
-        val context = LocalContext.current
         DropdownMenuItem(
             leadingIcon = {
                 Icon(
@@ -331,6 +363,22 @@ fun RowScope.PreferencesOverflowMenu(
             },
             text = {
                 Text(text = stringResource(id = R.string.restore_backup))
+            },
+        )
+        DropdownMenuItem(
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Rounded.Download,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            onClick = {
+                slImportLauncher.launch("*/*")
+                hideMenu()
+            },
+            text = {
+                Text(text = "Import Smart Launcher")
             },
         )
     }

@@ -1,44 +1,25 @@
 package app.lawnchair.ui.preferences.destinations
 
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.CloudSync
-import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Error
-import androidx.compose.material.icons.rounded.History
-import androidx.compose.material.icons.rounded.Layers
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.Speed
-import androidx.compose.material.icons.rounded.Timer
-import androidx.compose.material.icons.rounded.Work
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,10 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategorizationManager
-import app.lawnchair.categorization.importer.SmartLauncherImporter
-import app.lawnchair.categorization.importer.SmartLauncherImporter.ImportResult
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
@@ -120,27 +98,6 @@ fun CategorizationSettingsPreferences(
         }
     }
 
-    val slImportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-    ) { uri: Uri? ->
-        if (uri != null) {
-            categorizationStatus = "Importing..."
-            scope.launch {
-                val importer = SmartLauncherImporter(context)
-                val result = importer.importFromUri(uri)
-                categorizationStatus = when (result) {
-                    is ImportResult.Success -> {
-                        // Auto-sort apps into folders
-                        val sortResult = app.lawnchair.categorization.FolderAutoSortService.getInstance(context).autoSortAll()
-                        "✅ Imported ${result.count} apps. Created ${sortResult.foldersCreated} folders."
-                    }
-
-                    is ImportResult.Error -> "❌ Import failed: ${result.message}"
-                }
-            }
-        }
-    }
-
     val devMode by prefs.autoCatDevMode.getAdapter().state
 
     PreferenceScaffold(
@@ -176,7 +133,7 @@ fun CategorizationSettingsPreferences(
                                     }
                                 },
                                 enabled = !progress.isRunning && categorizationManager != null,
-                                modifier = Modifier.weight(1.1f),
+                                modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(12.dp),
                                 elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 2.dp),
                             ) {
@@ -190,21 +147,6 @@ fun CategorizationSettingsPreferences(
                                     if (progress.isRunning) "Running..." else "Run AutoCat",
                                     fontWeight = FontWeight.SemiBold,
                                 )
-                            }
-
-                            // Import Button
-                            OutlinedButton(
-                                onClick = { slImportLauncher.launch("*/*") },
-                                modifier = Modifier.weight(0.9f),
-                                shape = RoundedCornerShape(12.dp),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Download,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Import SL")
                             }
                         }
 

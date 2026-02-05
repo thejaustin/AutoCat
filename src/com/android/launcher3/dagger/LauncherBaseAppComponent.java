@@ -33,6 +33,7 @@ import app.lawnchair.icons.IconPackProvider;
 import app.lawnchair.icons.shape.IconShapeManager;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
+import app.lawnchair.shizuku.ShizukuManager;
 import app.lawnchair.smartspace.provider.SmartspaceProvider;
 import app.lawnchair.theme.ThemeProvider;
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreferenceModelList;
@@ -123,6 +124,7 @@ public interface LauncherBaseAppComponent {
     LiveInformationManager getLiveInformationManager();
     PreferenceManager2 getPreferenceManager2();
     PreferenceManager getPreferenceManager();
+    ShizukuManager getShizukuManager();
     FontCache getFontCache();
     FontManager getFontManager();
     IconShapeManager getIconShapeManager();

@@ -194,6 +194,9 @@ class PreferenceManager @Inject constructor(
     val settingsCategoryOrder = StringPref("pref_settingsCategoryOrder", "")
     val settingsCategoryVisibility = StringPref("pref_settingsCategoryVisibility", "")
 
+    // AutoCat: Archival/Disabling Method
+    val archivalMethod = StringPref("pref_archivalMethod", "none", {})
+
     override fun close() {
         TODO("Not yet implemented")
     }

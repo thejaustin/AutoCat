@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="autocat_app_management_label">App Management</string>
+    <string name="autocat_archival_method_label">Archival/Disabling Method</string>
+    <string name="autocat_archival_method_none">None</string>
+    <string name="autocat_archival_method_shizuku">Shizuku (ADB/Root)</string>
+    <string name="autocat_archival_method_root">Root (Direct)</string>
+    <string name="autocat_archival_method_description">Select the method used to archive or disable apps. Shizuku is recommended for non-root users with ADB access.</string>
+
+    <string name="disable_app_label">Disable app</string>
+    <string name="enable_app_label">Enable app</string>
+    <string name="disable_app_dialog_title">Disable %1$s?</string>
+    <string name="disable_app_dialog_message">Disabled apps will be hidden from the app drawer and home screen. All app data will be kept.</string>
+    <string name="disable_app_success">%1$s disabled</string>
+    <string name="disable_app_failed">Failed to disable %1$s</string>
+    <string name="enable_app_success">%1$s enabled</string>
+    <string name="enable_app_failed">Failed to enable %1$s</string>
+</resources>

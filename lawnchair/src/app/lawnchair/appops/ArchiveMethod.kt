@@ -11,6 +11,9 @@ sealed class ArchiveMethod {
     /** Root shell: `pm archive <package>` (Android 15+ with root) */
     data object RootArchive : ArchiveMethod()
 
+    /** Shizuku shell: `pm uninstall -k <package>` or `pm archive` */
+    data object ShizukuArchive : ArchiveMethod()
+
     /** Root shell: `pm uninstall -k <package>` (keeps data, works on older Android) */
     data object RootUninstallKeepData : ArchiveMethod()
 

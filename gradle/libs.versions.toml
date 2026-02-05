@@ -54,6 +54,7 @@ slice = "1.1.0-alpha02"
 smartspacer = "1.1.2"
 uiautomator = "2.3.0"
 window = "1.5.1"
+shizuku = "13.5.5"
 
 agp = "8.13.1"
 baselineprofile = "1.4.1"
@@ -173,6 +174,8 @@ reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version.r
 rikka-annotation = { module = "dev.rikka.tools.refine:annotation", version.ref = "refine" }
 rikka-annotation-processor = { module = "dev.rikka.tools.refine:annotation-processor", version.ref = "refine" }
 rikka-refine-runtime = { group = "dev.rikka.tools.refine", name = "runtime", version.ref = "refine" }
+rikka-shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
+rikka-shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 smartspacer-sdk = { group = "com.kieronquinn.smartspacer", name = "sdk-client", version.ref = "smartspacer" }
 xdrop-fuzzywuzzy = { group = "me.xdrop", name = "fuzzywuzzy", version.ref = "fuzzywuzzy" }
 

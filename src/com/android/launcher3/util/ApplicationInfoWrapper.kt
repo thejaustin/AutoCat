@@ -47,11 +47,10 @@ class ApplicationInfoWrapper(provider: () -> ApplicationInfo?) {
             ctx.getSystemService(LauncherApps::class.java)
                 ?.getApplicationInfo(pkg, PackageManager.MATCH_UNINSTALLED_PACKAGES, user)
                 ?.let { ai ->
-                    // its enabled and (either installed or archived)
+                    // its (either installed or archived)
                     if (
-                        ai.enabled &&
-                            (ai.flags.and(FLAG_INSTALLED) != 0 ||
-                                (ATLEAST_V && enableSupportForArchiving() && ai.isArchived))
+                        ai.flags.and(FLAG_INSTALLED) != 0 ||
+                            (ATLEAST_V && enableSupportForArchiving() && ai.isArchived)
                     ) {
                         ai
                     } else {
@@ -110,6 +109,9 @@ class ApplicationInfoWrapper(provider: () -> ApplicationInfo?) {
 
     /** Returns whether the target app is a system app */
     fun isSystem() = hasFlag(FLAG_SYSTEM)
+
+    /** Returns whether the target app is enabled */
+    fun isEnabled() = appInfo?.enabled ?: false
 
     fun getInfo(): ApplicationInfo? = appInfo
 }

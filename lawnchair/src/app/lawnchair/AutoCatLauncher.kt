@@ -258,6 +258,9 @@ class AutoCatLauncher : QuickstepLauncher() {
             Stream.of(
                 AutoCatShortcut.UNINSTALL,
                 AutoCatShortcut.ARCHIVE,
+                AutoCatShortcut.UNARCHIVE,
+                AutoCatShortcut.DISABLE,
+                AutoCatShortcut.ENABLE,
                 AutoCatShortcut.CUSTOMIZE,
                 AutoCatShortcut.APP_INFO,
                 AutoCatShortcut.STORE_PAGE,

@@ -202,6 +202,23 @@ fun GeneralPreferences() {
                 }
             }
         }
+
+        PreferenceGroup(heading = stringResource(id = R.string.autocat_app_management_label)) {
+            val archivalMethodAdapter = prefs.archivalMethod.getAdapter()
+            val archivalMethodEntries = remember {
+                listOf(
+                    ListPreferenceEntry("none") { stringResource(id = R.string.autocat_archival_method_none) },
+                    ListPreferenceEntry("shizuku") { stringResource(id = R.string.autocat_archival_method_shizuku) },
+                    ListPreferenceEntry("root") { stringResource(id = R.string.autocat_archival_method_root) },
+                )
+            }
+            ListPreference(
+                adapter = archivalMethodAdapter,
+                entries = archivalMethodEntries,
+                label = stringResource(id = R.string.autocat_archival_method_label),
+                description = stringResource(id = R.string.autocat_archival_method_description),
+            )
+        }
     }
 }
 
