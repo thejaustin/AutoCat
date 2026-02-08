@@ -114,7 +114,7 @@ fun TabManagementPreferences(
             item {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Custom tabs allow you to organize your app drawer. AI will automatically sort your apps into these categories.",
+                        text = "Custom tabs allow you to organize your app drawer. Apps are automatically sorted into these categories.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

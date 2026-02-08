@@ -101,7 +101,7 @@ fun CategorizationSettingsPreferences(
     val devMode by prefs.autoCatDevMode.getAdapter().state
 
     PreferenceScaffold(
-        label = "AI Categorization",
+        label = "Smart Categories",
         modifier = modifier,
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
@@ -144,7 +144,7 @@ fun CategorizationSettingsPreferences(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    if (progress.isRunning) "Running..." else "Run AutoCat",
+                                    if (progress.isRunning) "Categorizing..." else "Categorize Now",
                                     fontWeight = FontWeight.SemiBold,
                                 )
                             }
@@ -243,7 +243,7 @@ fun CategorizationSettingsPreferences(
                     SwitchPreference(
                         adapter = prefs.llmEnableBatching.getAdapter(),
                         label = "Batch Processing",
-                        description = "Process multiple apps in a single AI request. Recommended for speed and lower costs.",
+                        description = "Process multiple apps in a single request. Recommended for speed and lower costs.",
                     )
 
                     val enableRateLimiting = prefs.autoCatEnableRateLimiting.getAdapter()
@@ -271,8 +271,8 @@ fun CategorizationSettingsPreferences(
                     )
 
                     NavigationActionPreference(
-                        label = "AI Provider Settings",
-                        subtitle = "Configure API keys and models (Google, OpenAI, etc.)",
+                        label = "Provider Settings",
+                        subtitle = "Configure API keys and models",
                         destination = AppDrawerLLMSettings,
                     )
                 }

@@ -81,8 +81,8 @@ fun AppDrawerPreferences(
         }
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
             NavigationActionPreference(
-                label = "AI Categorization",
-                subtitle = "Intelligent app organization & tabs",
+                label = "Smart Categories",
+                subtitle = "Automatic app organization & tabs",
                 destination = AppDrawerCategorizationSettings,
             )
             val hiddenApps = prefs2.hiddenApps.getAdapter().state.value
