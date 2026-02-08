@@ -86,7 +86,7 @@ class CategoryTabsManager(private val context: Context) {
         tabs.add(
             TabInfo(
                 id = "other",
-                name = "Other",
+                name = CategorizationConstants.UNCATEGORIZED_TAB,
                 tabName = null,
                 colorHex = "#9E9E9E", // Gray color
                 isOtherTab = true,

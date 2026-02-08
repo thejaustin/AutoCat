@@ -189,7 +189,7 @@ class AutoCatAppProvider(private val context: Context) {
 
         // Add uncategorized apps to "Other" tab if any exist
         if (uncategorizedApps.isNotEmpty()) {
-            val otherMap = categorizedApps.getOrPut("Other") { mutableMapOf() }
+            val otherMap = categorizedApps.getOrPut(CategorizationConstants.UNCATEGORIZED_TAB) { mutableMapOf() }
             otherMap.getOrPut("") { mutableListOf() }.addAll(uncategorizedApps)
         }
 

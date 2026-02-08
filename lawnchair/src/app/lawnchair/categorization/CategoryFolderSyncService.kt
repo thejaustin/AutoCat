@@ -121,11 +121,10 @@ class CategoryFolderSyncService(
                     )
                 }
 
-                // Group apps by tab, excluding "Other" and system categories
+                // Group apps by tab, excluding uncategorized/system categories
                 val appsByTab = categorizations.entries
                     .filter { (_, tabName) ->
-                        // Exclude "Other" tab and empty tab names
-                        tabName.isNotEmpty() && tabName != "Other"
+                        CategorizationConstants.isCategorized(tabName)
                     }
                     .groupBy(
                         keySelector = { it.value },
@@ -142,8 +141,7 @@ class CategoryFolderSyncService(
 
                 // Get existing drawer folders (with timeout to prevent hanging)
                 val existingFolders = try {
-                    withTimeout(10000) {
-                        // 10 second timeout
+                    withTimeout(CategorizationConstants.FOLDER_OPERATION_TIMEOUT_MS) {
                         drawerFolderService.getAllFolders()
                     }
                 } catch (e: TimeoutCancellationException) {
@@ -331,7 +329,7 @@ class CategoryFolderSyncService(
             )
 
             val folders = try {
-                withTimeout(10000) {
+                withTimeout(CategorizationConstants.FOLDER_OPERATION_TIMEOUT_MS) {
                     drawerFolderService.getAllFolders()
                 }
             } catch (e: TimeoutCancellationException) {
