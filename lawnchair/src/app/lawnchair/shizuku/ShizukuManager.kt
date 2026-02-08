@@ -136,21 +136,23 @@ class ShizukuManager @Inject constructor(
     }
 
     private fun runCommand(command: Array<String>): Boolean {
-        if (userService == null) {
+        // Capture service reference locally for thread safety
+        val service = userService ?: run {
             bindService()
-            if (userService == null) return false
-        }
+            userService
+        } ?: return false
 
         return try {
-            userService?.runCommand(command, null)
+            service.runCommand(command, null)
             true
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e(TAG, "Shizuku command failed: ${command.joinToString(" ")}", e)
             false
         }
     }
 
     companion object {
+        private const val TAG = "ShizukuManager"
         private const val REQUEST_CODE_PERMISSION = 1001
 
         @JvmField
@@ -158,7 +160,8 @@ class ShizukuManager @Inject constructor(
 
         @JvmStatic
         fun getInstance(context: Context): ShizukuManager {
-            return INSTANCE.get(context)!!
+            return INSTANCE.get(context)
+                ?: throw IllegalStateException("ShizukuManager not initialized. Ensure Dagger component is set up.")
         }
     }
 }

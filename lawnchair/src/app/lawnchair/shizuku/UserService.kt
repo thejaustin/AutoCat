@@ -1,10 +1,7 @@
 package app.lawnchair.shizuku
 
 import android.content.Context
-import android.os.IBinder
-import android.os.Process
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import android.util.Log
 import kotlin.system.exitProcess
 
 class UserService(context: Context) : IUserService.Stub() {
@@ -13,11 +10,13 @@ class UserService(context: Context) : IUserService.Stub() {
         try {
             val process = Runtime.getRuntime().exec(command, env)
             process.waitFor()
-            // Optionally we could read output here if needed, but for now we just wait.
-            // If output is needed, we would need to pass a callback or return values.
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Command execution failed: ${command.joinToString(" ")}", e)
         }
+    }
+
+    companion object {
+        private const val TAG = "UserService"
     }
 
     override fun destroy() {
