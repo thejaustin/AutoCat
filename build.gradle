@@ -525,6 +525,7 @@ licensee {
     allowDependency(libs.libsu.service)
     allowUrl("https://github.com/patrykmichalik/opto/blob/master/LICENSE")
     allowUrl("https://github.com/RikkaApps/HiddenApiRefinePlugin/blob/main/LICENSE")
+    allowUrl("https://github.com/RikkaApps/Shizuku-API/blob/master/LICENSE")
     allowUrl("https://opensource.org/licenses/mit-license.php")
 
     bundleAndroidAsset = true

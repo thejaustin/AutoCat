@@ -10,6 +10,7 @@ import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.util.DaggerSingletonObject
+import com.topjohnwu.superuser.Shell
 import javax.inject.Inject
 import rikka.shizuku.Shizuku
 
@@ -92,15 +93,46 @@ class ShizukuManager @Inject constructor(
     }
 
     fun archiveApp(packageName: String): Boolean {
-        return runCommand(arrayOf("pm", "uninstall", "-k", packageName))
+        return if (preferenceManager.archivalMethod.get() == "root") {
+            archiveAppRoot(packageName)
+        } else {
+            runCommand(arrayOf("pm", "uninstall", "-k", packageName))
+        }
     }
 
     fun disableApp(packageName: String): Boolean {
-        return runCommand(arrayOf("pm", "disable-user", "--user", "0", packageName))
+        return if (preferenceManager.archivalMethod.get() == "root") {
+            disableAppRoot(packageName)
+        } else {
+            runCommand(arrayOf("pm", "disable-user", "--user", "0", packageName))
+        }
     }
 
     fun enableApp(packageName: String): Boolean {
-        return runCommand(arrayOf("pm", "enable", packageName))
+        return if (preferenceManager.archivalMethod.get() == "root") {
+            enableAppRoot(packageName)
+        } else {
+            runCommand(arrayOf("pm", "enable", packageName))
+        }
+    }
+
+    fun archiveAppRoot(packageName: String): Boolean {
+        // Use separate arguments to prevent command injection
+        return Shell.cmd("pm", "uninstall", "-k", packageName).exec().isSuccess
+    }
+
+    fun disableAppRoot(packageName: String): Boolean {
+        // Use separate arguments to prevent command injection
+        return Shell.cmd("pm", "disable-user", "--user", "0", packageName).exec().isSuccess
+    }
+
+    fun enableAppRoot(packageName: String): Boolean {
+        // Use separate arguments to prevent command injection
+        return Shell.cmd("pm", "enable", packageName).exec().isSuccess
+    }
+
+    fun isRootAvailable(): Boolean {
+        return Shell.getShell().isRoot
     }
 
     private fun runCommand(command: Array<String>): Boolean {
