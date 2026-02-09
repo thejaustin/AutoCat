@@ -54,6 +54,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.lawnchair.categorization.AutoCatAppProvider
@@ -68,6 +69,7 @@ import app.lawnchair.data.tab.entities.CustomTab
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
+import com.android.launcher3.R
 import kotlinx.coroutines.launch
 
 @Composable
@@ -114,7 +116,7 @@ fun TabManagementPreferences(
             item {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Custom tabs allow you to organize your app drawer. Apps are automatically sorted into these categories.",
+                        text = stringResource(R.string.tab_management_description),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

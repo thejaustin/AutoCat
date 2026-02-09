@@ -15,4 +15,14 @@
     <string name="disable_app_failed">Failed to disable %1$s</string>
     <string name="enable_app_success">%1$s enabled</string>
     <string name="enable_app_failed">Failed to enable %1$s</string>
+    <string name="smart_categories_label">Smart Categories</string>
+    <string name="smart_categories_subtitle">Automatic app organization &amp; tabs</string>
+    <string name="categorize_now">Categorize Now</string>
+    <string name="categorizing">Categorizing…</string>
+    <string name="provider_settings_label">Provider Settings</string>
+    <string name="provider_settings_subtitle">Configure API keys and models</string>
+    <string name="batch_processing_description">Process multiple apps in a single request. Recommended for speed and lower costs.</string>
+    <string name="tab_management_description">Custom tabs allow you to organize your app drawer. Apps are automatically sorted into these categories.</string>
+    <string name="customize_settings">Customize Settings</string>
+    <string name="done">Done</string>
 </resources>
