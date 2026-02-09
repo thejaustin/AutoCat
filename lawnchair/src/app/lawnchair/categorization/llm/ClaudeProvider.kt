@@ -37,31 +37,14 @@ class ClaudeProvider(
     }
 
     private val effectiveApiKey: String
-        get() {
-            // Priority: constructor param > user preference > environment variable
-            val userKey = apiKey ?: PreferenceManager.getInstance(context).llmClaudeKey.get()
-            val envKey = System.getenv("ANTHROPIC_API_KEY") ?: ""
-            val finalKey = when {
-                !userKey.isNullOrEmpty() -> userKey
-                envKey.isNotEmpty() -> envKey
-                else -> ""
-            }
-            android.util.Log.d(
-                TAG,
-                "Claude API key status: ${if (finalKey.isEmpty()) {
-                    "NOT SET"
-                } else {
-                    "SET (length: ${finalKey.length}, source: ${
-                        when {
-                            !userKey.isNullOrEmpty() -> "user pref"
-                            envKey.isNotEmpty() -> "env var"
-                            else -> "none"
-                        }
-                    })"
-                }}",
-            )
-            return finalKey
-        }
+        get() = LLMProviderUtils.resolveApiKey(
+            constructorKey = apiKey,
+            context = context,
+            prefKeyGetter = { it.llmClaudeKey.get() },
+            envVarName = "ANTHROPIC_API_KEY",
+            tag = TAG,
+            providerName = "Claude",
+        )
 
     override suspend fun isAvailable(): Boolean {
         val available = effectiveApiKey.isNotEmpty()
@@ -146,35 +129,14 @@ class ClaudeProvider(
      */
     private val httpClient by lazy { HttpClientFactory.defaultClient }
 
-    /**
-     * Gets the effective model to use, with fallback handling
-     */
     private val effectiveModel: String
-        get() {
-            // Try to get user's preferred model from preferences
-            val prefs = PreferenceManager.getInstance(context)
-            val preferredModel = try {
-                prefs.llmClaudeModel.get()
-            } catch (e: Exception) {
-                // Preference might not exist yet
-                android.util.Log.w(TAG, "Could not read llmClaudeModel preference: ${e.message}")
-                null
-            }
-
-            // Check if preferred model is available
-            val model = if (!preferredModel.isNullOrEmpty() &&
-                ModelRegistry.isModelAvailable("claude", preferredModel)
-            ) {
-                preferredModel
-            } else {
-                // Fall back to registry's recommended model
-                val fallback = ModelRegistry.getFallbackModel("claude", preferredModel ?: "")
-                fallback?.id ?: DEFAULT_MODEL
-            }
-
-            android.util.Log.d(TAG, "Using model: $model")
-            return model
-        }
+        get() = LLMProviderUtils.resolveModel(
+            context = context,
+            providerId = "claude",
+            prefModelGetter = { it.llmClaudeModel.get() },
+            defaultModel = DEFAULT_MODEL,
+            tag = TAG,
+        )
 
     companion object {
         private const val TAG = "ClaudeProvider"

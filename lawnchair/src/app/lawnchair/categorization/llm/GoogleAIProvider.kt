@@ -40,61 +40,23 @@ class GoogleAIProvider(
     }
 
     private val effectiveApiKey: String
-        get() {
-            // Priority: constructor param > user preference > environment variable
-            val userKey = apiKey ?: PreferenceManager.getInstance(context).llmGoogleAIKey.get()
-            val envKey = System.getenv("GOOGLE_AI_API_KEY") ?: ""
-            val finalKey = when {
-                !userKey.isNullOrEmpty() -> userKey
-                envKey.isNotEmpty() -> envKey
-                else -> ""
-            }
-            android.util.Log.d(
-                TAG,
-                "Google AI API key status: ${if (finalKey.isEmpty()) {
-                    "NOT SET"
-                } else {
-                    "SET (length: ${finalKey.length}, source: ${
-                        when {
-                            !userKey.isNullOrEmpty() -> "user pref"
-                            envKey.isNotEmpty() -> "env var"
-                            else -> "none"
-                        }
-                    })"
-                }}",
-            )
-            return finalKey
-        }
+        get() = LLMProviderUtils.resolveApiKey(
+            constructorKey = apiKey,
+            context = context,
+            prefKeyGetter = { it.llmGoogleAIKey.get() },
+            envVarName = "GOOGLE_AI_API_KEY",
+            tag = TAG,
+            providerName = "Google AI",
+        )
 
-    /**
-     * Gets the effective model to use, with fallback handling
-     */
     private val effectiveModel: String
-        get() {
-            // Try to get user's preferred model from preferences
-            val prefs = PreferenceManager.getInstance(context)
-            val preferredModel = try {
-                prefs.llmGoogleAIModel.get()
-            } catch (e: Exception) {
-                // Preference might not exist yet
-                android.util.Log.w(TAG, "Could not read llmGoogleAIModel preference: ${e.message}")
-                null
-            }
-
-            // Check if preferred model is available
-            val model = if (!preferredModel.isNullOrEmpty() &&
-                ModelRegistry.isModelAvailable("google_ai", preferredModel)
-            ) {
-                preferredModel
-            } else {
-                // Fall back to registry's recommended model
-                val fallback = ModelRegistry.getFallbackModel("google_ai", preferredModel ?: "")
-                fallback?.id ?: DEFAULT_MODEL
-            }
-
-            android.util.Log.d(TAG, "Using model: $model")
-            return model
-        }
+        get() = LLMProviderUtils.resolveModel(
+            context = context,
+            providerId = "google_ai",
+            prefModelGetter = { it.llmGoogleAIModel.get() },
+            defaultModel = DEFAULT_MODEL,
+            tag = TAG,
+        )
 
     /** Shared HTTP client from factory for efficient connection pooling. */
     private val httpClient by lazy { HttpClientFactory.defaultClient }

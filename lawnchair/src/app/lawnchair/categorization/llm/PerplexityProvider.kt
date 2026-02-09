@@ -37,61 +37,23 @@ class PerplexityProvider(
     }
 
     private val effectiveApiKey: String
-        get() {
-            // Priority: constructor param > user preference > environment variable
-            val userKey = apiKey ?: PreferenceManager.getInstance(context).llmPerplexityKey.get()
-            val envKey = System.getenv("PERPLEXITY_API_KEY") ?: ""
-            val finalKey = when {
-                !userKey.isNullOrEmpty() -> userKey
-                envKey.isNotEmpty() -> envKey
-                else -> ""
-            }
-            android.util.Log.d(
-                TAG,
-                "Perplexity API key status: ${if (finalKey.isEmpty()) {
-                    "NOT SET"
-                } else {
-                    "SET (length: ${finalKey.length}, source: ${
-                        when {
-                            !userKey.isNullOrEmpty() -> "user pref"
-                            envKey.isNotEmpty() -> "env var"
-                            else -> "none"
-                        }
-                    })"
-                }}",
-            )
-            return finalKey
-        }
+        get() = LLMProviderUtils.resolveApiKey(
+            constructorKey = apiKey,
+            context = context,
+            prefKeyGetter = { it.llmPerplexityKey.get() },
+            envVarName = "PERPLEXITY_API_KEY",
+            tag = TAG,
+            providerName = "Perplexity",
+        )
 
-    /**
-     * Gets the effective model to use, with fallback handling
-     */
     private val effectiveModel: String
-        get() {
-            // Try to get user's preferred model from preferences
-            val prefs = PreferenceManager.getInstance(context)
-            val preferredModel = try {
-                prefs.llmPerplexityModel.get()
-            } catch (e: Exception) {
-                // Preference might not exist yet
-                android.util.Log.w(TAG, "Could not read llmPerplexityModel preference: ${e.message}")
-                null
-            }
-
-            // Check if preferred model is available
-            val model = if (!preferredModel.isNullOrEmpty() &&
-                ModelRegistry.isModelAvailable("perplexity", preferredModel)
-            ) {
-                preferredModel
-            } else {
-                // Fall back to registry's recommended model
-                val fallback = ModelRegistry.getFallbackModel("perplexity", preferredModel ?: "")
-                fallback?.id ?: DEFAULT_MODEL
-            }
-
-            android.util.Log.d(TAG, "Using model: $model")
-            return model
-        }
+        get() = LLMProviderUtils.resolveModel(
+            context = context,
+            providerId = "perplexity",
+            prefModelGetter = { it.llmPerplexityModel.get() },
+            defaultModel = DEFAULT_MODEL,
+            tag = TAG,
+        )
 
     /**
      * Shared OkHttp client with connection pooling for efficient HTTP requests.

@@ -37,61 +37,23 @@ class OpenAIProvider(
     }
 
     private val effectiveApiKey: String
-        get() {
-            // Priority: constructor param > user preference > environment variable
-            val userKey = apiKey ?: PreferenceManager.getInstance(context).llmOpenAIKey.get()
-            val envKey = System.getenv("OPENAI_API_KEY") ?: ""
-            val finalKey = when {
-                !userKey.isNullOrEmpty() -> userKey
-                envKey.isNotEmpty() -> envKey
-                else -> ""
-            }
-            android.util.Log.d(
-                TAG,
-                "OpenAI API key status: ${if (finalKey.isEmpty()) {
-                    "NOT SET"
-                } else {
-                    "SET (length: ${finalKey.length}, source: ${
-                        when {
-                            !userKey.isNullOrEmpty() -> "user pref"
-                            envKey.isNotEmpty() -> "env var"
-                            else -> "none"
-                        }
-                    })"
-                }}",
-            )
-            return finalKey
-        }
+        get() = LLMProviderUtils.resolveApiKey(
+            constructorKey = apiKey,
+            context = context,
+            prefKeyGetter = { it.llmOpenAIKey.get() },
+            envVarName = "OPENAI_API_KEY",
+            tag = TAG,
+            providerName = "OpenAI",
+        )
 
-    /**
-     * Gets the effective model to use, with fallback handling
-     */
     private val effectiveModel: String
-        get() {
-            // Try to get user's preferred model from preferences
-            val prefs = PreferenceManager.getInstance(context)
-            val preferredModel = try {
-                prefs.llmOpenAIModel.get()
-            } catch (e: Exception) {
-                // Preference might not exist yet
-                android.util.Log.w(TAG, "Could not read llmOpenAIModel preference: ${e.message}")
-                null
-            }
-
-            // Check if preferred model is available
-            val model = if (!preferredModel.isNullOrEmpty() &&
-                ModelRegistry.isModelAvailable("openai", preferredModel)
-            ) {
-                preferredModel
-            } else {
-                // Fall back to registry's recommended model
-                val fallback = ModelRegistry.getFallbackModel("openai", preferredModel ?: "")
-                fallback?.id ?: DEFAULT_MODEL
-            }
-
-            android.util.Log.d(TAG, "Using model: $model")
-            return model
-        }
+        get() = LLMProviderUtils.resolveModel(
+            context = context,
+            providerId = "openai",
+            prefModelGetter = { it.llmOpenAIModel.get() },
+            defaultModel = DEFAULT_MODEL,
+            tag = TAG,
+        )
 
     /**
      * Shared OkHttp client with connection pooling for efficient HTTP requests.
