@@ -237,6 +237,7 @@ class LLMCategorizer(
 
         val tabNames = customCategories.map { it.name }
 
+        val prefManager = PreferenceManager.getInstance(context)
         val allProviders = getProvidersInOrder()
         val primary = allProviders.first()
 
