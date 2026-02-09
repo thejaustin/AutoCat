@@ -21,6 +21,7 @@ import app.lawnchair.ui.preferences.about.acknowledgements.Acknowledgements
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreferenceModelList
 import app.lawnchair.ui.preferences.components.colorpreference.ColorSelection
 import app.lawnchair.ui.preferences.components.search.SearchProviderPreferenceScreen
+import app.lawnchair.ui.preferences.destinations.AppCategorizationListPreferences
 import app.lawnchair.ui.preferences.destinations.AppDrawerFoldersPreference
 import app.lawnchair.ui.preferences.destinations.AppDrawerPreferences
 import app.lawnchair.ui.preferences.destinations.CategorizationSettingsPreferences
@@ -128,6 +129,7 @@ fun PreferenceNavigation(
             SelectAppsForDrawerFolder(folderInfoId)
         }
         composable<AppDrawerFolder> { AppDrawerFoldersPreference() }
+        composable<AppDrawerAppCategorizations> { AppCategorizationListPreferences() }
         composable<AppDrawerLLMSettings> { LLMSettingsPreferences() }
         composable<AppDrawerDiagnostics> { DiagnosticsPreferences() }
 

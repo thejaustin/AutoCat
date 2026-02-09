@@ -160,7 +160,7 @@ class ShizukuManager @Inject constructor(
             return if (packageName.matches(PACKAGE_NAME_REGEX)) {
                 packageName
             } else {
-                Log.e(TAG, "Invalid package name rejected: $packageName")
+                android.util.Log.e(TAG, "Invalid package name rejected: $packageName")
                 null
             }
         }
