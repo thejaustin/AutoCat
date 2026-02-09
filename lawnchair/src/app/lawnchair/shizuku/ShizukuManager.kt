@@ -117,18 +117,18 @@ class ShizukuManager @Inject constructor(
     }
 
     fun archiveAppRoot(packageName: String): Boolean {
-        // Use separate arguments to prevent command injection
-        return Shell.cmd("pm", "uninstall", "-k", packageName).exec().isSuccess
+        val pkg = validatePackageName(packageName) ?: return false
+        return Shell.cmd("pm uninstall -k $pkg").exec().isSuccess
     }
 
     fun disableAppRoot(packageName: String): Boolean {
-        // Use separate arguments to prevent command injection
-        return Shell.cmd("pm", "disable-user", "--user", "0", packageName).exec().isSuccess
+        val pkg = validatePackageName(packageName) ?: return false
+        return Shell.cmd("pm disable-user --user 0 $pkg").exec().isSuccess
     }
 
     fun enableAppRoot(packageName: String): Boolean {
-        // Use separate arguments to prevent command injection
-        return Shell.cmd("pm", "enable", packageName).exec().isSuccess
+        val pkg = validatePackageName(packageName) ?: return false
+        return Shell.cmd("pm enable $pkg").exec().isSuccess
     }
 
     fun isRootAvailable(): Boolean {
@@ -154,6 +154,16 @@ class ShizukuManager @Inject constructor(
     companion object {
         private const val TAG = "ShizukuManager"
         private const val REQUEST_CODE_PERMISSION = 1001
+        private val PACKAGE_NAME_REGEX = Regex("^[a-zA-Z0-9_.]+$")
+
+        private fun validatePackageName(packageName: String): String? {
+            return if (packageName.matches(PACKAGE_NAME_REGEX)) {
+                packageName
+            } else {
+                Log.e(TAG, "Invalid package name rejected: $packageName")
+                null
+            }
+        }
 
         @JvmField
         val INSTANCE = DaggerSingletonObject(LauncherAppComponent::getShizukuManager)

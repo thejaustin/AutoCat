@@ -31,6 +31,12 @@ class AppBatchOperationService(private val context: Context) {
     companion object {
         private const val TAG = "AppBatchOpService"
         private const val ARCHIVE_REQUEST_CODE_BASE = 9000
+        private val PACKAGE_NAME_REGEX = Regex("^[a-zA-Z0-9_.]+$")
+
+        private fun sanitizePackageName(packageName: String): String {
+            require(packageName.matches(PACKAGE_NAME_REGEX)) { "Invalid package name: $packageName" }
+            return packageName
+        }
     }
 
     /**
@@ -170,11 +176,11 @@ class AppBatchOperationService(private val context: Context) {
         }
 
         if (hasRoot) {
-            // Use separate arguments to prevent command injection
+            val pkg = sanitizePackageName(packageName)
             val result = if (keepData) {
-                Shell.cmd("pm", "uninstall", "-k", packageName).exec()
+                Shell.cmd("pm uninstall -k $pkg").exec()
             } else {
-                Shell.cmd("pm", "uninstall", packageName).exec()
+                Shell.cmd("pm uninstall $pkg").exec()
             }
             if (result.isSuccess) {
                 OperationResult.Success
@@ -246,8 +252,8 @@ class AppBatchOperationService(private val context: Context) {
         }
 
         if (hasRoot) {
-            // Use separate arguments to prevent command injection
-            val result = Shell.cmd("pm", "disable-user", "--user", "0", packageName).exec()
+            val pkg = sanitizePackageName(packageName)
+            val result = Shell.cmd("pm disable-user --user 0 $pkg").exec()
             return@withContext if (result.isSuccess) {
                 OperationResult.Success
             } else {
@@ -279,8 +285,8 @@ class AppBatchOperationService(private val context: Context) {
         }
 
         if (hasRoot) {
-            // Use separate arguments to prevent command injection
-            val result = Shell.cmd("pm", "enable", packageName).exec()
+            val pkg = sanitizePackageName(packageName)
+            val result = Shell.cmd("pm enable $pkg").exec()
             return@withContext if (result.isSuccess) {
                 OperationResult.Success
             } else {
@@ -379,8 +385,8 @@ class AppBatchOperationService(private val context: Context) {
     private fun executeRootArchive(packageName: String): OperationResult {
         // `pm archive` is available on Android 15+ (API 35+) with root
         return if (Build.VERSION.SDK_INT >= 35) {
-            // Use separate arguments to prevent command injection
-            val result = Shell.cmd("pm", "archive", packageName).exec()
+            val pkg = sanitizePackageName(packageName)
+            val result = Shell.cmd("pm archive $pkg").exec()
             if (result.isSuccess) {
                 OperationResult.Success
             } else {
@@ -394,8 +400,8 @@ class AppBatchOperationService(private val context: Context) {
     }
 
     private fun executeRootUninstallKeepData(packageName: String): OperationResult {
-        // Use separate arguments to prevent command injection
-        val result = Shell.cmd("pm", "uninstall", "-k", packageName).exec()
+        val pkg = sanitizePackageName(packageName)
+        val result = Shell.cmd("pm uninstall -k $pkg").exec()
         return if (result.isSuccess) {
             OperationResult.Success
         } else {
