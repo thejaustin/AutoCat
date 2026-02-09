@@ -95,18 +95,9 @@ class PerplexityProvider(
 
     /**
      * Shared OkHttp client with connection pooling for efficient HTTP requests.
-     * - Connection pool: 5 connections kept alive for 5 minutes
-     * - Reduces TCP handshake overhead on repeated API calls
-     * - 40-60% reduction in API latency compared to HttpURLConnection
+     * Shared HTTP client from factory for efficient connection pooling.
      */
-    private val httpClient by lazy {
-        OkHttpClient.Builder()
-            .connectionPool(ConnectionPool(5, 5, TimeUnit.MINUTES))
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .build()
-    }
+    private val httpClient by lazy { HttpClientFactory.defaultClient }
 
     override suspend fun isAvailable(): Boolean {
         val available = effectiveApiKey.isNotEmpty()
