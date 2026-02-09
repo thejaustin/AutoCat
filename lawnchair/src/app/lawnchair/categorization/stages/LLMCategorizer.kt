@@ -102,25 +102,7 @@ class LLMCategorizer(
             return true
         }
 
-        // Get user's preferred provider (or auto-selected best provider)
-        val prefManager = PreferenceManager.getInstance(context)
-        val preferredProviderId = if (adaptiveSelector.isAutoSelectEnabled()) {
-            val bestProvider = adaptiveSelector.getBestProvider()
-            if (bestProvider != null) {
-                android.util.Log.d(TAG, "Auto-selected provider: $bestProvider")
-                bestProvider
-            } else {
-                android.util.Log.d(TAG, "Auto-select enabled but no data; using manual preference")
-                prefManager.llmProviderPreference.get()
-            }
-        } else {
-            prefManager.llmProviderPreference.get()
-        }
-
-        // Order providers: Preferred/Auto-selected first, then others as fallback
-        val primary = providers[preferredProviderId] ?: googleProvider
-        val fallbacks = providers.values.filter { it.name != primary.name }
-        val allProviders = listOf(primary) + fallbacks
+        val allProviders = getProvidersInOrder()
 
         for (provider in allProviders) {
             // Check circuit breaker first
@@ -255,25 +237,8 @@ class LLMCategorizer(
 
         val tabNames = customCategories.map { it.name }
 
-        // Get user's preferred provider (or auto-selected best provider)
-        val prefManager = PreferenceManager.getInstance(context)
-        val preferredProviderId = if (adaptiveSelector.isAutoSelectEnabled()) {
-            val bestProvider = adaptiveSelector.getBestProvider()
-            if (bestProvider != null) {
-                android.util.Log.d(TAG, "Batch: Auto-selected provider: $bestProvider")
-                bestProvider
-            } else {
-                android.util.Log.d(TAG, "Batch: Auto-select enabled but no data; using manual preference")
-                prefManager.llmProviderPreference.get()
-            }
-        } else {
-            prefManager.llmProviderPreference.get()
-        }
-
-        // Order providers: Preferred/Auto-selected first, then others as fallback
-        val primary = providers[preferredProviderId] ?: googleProvider
-        val fallbacks = providers.values.filter { it.name != primary.name }
-        val allProviders = listOf(primary) + fallbacks
+        val allProviders = getProvidersInOrder()
+        val primary = allProviders.first()
 
         // Get model info to calculate batch size
         val modelInfo = primary.getCurrentModel()
@@ -558,6 +523,29 @@ class LLMCategorizer(
      */
     fun resetCircuitBreakers() {
         circuitBreaker.resetAll()
+    }
+
+    /**
+     * Get providers ordered by preference: auto-selected or manually preferred first, then fallbacks.
+     */
+    private fun getProvidersInOrder(): List<LLMProvider> {
+        val prefManager = PreferenceManager.getInstance(context)
+        val preferredProviderId = if (adaptiveSelector.isAutoSelectEnabled()) {
+            val bestProvider = adaptiveSelector.getBestProvider()
+            if (bestProvider != null) {
+                android.util.Log.d(TAG, "Auto-selected provider: $bestProvider")
+                bestProvider
+            } else {
+                android.util.Log.d(TAG, "Auto-select enabled but no data; using manual preference")
+                prefManager.llmProviderPreference.get()
+            }
+        } else {
+            prefManager.llmProviderPreference.get()
+        }
+
+        val primary = providers[preferredProviderId] ?: googleProvider
+        val fallbacks = providers.values.filter { it.name != primary.name }
+        return listOf(primary) + fallbacks
     }
 
     companion object {
