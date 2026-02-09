@@ -529,7 +529,7 @@ class LLMCategorizer(
     /**
      * Get providers ordered by preference: auto-selected or manually preferred first, then fallbacks.
      */
-    private fun getProvidersInOrder(): List<LLMProvider> {
+    private suspend fun getProvidersInOrder(): List<LLMProvider> {
         val prefManager = PreferenceManager.getInstance(context)
         val preferredProviderId = if (adaptiveSelector.isAutoSelectEnabled()) {
             val bestProvider = adaptiveSelector.getBestProvider()
