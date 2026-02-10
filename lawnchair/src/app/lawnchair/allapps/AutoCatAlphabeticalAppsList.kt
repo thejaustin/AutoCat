@@ -4,15 +4,11 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.viewModels
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import app.lawnchair.autoCatLauncher
 import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.data.folder.model.FolderOrderUtils
-import app.lawnchair.data.folder.model.FolderViewModel
+import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
@@ -28,6 +24,8 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.views.ActivityContext
 import com.patrykmichalik.opto.core.onEach
 import java.util.function.Predicate
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 
 @Suppress("SYNTHETIC_PROPERTY_WITHOUT_JAVA_ORIGIN")
 class AutoCatAlphabeticalAppsList<T>(
@@ -47,7 +45,7 @@ class AutoCatAlphabeticalAppsList<T>(
     private val prefs2 = PreferenceManager2.getInstance(context)
     private val prefs = PreferenceManager.getInstance(context)
 
-    private val viewModel: FolderViewModel by (context as ComponentActivity).viewModels()
+    private val folderService = FolderService.INSTANCE.get(context)
     private var folderList = mutableListOf<FolderInfo>()
     private val filteredList = mutableListOf<AppInfo>()
 
@@ -157,11 +155,15 @@ class AutoCatAlphabeticalAppsList<T>(
     }
 
     private fun observeFolders() {
-        viewModel.foldersLiveData.observe(context as LifecycleOwner) { folders ->
-            folderList = folders
-                .sortedBy { folderOrder.indexOf(it.id) }
-                .toMutableList()
-            updateAdapterItems()
+        (context as Context).autoCatLauncher.lifecycleScope.launch {
+            folderService.getFoldersFlow()
+                .distinctUntilChanged()
+                .collect { folders ->
+                    folderList = folders
+                        .sortedBy { folderOrder.indexOf(it.id) }
+                        .toMutableList()
+                    updateAdapterItems()
+                }
         }
     }
 
