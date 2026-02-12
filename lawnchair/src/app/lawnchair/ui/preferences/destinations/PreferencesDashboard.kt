@@ -179,9 +179,10 @@ fun PreferencesDashboard(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        if (!context.isDefaultLauncher()) {
+        var defaultLauncherTipDismissed by remember { mutableStateOf(false) }
+        if (!context.isDefaultLauncher() && !defaultLauncherTipDismissed) {
             PreferencesSetDefaultLauncherWarning(
-                onDismiss = { },
+                onDismiss = { defaultLauncherTipDismissed = true },
             )
             Spacer(modifier = Modifier.height(8.dp))
         }

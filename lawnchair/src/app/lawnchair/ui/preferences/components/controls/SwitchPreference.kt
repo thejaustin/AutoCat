@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -36,6 +37,7 @@ import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -53,6 +55,7 @@ fun SwitchPreference(
     modifier: Modifier = Modifier,
     description: String? = null,
     enabled: Boolean = true,
+    icon: ImageVector? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val checked = adapter.state.value
@@ -64,6 +67,7 @@ fun SwitchPreference(
         description = description,
         onClick = onClick,
         enabled = enabled,
+        icon = icon,
     )
 }
 
@@ -78,11 +82,22 @@ fun SwitchPreference(
     modifier: Modifier = Modifier,
     description: String? = null,
     enabled: Boolean = true,
+    icon: ImageVector? = null,
     onClick: (() -> Unit)? = null,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
     PreferenceTemplate(
+        startWidget = icon?.let {
+            {
+                Icon(
+                    imageVector = it,
+                    contentDescription = null,
+                    modifier = Modifier.padding(start = 16.dp).size(24.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
         modifier = modifier.clickable(
             enabled = enabled,
             indication = ripple(),

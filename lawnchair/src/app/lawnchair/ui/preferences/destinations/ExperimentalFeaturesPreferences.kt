@@ -1,5 +1,16 @@
 package app.lawnchair.ui.preferences.destinations
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.BlurOn
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Code
+import androidx.compose.material.icons.rounded.FontDownload
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material.icons.rounded.ViewColumn
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,46 +52,62 @@ fun ExperimentalFeaturesPreferences(
                 adapter = prefs2.enableFontSelection.getAdapter(),
                 label = stringResource(id = R.string.font_picker_label),
                 description = stringResource(id = R.string.font_picker_description),
+                icon = Icons.Rounded.FontDownload,
             )
             SwitchPreference(
                 adapter = prefs2.enableSmartspaceCalendarSelection.getAdapter(),
                 label = stringResource(id = R.string.smartspace_calendar_label),
                 description = stringResource(id = R.string.smartspace_calendar_description),
+                icon = Icons.Rounded.CalendarMonth,
             )
             SwitchPreference(
                 adapter = prefs.workspaceIncreaseMaxGridSize.getAdapter(),
                 label = stringResource(id = R.string.workspace_increase_max_grid_size_label),
                 description = stringResource(id = R.string.workspace_increase_max_grid_size_description),
+                icon = Icons.Rounded.GridView,
             )
             SwitchPreference(
                 adapter = prefs2.alwaysReloadIcons.getAdapter(),
                 label = stringResource(id = R.string.always_reload_icons_label),
                 description = stringResource(id = R.string.always_reload_icons_description),
+                icon = Icons.Rounded.Refresh,
             )
             SwitchPreference(
                 adapter = prefs2.iconSwipeGestures.getAdapter(),
                 label = stringResource(R.string.icon_swipe_gestures),
                 description = stringResource(R.string.icon_swipe_gestures_description),
+                icon = Icons.Rounded.TouchApp,
             )
             SwitchPreference(
                 adapter = prefs2.showDeckLayout.getAdapter(),
                 label = stringResource(R.string.show_deck_layout),
                 description = stringResource(R.string.show_deck_layout_description),
+                icon = Icons.Rounded.ViewColumn,
             )
             SwitchPreference(
                 adapter = prefs.autoCatDevMode.getAdapter(),
                 label = "AutoCat Developer Mode",
                 description = "Show detailed diagnostics and error logs in categorization screens",
+                icon = Icons.Rounded.Code,
             )
             SwitchPreference(
                 adapter = prefs.hideQuickstepSettings.getAdapter(),
                 label = "Hide Quickstep Settings",
                 description = "Hides the Quickstep settings entry from the main preferences dashboard.",
+                icon = Icons.Rounded.VisibilityOff,
             )
             SwitchPreference(
                 adapter = prefs.hideSettingsWarnings.getAdapter(),
                 label = "Hide Settings Warnings",
                 description = "Hides development build warnings and other informational messages at the top of settings.",
+                icon = Icons.Rounded.NotificationsOff,
+            )
+            SliderPreference(
+                label = "Settings Card Roundness",
+                adapter = prefs.settingsCardRadius.getAdapter(),
+                step = 2,
+                valueRange = 0..48,
+                showUnit = "dp",
             )
 
             val context = LocalContext.current
@@ -101,6 +128,7 @@ fun ExperimentalFeaturesPreferences(
                     }
                 },
                 label = stringResource(id = R.string.wallpaper_blur),
+                icon = Icons.Rounded.BlurOn,
             )
             ExpandAndShrink(visible = hasPermission && enableWallpaperBlur.state.value) {
                 DividerColumn {

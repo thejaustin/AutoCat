@@ -16,6 +16,8 @@
 
 package app.lawnchair.ui.preferences.destinations
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Label
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -79,6 +81,7 @@ fun FolderPreferences(
             SwitchPreference(
                 adapter = homeScreenLabelsAdapter,
                 label = stringResource(id = R.string.show_labels),
+                icon = Icons.Rounded.Label,
             )
             ExpandAndShrink(visible = homeScreenLabelsAdapter.state.value) {
                 SliderPreference(

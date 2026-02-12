@@ -16,6 +16,15 @@
 
 package app.lawnchair.ui.preferences.destinations
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Archive
+import androidx.compose.material.icons.rounded.AutoFixHigh
+import androidx.compose.material.icons.rounded.Category
+import androidx.compose.material.icons.rounded.FilterBAndW
+import androidx.compose.material.icons.rounded.FormatColorReset
+import androidx.compose.material.icons.rounded.Numbers
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.ScreenRotation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -94,6 +103,7 @@ fun GeneralPreferences() {
                 adapter = prefs.allowRotation.getAdapter(),
                 label = stringResource(id = R.string.home_screen_rotation_label),
                 description = stringResource(id = R.string.home_screen_rotation_description),
+                icon = Icons.Rounded.ScreenRotation,
             )
         }
         ExpandAndShrink(visible = prefs2.enableFontSelection.asState().value) {
@@ -131,18 +141,21 @@ fun GeneralPreferences() {
                 label = stringResource(id = R.string.icon_style_label),
                 destination = GeneralIconPack,
                 subtitle = iconStyleSubtitle,
+                icon = Icons.Rounded.Palette,
             )
             ExpandAndShrink(visible = themedIconsEnabled) {
                 SwitchPreference(
                     adapter = prefs.transparentIconBackground.getAdapter(),
                     label = stringResource(id = R.string.transparent_background_icons_label),
                     description = stringResource(id = R.string.transparent_background_icons_description),
+                    icon = Icons.Rounded.FormatColorReset,
                 )
             }
             NavigationActionPreference(
                 label = stringResource(id = R.string.icon_shape_label),
                 destination = GeneralIconShape,
                 subtitle = iconShapeSubtitle,
+                icon = Icons.Rounded.Category,
                 endWidget = {
                     IconShapePreview(iconShape = iconShapeAdapter.state.value)
                 },
@@ -151,10 +164,12 @@ fun GeneralPreferences() {
                 adapter = wrapAdaptiveIcons,
                 label = stringResource(id = R.string.auto_adaptive_icons_label),
                 description = stringResource(id = R.string.auto_adaptive_icons_description),
+                icon = Icons.Rounded.AutoFixHigh,
             )
             SwitchPreference(
                 adapter = prefs.shadowBGIcons.getAdapter(),
                 label = stringResource(id = R.string.shadow_bg_icons_label),
+                icon = Icons.Rounded.FilterBAndW,
             )
 
             ExpandAndShrink(visible = wrapAdaptiveIcons.state.value) {
@@ -190,6 +205,7 @@ fun GeneralPreferences() {
                 SwitchPreference(
                     adapter = showNotificationCountAdapter,
                     label = stringResource(id = R.string.show_notification_count),
+                    icon = Icons.Rounded.Numbers,
                 )
                 ExpandAndShrink(visible = showNotificationCountAdapter.state.value) {
                     DividerColumn {
@@ -217,6 +233,7 @@ fun GeneralPreferences() {
                 entries = archivalMethodEntries,
                 label = stringResource(id = R.string.autocat_archival_method_label),
                 description = stringResource(id = R.string.autocat_archival_method_description),
+                icon = Icons.Rounded.Archive,
             )
         }
     }

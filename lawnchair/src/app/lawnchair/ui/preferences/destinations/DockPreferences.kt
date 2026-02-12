@@ -20,6 +20,9 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FormatPaint
+import androidx.compose.material.icons.rounded.Label
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
@@ -70,6 +73,7 @@ fun DockPreferences(modifier: Modifier = Modifier) {
                 SwitchPreference(
                     adapter = hotseatBgAdapter,
                     label = stringResource(id = R.string.hotseat_background),
+                    icon = Icons.Rounded.FormatPaint,
                 )
                 ExpandAndShrink(visible = hotseatBgAdapter.state.value) {
                     HotseatBackgroundSettings(prefs, prefs2)
@@ -83,6 +87,7 @@ fun DockPreferences(modifier: Modifier = Modifier) {
                 SwitchPreference(
                     adapter = prefs2.enableLabelInDock.getAdapter(),
                     label = stringResource(id = R.string.show_labels),
+                    icon = Icons.Rounded.Label,
                 )
             }
         }

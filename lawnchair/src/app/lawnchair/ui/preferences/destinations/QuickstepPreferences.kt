@@ -1,6 +1,10 @@
 package app.lawnchair.ui.preferences.destinations
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Opacity
+import androidx.compose.material.icons.rounded.RoundedCorner
+import androidx.compose.material.icons.rounded.ViewAgenda
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -77,6 +81,7 @@ fun QuickstepPreferences(
             SwitchPreference(
                 adapter = prefs.recentsTranslucentBackground.getAdapter(),
                 label = stringResource(id = R.string.translucent_background),
+                icon = Icons.Rounded.Opacity,
             )
             val recentsTranslucentBackground by prefs.recentsTranslucentBackground.observeAsState()
             ExpandAndShrink(visible = recentsTranslucentBackground) {
@@ -104,6 +109,7 @@ fun QuickstepPreferences(
             SwitchPreference(
                 adapter = prefs.overrideWindowCornerRadius.getAdapter(),
                 label = stringResource(id = R.string.override_window_corner_radius_label),
+                icon = Icons.Rounded.RoundedCorner,
             )
             ExpandAndShrink(visible = overrideWindowCornerRadius) {
                 SliderPreference(
@@ -122,6 +128,7 @@ fun QuickstepPreferences(
                 SwitchPreference(
                     adapter = prefs2.enableTaskbarOnPhone.getAdapter(),
                     label = stringResource(id = R.string.enable_taskbar_experimental),
+                    icon = Icons.Rounded.ViewAgenda,
                 )
             }
         }

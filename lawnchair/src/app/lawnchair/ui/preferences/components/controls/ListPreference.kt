@@ -20,15 +20,19 @@ import android.R as AndroidR
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.preferences.PreferenceAdapter
@@ -46,6 +50,7 @@ fun <T> ListPreference(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     description: String? = null,
+    icon: ImageVector? = null,
     endWidget: (@Composable () -> Unit)? = null,
 ) {
     ListPreference(
@@ -56,6 +61,7 @@ fun <T> ListPreference(
         modifier = modifier,
         enabled = enabled,
         description = description,
+        icon = icon,
         endWidget = endWidget,
     )
 }
@@ -70,6 +76,7 @@ fun <T> ListPreference(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     description: String? = null,
+    icon: ImageVector? = null,
     endWidget: (@Composable () -> Unit)? = null,
 ) {
     val bottomSheetHandler = bottomSheetHandler
@@ -78,6 +85,16 @@ fun <T> ListPreference(
         ?.label?.invoke()
 
     PreferenceTemplate(
+        startWidget = icon?.let {
+            {
+                Icon(
+                    imageVector = it,
+                    contentDescription = null,
+                    modifier = Modifier.padding(start = 16.dp).size(24.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
         contentModifier = Modifier
             .fillMaxHeight()
             .padding(vertical = 16.dp)

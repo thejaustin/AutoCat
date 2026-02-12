@@ -189,6 +189,7 @@ class PreferenceManager @Inject constructor(
     // AutoCat: Settings customization
     val hideQuickstepSettings = BoolPref("pref_hideQuickstepSettings", false)
     val hideSettingsWarnings = BoolPref("pref_hideSettingsWarnings", false)
+    val settingsCardRadius = IntPref("pref_settingsCardRadius", 28)
 
     // AutoCat: Settings category order and visibility
     val settingsCategoryOrder = StringPref("pref_settingsCategoryOrder", "")

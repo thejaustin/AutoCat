@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,6 +36,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.lawnchair.preferences.getAdapter
+import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.ui.theme.preferenceGroupColor
 
 @Composable
@@ -50,13 +53,14 @@ fun PreferenceGroup(
     dividerColor: Color = MaterialTheme.colorScheme.surface,
     content: @Composable () -> Unit,
 ) {
+    val cardRadius = preferenceManager().settingsCardRadius.getAdapter().state.value
     Column(
         modifier = modifier,
     ) {
         PreferenceGroupHeading(heading)
         Surface(
             modifier = Modifier.padding(horizontal = 16.dp),
-            shape = MaterialTheme.shapes.extraLarge,
+            shape = RoundedCornerShape(cardRadius.dp),
             color = preferenceGroupColor(),
         ) {
             if (showDividers) {

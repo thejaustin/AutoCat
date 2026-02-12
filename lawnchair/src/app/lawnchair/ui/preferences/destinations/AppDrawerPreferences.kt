@@ -28,6 +28,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.BookmarkBorder
+import androidx.compose.material.icons.rounded.Label
+import androidx.compose.material.icons.rounded.ManageSearch
+import androidx.compose.material.icons.rounded.Notes
+import androidx.compose.material.icons.rounded.SwapVert
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -84,12 +93,14 @@ fun AppDrawerPreferences(
                 label = stringResource(R.string.smart_categories_label),
                 subtitle = stringResource(R.string.smart_categories_subtitle),
                 destination = AppDrawerCategorizationSettings,
+                icon = Icons.Rounded.AutoAwesome,
             )
             val hiddenApps = prefs2.hiddenApps.getAdapter().state.value
             NavigationActionPreference(
                 label = stringResource(id = R.string.hidden_apps_label),
                 subtitle = resources.getQuantityString(R.plurals.apps_count, hiddenApps.size, hiddenApps.size),
                 destination = AppDrawerHiddenApps,
+                icon = Icons.Rounded.VisibilityOff,
             )
             SearchBarPreference(SearchRoute.DRAWER_SEARCH, showLabel = false)
             SuggestionsPreference()
@@ -106,6 +117,7 @@ fun AppDrawerPreferences(
             SwitchPreference(
                 label = stringResource(id = R.string.pref_all_apps_search_bar_background),
                 adapter = prefs2.appDrawerSearchBarBackground.getAdapter(),
+                icon = Icons.Rounded.ManageSearch,
             )
         }
         PreferenceGroup(heading = stringResource(id = R.string.grid)) {
@@ -142,6 +154,7 @@ fun AppDrawerPreferences(
             SwitchPreference(
                 adapter = showDrawerLabels,
                 label = stringResource(id = R.string.show_labels),
+                icon = Icons.Rounded.Label,
             )
             ExpandAndShrink(visible = showDrawerLabels.state.value) {
                 DividerColumn {
@@ -155,6 +168,7 @@ fun AppDrawerPreferences(
                     SwitchPreference(
                         adapter = prefs2.twoLineAllApps.getAdapter(),
                         label = stringResource(R.string.twoline_label),
+                        icon = Icons.Rounded.Notes,
                     )
                 }
             }
@@ -164,15 +178,18 @@ fun AppDrawerPreferences(
                 label = stringResource(id = R.string.pref_all_apps_bulk_icon_loading_title),
                 description = stringResource(id = R.string.pref_all_apps_bulk_icon_loading_description),
                 adapter = prefs.allAppBulkIconLoading.getAdapter(),
+                icon = Icons.Rounded.Bolt,
             )
             SwitchPreference(
                 label = stringResource(id = R.string.pref_all_apps_remember_position_title),
                 description = stringResource(id = R.string.pref_all_apps_remember_position_description),
                 adapter = prefs2.rememberPosition.getAdapter(),
+                icon = Icons.Rounded.BookmarkBorder,
             )
             SwitchPreference(
                 label = stringResource(id = R.string.pref_all_apps_show_scrollbar_title),
                 adapter = prefs2.showScrollbar.getAdapter(),
+                icon = Icons.Rounded.SwapVert,
             )
         }
     }

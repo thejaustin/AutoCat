@@ -16,6 +16,24 @@
 
 package app.lawnchair.ui.preferences.destinations
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material.icons.rounded.AspectRatio
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.FilterNone
+import androidx.compose.material.icons.rounded.FormatColorText
+import androidx.compose.material.icons.rounded.Gradient
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.Label
+import androidx.compose.material.icons.rounded.Layers
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Newspaper
+import androidx.compose.material.icons.rounded.OpenWith
+import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.RoundedCorner
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.VerticalAlignTop
+import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -83,6 +101,7 @@ fun HomeScreenPreferences(
                     label = stringResource(id = R.string.auto_add_shortcuts_label),
                     description = if (lockHomeScreenAdapter.state.value) stringResource(id = R.string.home_screen_locked) else null,
                     enabled = lockHomeScreenAdapter.state.value.not(),
+                    icon = Icons.Rounded.AddCircleOutline,
                 )
             }
             GestureHandlerPreference(
@@ -98,6 +117,7 @@ fun HomeScreenPreferences(
                 label = stringResource(id = R.string.minus_one_enable),
                 description = if (feedAvailable) null else stringResource(id = R.string.minus_one_unavailable),
                 enabled = feedAvailable,
+                icon = Icons.Rounded.Newspaper,
             )
             ExpandAndShrink(visible = feedAvailable && enableFeedAdapter.state.value) {
                 FeedPreference()
@@ -114,17 +134,20 @@ fun HomeScreenPreferences(
             SwitchPreference(
                 prefs.wallpaperScrolling.getAdapter(),
                 label = stringResource(id = R.string.wallpaper_scrolling_label),
+                icon = Icons.Rounded.Wallpaper,
             )
             if (Utilities.ATLEAST_R) {
                 SwitchPreference(
                     prefs2.wallpaperDepthEffect.getAdapter(),
                     label = stringResource(id = R.string.wallpaper_depth_effect_label),
                     description = stringResource(id = R.string.wallpaper_depth_effect_description),
+                    icon = Icons.Rounded.Layers,
                 )
             }
             SwitchPreference(
                 adapter = prefs2.showTopShadow.getAdapter(),
                 label = stringResource(id = R.string.show_sys_ui_scrim),
+                icon = Icons.Rounded.Gradient,
             )
         }
         PreferenceGroup(heading = stringResource(id = R.string.layout)) {
@@ -134,11 +157,13 @@ fun HomeScreenPreferences(
                 label = stringResource(id = R.string.home_screen_grid),
                 destination = HomeScreenGrid,
                 subtitle = stringResource(id = R.string.x_by_y, columns, rows),
+                icon = Icons.Rounded.GridView,
             )
             SwitchPreference(
                 adapter = lockHomeScreenAdapter,
                 label = stringResource(id = R.string.home_screen_lock),
                 description = stringResource(id = R.string.home_screen_lock_description),
+                icon = Icons.Rounded.Lock,
             )
         }
         PreferenceGroup(heading = stringResource(id = R.string.popup_menu)) {
@@ -149,11 +174,13 @@ fun HomeScreenPreferences(
             SwitchPreference(
                 adapter = showStatusBarAdapter,
                 label = stringResource(id = R.string.show_status_bar),
+                icon = Icons.Rounded.VerticalAlignTop,
             )
             ExpandAndShrink(visible = showStatusBarAdapter.state.value) {
                 SwitchPreference(
                     adapter = prefs2.darkStatusBar.getAdapter(),
                     label = stringResource(id = R.string.dark_status_bar_label),
+                    icon = Icons.Rounded.DarkMode,
                 )
             }
             ExpandAndShrink(visible = showStatusBarAdapter.state.value && AutoCatApp.isRecentsEnabled) {
@@ -161,6 +188,7 @@ fun HomeScreenPreferences(
                     adapter = prefs2.statusBarClock.getAdapter(),
                     label = stringResource(id = R.string.status_bar_clock_label),
                     description = stringResource(id = R.string.status_bar_clock_description),
+                    icon = Icons.Rounded.Schedule,
                 )
             }
         }
@@ -176,6 +204,7 @@ fun HomeScreenPreferences(
             SwitchPreference(
                 adapter = homeScreenLabelsAdapter,
                 label = stringResource(id = R.string.show_labels),
+                icon = Icons.Rounded.Label,
             )
             ExpandAndShrink(visible = homeScreenLabelsAdapter.state.value) {
                 SliderPreference(
@@ -193,6 +222,7 @@ fun HomeScreenPreferences(
             PreferenceGroup {
                 ClickablePreference(
                     label = stringResource(id = R.string.reset_custom_icons),
+                    icon = Icons.Rounded.RestartAlt,
                     confirmationText = stringResource(id = R.string.reset_custom_icons_confirmation),
                     onClick = { scope.launch { overrideRepo.deleteAll() } },
                 )
@@ -202,20 +232,24 @@ fun HomeScreenPreferences(
             SwitchPreference(
                 adapter = prefs2.roundedWidgets.getAdapter(),
                 label = stringResource(id = R.string.force_rounded_widgets),
+                icon = Icons.Rounded.RoundedCorner,
             )
             SwitchPreference(
                 adapter = prefs2.allowWidgetOverlap.getAdapter(),
                 label = stringResource(id = R.string.allow_widget_overlap),
+                icon = Icons.Rounded.FilterNone,
             )
             SwitchPreference(
                 adapter = prefs2.widgetUnlimitedSize.getAdapter(),
                 label = stringResource(id = R.string.widget_unlimited_size_label),
                 description = stringResource(id = R.string.widget_unlimited_size_description),
+                icon = Icons.Rounded.AspectRatio,
             )
             SwitchPreference(
                 adapter = prefs2.forceWidgetResize.getAdapter(),
                 label = stringResource(id = R.string.force_widget_resize_label),
                 description = stringResource(id = R.string.force_widget_resize_description),
+                icon = Icons.Rounded.OpenWith,
             )
         }
     }
@@ -230,5 +264,6 @@ fun HomeScreenTextColorPreference(
         entries = ColorMode.entries(),
         label = stringResource(id = R.string.home_screen_text_color),
         modifier = modifier,
+        icon = Icons.Rounded.FormatColorText,
     )
 }

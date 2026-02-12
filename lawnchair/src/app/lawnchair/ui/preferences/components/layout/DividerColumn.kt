@@ -45,8 +45,8 @@ fun DividerColumn(
         }
 
         val width = constraints.maxWidth
-        val dividersHeight = thicknessPx.roundToInt() * (placeables.size - 1)
-        val height = placeables.sumOf { it.height } + dividersHeight
+        val dividersHeight = if (placeables.size > 1) thicknessPx.roundToInt() * (placeables.size - 1) else 0
+        val height = (placeables.sumOf { it.height } + dividersHeight).coerceAtLeast(0)
 
         layout(width, height) {
             val dividerPositions = mutableListOf<Int>()
