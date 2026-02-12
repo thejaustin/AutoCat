@@ -249,6 +249,15 @@ fun LLMSettingsPreferences(
                             )
                         }
                     }
+
+                    val devMode by prefs.autoCatDevMode.getAdapter().state
+                    if (devMode) {
+                        SwitchPreference(
+                            adapter = prefs.autoCatEnableRateLimiting.getAdapter(),
+                            label = "Force Parallel Batching",
+                            description = "Ignore safety delays between parallel batches. Use with caution (can lead to 429s).",
+                        )
+                    }
                 }
             }
 

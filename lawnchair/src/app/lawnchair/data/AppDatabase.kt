@@ -32,8 +32,14 @@ abstract class AppDatabase : RoomDatabase() {
     }
 
     fun checkpointSync() {
-        runBlocking {
-            checkpoint()
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                checkpoint()
+            }
+        } else {
+            runBlocking {
+                checkpoint()
+            }
         }
     }
 

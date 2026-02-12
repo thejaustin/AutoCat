@@ -52,6 +52,8 @@ Currently, batches are processed sequentially. Implement `async`/`await` pattern
 **Source:** `AUTOCAT_CONTEXT.md`
 **Description:**
 Verify and test the importing of categories from Smart Launcher `.slbk` files.
+- [x] Create dummy .slbk generator (`flowerpot/create_dummy_slbk.py`)
+- [ ] Test import on real device with generated file
 
 ### Issue #8: Developer Diagnostics UI Verification
 **Source:** `AUTOCAT_CONTEXT.md`

@@ -74,7 +74,6 @@ class IconOverrideRepository @Inject constructor(
     }
 
     override fun close() {
-        TODO("Not yet implemented")
     }
 
     companion object {

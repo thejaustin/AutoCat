@@ -118,20 +118,34 @@ class Flowerpot(private val context: Context, val name: String, private val load
      */
     class Manager private constructor(private val context: Context) {
 
-        private val pots = mutableMapOf<String, Flowerpot>()
+        private val pots = java.util.concurrent.ConcurrentHashMap<String, Flowerpot>()
+        private val loadJob: kotlinx.coroutines.Job
 
         init {
-            loadAssets()
+            loadJob = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                loadAssets()
+            }
+        }
+
+        /**
+         * Wait for assets to finish loading if needed
+         */
+        suspend fun ensureAssetsLoaded() {
+            loadJob.join()
         }
 
         /**
          * Load flowerpot files located in assets/
          */
         private fun loadAssets() {
-            context.assets.list(ASSETS_PATH)?.forEach {
-                pots.getOrPut(it) {
-                    fromAssets(context, "$ASSETS_PATH/$it", it)
+            try {
+                context.assets.list(ASSETS_PATH)?.forEach {
+                    pots.getOrPut(it) {
+                        fromAssets(context, "$ASSETS_PATH/$it", it)
+                    }
                 }
+            } catch (e: Exception) {
+                android.util.Log.e("Flowerpot", "Error loading assets", e)
             }
         }
 
@@ -142,13 +156,15 @@ class Flowerpot(private val context: Context, val name: String, private val load
          * @param forceLoad Whether or not the pot should be loaded if it hasn't already been
          * @return the pot or null if none exists with this name
          */
-        fun getPot(name: String, forceLoad: Boolean = true) = pots[name]?.apply {
+        fun getPot(name: String, forceLoad: Boolean = true): Flowerpot? {
+            val pot = pots[name]
             if (forceLoad) {
-                ensureLoaded()
+                pot?.ensureLoaded()
             }
+            return pot
         }
 
-        fun getAllPots() = pots.values
+        fun getAllPots(): Collection<Flowerpot> = pots.values
 
         fun categorizeApps(appList: List<AppInfo?>?): Map<String, List<AppInfo>> {
             val categorizedApps = mutableMapOf<String, MutableList<AppInfo>>()
@@ -174,10 +190,8 @@ class Flowerpot(private val context: Context, val name: String, private val load
         }
 
         companion object : SingletonHolder<Manager, Context>(
-            ensureOnMainThread(
-                useApplicationContext(
-                    Flowerpot::Manager,
-                ),
+            useApplicationContext(
+                Flowerpot::Manager,
             ),
         ) {
 

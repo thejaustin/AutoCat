@@ -90,7 +90,6 @@ class FontManager @Inject constructor(
     }
 
     override fun close() {
-        TODO("Not yet implemented")
     }
 
     class FontSpec(val loader: () -> FontCache.Font, val fallback: Typeface) {

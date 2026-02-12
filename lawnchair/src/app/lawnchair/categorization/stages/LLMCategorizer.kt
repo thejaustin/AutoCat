@@ -276,7 +276,8 @@ class LLMCategorizer(
 
         // Process batches in parallel chunks to maximize throughput
         // while respecting rate limits
-        val batchChunks = batches.chunked(PARALLEL_BATCH_LIMIT)
+        val parallelLimit = if (prefManager.autoCatDevMode.get()) 8 else PARALLEL_BATCH_LIMIT
+        val batchChunks = batches.chunked(parallelLimit)
 
         for (batchChunk in batchChunks) {
             // Process multiple batches concurrently

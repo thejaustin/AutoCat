@@ -50,6 +50,16 @@ class CategoryTabsManager(private val context: Context) {
     suspend fun getTabs(hasWorkApps: Boolean): List<TabInfo> {
         val tabs = mutableListOf<TabInfo>()
 
+        // Add "Discovery" tab at the beginning
+        tabs.add(
+            TabInfo(
+                id = "discovery",
+                name = "Discovery",
+                tabName = "DISCOVERY", // Special marker
+                colorHex = "#FF4081", // Pinkish color
+            ),
+        )
+
         // Get visible custom tabs from database (already sorted by sortOrder)
         val customCategoryTabs = withContext(Dispatchers.IO) {
             categoryDao.getVisibleCustomTabs()

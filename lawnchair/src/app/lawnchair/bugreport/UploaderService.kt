@@ -2,6 +2,7 @@ package app.lawnchair.bugreport
 
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -69,6 +70,7 @@ class UploaderService : Service() {
                 .setColor(ContextCompat.getColor(this, R.color.bugNotificationColor))
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .build(),
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE,
         )
     }
 

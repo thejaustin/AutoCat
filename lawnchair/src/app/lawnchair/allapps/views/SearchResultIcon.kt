@@ -217,7 +217,7 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
             }
             if (info.hasFlags(SearchActionItemInfo.FLAG_BADGE_WITH_COMPONENT_NAME) && target.extras.containsKey("class")) {
                 try {
-                    val iconProvider = IconProvider(context)
+                    val iconProvider = las.iconProvider
                     val componentName =
                         ComponentName(target.packageName, target.extras.getString("class")!!)
                     val activityInfo = context.packageManager.getActivityInfo(componentName, 0)

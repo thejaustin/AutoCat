@@ -351,7 +351,9 @@ sealed class BasePreferenceManager(private val context: Context) : SharedPrefere
         override fun get() = HashMap(valueMap)
 
         override fun set(newValue: Map<K, V>) {
-            throw NotImplementedError()
+            valueMap.clear()
+            valueMap.putAll(newValue)
+            saveChanges()
         }
 
         open fun flattenKey(key: K) = key.toString()

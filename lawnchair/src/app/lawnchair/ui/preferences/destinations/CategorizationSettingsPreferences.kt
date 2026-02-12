@@ -246,6 +246,27 @@ fun CategorizationSettingsPreferences(
                         description = stringResource(R.string.batch_processing_description),
                     )
 
+                    val enableBatching by prefs.llmEnableBatching.getAdapter().state
+                    AnimatedVisibility(visible = enableBatching) {
+                        Column {
+                            SliderPreference(
+                                label = "Batch Size",
+                                adapter = prefs.llmBatchSize.getAdapter(),
+                                valueRange = 0..100,
+                                step = 5,
+                                showUnit = if (prefs.llmBatchSize.get() == 0) "(Auto)" else "",
+                            )
+
+                            if (devMode) {
+                                SwitchPreference(
+                                    adapter = prefs.autoCatEnableRateLimiting.getAdapter(),
+                                    label = "Parallel Batching",
+                                    description = "Process multiple batches concurrently for maximum speed.",
+                                )
+                            }
+                        }
+                    }
+
                     val enableRateLimiting = prefs.autoCatEnableRateLimiting.getAdapter()
                     SwitchPreference(
                         adapter = enableRateLimiting,

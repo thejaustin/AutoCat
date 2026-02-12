@@ -199,7 +199,6 @@ class PreferenceManager @Inject constructor(
     val archivalMethod = StringPref("pref_archivalMethod", "none", {})
 
     override fun close() {
-        TODO("Not yet implemented")
     }
 
     init {

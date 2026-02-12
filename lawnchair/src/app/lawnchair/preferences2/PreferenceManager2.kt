@@ -72,9 +72,11 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 @LauncherAppSingleton
 class PreferenceManager2 @Inject constructor(
@@ -733,7 +735,11 @@ class PreferenceManager2 @Inject constructor(
     )
 
     init {
-        initializeIconShape(iconShape.firstBlocking())
+        // Initialize icon shape asynchronously to avoid blocking the main thread
+        scope.launch {
+            val shape = iconShape.get().first()
+            initializeIconShape(shape)
+        }
         iconShape.get()
             .drop(1)
             .distinctUntilChanged()

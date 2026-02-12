@@ -93,8 +93,8 @@ class LawndeckManager(private val context: Context) {
         onProgress: ((String) -> Unit)?,
         onComplete: (() -> Unit)?,
     ) {
-        val apps = launcher?.appsView?.appsStore?.apps ?: return
-        if (apps.isEmpty()) {
+        val apps = launcher?.appsView?.appsStore?.apps
+        if (apps == null || apps.isEmpty()) {
             onComplete?.invoke()
             return
         }
@@ -107,7 +107,12 @@ class LawndeckManager(private val context: Context) {
 
         onProgress?.invoke("Adding apps to workspace...")
 
-        val launcher = this.launcher ?: return
+        val launcher = this.launcher
+        if (launcher == null) {
+            Log.e("LawndeckManager", "Launcher instance is null, cannot add apps to workspace")
+            onComplete?.invoke()
+            return
+        }
         val model = launcher.model
 
         // Collect folders to add and count single apps

@@ -64,7 +64,6 @@ class DeviceProfileOverrides @Inject constructor(
 
     fun getTextFactors() = TextFactors(preferenceManager2)
     override fun close() {
-        TODO("Not yet implemented")
     }
 
     data class DBGridInfo(

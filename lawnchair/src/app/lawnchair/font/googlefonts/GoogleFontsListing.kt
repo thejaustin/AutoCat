@@ -75,7 +75,6 @@ class GoogleFontsListing @Inject constructor(
     }
 
     override fun close() {
-        TODO("Not yet implemented")
     }
 
     sealed interface DataProvider {

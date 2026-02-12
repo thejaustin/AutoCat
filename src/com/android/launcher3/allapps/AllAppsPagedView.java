@@ -29,6 +29,7 @@ import com.android.launcher3.workprofile.PersonalWorkPagedView;
  * A {@link PagedView} for showing different views for the personal and work profile respectively
  * in the {@link BaseAllAppsContainerView}.
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class AllAppsPagedView extends PersonalWorkPagedView {
 
     public AllAppsPagedView(Context context) {

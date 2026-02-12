@@ -179,20 +179,21 @@ class AutoCatAlphabeticalAppsList<T>(
 
             // 2. Tab Filtering
             if (visible && currentTabFilter != null && currentTabFilter != AppTabsController.TAB_ALL && packageName != null) {
-                // Determine if app belongs to the current tab
-                val appTabInfo = cachedCategorizedApps?.get(currentTabFilter)?.values?.flatten()?.find {
-                    it.packageName == packageName
-                }
-
-                // If the app is not found in the cached category map for this tab, it shouldn't be shown
-                // Unless it's the "Work" tab, which is handled by the WorkProfileManager/Adapter separate from this list usually,
-                // but if we are enforcing strict tab views, we check here.
-                if (currentTabFilter == AppTabsController.TAB_WORK) {
+                if (currentTabFilter == "DISCOVERY") {
+                    // Discovery tab logic: show recently installed apps (last 7 days)
+                    // and maybe some smart suggestions in the future.
+                    val isRecent = info.installedTime > System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
+                    visible = isRecent
+                } else if (currentTabFilter == AppTabsController.TAB_WORK) {
                     // Work tab filtering is usually handled by the Work adapter's user matcher.
                     // If we rely on this list for work tab, we'd check user profile.
                     // For now, assume Work Adapter handles user check, so we pass true if it's work tab
                     // (letting the base WorkProfileManager filter handle the user check)
                 } else {
+                    // Determine if app belongs to the current tab
+                    val appTabInfo = cachedCategorizedApps?.get(currentTabFilter)?.values?.flatten()?.find {
+                        it.packageName == packageName
+                    }
                     visible = appTabInfo != null
                 }
             }

@@ -59,7 +59,6 @@ class HeadlessWidgetsManager @Inject constructor(
     }
 
     override fun close() {
-        TODO("Not yet implemented")
     }
 
     private class HeadlessAppWidgetHost(context: Context) : AppWidgetHost(context, 1028) {

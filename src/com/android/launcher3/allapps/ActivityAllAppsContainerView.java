@@ -655,8 +655,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                 }
             }
             
-            mViewPager.getPageIndicator().setActiveMarker(0);
-            
+            ((PageIndicator) mViewPager.getPageIndicator()).setActiveMarker(0);
+
             // Set up tab click listener in Header View
             View tabsView = findViewById(R.id.tabs);
             if (tabsView instanceof AppTabsHeaderView) {

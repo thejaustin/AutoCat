@@ -196,7 +196,34 @@ fun TabManagementPreferences(
 
                             FilledTonalButton(
                                 onClick = {
-                                    // ...
+                                    isLoadingSuggestions = true
+                                    suggestionsError = null
+                                    scope.launch {
+                                        try {
+                                            val metadataProvider = AppMetadataProvider(context)
+                                            val installedApps = metadataProvider.getInstalledApps().map { it.label }
+                                            val existingTabs = tabs.map { it.name }
+
+                                            val prefManager = app.lawnchair.preferences.PreferenceManager.getInstance(context)
+                                            val providerId = prefManager.llmProviderPreference.get()
+                                            val provider = when (providerId) {
+                                                "google_ai" -> GoogleAIProvider(context)
+                                                "claude" -> ClaudeProvider(context)
+                                                "openai" -> OpenAIProvider(context)
+                                                "perplexity" -> PerplexityProvider(context)
+                                                else -> GoogleAIProvider(context)
+                                            }
+
+                                            suggestionsProvider = provider.name
+                                            suggestedTabs = provider.suggestCategories(installedApps, existingTabs, 5)
+                                            showSuggestionsDialog = true
+                                        } catch (e: Exception) {
+                                            android.util.Log.e("TabManagement", "Error getting suggestions: ${e.message}", e)
+                                            suggestionsError = "Failed to get suggestions: ${e.message}"
+                                        } finally {
+                                            isLoadingSuggestions = false
+                                        }
+                                    }
                                 },
                                 enabled = !isLoadingSuggestions,
                                 shape = RoundedCornerShape(12.dp),

@@ -55,9 +55,17 @@ class AutoCatIconProvider @JvmOverloads constructor(
     private val overrideRepo = IconOverrideRepository.INSTANCE.get(context)
 
     private val iconPack
-        get() = iconPackProvider.getIconPack(iconPackPref.get())?.apply { loadBlocking() }
+        get() = getIconPack(iconPackPref.get())
     private val themedIconPack
-        get() = iconPackProvider.getIconPack(themedIconPackPref.get())?.apply { loadBlocking() }
+        get() = getIconPack(themedIconPackPref.get())
+
+    private fun getIconPack(packageName: String): IconPack? {
+        val pack = iconPackProvider.getIconPack(packageName)
+        if (pack != null && android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) {
+            pack.loadBlocking()
+        }
+        return pack
+    }
 
     private var isOlderLawniconsInstalled = context.packageManager.getPackageVersionCode(LAWNICONS_PACKAGE_NAME) in 1..3
 
@@ -172,24 +180,33 @@ class AutoCatIconProvider @JvmOverloads constructor(
         return mThemedIconMap!!.toMutableMap() // Lawnchair-TODO: This feels cursed?
     }
 
-    override fun getIcon(info: ComponentInfo?): Drawable {
-        return CustomAdaptiveIconDrawable.wrapNonNull(super.getIcon(info))
-    }
-
-    override fun getIcon(info: ComponentInfo?, iconDpi: Int): Drawable {
-        return CustomAdaptiveIconDrawable.wrapNonNull(super.getIcon(info, iconDpi))
-    }
-
-    override fun getIcon(info: ApplicationInfo?): Drawable {
-        return CustomAdaptiveIconDrawable.wrapNonNull(super.getIcon(info))
-    }
-
-    override fun getIcon(info: ApplicationInfo?, iconDpi: Int): Drawable {
-        return CustomAdaptiveIconDrawable.wrapNonNull(super.getIcon(info, iconDpi))
-    }
-
     override fun getIcon(info: PackageItemInfo?, appInfo: ApplicationInfo?, iconDpi: Int): Drawable {
-        return CustomAdaptiveIconDrawable.wrapNonNull(super.getIcon(info, appInfo, iconDpi))
+        if (appInfo != null) {
+            val user = UserHandle.getUserHandleForUid(appInfo.uid)
+            val componentName = when (info) {
+                is ComponentInfo -> ComponentName(info.packageName, info.name)
+                else -> ComponentName(appInfo.packageName, info?.name ?: "")
+            }
+
+            val entry = resolveIconEntry(componentName, user)
+            if (entry != null) {
+                val drawable = iconPackProvider.getDrawable(entry, iconDpi, user)
+                if (drawable != null) {
+                    val wrapped = CustomAdaptiveIconDrawable.wrapNonNull(drawable)
+                    return if (prefs.wrapAdaptiveIcons.get()) {
+                        CustomAdaptiveIconDrawable.wrapNonNull(wrapped)
+                    } else {
+                        wrapped
+                    }
+                }
+            }
+        }
+        val icon = super.getIcon(info, appInfo, iconDpi)
+        return if (prefs.wrapAdaptiveIcons.get()) {
+            CustomAdaptiveIconDrawable.wrapNonNull(icon)
+        } else {
+            icon
+        }
     }
 
     override fun updateSystemState() {

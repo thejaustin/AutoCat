@@ -130,7 +130,6 @@ class FontCache @Inject constructor(
     }
 
     override fun close() {
-        TODO("Not yet implemented")
     }
 
     class Family(val displayName: String, val variants: Map<String, Font>) {

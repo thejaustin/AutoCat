@@ -198,6 +198,104 @@ fun PreferencesDashboard(
             deckLayoutEnabled = pref2.deckLayout.getAdapter().state.value,
             quickstepEnabled = AutoCatApp.isRecentsEnabled || BuildConfig.DEBUG && !prefs.hideQuickstepSettings.get(),
         )
+
+        if (!isEditMode) {
+            Spacer(modifier = Modifier.height(16.dp))
+            SmartDiscoverySection(onNavigate = onNavigate)
+        }
+    }
+}
+
+@Composable
+fun SmartDiscoverySection(
+    onNavigate: (PreferenceRootRoute) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = "Smart Discovery",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 8.dp),
+        )
+
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 2.dp,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                DiscoveryCard(
+                    title = "AI Category Suggestions",
+                    description = "Let AI analyze your apps and create perfect tabs automatically.",
+                    icon = Icons.Rounded.TipsAndUpdates,
+                    onClick = { onNavigate(app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement) },
+                )
+
+                DiscoveryCard(
+                    title = "Review Categorizations",
+                    description = "See why AI chose specific categories and make manual corrections.",
+                    icon = Icons.Rounded.Analytics,
+                    onClick = { onNavigate(app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DiscoveryCard(
+    title: String,
+    description: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.size(48.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 

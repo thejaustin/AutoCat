@@ -245,6 +245,11 @@ class AutoCatLauncher : QuickstepLauncher() {
         reloadIconsIfNeeded()
 
         AppDatabase.INSTANCE.get(this).checkpointSync()
+
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            app.lawnchair.categorization.CategorizationManager.getInstance(this@AutoCatLauncher)
+                .initializeCategorization()
+        }
     }
 
     override fun collectStateHandlers(out: MutableList<StateHandler<LauncherState>>) {

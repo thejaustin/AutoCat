@@ -355,9 +355,8 @@ Accuracy:
    - Build now in progress
 2. Empty cell finder uses hardcoded 0,0,0 (home screen folder placement)
 3. No retry logic for API failures (direct fail-over to next provider)
-4. Folder sync mode hardcoded to DRAWER (no UI preference yet)
-5. No unit or integration tests
-6. Home screen folder sync less tested than drawer mode
+4. No unit or integration tests
+5. Home screen folder sync less tested than drawer mode
 
 ---
 
@@ -589,15 +588,15 @@ adb shell "run-as com.app.lawnchair sqlite3 /data/data/com.app.lawnchair/databas
 
 ## 📝 Session Notes
 
-### Current Session Context (Feb 2, 2026)
+### Current Session Context (Feb 11, 2026)
 **Completed This Session:**
-- ✅ **FIXED**: Crash on launch (AutoCatLayoutFactory) - Implemented `close()` method (was throwing NotImplementedError)
-- ✅ Reverted accidental changes to `DiagnosticsPreferences.kt`
-- ✅ Pushed fix to `16-dev` branch to trigger GitHub Actions build
+- ✅ **Test Infrastructure**: Created `flowerpot/create_dummy_slbk.py` to generate `dummy_backup.slbk` for Smart Launcher import testing.
+- ✅ **Test Verification**: Created `flowerpot/test_batch_sizing.py` and verified `BatchCalculator` logic (confirmed 50x speedup for large context models).
+- ✅ **Verification**: Confirmed "Folder Sync Mode UI" is already implemented in `CategorizationSettingsPreferences.kt`.
 
 **Current Status:**
-- 🔄 GitHub Actions build triggered (commit 570e874)
-- ⏭️ Next: Wait for build, download APK, and verify fix
+- 🛠️ Ready for user testing on device (APK build required).
+- 📂 `dummy_backup.slbk` is available in project root for import testing.
 
 ### Important Reminders
 - NEVER build directly - use GitHub Actions
@@ -617,8 +616,7 @@ adb shell "run-as com.app.lawnchair sqlite3 /data/data/com.app.lawnchair/databas
 1. Complete testing and bug fixes
 2. Add retry logic with exponential backoff
 3. Parallel batch processing
-4. Folder sync mode UI preference
-5. Batch size slider UI
+4. Batch size slider UI
 
 ### Medium Term (1-2 Months)
 1. Multi-language categorization

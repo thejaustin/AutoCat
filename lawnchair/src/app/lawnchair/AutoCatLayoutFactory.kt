@@ -23,6 +23,9 @@ class AutoCatLayoutFactory(context: Context) :
         DoubleShadowBubbleTextView::class.java.name to ::DoubleShadowBubbleTextView,
     )
 
+    // Cache to avoid repeated styling attribute lookups
+    private val fontOverrideCache = mutableMapOf<Int, Boolean>()
+
     override fun onCreateView(
         parent: View?,
         name: String,
@@ -31,7 +34,13 @@ class AutoCatLayoutFactory(context: Context) :
     ): View? {
         val view = constructorMap[name]?.let { it(context, attrs) }
         if (view is TextView) {
-            runCatching { fontManager.overrideFont(view, attrs) }
+            val attrHash = attrs.hashCode()
+            if (fontOverrideCache[attrHash] != false) {
+                val success = runCatching { fontManager.overrideFont(view, attrs) }.isSuccess
+                if (!success) {
+                    fontOverrideCache[attrHash] = false
+                }
+            }
         }
         return view
     }

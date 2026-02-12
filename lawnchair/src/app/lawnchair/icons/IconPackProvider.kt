@@ -110,7 +110,6 @@ class IconPackProvider @Inject constructor(
     }
 
     override fun close() {
-        TODO("Not yet implemented")
     }
 
     companion object {
