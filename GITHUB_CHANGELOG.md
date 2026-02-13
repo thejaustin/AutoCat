@@ -1,6 +1,47 @@
 Lawnchair 16 pE Development 2 is here! Contributors are encouraged to target this branch instead of 
 older (i.e., Lawnchair `15-dev`).
 
+### 🥞 Development 4
+
+Build: BD4.1202
+
+A major milestone focused on final branding, stability, and AI-powered intelligence.
+
+#### ✨ Highlights
+- **Full AutoCat Branding**: The transition is complete. All internal classes, utilities, and log tags have been migrated to the AutoCat namespace.
+- **Semantic Search**: Stop searching for names, start searching for intent. Find apps by their category or purpose (e.g., search "Finance" to find all banking apps).
+- **Multi-Language AI**: Categorization now speaks your language. Prompts are automatically localized to your system language for better context and accuracy.
+- **Performance Overhaul**: Fixed startup hangs and settings lag with non-blocking initialization and a new font inflation cache.
+
+Compatibility list:
+
+| 🏗️ Crash   | 💫 Limited features | 🥞 Fully supported |
+|-------------|---------------------|--------------------|
+| Android 8.1 |                     | Android 12.0       |
+| Android 9   |                     | Android 12.1       |
+| Android 10  |                     | Android 13         |
+| Android 11  |                     | Android 14         |
+|             |                     | Android 15         |
+|             |                     | Android 16         |
+
+#### Features
+- [AutoCat] New "Discovery" tab in app drawer for recently installed apps
+- [Search] Implemented `AutoCatSemanticSearchAlgorithm`
+- [LLM] Support for localized prompts in 10+ languages
+- [Settings] New "Smart Discovery" section in dashboard for AI features
+- [Settings] User controls for LLM Batch Size and Auto-Provider selection
+- [Logic] Support for Home Screen folder synchronization
+
+#### Fixes
+- [Stability] Fixed infinite loading hang during Home layout setup
+- [Stability] Implemented non-blocking preference and database initialization
+- [Performance] Added font inflation cache to reduce UI lag in Settings
+- [Icons] Fixed icon pack resolution for Work Profiles using app UIDs
+- [Icons] Enforced adaptive wrapping for all icons (if enabled) for a consistent look
+- [Bug] Fixed crash on saving settings due to missing `MutableMapPref.set` implementation
+- [Branding] Systematic rename of all `Lawnchair*` classes and files to `AutoCat*`
+- [Cleanup] Removed stale TODOs and updated outdated log TAGs
+
 ### 🥞 Development 3 Release 2
 
 Build: BD3.2211

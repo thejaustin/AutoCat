@@ -1,6 +1,43 @@
 Lawnchair 16 pE Development 2 is here! Contributors are encouraged to target this branch instead of
 older (i.e., Lawnchair `15-dev`).
 
+### Development 4
+
+A major milestone focused on final branding, stability, and AI-powered intelligence.
+
+#### ✨ Highlights
+- **Full AutoCat Branding**: The transition is complete. All internal classes, utilities, and log tags have been migrated to the AutoCat namespace.
+- **Semantic Search**: Stop searching for names, start searching for intent. Find apps by their category or purpose.
+- **Multi-Language AI**: Categorization prompts are now automatically localized to your system language.
+- **Performance Overhaul**: Fixed startup hangs and settings lag with non-blocking initialization.
+
+Compatibility list:
+
+| 🏗️ Crash   | 💫 Limited features | 🥞 Fully supported |
+|-------------|---------------------|--------------------|
+| Android 8.1 |                     | Android 12.0       |
+| Android 9   |                     | Android 12.1       |
+| Android 10  |                     | Android 13         |
+| Android 11  |                     | Android 14         |
+|             |                     | Android 15         |
+|             |                     | Android 16         |
+
+#### Features
+- New "Discovery" tab in app drawer
+- Semantic Search algorithm
+- Localized AI prompts (10+ languages)
+- "Smart Discovery" settings section
+- Batch Size and Auto-Provider controls
+- Home Screen folder synchronization
+
+#### Fixes
+- Fixed infinite loading in Home layout setup
+- Non-blocking preference and database initialization
+- Font inflation cache for faster settings
+- Improved Work Profile icon packs
+- Enforced adaptive wrapping for all icons
+- Branding refactor across the entire codebase
+
 ### Development 2
 
 Originally going to launch D2 if comestic bug fixes have been resolved, but hit a
