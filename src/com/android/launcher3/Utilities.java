@@ -790,7 +790,7 @@ public final class Utilities {
         }
         AdaptiveIconDrawable result;
 
-        // Lawnchair-TODO-Merge: From LC, maybe heavily affected by L3, Allow 3p icon
+        // AutoCat-TODO-Merge: From LC, maybe heavily affected by L3, Allow 3p icon
         if (ExtendedBitmapDrawable.isFromIconPack(mainIcon) || (!PreferenceManager.INSTANCE.get(context).getWrapAdaptiveIcons().get() && info.itemType != LauncherSettings.Favorites.ITEM_TYPE_FOLDER))
             return null;
         if (mainIcon instanceof AdaptiveIconDrawable aid) {

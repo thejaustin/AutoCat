@@ -16,14 +16,14 @@ sealed class SmartspaceMode(
             "google" -> GoogleSmartspace
             "google_search" -> GoogleSearchSmartspace
             "smartspacer" -> Smartspacer
-            else -> LawnchairSmartspace
+            else -> AutoCatSmartspace
         }
 
         /**
          * @return The list of all smartspace options
          */
         fun values() = listOf(
-            LawnchairSmartspace,
+            AutoCatSmartspace,
             GoogleSmartspace,
             GoogleSearchSmartspace,
             Smartspacer,
@@ -33,7 +33,7 @@ sealed class SmartspaceMode(
     abstract fun isAvailable(context: Context): Boolean
 }
 
-object LawnchairSmartspace : SmartspaceMode(
+object AutoCatSmartspace : SmartspaceMode(
     nameResourceId = R.string.smartspace_mode_lawnchair,
     layoutResourceId = R.layout.smartspace_container,
 ) {

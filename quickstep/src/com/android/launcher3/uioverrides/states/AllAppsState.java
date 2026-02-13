@@ -35,7 +35,7 @@ import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 import java.util.concurrent.TimeUnit;
 
 import app.lawnchair.AutoCatLauncher;
-import app.lawnchair.util.LawnchairUtilsKt;
+import app.lawnchair.util.AutoCatUtilsKt;
 
 /**
  * Definition for AllApps state
@@ -210,14 +210,14 @@ public class AllAppsState extends LauncherState {
     @Override
     public int getWorkspaceScrimColor(Launcher launcher) {
         if (!launcher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
-            // Lawnchair-TODO-Colour: LawnchairUtilsKt.getAllAppsScrimColor(launcher) + allAppsScrimColor
+            // AutoCat-TODO-Colour: AutoCatUtilsKt.getAllAppsScrimColor(launcher) + allAppsScrimColor
             return Themes.getAttrColor(launcher, R.attr.allAppsScrimColor);
         }
         if (Flags.allAppsBlur()) {
-            // Lawnchair-TODO-Colour: LawnchairUtilsKt.getAllAppsScrimColor(launcher) + allAppsScrimColorOverBlur
+            // AutoCat-TODO-Colour: AutoCatUtilsKt.getAllAppsScrimColor(launcher) + allAppsScrimColorOverBlur
             return Themes.getAttrColor(launcher, R.attr.allAppsScrimColorOverBlur);
         }
-        // Lawnchair-TODO-Colour: LawnchairUtilsKt.getAllAppsScrimColor(launcher) + widgets_picker_scrim
+        // AutoCat-TODO-Colour: AutoCatUtilsKt.getAllAppsScrimColor(launcher) + widgets_picker_scrim
         return launcher.getResources().getColor(R.color.widgets_picker_scrim);
     }
 }

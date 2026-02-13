@@ -183,7 +183,7 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
         Runnable unlockCallback = () -> themeManagerLazy.get().addChangeListener(this);
         lockedUserState.runOnUserUnlocked(unlockCallback);
 
-        // Lawnchair-TODO-Merge-High: taskStackChangeListeners run when isRecentsEnabled
+        // AutoCat-TODO-Merge-High: taskStackChangeListeners run when isRecentsEnabled
         tracker.addCloseable(() -> {
             if (AutoCatApp.isRecentsEnabled()) {
                 TaskStackChangeListeners.getInstance().unregisterTaskStackListener(this);

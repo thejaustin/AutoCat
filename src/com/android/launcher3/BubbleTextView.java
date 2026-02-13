@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Modifications copyright 2025, Lawnchair
+ * Modifications copyright 2025, AutoCat
  */
 
 package com.android.launcher3;
@@ -119,7 +119,7 @@ import app.lawnchair.font.FontManager;
 import app.lawnchair.gestures.IconGestureListener;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.util.LawnchairUtilsKt;
+import app.lawnchair.util.AutoCatUtilsKt;
 
 /**
  * TextView that draws a bubble behind the text. We cannot use a LineBackgroundSpan
@@ -331,7 +331,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.allAppsIconTextSizePx);
             setCompoundDrawablePadding(mDeviceProfile.allAppsIconDrawablePaddingPx);
             defaultIconSize = mDeviceProfile.allAppsIconSizePx;
-            LawnchairUtilsKt.overrideAllAppsTextColor(this);
+            AutoCatUtilsKt.overrideAllAppsTextColor(this);
         } else if (mDisplay == DISPLAY_FOLDER) {
             setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.folderChildTextSizePx);
             setCompoundDrawablePadding(mDeviceProfile.folderChildDrawablePaddingPx);

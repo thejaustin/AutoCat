@@ -16,7 +16,7 @@
 
 package com.android.quickstep.fallback.window
 
-// Lawnchair-TODO-Flags: DesktopModeFlag =
+// AutoCat-TODO-Flags: DesktopModeFlag =
 //  DesktopModeFlag(Flags::enableLauncherOverwineInWindow, false)
 // Impl: var.isTrue()
 class RecentsWindowFlags {

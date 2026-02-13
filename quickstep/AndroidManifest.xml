@@ -53,7 +53,7 @@
     <permission android:name="${applicationId}.permission.START_WIDGET_PICKER_ACTIVITY"
         android:protectionLevel="signature|privileged" />
 
-    <application android:backupAgent="app.lawnchair.backup.LawnchairBackupAgent"
+    <application android:backupAgent="app.lawnchair.backup.AutoCatBackupAgent"
          android:enableOnBackInvokedCallback="true"
          android:fullBackupOnly="true"
          android:fullBackupContent="@xml/backupscheme"

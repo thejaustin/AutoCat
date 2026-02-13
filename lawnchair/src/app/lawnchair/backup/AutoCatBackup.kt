@@ -34,7 +34,7 @@ import kotlin.math.max
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class LawnchairBackup(
+class AutoCatBackup(
     private val context: Context,
     private val uri: Uri,
 ) {

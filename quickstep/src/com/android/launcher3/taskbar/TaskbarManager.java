@@ -1141,7 +1141,7 @@ public class TaskbarManager implements DisplayDecorationListener {
         // - isAndroidPC is set per device (in this case, desktop devices)
         // - supportsFreeformWindowsManagement is dynamic, and is to be used for the use-case where
         // user plugs in their device to external displays
-        // Lawnchair-TODO: AM Flags, perceptibleTasks
+        // AutoCat-TODO: AM Flags, perceptibleTasks
         //return Flags.perceptibleTasks()
         //        && (mIsAndroidPC || mSupportsFreeformWindowsManagement);
         return false;

@@ -248,6 +248,13 @@ fun SmartDiscoverySection(
                     icon = Icons.Rounded.Analytics,
                     onClick = { onNavigate(app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations) },
                 )
+
+                DiscoveryCard(
+                    title = "Semantic Search",
+                    description = "Find apps by their purpose or category instead of just their names.",
+                    icon = Icons.Rounded.Search,
+                    onClick = { onNavigate(app.lawnchair.ui.preferences.navigation.Search(app.lawnchair.ui.preferences.destinations.SearchRoute.DRAWER_SEARCH)) },
+                )
             }
         }
     }

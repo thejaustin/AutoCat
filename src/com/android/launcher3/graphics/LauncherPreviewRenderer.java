@@ -160,7 +160,7 @@ import app.lawnchair.theme.ThemeProvider;
  *   4) Measure and draw the view on a canvas
  */
 
-// Lawnchair-TODO-Merge: Merge Lawnchair back, (reason: merge-method: theirs)
+// AutoCat-TODO-Merge: Merge AutoCat back, (reason: merge-method: theirs)
 
 public class LauncherPreviewRenderer extends BaseContext
     implements ActivityContext, WorkspaceLayoutManager, LayoutInflater.Factory2 {
@@ -249,7 +249,7 @@ public class LauncherPreviewRenderer extends BaseContext
     private final SparseArray<Size> mLauncherWidgetSpanInfo;
 
     /**
-     * Lawnchair
+     * AutoCat
      * <p> 
      * Default search container layout.
      * 
@@ -661,7 +661,7 @@ public class LauncherPreviewRenderer extends BaseContext
     }
     
     /**
-     * Lawnchair
+     * AutoCat
      * <p> 
      * Set custom search container for workspace.
      *

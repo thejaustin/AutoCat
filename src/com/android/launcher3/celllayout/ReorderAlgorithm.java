@@ -133,7 +133,7 @@ public class ReorderAlgorithm {
         ArrayList<View> intersectingViews = new ArrayList<>();
         Rect occupiedRect = new Rect(cellX, cellY, cellX + spanX, cellY + spanY);
 
-        // Lawnchair: Widget overlap
+        // AutoCat: Widget overlap
         if (PreferenceExtensionsKt.firstBlocking(mCellLayout.pref.getAllowWidgetOverlap())) {
             solution.intersectingViews = new ArrayList<>(intersectingViews);
             return true;

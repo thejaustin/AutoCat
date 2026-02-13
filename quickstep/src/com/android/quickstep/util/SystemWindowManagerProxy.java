@@ -48,7 +48,7 @@ import javax.inject.Inject;
  */
 @LauncherAppSingleton
 public class SystemWindowManagerProxy extends WindowManagerProxy {
-    // LC-Note: This is pretty much unused by Launcher3, see [LawnchairWindowManagerProxy]
+    // LC-Note: This is pretty much unused by Launcher3, see [AutoCatWindowManagerProxy]
 
     private final DesktopVisibilityController mDesktopVisibilityController;
 

@@ -166,8 +166,8 @@ public class OverviewState extends LauncherState {
 
     @Override
     public int getWorkspaceScrimColor(Launcher launcher) {
-        // Lawnchair-TODO-Colour: LawnchairUtilsKt.getAllAppsScrimColor(launcher) + allAppsScrimColorOverBlur
-        // Lawnchair-TODO-Colour: LawnchairUtilsKt.getAllAppsScrimColor(launcher) + allAppsScrimColor
+        // AutoCat-TODO-Colour: AutoCatUtilsKt.getAllAppsScrimColor(launcher) + allAppsScrimColorOverBlur
+        // AutoCat-TODO-Colour: AutoCatUtilsKt.getAllAppsScrimColor(launcher) + allAppsScrimColor
         return enableOverviewBackgroundWallpaperBlur() && BlurUtils.supportsBlursOnWindows()
                 ? Themes.getAttrColor(launcher, R.attr.overviewScrimColorOverBlur)
                 : Themes.getAttrColor(launcher, R.attr.overviewScrimColor);

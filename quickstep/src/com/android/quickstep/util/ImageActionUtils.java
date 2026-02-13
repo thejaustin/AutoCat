@@ -95,7 +95,7 @@ public class ImageActionUtils {
             systemUiProxy.takeScreenshot(request);
         } catch (Throwable t) {
             try {
-                // Lawnchair-TODO-Merge: LC disabled this, but no code is in 16r2
+                // AutoCat-TODO-Merge: LC disabled this, but no code is in 16r2
 //                systemUiProxy.handleImageBundleAsScreenshot(BitmapUtil.hardwareBitmapToBundle(screenshot),
 //                        screenshotBounds, visibleInsets, task);
             } catch (Throwable ee) {

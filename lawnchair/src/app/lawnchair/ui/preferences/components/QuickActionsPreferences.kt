@@ -47,7 +47,8 @@ fun QuickActionsPreferences(
 ) {
     val orderedItems = sortListByIdOrder(items, order)
 
-    // TODO migrate from index-based to item (class)-based list sorting
+    // Current implementation uses ID-based order persistence.
+    // Future refactor could migrate to type-safe enum or class-based sorting.
     DraggablePreferenceGroup(
         label = stringResource(id = R.string.recents_actions_label),
         items = orderedItems,

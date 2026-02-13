@@ -28,7 +28,7 @@ import kotlin.math.max
 
 @Keep
 @LauncherAppSingleton
-class LawnchairWindowManagerProxy @Inject constructor() : WindowManagerProxy(Utilities.ATLEAST_T) {
+class AutoCatWindowManagerProxy @Inject constructor() : WindowManagerProxy(Utilities.ATLEAST_T) {
 
     @Suppress("PropertyName")
     val TAG = "LC-WindowManagerProxy"

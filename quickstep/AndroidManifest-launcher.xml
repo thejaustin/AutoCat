@@ -33,7 +33,7 @@
 
     <application
         android:name="app.lawnchair.AutoCatApp"
-        android:backupAgent="app.lawnchair.backup.LawnchairBackupAgent"
+        android:backupAgent="app.lawnchair.backup.AutoCatBackupAgent"
         android:fullBackupOnly="true"
         android:fullBackupContent="@xml/backupscheme"
         android:hardwareAccelerated="true"

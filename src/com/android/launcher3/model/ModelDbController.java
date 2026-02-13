@@ -110,7 +110,7 @@ public class ModelDbController {
         mLayoutParserFactory = layoutParserFactory;
     }
 
-    // Lawnchair: ModelDbController
+    // AutoCat: ModelDbController
     public ModelDbController(Context context) {
         mContext = context;
     }

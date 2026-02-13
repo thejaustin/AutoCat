@@ -44,7 +44,7 @@ import app.lawnchair.preferences.rememberTransformAdapter
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
-import app.lawnchair.ui.util.preview.PreviewLawnchair
+import app.lawnchair.ui.util.preview.PreviewAutoCat
 import com.android.launcher3.R
 import kotlin.math.roundToInt
 
@@ -191,7 +191,7 @@ fun snapSliderValue(start: Float, value: Float, step: Float): Float {
     return start + snappedDistance
 }
 
-@PreviewLawnchair
+@PreviewAutoCat
 @Composable
 private fun SliderPreferencePreview(
     @PreviewParameter(SliderPreferencePreviewParameterProvider::class) sliderValue: Float,

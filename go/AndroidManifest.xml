@@ -26,7 +26,7 @@
     <uses-permission android:name="android.permission.GET_TOP_ACTIVITY_INFO" />
 
     <application
-        android:backupAgent="app.lawnchair.backup.LawnchairBackupAgent"
+        android:backupAgent="app.lawnchair.backup.AutoCatBackupAgent"
         android:fullBackupOnly="true"
         android:fullBackupContent="@xml/backupscheme"
         android:hardwareAccelerated="true"

@@ -1,3 +1,5 @@
+package app.lawnchair.util
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences

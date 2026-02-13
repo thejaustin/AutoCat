@@ -7,7 +7,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 
-class LawnchairWidgetHolder @AssistedInject constructor(
+class AutoCatWidgetHolder @AssistedInject constructor(
     @Assisted("UI_CONTEXT") context: Context,
 ) : LauncherWidgetHolder(context) {
 

@@ -27,7 +27,7 @@
 
     <application
         xmlns:tools="http://schemas.android.com/tools"
-        android:backupAgent="app.lawnchair.backup.LawnchairBackupAgent"
+        android:backupAgent="app.lawnchair.backup.AutoCatBackupAgent"
         android:fullBackupOnly="true"
         android:fullBackupContent="@xml/backupscheme"
         android:hardwareAccelerated="true"

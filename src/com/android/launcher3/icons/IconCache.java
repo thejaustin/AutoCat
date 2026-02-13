@@ -115,7 +115,7 @@ public class IconCache extends BaseIconCache {
 
     private int mPendingIconRequestCount = 0;
 
-    // Lawnchair: Apply 3p icon pack
+    // AutoCat: Apply 3p icon pack
     public IconCache(Context context, InvariantDeviceProfile idp, LauncherIcons.IconPool iconPool, DaggerSingletonTracker lifecycle) {
         this(
             context,
@@ -136,7 +136,7 @@ public class IconCache extends BaseIconCache {
         @Nullable @Named("ICONS_DB") String dbFileName,
         UserCache userCache,
         LauncherIconProvider iconProvider,
-        // TODO: Lawnchair stuff
+        // TODO: AutoCat stuff
         //       IconProvider iconProvider,
         InstallSessionHelper installSessionHelper,
         LauncherIcons.IconPool iconPool,

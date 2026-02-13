@@ -55,7 +55,7 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
         typedArray.recycle();
     }
 
-    // Lawnchair: This function theme the work mode tab and toggle
+    // AutoCat: This function theme the work mode tab and toggle
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
@@ -64,7 +64,7 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
         for (int i = 0; i < getChildCount(); i++) {
             Button tab = (Button) getChildAt(i);
             tab.setAllCaps(false);
-            // Lawnchair-TODO: StateListDrawable
+            // AutoCat-TODO: StateListDrawable
 //            RippleDrawable background = (RippleDrawable) tab.getBackground();
 //            background.setDrawableByLayerId(android.R.id.mask, DrawableTokens.AllAppsTabsMaskDrawable.resolve(getContext()));
             tab.setBackground(DrawableTokens.AllAppsTabsBackground.resolve(getContext()));

@@ -40,7 +40,7 @@ import app.lawnchair.qsb.providers.GoogleGo
 import app.lawnchair.qsb.providers.PixelSearch
 import app.lawnchair.qsb.setThemedIconResource
 import app.lawnchair.search.AutoCatRecentSuggestionProvider
-import app.lawnchair.search.algorithms.LawnchairSearchAlgorithm
+import app.lawnchair.search.algorithms.AutoCatSearchAlgorithm
 import app.lawnchair.theme.drawable.DrawableTokens
 import app.lawnchair.util.viewAttachedScope
 import com.android.launcher3.Insettable
@@ -89,7 +89,7 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
 
     private lateinit var apps: AutoCatAlphabeticalAppsList<*>
     private lateinit var appsView: ActivityAllAppsContainerView<*>
-    private var searchAlgorithm: LawnchairSearchAlgorithm? = null
+    private var searchAlgorithm: AutoCatSearchAlgorithm? = null
 
     private var focusedResultTitle = ""
     private var canShowHint = false
@@ -193,7 +193,7 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
                 // M3E: Haptic feedback on search bar focus
                 VibratorWrapper.INSTANCE.get(launcher).vibrate(VibratorWrapper.EFFECT_CLICK)
 
-                if (prefs2.searchAlgorithm.firstBlocking() != LawnchairSearchAlgorithm.APP_SEARCH) {
+                if (prefs2.searchAlgorithm.firstBlocking() != AutoCatSearchAlgorithm.APP_SEARCH) {
                     input.setHint(R.string.all_apps_device_search_hint)
                 } else {
                     input.setHint(R.string.all_apps_search_bar_hint)
@@ -353,7 +353,7 @@ class AllAppsSearchInput(context: Context, attrs: AttributeSet?) :
     override fun initializeSearch(appsView: ActivityAllAppsContainerView<*>) {
         apps = appsView.searchResultList as AutoCatAlphabeticalAppsList<*>
         this.appsView = appsView
-        val algorithm = LawnchairSearchAlgorithm.create(context)
+        val algorithm = AutoCatSearchAlgorithm.create(context)
         this.searchAlgorithm = algorithm
         searchBarController.initialize(
             algorithm,

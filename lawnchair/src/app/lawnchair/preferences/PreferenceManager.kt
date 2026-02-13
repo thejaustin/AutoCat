@@ -163,6 +163,7 @@ class PreferenceManager @Inject constructor(
     val llmClaudeModel = StringPref("pref_llmClaudeModel", "claude-3-5-haiku-20241022", {})
     val llmOpenAIModel = StringPref("pref_llmOpenAIModel", "gpt-4o-mini", {})
     val llmPerplexityModel = StringPref("pref_llmPerplexityModel", "llama-3.1-sonar-small-128k-online", {})
+    val llmPromptLanguage = StringPref("pref_llmPromptLanguage", "System Default", {})
 
     // AutoCat: Batch processing settings
     val llmEnableBatching = BoolPref("pref_llmEnableBatching", true, {})

@@ -120,6 +120,9 @@ class LLMCategorizer(
 
                 android.util.Log.d(TAG, "Trying provider: ${provider.name}")
 
+                // Generate hints from user corrections
+                val hints = learner.generateLLMHintText()
+
                 // Call LLM to categorize with retry logic
                 val result = LLMUtils.retryWithBackoff(
                     maxRetries = MAX_RETRIES,
@@ -136,6 +139,7 @@ class LLMCategorizer(
                         appPackage = appInfo.packageName,
                         appDescription = appInfo.description,
                         availableTabs = tabNames,
+                        hints = hints,
                     )
                 }
 
@@ -333,6 +337,7 @@ class LLMCategorizer(
 
                             // Retry with exponential backoff
                             val batchStartTime = System.currentTimeMillis()
+                            val hints = learner.generateLLMHintText()
                             val apiResults = try {
                                 LLMUtils.retryWithBackoff(
                                     maxRetries = MAX_RETRIES,
@@ -344,7 +349,7 @@ class LLMCategorizer(
                                         )
                                     },
                                 ) {
-                                    val result = provider.categorizeAppBatch(batchInfo, tabNames)
+                                    val result = provider.categorizeAppBatch(batchInfo, tabNames, hints)
                                     circuitBreaker.recordSuccess(provider.name)
                                     result
                                 }

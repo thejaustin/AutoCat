@@ -192,13 +192,13 @@ class CategoryFolderSyncService(
                         }
                 }
 
-                // TODO: Sync to home screen folders if enabled
+                // Sync to home screen folders if enabled
                 if (shouldSyncToHomeScreen()) {
-                    LLMLogger.logWarning(
-                        provider = "CategoryFolderSync",
-                        operation = "SYNC_HOME_SCREEN",
-                        message = "Home screen folder sync not yet implemented",
-                    )
+                    syncToHomeScreen(appsByTab, appsByPackage, tabIconMap)
+                        .also { result ->
+                            foldersCreated += result.first
+                            appsMovedToFolders += result.second
+                        }
                 }
 
                 val result = SyncResult(
@@ -312,6 +312,69 @@ class CategoryFolderSyncService(
 
                 appsMovedToFolders += apps.size
             }
+        }
+
+        return Pair(foldersCreated, appsMovedToFolders)
+    }
+
+    /**
+     * Syncs apps to home screen folders.
+     */
+    private suspend fun syncToHomeScreen(
+        appsByTab: Map<String, List<String>>,
+        appsByPackage: Map<String, List<AppInfo>>,
+        tabIconMap: Map<String, String?>,
+    ): Pair<Int, Int> {
+        var foldersCreated = 0
+        var appsMovedToFolders = 0
+
+        val launcher = app.lawnchair.AutoCatLauncher.instance
+        if (launcher == null) {
+            android.util.Log.e(TAG, "Launcher instance is null, cannot sync to home screen")
+            return Pair(0, 0)
+        }
+
+        val foldersToAdd = mutableListOf<FolderInfo>()
+
+        appsByTab.forEach { (tabName, packageNames) ->
+            val folderName = getFolderName(tabName)
+
+            // Find apps for this category
+            val apps = packageNames.flatMap { packageName ->
+                appsByPackage[packageName] ?: emptyList()
+            }
+
+            if (apps.size >= 2) {
+                // Create folder info for multiple apps
+                val folderInfo = FolderInfo().apply {
+                    title = folderName
+                }
+
+                apps.forEach { app ->
+                    val workspaceItem = app.makeWorkspaceItem(context)
+                    if (workspaceItem != null) {
+                        folderInfo.add(workspaceItem)
+                        appsMovedToFolders++
+                    }
+                }
+
+                if (folderInfo.getContents().isNotEmpty()) {
+                    foldersToAdd.add(folderInfo)
+                    foldersCreated++
+                }
+            } else if (apps.size == 1) {
+                // Single app - add directly to workspace via ItemInstallQueue
+                val app = apps.first()
+                com.android.launcher3.model.ItemInstallQueue.INSTANCE.get(context)
+                    .queueItem(app.targetPackage, app.user)
+                appsMovedToFolders++
+            }
+        }
+
+        if (foldersToAdd.isNotEmpty()) {
+            launcher.model.enqueueModelUpdateTask(
+                app.lawnchair.deck.AddFoldersWithItemsTask(foldersToAdd),
+            )
         }
 
         return Pair(foldersCreated, appsMovedToFolders)

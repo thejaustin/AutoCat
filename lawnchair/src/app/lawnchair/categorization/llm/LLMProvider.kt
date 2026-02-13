@@ -110,6 +110,7 @@ interface LLMProvider {
         appPackage: String,
         appDescription: String?,
         availableTabs: List<String>,
+        hints: String = "",
     ): CategorizationResult
 
     /**
@@ -118,12 +119,14 @@ interface LLMProvider {
      *
      * @param apps List of apps to categorize
      * @param availableCategories List of custom categories to choose from
+     * @param hints Optional context from previous user corrections
      * @return Map of packageName → CategorizationResult
      * @throws LLMException if batch categorization fails
      */
     suspend fun categorizeAppBatch(
         apps: List<AppBatchInfo>,
         availableTabs: List<String>,
+        hints: String = "",
     ): Map<String, CategorizationResult>
 
     /**

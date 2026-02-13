@@ -9,7 +9,7 @@ import com.android.launcher3.icons.mono.ThemedIconDrawable
 import com.android.quickstep.QuickstepProcessInitializer
 
 @Keep
-class LawnchairProcessInitializer(context: Context) : QuickstepProcessInitializer(context) {
+class AutoCatProcessInitializer(context: Context) : QuickstepProcessInitializer(context) {
 
     override fun init(context: Context) {
         AutoCatBugReporter.INSTANCE.get(context)

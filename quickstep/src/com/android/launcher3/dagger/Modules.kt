@@ -16,8 +16,8 @@
 
 package com.android.launcher3.dagger
 
-import app.lawnchair.factory.LawnchairWidgetHolder
-import app.lawnchair.util.LawnchairWindowManagerProxy
+import app.lawnchair.factory.AutoCatWidgetHolder
+import app.lawnchair.util.AutoCatWindowManagerProxy
 import com.android.launcher3.uioverrides.QuickstepWidgetHolder.QuickstepWidgetHolderFactory
 import com.android.launcher3.uioverrides.SystemApiWrapper
 import com.android.launcher3.uioverrides.plugins.PluginManagerWrapperImpl
@@ -36,7 +36,7 @@ private object Modules {}
 
 @Module
 abstract class WindowManagerProxyModule {
-    @Binds abstract fun bindWindowManagerProxy(proxy: LawnchairWindowManagerProxy): WindowManagerProxy
+    @Binds abstract fun bindWindowManagerProxy(proxy: AutoCatWindowManagerProxy): WindowManagerProxy
 }
 
 @Module
@@ -48,7 +48,7 @@ abstract class ApiWrapperModule {
 abstract class WidgetModule {
 
     @Binds
-    abstract fun bindWidgetHolderFactory(factor: LawnchairWidgetHolder.Factory): WidgetHolderFactory
+    abstract fun bindWidgetHolderFactory(factor: AutoCatWidgetHolder.Factory): WidgetHolderFactory
 }
 
 @Module

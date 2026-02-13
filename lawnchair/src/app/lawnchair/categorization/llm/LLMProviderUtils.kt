@@ -93,4 +93,23 @@ object LLMProviderUtils {
         Log.d(tag, "Using model: $model")
         return model
     }
+
+    /**
+     * Generates a language-specific instruction for the prompt.
+     */
+    fun getLanguageInstruction(context: Context): String {
+        val prefs = PreferenceManager.getInstance(context)
+        var language = prefs.llmPromptLanguage.get()
+
+        if (language == "System Default") {
+            val locale = context.resources.configuration.locales[0]
+            language = locale.displayLanguage
+        }
+
+        return if (language != "English") {
+            "\nIMPORTANT: Respond in $language. Ensure category names match the list provided exactly."
+        } else {
+            ""
+        }
+    }
 }

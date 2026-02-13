@@ -151,6 +151,23 @@ fun LLMSettingsPreferences(
                             ListPreferenceEntry("perplexity") { "Perplexity" },
                         ),
                     )
+
+                    ListPreference(
+                        adapter = prefs.llmPromptLanguage.getAdapter(),
+                        label = "Prompt Language",
+                        entries = listOf(
+                            ListPreferenceEntry("System Default") { "System Default" },
+                            ListPreferenceEntry("English") { "English" },
+                            ListPreferenceEntry("Spanish") { "Spanish" },
+                            ListPreferenceEntry("French") { "French" },
+                            ListPreferenceEntry("German") { "German" },
+                            ListPreferenceEntry("Chinese") { "Chinese" },
+                            ListPreferenceEntry("Japanese") { "Japanese" },
+                            ListPreferenceEntry("Korean") { "Korean" },
+                            ListPreferenceEntry("Portuguese") { "Portuguese" },
+                            ListPreferenceEntry("Russian") { "Russian" },
+                        ),
+                    )
                 }
             }
 

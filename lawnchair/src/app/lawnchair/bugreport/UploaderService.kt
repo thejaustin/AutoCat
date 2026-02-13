@@ -23,8 +23,8 @@ class UploaderService : Service() {
     private val scope = CoroutineScope(Dispatchers.IO) + CoroutineName("UploaderService")
     private val uploadQueue: Queue<BugReport> = LinkedList()
 
-    override fun onBind(intent: Intent): IBinder {
-        TODO("not implemented")
+    override fun onBind(intent: Intent): IBinder? {
+        return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

@@ -38,7 +38,7 @@ import app.lawnchair.smartspace.provider.SmartspaceProvider;
 import app.lawnchair.theme.ThemeProvider;
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreferenceModelList;
 import app.lawnchair.ui.preferences.data.liveinfo.LiveInformationManager;
-import app.lawnchair.util.LawnchairWindowManagerProxy;
+import app.lawnchair.util.AutoCatWindowManagerProxy;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherPrefs;
@@ -112,9 +112,9 @@ public interface LauncherBaseAppComponent {
     WidgetHolderFactory getWidgetHolderFactory();
     RefreshRateTracker getFrameRateProvider();
 
-    // Lawnchair-specific
+    // AutoCat-specific
     
-    LawnchairWindowManagerProxy getLWMP();
+    AutoCatWindowManagerProxy getLWMP();
     DeviceProfileOverrides getDPO();
     ThemeProvider getThemeProvider();
     SmartspaceProvider getSmartspaceProvider();

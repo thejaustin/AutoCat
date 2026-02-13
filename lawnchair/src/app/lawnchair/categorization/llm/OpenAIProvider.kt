@@ -140,6 +140,7 @@ class OpenAIProvider(
         appPackage: String,
         appDescription: String?,
         availableTabs: List<String>,
+        hints: String,
     ): CategorizationResult = withContext(Dispatchers.IO) {
         try {
             LLMLogger.logDebug(
@@ -152,7 +153,7 @@ class OpenAIProvider(
                 ),
             )
 
-            val prompt = buildPrompt(appName, appPackage, appDescription, availableTabs)
+            val prompt = buildPrompt(appName, appPackage, appDescription, availableTabs, hints)
             val response = callOpenAIAPIWithFallback(prompt)
             val result = parseResponse(response, availableTabs)
 
@@ -185,6 +186,7 @@ class OpenAIProvider(
     override suspend fun categorizeAppBatch(
         apps: List<AppBatchInfo>,
         availableTabs: List<String>,
+        hints: String,
     ): Map<String, CategorizationResult> = withContext(Dispatchers.IO) {
         try {
             LLMLogger.logDebug(
@@ -197,7 +199,7 @@ class OpenAIProvider(
                 ),
             )
 
-            val prompt = buildBatchPrompt(apps, availableTabs)
+            val prompt = buildBatchPrompt(apps, availableTabs, hints)
             val response = callOpenAIAPIWithFallback(prompt)
             val results = parseBatchResponse(response, apps, availableTabs)
 
@@ -232,6 +234,7 @@ class OpenAIProvider(
                         appPackage = app.packageName,
                         appDescription = app.appDescription,
                         availableTabs = availableTabs,
+                        hints = hints,
                     )
                     results[app.packageName] = result
                 } catch (e: Exception) {
@@ -471,9 +474,11 @@ class OpenAIProvider(
         val safeDescription = appDescription?.let { sanitizeInput(it) }
 
         val descriptionText = safeDescription?.let { "\nDescription: $it" } ?: ""
+        val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
 
         return """
 You are an expert at categorizing Android apps. Given an app's information, choose the BEST matching category from the provided list.
+$languageInstruction
 
 App Name: $safeAppName
 Package: $safeAppPackage$descriptionText
@@ -511,8 +516,11 @@ Respond ONLY in this JSON format:
             ""
         }
 
+        val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
+
         return """
 You are an expert at organizing Android apps. Analyze this list of installed apps and suggest useful custom categories that would help organize them.
+$languageInstruction
 
 Installed Apps:
 $appSample
@@ -592,8 +600,11 @@ Respond ONLY in this JSON format:
             "- $safeName ($safePackage)$desc"
         }
 
+        val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
+
         return """
 You are an expert at categorizing Android apps. Given a list of apps, categorize each one by choosing the BEST matching category from the provided list.
+$languageInstruction
 
 Apps to categorize:
 $appsText

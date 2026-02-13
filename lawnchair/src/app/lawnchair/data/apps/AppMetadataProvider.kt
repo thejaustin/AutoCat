@@ -19,12 +19,48 @@ data class AppInfo(
  * Returns empty list since app info is handled by launcher's AppInfo model.
  */
 class AppMetadataProvider(private val context: Context) {
+    private val packageManager = context.packageManager
+
     fun getInstalledApps(): List<AppInfo> {
-        return emptyList()
+        val apps = mutableListOf<AppInfo>()
+        val packages = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+
+        for (app in packages) {
+            // Only include apps with launch intents (user apps)
+            if (packageManager.getLaunchIntentForPackage(app.packageName) != null) {
+                apps.add(createAppInfo(app))
+            }
+        }
+        return apps
     }
 
     fun getAppInfo(packageName: String): AppInfo? {
-        return null
+        return try {
+            val app = packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+            createAppInfo(app)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun createAppInfo(app: android.content.pm.ApplicationInfo): AppInfo {
+        val packageInfo = try {
+            packageManager.getPackageInfo(app.packageName, 0)
+        } catch (e: Exception) {
+            null
+        }
+
+        return AppInfo(
+            packageName = app.packageName,
+            label = packageManager.getApplicationLabel(app).toString(),
+            category = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                app.category.takeIf { it != android.content.pm.ApplicationInfo.CATEGORY_UNDEFINED }
+            } else {
+                null
+            },
+            installedTime = packageInfo?.firstInstallTime ?: 0L,
+            description = null, // Description can be fetched from Play Store in the future
+        )
     }
 
     companion object {

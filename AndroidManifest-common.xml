@@ -16,7 +16,7 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 **
-** Modifications copyright 2021, Lawnchair
+** Modifications copyright 2021, AutoCat
 */
 -->
 <manifest
@@ -71,7 +71,7 @@
 
     <application
         android:name="app.lawnchair.AutoCatApp"
-        android:backupAgent="app.lawnchair.backup.LawnchairBackupAgent"
+        android:backupAgent="app.lawnchair.backup.AutoCatBackupAgent"
         android:fullBackupOnly="true"
         android:backupInForeground="true"
         android:fullBackupContent="@xml/backupscheme"

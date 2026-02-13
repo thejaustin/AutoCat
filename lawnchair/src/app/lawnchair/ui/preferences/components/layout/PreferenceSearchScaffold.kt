@@ -39,7 +39,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.lawnchair.ui.theme.AutoCatTheme
-import app.lawnchair.ui.util.preview.PreviewLawnchair
+import app.lawnchair.ui.util.preview.PreviewAutoCat
 
 @Composable
 fun PreferenceSearchScaffold(
@@ -168,7 +168,7 @@ private fun SearchTextField(
     }
 }
 
-@PreviewLawnchair
+@PreviewAutoCat
 @Composable
 private fun SearchTextFieldPreview() {
     AutoCatTheme {

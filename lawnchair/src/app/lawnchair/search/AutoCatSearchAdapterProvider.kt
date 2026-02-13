@@ -17,7 +17,7 @@ import com.android.launcher3.allapps.BaseAllAppsAdapter
 import com.android.launcher3.allapps.search.DefaultSearchAdapterProvider
 import com.android.launcher3.views.ActivityContext
 
-class LawnchairSearchAdapterProvider(
+class AutoCatSearchAdapterProvider(
     launcher: ActivityContext,
     private val appsView: ActivityAllAppsContainerView<*>,
 ) : DefaultSearchAdapterProvider(launcher) {

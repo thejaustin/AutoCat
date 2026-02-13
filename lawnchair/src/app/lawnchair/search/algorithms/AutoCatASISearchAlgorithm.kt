@@ -21,8 +21,8 @@ import com.android.launcher3.util.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
-class LawnchairASISearchAlgorithm(context: Context) :
-    LawnchairSearchAlgorithm(context),
+class AutoCatASISearchAlgorithm(context: Context) :
+    AutoCatSearchAlgorithm(context),
     PreferenceChangeListener {
     private val prefs: PreferenceManager
     private var searchSession: SearchSession? = null

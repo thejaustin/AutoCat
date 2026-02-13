@@ -46,7 +46,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.theme.dividerColor
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
-import app.lawnchair.ui.util.preview.PreviewLawnchair
+import app.lawnchair.ui.util.preview.PreviewAutoCat
 
 @Composable
 fun SwitchPreference(
@@ -155,7 +155,7 @@ fun SwitchPreference(
     )
 }
 
-@PreviewLawnchair
+@PreviewAutoCat
 @Composable
 private fun SwitchPreferencePreview(
     @PreviewParameter(SwitchPreferencePreviewParameterProvider::class) checked: Boolean,

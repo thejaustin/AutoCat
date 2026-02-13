@@ -19,6 +19,7 @@ Continue renaming core classes to match AutoCat branding.
 - [x] Rename `LawnchairLauncher` -> `AutoCatLauncher`
 - [x] Rename `LawnchairAccessibilityService` -> `AutoCatAccessibilityService`
 - [x] Rename `LawnchairBugReporter` -> `AutoCatBugReporter`
+- [x] Rename Search algorithms and adapters to `AutoCat*`
 
 ### Issue #3: Implement Retry Logic with Exponential Backoff for LLM
 **Source:** `AUTOCAT_CONTEXT.md`
@@ -34,6 +35,7 @@ The folder sync mode is currently hardcoded or hidden. Add a UI selector in Sett
 - [x] Add UI selector in Categorization Settings
 - [x] Use `autoCatFolderSyncMode` preference
 - [x] Define mode options: `DRAWER`, `HOME_SCREEN`, `BOTH`
+- [x] Implement Home Screen folder sync logic
 
 ## 🛠 Features & Enhancements
 
@@ -41,12 +43,38 @@ The folder sync mode is currently hardcoded or hidden. Add a UI selector in Sett
 **Source:** `ROADMAP.md`
 **Description:**
 UI/UX overhaul of all Settings screens to match Material 3 Expressive design guidelines.
+- [x] Added "Smart Discovery" section to dashboard
+- [x] Enhanced Tab Management with AI suggestions UI
+- [x] Expressive chips and cards in Categorization list
 
 ### Issue #6: Parallel Batch Processing for Categorization
 **Source:** `AUTOCAT_CONTEXT.md`
 **Description:**
 Currently, batches are processed sequentially. Implement `async`/`await` patterns to process multiple batches in parallel for faster initial categorization.
 - [x] Implemented in `LLMCategorizer.categorizeBatchAPI` using `chunked(PARALLEL_BATCH_LIMIT)` and `async`/`awaitAll`.
+- [x] Added Dev Mode support for higher parallel limits (8x).
+
+### Issue #62: Semantic Search (AI-Powered)
+**Description:**
+Enable searching for apps by category or purpose (e.g., searching "Games" shows all games even if "Game" isn't in the name).
+- [x] Implement `AutoCatSemanticSearchAlgorithm`
+- [x] Add toggle in Search Settings
+- [x] Add discovery card in Dashboard
+
+### Issue #63: Multi-Language Prompt Support
+**Description:**
+Improve categorization accuracy for non-English users by prompting the LLM in their preferred language.
+- [x] Add "Prompt Language" setting in LLM Settings
+- [x] Centralize language detection in `LLMProviderUtils`
+- [x] Update GoogleAI, Claude, OpenAI, and Perplexity providers to use localized prompts
+
+### Issue #64: Final Package Migration (High Risk)
+**Description:**
+Migrate `app.lawnchair` package to `app.autocat`.
+- [ ] Refactor package structure
+- [ ] Update all manifest and resource references
+- [ ] Verify Dagger/Hilt component injection remains valid
+
 
 ### Issue #7: Smart Launcher Backup Import
 **Source:** `AUTOCAT_CONTEXT.md`

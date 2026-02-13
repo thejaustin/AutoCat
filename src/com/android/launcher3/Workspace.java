@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Modifications copyright 2025, Lawnchair
+ * Modifications copyright 2025, AutoCat
  */
 
 package com.android.launcher3;
@@ -143,17 +143,17 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
-import static app.lawnchair.util.LawnchairUtilsKt.toBitmap;
+import static app.lawnchair.util.AutoCatUtilsKt.toBitmap;
 import app.lawnchair.AutoCatApp;
 import app.lawnchair.AutoCatAppKt;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.smartspace.DoubleShadowTextView;
 import app.lawnchair.smartspace.SmartspaceAppWidgetProvider;
-import app.lawnchair.smartspace.model.LawnchairSmartspace;
+import app.lawnchair.smartspace.model.AutoCatSmartspace;
 import app.lawnchair.smartspace.model.SmartspaceMode;
 import app.lawnchair.theme.drawable.DrawableTokens;
-import app.lawnchair.util.LawnchairUtilsKt;
+import app.lawnchair.util.AutoCatUtilsKt;
 
 /**
  * The workspace is a wide area with a wallpaper and a finite number of pages.
@@ -669,7 +669,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             if (!smartspaceMode.isAvailable(this.mLauncher)) {
                 // The current smartspace mode is not available,
                 // setting the smartspace mode to one that is always available
-                smartspaceMode = LawnchairSmartspace.INSTANCE;
+                smartspaceMode = AutoCatSmartspace.INSTANCE;
                 PreferenceExtensionsKt.setBlocking(mPreferenceManager2.getSmartspaceMode(), smartspaceMode);
             }
             // In transposed layout, we add the first page pinned widget in the Grid.

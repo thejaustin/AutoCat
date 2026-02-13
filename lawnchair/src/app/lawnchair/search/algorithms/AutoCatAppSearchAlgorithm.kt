@@ -21,7 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class LawnchairAppSearchAlgorithm(context: Context) : LawnchairSearchAlgorithm(context) {
+class AutoCatAppSearchAlgorithm(context: Context) : AutoCatSearchAlgorithm(context) {
 
     private val appState = LauncherAppState.getInstance(context)
     private val resultHandler = Handler(Executors.MAIN_EXECUTOR.looper)

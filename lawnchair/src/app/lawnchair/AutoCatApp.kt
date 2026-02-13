@@ -39,7 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import app.lawnchair.backup.LawnchairBackup
+import app.lawnchair.backup.AutoCatBackup
 import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.ui.ModalBottomSheetContent
@@ -73,6 +73,7 @@ class AutoCatApp : Application() {
 
     override fun onTerminate() {
         super.onTerminate()
+        app.lawnchair.categorization.AutoCatAppProvider.cleanup()
         app.lawnchair.categorization.llm.LLMLogger.cleanup()
     }
 
@@ -114,7 +115,7 @@ class AutoCatApp : Application() {
     }
 
     fun renameRestoredDb(dbName: String) {
-        val restoredDbFile = getDatabasePath(LawnchairBackup.RESTORED_DB_FILE_NAME)
+        val restoredDbFile = getDatabasePath(AutoCatBackup.RESTORED_DB_FILE_NAME)
         if (!restoredDbFile.exists()) return
         val dbFile = getDatabasePath(dbName)
         restoredDbFile.renameTo(dbFile)

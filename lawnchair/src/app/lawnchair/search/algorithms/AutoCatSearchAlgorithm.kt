@@ -5,7 +5,7 @@ import app.lawnchair.AutoCatApp
 import app.lawnchair.allapps.views.SearchItemBackground
 import app.lawnchair.allapps.views.SearchResultView.Companion.EXTRA_QUICK_LAUNCH
 import app.lawnchair.preferences2.PreferenceManager2
-import app.lawnchair.search.LawnchairSearchAdapterProvider
+import app.lawnchair.search.AutoCatSearchAdapterProvider
 import app.lawnchair.search.adapter.SearchAdapterItem
 import app.lawnchair.search.adapter.SearchTargetCompat
 import app.lawnchair.search.adapter.SearchTargetCompat.Companion.RESULT_TYPE_APPLICATION
@@ -30,7 +30,7 @@ import com.android.launcher3.search.SearchAlgorithm
 import com.android.launcher3.search.SearchCallback
 import com.patrykmichalik.opto.core.firstBlocking
 
-sealed class LawnchairSearchAlgorithm(
+sealed class AutoCatSearchAlgorithm(
     protected val context: Context,
 ) : SearchAlgorithm<BaseAllAppsAdapter.AdapterItem> {
 
@@ -75,7 +75,7 @@ sealed class LawnchairSearchAlgorithm(
         val filtered = results
             .asSequence()
             .filter { it.packageName != BuildConfig.APPLICATION_ID }
-            .filter { LawnchairSearchAdapterProvider.viewTypeMap[it.layoutType] != null }
+            .filter { AutoCatSearchAdapterProvider.viewTypeMap[it.layoutType] != null }
             .removeDuplicateDividers()
             .toList()
 
@@ -202,6 +202,7 @@ sealed class LawnchairSearchAlgorithm(
         const val APP_SEARCH = "appSearch"
         const val LOCAL_SEARCH = "localSearch"
         const val ASI_SEARCH = "globalSearch"
+        const val SEMANTIC_SEARCH = "semanticSearch"
 
         private var ranCompatibilityCheck = false
 
@@ -211,23 +212,25 @@ sealed class LawnchairSearchAlgorithm(
 
             if (!ranCompatibilityCheck) {
                 ranCompatibilityCheck = true
-                LawnchairASISearchAlgorithm.checkSearchCompatibility(context)
+                AutoCatASISearchAlgorithm.checkSearchCompatibility(context)
             }
             return true
         }
 
-        fun create(context: Context): LawnchairSearchAlgorithm {
+        fun create(context: Context): AutoCatSearchAlgorithm {
             val prefs = PreferenceManager2.getInstance(context)
             val searchAlgorithm = prefs.searchAlgorithm.firstBlocking()
 
             return when {
-                searchAlgorithm == ASI_SEARCH && isASISearchEnabled(context) -> LawnchairASISearchAlgorithm(
+                searchAlgorithm == ASI_SEARCH && isASISearchEnabled(context) -> AutoCatASISearchAlgorithm(
                     context,
                 )
 
-                searchAlgorithm == LOCAL_SEARCH -> LawnchairLocalSearchAlgorithm(context)
+                searchAlgorithm == LOCAL_SEARCH -> AutoCatLocalSearchAlgorithm(context)
 
-                else -> LawnchairAppSearchAlgorithm(context)
+                searchAlgorithm == SEMANTIC_SEARCH -> AutoCatSemanticSearchAlgorithm(context)
+
+                else -> AutoCatAppSearchAlgorithm(context)
             }
         }
     }

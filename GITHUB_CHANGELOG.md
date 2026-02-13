@@ -177,7 +177,7 @@ Compatibility list:
 * Rare NoSuchMethodError crash on SurfaceControl setEarlyWakeupStart and setEarlyWakeupEnd
 * Properly align built-in smartspace in workspace
 * Use WM Proxy from Lawnchair instead of System, fix Android 8.1/9/10/11/12.0/12.1 regarding SE, NSME like SystemBarUtils -> (dWkyIGw9), (reworked CllOXHJv)
-  * LawnchairWindowManagerProxy have been migrated to Dagger
+  * AutoCatWindowManagerProxy have been migrated to Dagger
   * SystemWindowManagerProxy have been left unused
 * [Lawnchair/Iconloaderlib] Update CustomAdaptiveIconDrawable to latest AOSP 13
 * [Iconloaderlib] Reset most of the changes to favour more AOSP 16_r02 code then Lawnchair (need rewrite)

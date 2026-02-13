@@ -178,7 +178,7 @@ fun About(
                     .padding(horizontal = 16.dp),
             ) {
                 uiState.topLinks.forEach { link ->
-                    LawnchairLink(
+                    AutoCatLink(
                         iconResId = link.iconResId,
                         label = stringResource(id = link.labelResId),
                         modifier = Modifier.weight(weight = 1f),
@@ -214,7 +214,7 @@ fun About(
                 isFirstChild = false,
                 heading = { stringResource(id = R.string.community) },
             ) { _, it ->
-                HorizontalLawnchairLink(
+                HorizontalAutoCatLink(
                     iconResId = it.iconResId,
                     label = stringResource(id = it.labelResId),
                     url = it.url,

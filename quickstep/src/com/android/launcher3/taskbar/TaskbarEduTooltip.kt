@@ -148,7 +148,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        // Lawnchair-TODO-Merge: This was disabled but enabled in 16r2, this function likely disable the gesture system during edu
+        // AutoCat-TODO-Merge: This was disabled but enabled in 16r2, this function likely disable the gesture system during edu
 //        findOnBackInvokedDispatcher()
 //            ?.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, this)
     }

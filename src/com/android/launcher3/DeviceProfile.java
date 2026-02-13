@@ -935,7 +935,7 @@ public class DeviceProfile {
         return renderer;
     }
 
-    // Lawnchair
+    // AutoCat
     private static DotRenderer createDotRenderer(
         @NonNull ThemeManager themeManager, int size, @NonNull SparseArray<DotRenderer> cache, boolean showNotificationCount, Typeface typeface, int dotColor, int countColor) {
         DotRenderer renderer = cache.get(size);

@@ -38,7 +38,7 @@ import app.lawnchair.icons.shape.IconShape
 import app.lawnchair.icons.shape.IconShapeManager
 import app.lawnchair.preferences.PreferenceManager as LawnchairPreferenceManager
 import app.lawnchair.qsb.providers.QsbSearchProvider
-import app.lawnchair.search.algorithms.LawnchairSearchAlgorithm
+import app.lawnchair.search.algorithms.AutoCatSearchAlgorithm
 import app.lawnchair.search.algorithms.engine.provider.web.WebSearchProvider
 import app.lawnchair.smartspace.model.SmartspaceCalendar
 import app.lawnchair.smartspace.model.SmartspaceMode
@@ -364,7 +364,7 @@ class PreferenceManager2 @Inject constructor(
 
     val searchAlgorithm = preference(
         key = stringPreferencesKey(name = "search_algorithm"),
-        defaultValue = LawnchairSearchAlgorithm.LOCAL_SEARCH,
+        defaultValue = AutoCatSearchAlgorithm.LOCAL_SEARCH,
         onSet = { reloadHelper.recreate() },
     )
 

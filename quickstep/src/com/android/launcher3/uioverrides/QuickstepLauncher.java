@@ -948,7 +948,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             return false;
         }
 
-        // Lawnchair-TODO-Merge: LC disabled this, 16r2 enabled it.
+        // AutoCat-TODO-Merge: LC disabled this, 16r2 enabled it.
 //        getOnBackAnimationCallback().onBackInvoked();
         return true;
     }
