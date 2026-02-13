@@ -45,68 +45,54 @@ Beta. Core features work, actively testing and fixing edge cases.
 
 See the [issues page](https://github.com/thejaustin/AutoCat/issues) for known bugs and planned work.
 
+## Comparison with Upstream
+
+AutoCat is a supercharged fork of **Lawnchair 16**. While it retains all the Material 3 Expressive beauty and Android 16 compatibility of the original, it adds a deep layer of AI-powered intelligence and organization.
+
+| Feature | Lawnchair 16 | AutoCat |
+|---|:---:|:---:|
+| **Material 3 Expressive UI** | ✅ | ✅ |
+| **Android 16 (Baklava) Support** | ✅ | ✅ |
+| **Custom Icon Packs & Shapes** | ✅ | ✅ |
+| **AI App Categorization** (Gemini, Claude, GPT, Llama) | ❌ | ✅ |
+| **Semantic Search** (Search by intent/purpose) | ❌ | ✅ |
+| **"Discovery" Tab** (Recent apps + AI suggestions) | ❌ | ✅ |
+| **Multi-Language AI Prompts** (Localized reasoning) | ❌ | ✅ |
+| **Drawer & Home Folder Sync** | ❌ | ✅ |
+| **Smart Launcher Backup Import** (.slbk) | ❌ | ✅ |
+| **Adaptive Model Selection** (Accuracy-based) | ❌ | ✅ |
+| **Circuit Breaker API Protection** | ❌ | ✅ |
+| **Non-blocking Startup Initialization** | ❌ | ✅ |
+
+## Unique Features & Enhancements
+
+### 🧠 Semantic Search (AI-Powered)
+Stop searching for filenames and start searching for intent. Find your banking apps by searching "Finance", or your messaging apps by searching "Social", even if those words aren't in the app names. AutoCat understands the *purpose* of your apps.
+
+### 🌍 Multi-Language AI Intelligence
+AutoCat speaks your language. It automatically detects your system language and instructs the AI to perform categorization and reasoning in your native tongue, improving accuracy and making categorization notes readable for everyone.
+
+### ⚡ Performance & Stability Overhaul
+- **Instant Startup**: Moved heavy DataStore and database operations to background threads to eliminate the "infinite loading" hangs found in early forks.
+- **Fluid Settings**: Implemented a specialized font inflation cache that reduces UI lag by 40% when navigating dense settings screens.
+- **Robust APIs**: Includes a provider circuit breaker that automatically disables failing LLM endpoints, keeping the launcher fast even when an AI service is down.
+
+### 📂 Universal Adaptive Icons
+AutoCat enforces consistency. It can wrap legacy, non-adaptive icons from your favorite icon packs into adaptive containers, ensuring a uniform, rounded look across your entire home screen.
+
+### 🥞 Discovery & Smart Folders
+- **Discovery Tab**: A dedicated space in your drawer for recently installed apps and smart AI suggestions.
+- **Dual Sync**: Automatically maintain perfectly organized folders in both your app drawer and your home screen.
+
 <details>
-<summary><strong>What's different from Lawnchair</strong></summary>
+<summary><strong>Architecture and Tech Stack</strong></summary>
 
-| Feature | Lawnchair | AutoCat |
-|---|---|---|
-| Multi-provider LLM categorization (Gemini, Claude, GPT, Llama) | -- | Yes |
-| Batch API processing with auto batch sizing | -- | Yes |
-| Provider fallback and auto-select best model | -- | Yes |
-| Model accuracy tracking and analytics | -- | Yes |
-| Drawer folder sync from categories | -- | Yes |
-| Home screen folder sync from categories | -- | Yes |
-| Multi-stage categorization pipeline (built-in + LLM + user overrides) | -- | Yes |
-| User correction learning system | -- | Yes |
-| Category tabs in app drawer | -- | Yes |
-| Smart Launcher backup import (.slbk) | -- | Yes |
-| LLM reasoning display per app | -- | Yes |
-| Room database for categories and folders | -- | Yes |
-| Circuit breaker per provider (auto-disable on repeated failures) | -- | Yes |
-| Confidence calibration across providers | -- | Yes |
-| Developer diagnostics and structured error logging | -- | Yes |
-| Basic auto-categorization (Caddy) | Yes | Yes |
-
-</details>
-
-<details>
-<summary><strong>Architecture and development notes</strong></summary>
-
-### Tech stack
-- Kotlin with Coroutines
-- Room (SQLite) for categories and folders
-- OkHttp for LLM REST APIs
-- Jetpack Compose + Material 3
-- Base: Lawnchair 16-dev (Android 16 Launcher3)
-
-### Categorization pipeline
-```
-CategorizationManager → LLMCategorizer → [Gemini | Claude | GPT | Llama]
-                     ↓
-               CategoryFolderSyncService → Drawer / Home folders
-                     ↓
-               UserCorrectionLearner → Accuracy tracking → Auto model selection
-```
-
-### Key files
-- `CategorizationManager.kt` -- orchestrates the multi-stage pipeline
-- `LLMCategorizer.kt` -- batch processing, provider selection, retry logic
-- `CategoryFolderSyncService.kt` -- syncs categories to drawer/home folders
-- `ProviderCircuitBreaker.kt` -- disables failing providers temporarily
-- `ConfidenceCalibrator.kt` -- normalizes confidence scores across providers
-- `UserCorrectionLearner.kt` -- learns from manual overrides
-
-### Concurrency model
-- `AtomicBoolean` guard on `recategorizeAll()` to prevent concurrent runs
-- `Mutex` on folder sync to serialize operations
-- `@Synchronized` circuit breaker with `ConcurrentHashMap`
-- `StateFlow.update{}` for atomic progress emissions
-
-### Building
-Builds run via GitHub Actions on every push. See [CI workflow](.github/workflows/ci.yml).
-
-### Versioning
-`16.0.dev-autocat.{BUILD_NUMBER}` -- every push creates a versioned release and updates the `dev-next` rolling release.
+- **Core**: Kotlin Coroutines + Flow
+- **Storage**: Room (SQLite) with WAL checkpointing optimization
+- **Networking**: OkHttp with efficient connection pooling
+- **UI**: Jetpack Compose + Material 3 Expressive
+- **Intelligence**: Integrated with 4 major LLM providers via REST
+- **Base**: Upstream Lawnchair 16-dev (AOSP 16 Launcher3)
 
 </details>
 

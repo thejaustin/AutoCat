@@ -312,8 +312,13 @@ Accuracy:
 ### TODO (High Priority)
 
 #### ✅ Recently Completed (Between Sessions)
+- [x] Major Branding Milestone: Renamed all remaining `Lawnchair*` classes, files, and utilities to `AutoCat*`.
+- [x] Implemented Semantic Search: Category-aware search algorithm allowing users to find apps by purpose.
+- [x] Enhanced Discovery UI: Added "Discovery" tab in app drawer and "Smart Discovery" section in Settings.
+- [x] Multi-Language Support: Added "Prompt Language" setting and localized LLM prompts for better global accuracy.
+- [x] Optimization: Implemented non-blocking initialization for preferences and database to fix startup hangs.
+- [x] Performance: Added font inflation cache to reduce UI lag in Settings.
 - [x] Overhauled versioning system: `160000 + Build#` and `16-dev (#Build#)`
-- [x] Branding Refactor: Renamed core classes to `AutoCatApp`, `AutoCatLauncher`, `AutoCatAccessibilityService`, `AutoCatBugReporter`
 - [x] Implemented LLM Retry Logic: Added `LLMUtils.withRetry` with exponential backoff and 429 handling
 - [x] Added Folder Sync Mode UI: Users can now choose between Drawer, Home Screen, or Both
 - [x] Created `GITHUB_ISSUES_BACKLOG.md` to track all project tasks locally

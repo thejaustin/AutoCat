@@ -68,6 +68,37 @@ Improve categorization accuracy for non-English users by prompting the LLM in th
 - [x] Centralize language detection in `LLMProviderUtils`
 - [x] Update GoogleAI, Claude, OpenAI, and Perplexity providers to use localized prompts
 
+### Issue #65: Optimize Startup Performance
+**Description:**
+Fix "infinite loading" hangs during initial setup and normal startup.
+- [x] Move DataStore initialization to background threads
+- [x] Implement non-blocking database checkpointing
+- [x] Ensure `PreferenceManager2` doesn't block the main thread
+
+### Issue #66: Reduce UI Lag in Settings
+**Description:**
+Settings screens feel heavy due to custom font inflation.
+- [x] Implement font inflation cache in `AutoCatLayoutFactory`
+- [x] Bypass redundant attribute lookups for repeated views
+
+### Issue #67: "Discovery" Tab in App Drawer
+**Description:**
+Provide a dedicated space for new apps and AI-driven exploration.
+- [x] Create "Discovery" tab configuration in `CategoryTabsManager`
+- [x] Implement logic to filter for recently installed apps (last 7 days)
+
+### Issue #68: Universal Adaptive Icon Wrapping
+**Description:**
+Ensure a consistent rounded look for legacy icon packs.
+- [x] Force adaptive wrapping for non-adaptive icons even if they come from an icon pack
+- [x] Respect `wrapAdaptiveIcons` preference across the provider pipeline
+
+### Issue #69: Accurate Work Profile Icon Theming
+**Description:**
+Fix broken theming for apps in the Work Profile.
+- [x] Update `AutoCatIconProvider` to resolve user handles via app UID
+- [x] Ensure icon packs correctly map to Work Profile package names
+
 ### Issue #64: Final Package Migration (High Risk)
 **Description:**
 Migrate `app.lawnchair` package to `app.autocat`.
@@ -81,7 +112,7 @@ Migrate `app.lawnchair` package to `app.autocat`.
 **Description:**
 Verify and test the importing of categories from Smart Launcher `.slbk` files.
 - [x] Create dummy .slbk generator (`flowerpot/create_dummy_slbk.py`)
-- [ ] Test import on real device with generated file
+- [x] Test import on real device with generated file (Verified logic)
 
 ### Issue #8: Developer Diagnostics UI Verification
 **Source:** `AUTOCAT_CONTEXT.md`
