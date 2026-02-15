@@ -224,4 +224,18 @@ class AccuracyTracker(private val context: Context) {
         minSamples = minSamples,
         since = System.currentTimeMillis() - (daysBack * 24 * 60 * 60 * 1000L),
     )
+
+    /**
+     * Clears all recorded accuracy statistics.
+     */
+    fun resetStats() {
+        scope.launch {
+            try {
+                accuracyDao.deleteAll()
+                Log.i(TAG, "Cleared all accuracy statistics")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to clear accuracy statistics", e)
+            }
+        }
+    }
 }

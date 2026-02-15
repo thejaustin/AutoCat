@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Analytics
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.TipsAndUpdates
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -67,6 +69,7 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CategorizationSettingsPreferences(
+    onNavigate: (app.lawnchair.ui.preferences.navigation.PreferenceRootRoute) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current

@@ -121,7 +121,11 @@ fun PreferenceNavigation(
 
         composable<AppDrawer> { AppDrawerPreferences() }
         composable<AppDrawerHiddenApps> { HiddenAppsPreferences() }
-        composable<AppDrawerCategorizationSettings> { CategorizationSettingsPreferences() }
+        composable<AppDrawerCategorizationSettings> {
+            CategorizationSettingsPreferences(
+                onNavigate = { navController.navigate(it) },
+            )
+        }
         composable<AppDrawerTabManagement> { TabManagementPreferences() }
         composable<AppDrawerAppListToFolder> { backStackEntry ->
             val args = backStackEntry.arguments!!
