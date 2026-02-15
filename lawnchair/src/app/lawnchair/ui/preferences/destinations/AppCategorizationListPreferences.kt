@@ -33,6 +33,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
@@ -104,6 +105,7 @@ fun AppCategorizationListPreferences(
     var editingApp by remember { mutableStateOf<AppTab?>(null) }
     var expandedTabs by remember { mutableStateOf(setOf<String>()) }
     var filterMode by remember { mutableStateOf(FilterMode.ALL) }
+    var searchQuery by remember { mutableStateOf("") }
 
     // Initialize services safely
     LaunchedEffect(Unit) {
@@ -136,9 +138,9 @@ fun AppCategorizationListPreferences(
         }
     }
 
-    val filteredAppTabs = remember(appTabs, filterMode) {
+    val filteredAppTabs = remember(appTabs, filterMode, searchQuery) {
         try {
-            val filtered = when (filterMode) {
+            var filtered = when (filterMode) {
                 FilterMode.ALL -> appTabs
 
                 FilterMode.UNCATEGORIZED -> appTabs.filter {
@@ -157,6 +159,19 @@ fun AppCategorizationListPreferences(
                     it.source == AppTab.SOURCE_BUILT_IN || it.source == AppTab.SOURCE_RULE
                 }
             }
+
+            if (searchQuery.isNotBlank()) {
+                filtered = filtered.filter { 
+                    it.packageName.contains(searchQuery, ignoreCase = true) ||
+                    (try {
+                        val label = packageManager.getApplicationLabel(packageManager.getApplicationInfo(it.packageName, 0)).toString()
+                        label.contains(searchQuery, ignoreCase = true)
+                    } catch (e: Exception) {
+                        false
+                    })
+                }
+            }
+
             // Ensure we're not returning null values that could cause issues
             filtered.filter { it.tabName != null }
         } catch (e: Exception) {
@@ -224,6 +239,24 @@ fun AppCategorizationListPreferences(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
+                    // Search bar for apps
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Search apps...") },
+                        leadingIcon = { Icon(Icons.Rounded.Search, null) },
+                        trailingIcon = if (searchQuery.isNotEmpty()) {
+                            {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(Icons.Rounded.DeleteSweep, null)
+                                }
+                            }
+                        } else null,
+                        shape = CircleShape,
+                        singleLine = true,
+                    )
+
                     // Material 3 Expressive: Enhanced filter chips with personality
                     Row(
                         modifier = Modifier
@@ -260,12 +293,20 @@ fun AppCategorizationListPreferences(
                 }
             }
 
+            if (groupedApps.isEmpty() && searchQuery.isNotEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        Text("No apps found matching \"$searchQuery\"", style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+
             groupedApps.forEach { (tabName, apps) ->
                 item(contentType = "TabHeader") {
                     TabHeader(
                         tabName = tabName,
                         count = apps.size,
-                        expanded = expandedTabs.contains(tabName) || filterMode != FilterMode.ALL,
+                        expanded = expandedTabs.contains(tabName) || filterMode != FilterMode.ALL || searchQuery.isNotEmpty(),
                         onClick = {
                             expandedTabs = if (expandedTabs.contains(tabName)) {
                                 expandedTabs - tabName
@@ -277,7 +318,7 @@ fun AppCategorizationListPreferences(
                 }
 
                 // Material 3 Expressive: Animated visibility for category expansion
-                if (expandedTabs.contains(tabName) || filterMode != FilterMode.ALL) {
+                if (expandedTabs.contains(tabName) || filterMode != FilterMode.ALL || searchQuery.isNotEmpty()) {
                     items(apps, key = { it.packageName }) { appTab ->
                         // Spring-based entrance animation
                         AnimatedVisibility(

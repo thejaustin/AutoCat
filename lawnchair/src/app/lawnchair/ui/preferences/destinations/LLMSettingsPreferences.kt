@@ -122,39 +122,41 @@ fun LLMSettingsPreferences(
         ).collectAsState()
 
     PreferenceScaffold(
-        label = "LLM Settings",
+        label = "AI Engine",
         modifier = modifier,
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
         PreferenceLazyColumn(it) {
-            // ===== PROVIDER SELECTION =====
+            // ===== PRIMARY ENGINE SELECTION =====
             item {
-                PreferenceGroup(heading = "AI Provider") {
+                PreferenceGroup(heading = "Intelligence Engine") {
                     SwitchPreference(
                         adapter = prefs.llmAutoSelectBestModel.getAdapter(),
-                        label = "Auto-Select Provider",
+                        label = "Auto-Pilot Mode",
                         description = if (isAutoSelect && autoSelectedProvider != null) {
-                            "Choosing the best provider based on your past corrections. Currently using: ${formatProviderName(autoSelectedProvider!!)}"
+                            "Optimizing for accuracy. Currently using ${formatProviderName(autoSelectedProvider!!)} because it has the best performance for your apps."
                         } else {
-                            "Let AI pick the best provider based on your correction history."
+                            "Automatically switch between Gemini, Claude, and GPT based on which model understands your apps best."
                         },
                     )
 
-                    ListPreference(
-                        adapter = prefs.llmProviderPreference.getAdapter(),
-                        label = "Manual Provider Selection",
-                        enabled = !isAutoSelect,
-                        entries = listOf(
-                            ListPreferenceEntry("google_ai") { "Google AI (Gemini)" },
-                            ListPreferenceEntry("claude") { "Anthropic Claude" },
-                            ListPreferenceEntry("openai") { "OpenAI GPT" },
-                            ListPreferenceEntry("perplexity") { "Perplexity" },
-                        ),
-                    )
+                    AnimatedVisibility(visible = !isAutoSelect) {
+                        ListPreference(
+                            adapter = prefs.llmProviderPreference.getAdapter(),
+                            label = "Manual Provider Selection",
+                            entries = listOf(
+                                ListPreferenceEntry("google_ai") { "Google AI (Gemini)" },
+                                ListPreferenceEntry("claude") { "Anthropic Claude" },
+                                ListPreferenceEntry("openai") { "OpenAI GPT" },
+                                ListPreferenceEntry("perplexity") { "Perplexity" },
+                            ),
+                        )
+                    }
 
                     ListPreference(
                         adapter = prefs.llmPromptLanguage.getAdapter(),
-                        label = "Prompt Language",
+                        label = "AI Reasoning Language",
+                        description = "The AI will think and categorize apps in this language.",
                         entries = listOf(
                             ListPreferenceEntry("System Default") { "System Default" },
                             ListPreferenceEntry("English") { "English" },
@@ -208,7 +210,7 @@ fun LLMSettingsPreferences(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
-                            text = "Configure Other Providers",
+                            text = "Manage Other Providers",
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -248,21 +250,21 @@ fun LLMSettingsPreferences(
 
             // ===== ADVANCED SETTINGS =====
             item {
-                PreferenceGroup(heading = "Advanced Settings") {
+                PreferenceGroup(heading = "API Reliability") {
                     SwitchPreference(
                         adapter = prefs.circuitBreakerEnabled.getAdapter(),
-                        label = "Circuit Breaker",
-                        description = "Automatically disable a provider if it fails multiple times in a row. Prevents slow performance when APIs are down.",
+                        label = "Smart Fallback",
+                        description = "Automatically skip providers that are currently offline or over quota.",
                     )
 
                     AnimatedVisibility(visible = prefs.circuitBreakerEnabled.get()) {
                         Column {
                             SliderPreference(
                                 adapter = prefs.circuitBreakerFailureThreshold.getAdapter(),
-                                label = "Failure Limit",
+                                label = "Retry Limit",
                                 valueRange = 1..10,
                                 step = 1,
-                                showUnit = " failures",
+                                showUnit = " attempts",
                             )
                         }
                     }
@@ -272,35 +274,32 @@ fun LLMSettingsPreferences(
                         SwitchPreference(
                             adapter = prefs.autoCatEnableRateLimiting.getAdapter(),
                             label = "Force Parallel Batching",
-                            description = "Ignore safety delays between parallel batches. Use with caution (can lead to 429s).",
+                            description = "Ignore safety delays between parallel batches. Use with caution.",
                         )
                     }
-                }
-            }
-
-            // ===== ACTIONS =====
-            item {
-                PreferenceGroup(heading = "Actions") {
-                    ClickablePreference(
-                        label = "Restart Categorization",
-                        subtitle = "Retry failed batches and re-evaluate all apps",
-                        onClick = {
-                            scope.launch {
-                                categorizationManager?.recategorizeAll()
-                            }
-                        },
-                    )
                 }
             }
 
             // ===== ACCURACY STATS =====
             if (accuracyStats.isNotEmpty()) {
                 item {
-                    PreferenceGroup(heading = "Accuracy (30 Days)") {
+                    PreferenceGroup(heading = "Performance (30 Days)") {
                         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                             accuracyStats.forEach { stats ->
                                 CompactAccuracyCard(stats, isSelected = stats.provider == activeProvider)
                                 Spacer(modifier = Modifier.height(8.dp))
+                            }
+                            
+                            TextButton(
+                                onClick = {
+                                    scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                        accuracyTracker?.resetStats()
+                                        accuracyStats = emptyList()
+                                    }
+                                },
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            ) {
+                                Text("Reset Accuracy Metrics")
                             }
                         }
                     }
@@ -309,7 +308,7 @@ fun LLMSettingsPreferences(
 
             // ===== LIVE LOGS =====
             item {
-                PreferenceGroup(heading = "System Status") {
+                PreferenceGroup(heading = "Engine Status") {
                     AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
                         CategorizationStatus(progress)
                     }

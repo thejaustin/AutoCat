@@ -13,13 +13,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +46,7 @@ import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.NavigationActionPreference
 import app.lawnchair.ui.preferences.components.controls.ListPreference
 import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
+import app.lawnchair.ui.preferences.components.controls.SliderPreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
@@ -51,6 +55,7 @@ import app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations
 import app.lawnchair.ui.preferences.navigation.AppDrawerDiagnostics
 import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
 import app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement
+import app.lawnchair.ui.preferences.navigation.Search
 import com.android.launcher3.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -133,7 +138,7 @@ fun CategorizationSettingsPreferences(
                                     }
                                 },
                                 enabled = !progress.isRunning && categorizationManager != null,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(12.dp),
                                 elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 2.dp),
                             ) {
@@ -147,6 +152,29 @@ fun CategorizationSettingsPreferences(
                                     if (progress.isRunning) stringResource(R.string.categorizing) else stringResource(R.string.categorize_now),
                                     fontWeight = FontWeight.SemiBold,
                                 )
+                            }
+
+                            // Clear Overrides Button
+                            OutlinedButton(
+                                onClick = {
+                                    scope.launch(Dispatchers.IO) {
+                                        database?.tabDao()?.deleteAllAppTabs()
+                                        withContext(Dispatchers.Main) {
+                                            categorizationStatus = "✅ All assignments cleared"
+                                        }
+                                    }
+                                },
+                                enabled = !progress.isRunning,
+                                modifier = Modifier.weight(0.6f),
+                                shape = RoundedCornerShape(12.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.DeleteSweep,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Reset")
                             }
                         }
 
@@ -193,6 +221,18 @@ fun CategorizationSettingsPreferences(
                             }
                         }
                     }
+                }
+            }
+
+            // ===== SMART DISCOVERY =====
+            item {
+                PreferenceGroup(heading = "Smart Discovery") {
+                    NavigationActionPreference(
+                        label = "Semantic Search",
+                        subtitle = "Find apps by purpose or category",
+                        icon = Icons.Rounded.Search,
+                        destination = Search(app.lawnchair.ui.preferences.destinations.SearchRoute.DRAWER_SEARCH),
+                    )
                 }
             }
 
@@ -254,7 +294,7 @@ fun CategorizationSettingsPreferences(
                                 adapter = prefs.llmBatchSize.getAdapter(),
                                 valueRange = 0..100,
                                 step = 5,
-                                showUnit = if (prefs.llmBatchSize.get() == 0) "(Auto)" else "",
+                                showUnit = if (prefs.llmBatchSize.get() == 0) " (Auto)" else " apps",
                             )
 
                             if (devMode) {
