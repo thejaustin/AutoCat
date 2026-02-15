@@ -1,6 +1,5 @@
 package app.lawnchair.util
 
-import app.lawnchair.util.AutoCatLockedStateController
 import android.app.ActivityManager
 import android.app.ActivityTaskManager
 import android.content.Context
@@ -8,6 +7,7 @@ import android.os.Process
 import android.os.UserHandle
 import app.lawnchair.AutoCatLauncher
 import app.lawnchair.autoCatLauncher
+import app.lawnchair.util.AutoCatLockedStateController
 import com.android.launcher3.BuildConfig
 import com.android.quickstep.views.RecentsView
 import com.android.systemui.shared.recents.model.Task

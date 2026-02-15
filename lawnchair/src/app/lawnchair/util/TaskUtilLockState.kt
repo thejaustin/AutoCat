@@ -1,10 +1,10 @@
 package app.lawnchair.util
 
-import app.lawnchair.util.AutoCatLockedStateController
 import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import app.lawnchair.util.AutoCatLockedStateController
 import com.android.systemui.shared.recents.model.Task
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
