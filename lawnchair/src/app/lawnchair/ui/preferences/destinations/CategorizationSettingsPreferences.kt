@@ -62,7 +62,7 @@ import app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations
 import app.lawnchair.ui.preferences.navigation.AppDrawerDiagnostics
 import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
 import app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement
-import app.lawnchair.ui.preferences.navigation.Search
+import app.lawnchair.ui.preferences.navigation.Search as SearchDestination
 import com.android.launcher3.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -263,7 +263,7 @@ fun CategorizationSettingsPreferences(
                                 title = "Semantic Search",
                                 description = "Find apps by their purpose or category instead of just their names.",
                                 icon = Icons.Rounded.Search,
-                                onClick = { onNavigate(Search(app.lawnchair.ui.preferences.destinations.SearchRoute.DRAWER_SEARCH)) },
+                                onClick = { onNavigate(SearchDestination(app.lawnchair.ui.preferences.destinations.SearchRoute.DRAWER_SEARCH)) },
                             )
                         }
                     }

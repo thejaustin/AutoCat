@@ -77,7 +77,7 @@ import app.lawnchair.data.tab.entities.CustomTab
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
-import app.lawnchair.ui.preferences.navigation.Search
+import app.lawnchair.ui.preferences.navigation.Search as SearchDestination
 import app.lawnchair.ui.theme.preferenceGroupColor
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -248,7 +248,7 @@ fun AppCategorizationListPreferences(
                         onValueChange = { searchQuery = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Search apps...") },
-                        leadingIcon = { Icon(androidx.compose.material.icons.Icons.Rounded.Search, null) },
+                        leadingIcon = { Icon(Icons.Rounded.Search, null) },
                         trailingIcon = if (searchQuery.isNotEmpty()) {
                             {
                                 IconButton(onClick = { searchQuery = "" }) {
