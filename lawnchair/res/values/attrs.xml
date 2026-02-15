@@ -69,32 +69,32 @@
     </declare-styleable>
 
     <declare-styleable name="DynamicTheme">
-        <attr name="colorPrimary" format="color" />
-        <attr name="colorPrimaryInverse" format="color" />
-        <attr name="colorOnPrimary" format="color" />
-        <attr name="colorPrimaryContainer" format="color" />
-        <attr name="colorOnPrimaryContainer" format="color" />
-        <attr name="colorSecondary" format="color" />
-        <attr name="colorOnSecondary" format="color" />
-        <attr name="colorSecondaryContainer" format="color" />
-        <attr name="colorOnSecondaryContainer" format="color" />
-        <attr name="colorTertiary" format="color" />
-        <attr name="colorOnTertiary" format="color" />
-        <attr name="colorTertiaryContainer" format="color" />
-        <attr name="colorOnTertiaryContainer" format="color" />
-        <attr name="colorBackground" format="color" />
-        <attr name="colorOnBackground" format="color" />
-        <attr name="colorSurface" format="color" />
-        <attr name="colorOnSurface" format="color" />
-        <attr name="colorSurfaceVariant" format="color" />
-        <attr name="colorOnSurfaceVariant" format="color" />
-        <attr name="colorSurfaceInverse" format="color" />
-        <attr name="colorOnSurfaceInverse" format="color" />
-        <attr name="colorOutline" format="color" />
-        <attr name="colorOutlineVariant" format="color" />
-        <attr name="colorError" format="color" />
-        <attr name="colorOnError" format="color" />
-        <attr name="colorErrorContainer" format="color" />
-        <attr name="colorOnErrorContainer" format="color" />
+        <attr name="autoCatPrimary" format="color" />
+        <attr name="autoCatPrimaryInverse" format="color" />
+        <attr name="autoCatOnPrimary" format="color" />
+        <attr name="autoCatPrimaryContainer" format="color" />
+        <attr name="autoCatOnPrimaryContainer" format="color" />
+        <attr name="autoCatSecondary" format="color" />
+        <attr name="autoCatOnSecondary" format="color" />
+        <attr name="autoCatSecondaryContainer" format="color" />
+        <attr name="autoCatOnSecondaryContainer" format="color" />
+        <attr name="autoCatTertiary" format="color" />
+        <attr name="autoCatOnTertiary" format="color" />
+        <attr name="autoCatTertiaryContainer" format="color" />
+        <attr name="autoCatOnTertiaryContainer" format="color" />
+        <attr name="autoCatBackground" format="color" />
+        <attr name="autoCatOnBackground" format="color" />
+        <attr name="autoCatSurface" format="color" />
+        <attr name="autoCatOnSurface" format="color" />
+        <attr name="autoCatSurfaceVariant" format="color" />
+        <attr name="autoCatOnSurfaceVariant" format="color" />
+        <attr name="autoCatSurfaceInverse" format="color" />
+        <attr name="autoCatOnSurfaceInverse" format="color" />
+        <attr name="autoCatOutline" format="color" />
+        <attr name="autoCatOutlineVariant" format="color" />
+        <attr name="autoCatError" format="color" />
+        <attr name="autoCatOnError" format="color" />
+        <attr name="autoCatErrorContainer" format="color" />
+        <attr name="autoCatOnErrorContainer" format="color" />
     </declare-styleable>
 </resources>

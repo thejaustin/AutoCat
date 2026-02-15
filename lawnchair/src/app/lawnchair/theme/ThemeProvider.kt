@@ -70,7 +70,7 @@ class ThemeProvider @Inject constructor(
             colorStyle = it
             notifyColorSchemeChanged()
         }
-        
+
         currentColorScheme = colorScheme
         addListener(object : ColorSchemeChangeListener {
             override fun onColorSchemeChanged() {
