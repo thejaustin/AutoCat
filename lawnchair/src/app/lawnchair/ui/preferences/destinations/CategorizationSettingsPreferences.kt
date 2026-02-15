@@ -1,7 +1,9 @@
 package app.lawnchair.ui.preferences.destinations
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -224,29 +227,53 @@ fun CategorizationSettingsPreferences(
                 }
             }
 
-            // ===== SMART DISCOVERY =====
+            // ===== INTELLIGENCE =====
             item {
-                PreferenceGroup(heading = "Smart Discovery") {
-                    NavigationActionPreference(
-                        label = "Semantic Search",
-                        subtitle = "Find apps by purpose or category",
-                        icon = Icons.Rounded.Search,
-                        destination = Search(app.lawnchair.ui.preferences.destinations.SearchRoute.DRAWER_SEARCH),
-                    )
+                PreferenceGroup(heading = "Intelligence") {
+                    Surface(
+                        modifier = Modifier.padding(16.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        tonalElevation = 2.dp,
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            DiscoveryCard(
+                                title = "AI Category Suggestions",
+                                description = "Let AI analyze your apps and create perfect tabs automatically.",
+                                icon = Icons.Rounded.TipsAndUpdates,
+                                onClick = { onNavigate(AppDrawerTabManagement) },
+                            )
+
+                            DiscoveryCard(
+                                title = "Review Categorizations",
+                                description = "See why AI chose specific categories and make manual corrections.",
+                                icon = Icons.Rounded.Analytics,
+                                onClick = { onNavigate(AppDrawerAppCategorizations) },
+                            )
+
+                            DiscoveryCard(
+                                title = "Semantic Search",
+                                description = "Find apps by their purpose or category instead of just their names.",
+                                icon = Icons.Rounded.Search,
+                                onClick = { onNavigate(Search(app.lawnchair.ui.preferences.destinations.SearchRoute.DRAWER_SEARCH)) },
+                            )
+                        }
+                    }
                 }
             }
 
-            // ===== SETTINGS =====
+            // ===== VISUALS =====
             item {
-                PreferenceGroup(
-                    heading = "Display & Behavior",
-                ) {
+                PreferenceGroup(heading = "Visuals") {
                     val useTabs by prefs.autoCatUseTabs.getAdapter().state
 
                     SwitchPreference(
                         adapter = prefs.autoCatUseTabs.getAdapter(),
-                        label = "Use App Tabs",
-                        description = "Organize apps into tabs in the app drawer",
+                        label = "App Drawer Tabs",
+                        description = "Group apps into swipeable categories in your drawer.",
                     )
 
                     AnimatedVisibility(visible = useTabs) {
@@ -254,36 +281,40 @@ fun CategorizationSettingsPreferences(
                             SwitchPreference(
                                 adapter = prefs.hideWorkApps.getAdapter(),
                                 label = "Hide Work Apps",
-                                description = "Hide work profile apps from the app drawer",
+                                description = "Keep your work profile apps out of sight.",
                             )
                             SwitchPreference(
                                 adapter = prefs.showWorkTab.getAdapter(),
-                                label = "Show Work Tab",
-                                description = "Add a dedicated tab for work apps",
+                                label = "Dedicated Work Tab",
+                                description = "Put all work apps in their own separate tab.",
                             )
                         }
                     }
 
-                    val syncFolders by prefs.autoCatSyncFolders.getAdapter().state
-
                     SwitchPreference(
                         adapter = prefs.autoCatSyncFolders.getAdapter(),
-                        label = "Sync to Folders",
-                        description = "Automatically organize apps into folders based on their category.",
+                        label = "Automatic Folders",
+                        description = "Create and maintain folders based on app categories.",
                     )
 
+                    val syncFolders by prefs.autoCatSyncFolders.getAdapter().state
                     AnimatedVisibility(visible = syncFolders) {
                         ListPreference(
                             adapter = prefs.autoCatFolderSyncMode.getAdapter(),
                             entries = folderSyncModeEntries,
-                            label = stringResource(id = R.string.folder_sync_mode_label),
+                            label = "Sync Location",
                         )
                     }
+                }
+            }
 
+            // ===== AUTOMATION =====
+            item {
+                PreferenceGroup(heading = "Automation") {
                     SwitchPreference(
                         adapter = prefs.llmEnableBatching.getAdapter(),
-                        label = "Batch Processing",
-                        description = stringResource(R.string.batch_processing_description),
+                        label = "Smart Batching",
+                        description = "Processes apps in groups for faster organization and lower battery use.",
                     )
 
                     val enableBatching by prefs.llmEnableBatching.getAdapter().state
@@ -300,18 +331,17 @@ fun CategorizationSettingsPreferences(
                             if (devMode) {
                                 SwitchPreference(
                                     adapter = prefs.autoCatEnableRateLimiting.getAdapter(),
-                                    label = "Parallel Batching",
-                                    description = "Process multiple batches concurrently for maximum speed.",
+                                    label = "Parallel Processing",
+                                    description = "Use multiple AI streams at once for near-instant results.",
                                 )
                             }
                         }
                     }
 
-                    val enableRateLimiting = prefs.autoCatEnableRateLimiting.getAdapter()
                     SwitchPreference(
-                        adapter = enableRateLimiting,
-                        label = "Rate Limiting",
-                        description = "Slows down requests to prevent API blocks. Recommended for Free API tiers.",
+                        adapter = prefs.autoCatEnableRateLimiting.getAdapter(),
+                        label = "Safe Mode",
+                        description = "Adds delays between requests to stay within Free API limits.",
                     )
                 }
             }
@@ -320,21 +350,28 @@ fun CategorizationSettingsPreferences(
             item {
                 PreferenceGroup(heading = "Management") {
                     NavigationActionPreference(
-                        label = "Manage Tabs",
-                        subtitle = "Create, edit, delete, and auto-suggest tabs",
-                        destination = AppDrawerTabManagement,
-                    )
-
-                    NavigationActionPreference(
-                        label = "Review & Override",
-                        subtitle = "Manually correct app categories",
-                        destination = AppDrawerAppCategorizations,
-                    )
-
-                    NavigationActionPreference(
-                        label = stringResource(R.string.provider_settings_label),
-                        subtitle = stringResource(R.string.provider_settings_subtitle),
+                        label = "AI Engine Settings",
+                        subtitle = "Change API keys and model preferences.",
                         destination = AppDrawerLLMSettings,
+                    )
+
+                    ClickablePreference(
+                        label = "Reset to Factory Defaults",
+                        subtitle = "Clear all AutoCat settings and start over.",
+                        onClick = {
+                            scope.launch(Dispatchers.IO) {
+                                prefs.autoCatUseTabs.set(true)
+                                prefs.autoCatSyncFolders.set(false)
+                                prefs.llmEnableBatching.set(true)
+                                prefs.llmBatchSize.set(0)
+                                prefs.llmAutoSelectBestModel.set(true)
+                                prefs.circuitBreakerEnabled.set(true)
+                                database?.tabDao()?.deleteAllAppTabs()
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(context, "Settings reset to defaults", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
                     )
                 }
             }
@@ -350,6 +387,52 @@ fun CategorizationSettingsPreferences(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun DiscoveryCard(
+    title: String,
+    description: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Surface(
+            shape = androidx.compose.foundation.shape.CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.size(48.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

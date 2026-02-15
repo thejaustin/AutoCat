@@ -161,14 +161,16 @@ fun AppCategorizationListPreferences(
             }
 
             if (searchQuery.isNotBlank()) {
-                filtered = filtered.filter { 
+                filtered = filtered.filter {
                     it.packageName.contains(searchQuery, ignoreCase = true) ||
-                    (try {
-                        val label = packageManager.getApplicationLabel(packageManager.getApplicationInfo(it.packageName, 0)).toString()
-                        label.contains(searchQuery, ignoreCase = true)
-                    } catch (e: Exception) {
-                        false
-                    })
+                        (
+                            try {
+                                val label = packageManager.getApplicationLabel(packageManager.getApplicationInfo(it.packageName, 0)).toString()
+                                label.contains(searchQuery, ignoreCase = true)
+                            } catch (e: Exception) {
+                                false
+                            }
+                            )
                 }
             }
 
@@ -252,7 +254,9 @@ fun AppCategorizationListPreferences(
                                     Icon(Icons.Rounded.DeleteSweep, null)
                                 }
                             }
-                        } else null,
+                        } else {
+                            null
+                        },
                         shape = CircleShape,
                         singleLine = true,
                     )

@@ -90,7 +90,7 @@ fun AppDrawerPreferences(
         }
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
             NavigationActionPreference(
-                label = stringResource(R.string.smart_categories_label),
+                label = "AutoCat",
                 subtitle = stringResource(R.string.smart_categories_subtitle),
                 destination = AppDrawerCategorizationSettings,
                 icon = Icons.Rounded.AutoAwesome,
