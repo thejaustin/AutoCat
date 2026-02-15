@@ -14,31 +14,30 @@ AutoCat's goal is to be:
 
 ## Roadmap
 
-### Recently completed (AutoCat Overhaul)
+### Recently completed (Development 4 Milestone)
 
-- **Settings UI Enhancement:** Integrated Material 3 search bar, top-level customization actions, and polished animations for settings category reordering.
-- **Versioning:** Migrated to clean 6-digit `160000+` versioning scheme for the fork.
-- **Branding:** Full internal codebase refactor from AutoCat to AutoCat (Classes, Styles, Log Tags).
-- **LLM Reliability:** Implemented exponential backoff and rate-limit handling for AI providers.
-- **Diagnostics:** Added a dedicated Developer Diagnostics UI for database and log inspection.
-- **Parallelism:** Optimized LLM batch categorization with parallel coroutine processing.
+- **Full Branding Migration:** Completed the transition from Lawnchair to AutoCat across all internal classes, file structures, and log tags.
+- **AI Semantic Search:** Implemented intent-based searching, allowing users to find apps by purpose (e.g., searching "Finance" for banking apps).
+- **Dual Folder Sync:** Categories now sync perfectly to both the app drawer and the home screen workspace.
+- **Multi-Language Intelligence:** Localized AI prompts and reasoning supporting 10+ global languages.
+- **Settings UX Overhaul:** Reorganized settings into a logical, comfortable structure with a top-level AutoCat entry and integrated Discovery cards.
+- **Performance & Stability:** Implemented non-blocking startup initialization and a font inflation cache to eliminate UI lag.
+- **LLM Reliability:** Robust exponential backoff and "Smart Fallback" (Circuit Breaker) for AI providers.
 
 ### Current focus
 
-This is our active development sprint. The goal is to address key bugs and deliver a highly polished
-user experience.
+This is our active development sprint. The goal is to polish the new AI features and gather community feedback on the Development 4 release.
 
-- Continuing UI/UX overhaul of sub-settings screens to Material 3 Expressive.
-- Syncing AutoCat categories to Home Screen folders (Workspace support).
+- Optimizing database queries for very large app lists (>500 apps).
+- Refining "Auto-Pilot" model selection based on real-world accuracy tracking.
 
 ### Up next
 
-Once the UX overhaul is stable, our focus will shift to delivering highly-requested features that
-enhance
-customization and control.
+Once the Development 4 foundation is fully stable, our focus will shift to deeper launcher customization.
 
-- Proper icon swipe gestures (AutoCat style)
-- Folder "cover" mode
+- Proper icon swipe gestures (AutoCat style).
+- Folder "cover" mode.
+- Fuzzy search sensitivity slider.
 
 ### The Android 16 Base
 
@@ -51,4 +50,3 @@ Highly-requested features that are blocked by external dependencies or require s
 
 - **Widget Stacking:** A highly complex feature requiring deep architectural investigation.
 - **On-Device ML:** Exploring local categorization models to reduce API dependency.
-
