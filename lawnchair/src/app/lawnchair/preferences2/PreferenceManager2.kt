@@ -311,6 +311,16 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = context.resources.getBoolean(R.bool.config_default_lock_home_screen),
     )
 
+    val autoCrashReporting = preference(
+        key = booleanPreferencesKey(name = "auto_crash_reporting"),
+        defaultValue = true,
+    )
+
+    val lastCrashId = preference(
+        key = intPreferencesKey(name = "last_crash_id"),
+        defaultValue = -1,
+    )
+
     val legacyPopupOptionsMigrated = preference(
         key = booleanPreferencesKey(name = "legacy_popup_options_migrated"),
         defaultValue = false,

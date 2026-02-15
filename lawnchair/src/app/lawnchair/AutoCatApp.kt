@@ -40,8 +40,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import app.lawnchair.backup.AutoCatBackup
+import app.lawnchair.bugreport.BugReportActivity
 import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.preferences.PreferenceManager
+import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.ui.preferences.destinations.openAppInfo
 import app.lawnchair.util.restartLauncher
@@ -55,6 +57,10 @@ import com.android.launcher3.Utilities
 import com.android.quickstep.RecentsActivity
 import com.android.systemui.shared.system.QuickStepContract
 import java.io.File
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class AutoCatApp : Application() {
     private val compatible = Build.VERSION.SDK_INT in BuildConfig.QUICKSTEP_MIN_SDK..BuildConfig.QUICKSTEP_MAX_SDK
@@ -69,6 +75,14 @@ class AutoCatApp : Application() {
         instance = this
         QuickStepContract.sRecentsDisabled = !recentsEnabled
         Flowerpot.Manager.getInstance(this)
+
+        val preferenceManager2 = PreferenceManager2.getInstance(this)
+        CoroutineScope(Dispatchers.Main).launch {
+            val lastCrashId = preferenceManager2.lastCrashId.get().first()
+            if (lastCrashId != -1) {
+                BugReportActivity.show(this@AutoCatApp, lastCrashId)
+            }
+        }
     }
 
     override fun onTerminate() {

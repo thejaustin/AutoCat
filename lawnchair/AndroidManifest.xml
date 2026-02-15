@@ -81,6 +81,12 @@
             android:theme="@style/Theme.Transparent" />
 
         <activity
+            android:name="app.lawnchair.bugreport.BugReportActivity"
+            android:exported="false"
+            android:label="Crash Report"
+            android:theme="@style/Theme.AutoCat" />
+
+        <activity
             android:name="app.lawnchair.smartspace.SmartspacePreferencesShortcut"
             android:theme="@style/Theme.Transparent" />
 

@@ -45,6 +45,11 @@ import androidx.compose.ui.unit.sp
 import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlinx.coroutines.withContext
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
@@ -62,6 +67,7 @@ fun DiagnosticsPreferences(
     var appCount by remember { mutableIntStateOf(0) }
     var tabCount by remember { mutableIntStateOf(0) }
     var overrideCount by remember { mutableIntStateOf(0) }
+    val crashLogs = remember { mutableStateListOf<File>() }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -70,6 +76,8 @@ fun DiagnosticsPreferences(
             appCount = dao.getAllAppTabs().size
             tabCount = dao.getAllCustomTabs().size
             overrideCount = dao.getAllAppTabs().count { it.isUserOverride }
+            crashLogs.clear()
+            crashLogs.addAll(app.lawnchair.bugreport.AutoCatBugReporter.INSTANCE.get(context).getLogs())
         }
     }
 
@@ -88,6 +96,23 @@ fun DiagnosticsPreferences(
             }
 
             item {
+                PreferenceGroup(heading = "App Crash Logs") {
+                    if (crashLogs.isEmpty()) {
+                        Text(
+                            text = "No crash logs found",
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    } else {
+                        crashLogs.forEach { file ->
+                            CrashLogItem(file)
+                        }
+                    }
+                }
+            }
+
+            item {
                 PreferenceGroup(heading = "LLM Live Logs") {
                     LogViewer()
                 }
@@ -95,6 +120,14 @@ fun DiagnosticsPreferences(
 
             item {
                 PreferenceGroup(heading = "Debug Actions") {
+                    ClickablePreference(
+                        label = "Trigger Test Crash",
+                        subtitle = "Immediately crash the app to test reporting",
+                        onClick = {
+                            throw RuntimeException("Test Crash triggered from Diagnostics")
+                        },
+                    )
+
                     ClickablePreference(
                         label = "Clear All Logs",
                         subtitle = "Reset the in-memory log buffer",
@@ -195,3 +228,69 @@ fun getLogColor(level: LLMLogger.LogLevel): Color = when (level) {
     LLMLogger.LogLevel.INFO -> Color(0xFF4ECDC4)
     LLMLogger.LogLevel.DEBUG -> Color(0xFF95A5A6)
 }
+
+@Composable
+fun CrashLogItem(file: File) {
+    var expanded by remember { mutableStateOf(false) }
+    val content = remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    LaunchedEffect(expanded) {
+        if (expanded && content.value.isEmpty()) {
+            withContext(Dispatchers.IO) {
+                content.value = file.readText()
+            }
+        }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .animateContentSize(),
+        onClick = { expanded = !expanded },
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = file.name, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        text = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(file.lastModified())),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                IconButton(onClick = {
+                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_TEXT, file.readText())
+                    }
+                    context.startActivity(android.content.Intent.createChooser(intent, "Share Crash Log"))
+                }) {
+                    Icon(Icons.Rounded.BugReport, null)
+                }
+            }
+
+            if (expanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                        .padding(8.dp),
+                ) {
+                    Text(
+                        text = content.value,
+                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                        color = Color.LightGray,
+                    )
+                }
+            }
+        }
+    }
+}
+

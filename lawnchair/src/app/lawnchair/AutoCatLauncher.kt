@@ -95,21 +95,20 @@ class AutoCatLauncher : QuickstepLauncher() {
     private val defaultOverlay by unsafeLazy { OverlayCallbackImpl(this) }
     private val prefs by unsafeLazy { PreferenceManager.getInstance(this) }
     private val preferenceManager2 by unsafeLazy { PreferenceManager2.getInstance(this) }
-    private val insetsController: WindowInsetsControllerCompat by lazy {
-        val window = this.window
-            ?: throw Exception("WindowInsetsControllerCompat not available.")
+    private val insetsController: WindowInsetsControllerCompat? by lazy {
+        val window = this.window ?: return@lazy null
         WindowInsetsControllerCompat(window, rootView)
     }
     private val themeProvider by unsafeLazy { ThemeProvider.INSTANCE.get(this) }
     private val noStatusBarStateListener = object : StateManager.StateListener<LauncherState> {
         override fun onStateTransitionStart(toState: LauncherState) {
             if (toState is OverviewState) {
-                insetsController.show(WindowInsetsCompat.Type.statusBars())
+                insetsController?.show(WindowInsetsCompat.Type.statusBars())
             }
         }
         override fun onStateTransitionComplete(finalState: LauncherState) {
             if (finalState !is OverviewState) {
-                insetsController.hide(WindowInsetsCompat.Type.statusBars())
+                insetsController?.hide(WindowInsetsCompat.Type.statusBars())
             }
         }
     }
@@ -179,7 +178,7 @@ class AutoCatLauncher : QuickstepLauncher() {
         }
 
         preferenceManager2.showStatusBar.get().distinctUntilChanged().onEach {
-            with(insetsController) {
+            insetsController?.run {
                 if (it) {
                     show(WindowInsetsCompat.Type.statusBars())
                 } else {

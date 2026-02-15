@@ -6,10 +6,12 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import app.lawnchair.AutoCatApp
+import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.util.MainThreadInitializedObject
 import app.lawnchair.util.requireSystemService
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
+import com.patrykmichalik.opto.core.firstBlocking
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -36,34 +38,53 @@ class AutoCatBugReporter(private val context: Context) {
             ),
         )
 
-        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
-        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            sendNotification(throwable)
-            defaultHandler?.uncaughtException(thread, throwable)
+                val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+                Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+                    val report = sendNotification(throwable)
+                    if (report != null) {
+                        PreferenceManager2.getInstance(context).lastCrashId.setBlocking(report.id)
+                        if (PreferenceManager2.getInstance(context).autoCrashReporting.firstBlocking()) {
+                            context.startService(
+                                android.content.Intent(context, UploaderService::class.java)
+                                    .putExtra("report", report),
+                            )
+                        }
+                    }
+                    defaultHandler?.uncaughtException(thread, throwable)
+                }
+        
+                removeOldLogs()
+            }
+        
+            fun getReport(id: Int): BugReport? {
+                val folder = File(logsFolder, String.format("%x", id))
+                val file = folder.listFiles()?.firstOrNull { it.extension == "txt" } ?: return null
+                val contents = file.readText()
+                val lines = contents.lines()
+                val title = lines.firstOrNull() ?: ""
+                val remainingContents = lines.drop(1).joinToString("\n")
+                return BugReport(id, BugReport.TYPE_UNCAUGHT_EXCEPTION, "", remainingContents, file)
+            }
+        
+            private fun removeOldLogs() {        val sevenDaysAgo = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000
+        logsFolder.listFiles()?.forEach { file ->
+            if (file.lastModified() < sevenDaysAgo) {
+                file.deleteRecursively()
+            }
         }
-
-        removeDismissedLogs()
     }
 
-    private fun removeDismissedLogs() {
-        val activeIds = notificationManager.activeNotifications
-            .mapTo(mutableSetOf()) { String.format("%x", it.id) }
-        logsFolder.listFiles().orEmpty()
-            .asSequence()
-            .filter { it.name !in activeIds }
-            .forEach { it.deleteRecursively() }
-    }
-
-    private fun sendNotification(throwable: Throwable) {
+    private fun sendNotification(throwable: Throwable): BugReport? {
         val bugReport = Report(BugReport.TYPE_UNCAUGHT_EXCEPTION, throwable)
-            .generateBugReport() ?: return
+            .generateBugReport() ?: return null
 
         val notifications = notificationManager.activeNotifications
         val hasNotification = notifications.any { it.id == bugReport.id }
         if (hasNotification || notifications.size > 3) {
-            return
+            return bugReport
         }
         BugReportReceiver.notify(context, bugReport)
+        return bugReport
     }
 
     inner class Report(val error: String, val throwable: Throwable? = null) {
@@ -123,6 +144,10 @@ class AutoCatBugReporter(private val context: Context) {
                 }
             }
             .toString()
+    }
+
+    fun getLogs(): List<File> {
+        return logsFolder.listFiles()?.flatMap { it.listFiles().orEmpty().toList() }?.sortedByDescending { it.lastModified() } ?: emptyList()
     }
 
     companion object {
