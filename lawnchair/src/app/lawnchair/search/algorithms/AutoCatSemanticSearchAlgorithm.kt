@@ -76,13 +76,13 @@ class AutoCatSemanticSearchAlgorithm(context: Context) : AutoCatSearchAlgorithm(
                 it.reasoning?.contains(query, ignoreCase = true) == true
         }.map { it.packageName }.toSet()
 
-        if (semanticPackages.isNotEmpty()) {
-            val normalPackageNames = normalResults.map { it.componentName.packageName }.toSet()
-            val extraApps = allApps.filter {
-                semanticPackages.contains(it.componentName.packageName) &&
-                    !normalPackageNames.contains(it.componentName.packageName)
-            }
-
+                if (semanticPackages.isNotEmpty()) {
+                    val normalPackageNames = normalResults.mapNotNull { it.componentName?.packageName }.toSet()
+                    val extraApps = allApps.filter { 
+                        it.componentName != null &&
+                        semanticPackages.contains(it.componentName!!.packageName) && 
+                        !normalPackageNames.contains(it.componentName!!.packageName)
+                    }
             if (extraApps.isNotEmpty()) {
                 // Add a header for semantic results if we have normal results
                 if (searchTargets.isNotEmpty()) {

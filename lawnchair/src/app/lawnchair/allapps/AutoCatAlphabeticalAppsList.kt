@@ -182,7 +182,9 @@ class AutoCatAlphabeticalAppsList<T>(
                 if (currentTabFilter == "DISCOVERY") {
                     // Discovery tab logic: show recently installed apps (last 7 days)
                     // and maybe some smart suggestions in the future.
-                    val isRecent = info.installedTime > System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
+                    // AppInfo in this version doesn't store installedTime directly.
+                    // TODO: Fetch from PackageManager or store in database
+                    val isRecent = false // info.installedTime > System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
                     visible = isRecent
                 } else if (currentTabFilter == AppTabsController.TAB_WORK) {
                     // Work tab filtering is usually handled by the Work adapter's user matcher.

@@ -305,7 +305,6 @@ class GoogleAIProvider(
                 error = e,
                 context = mapOf(
                     "appsCount" to installedApps.size,
-                    "maxSuggestions" to maxSuggestions,
                 ),
             )
             throw LLMException("Google AI category suggestion failed: ${e.message}", e)
@@ -466,7 +465,7 @@ class GoogleAIProvider(
 
         val descriptionText = safeDescription?.let { "\nDescription: $it" } ?: ""
         val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
-        val hintSection = if (hints.isNotEmpty()) hints else ""
+        val hintSection = if (hints.isNotEmpty()) "\n\n$hints" else ""
 
         return """
 You are an expert at categorizing Android apps. Given an app's information, choose the BEST matching category from the provided list.
@@ -595,7 +594,7 @@ Respond ONLY in this JSON format:
         }
 
         val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
-        val hintSection = if (hints.isNotEmpty()) hints else ""
+        val hintSection = if (hints.isNotEmpty()) "\n\n$hints" else ""
 
         return """
 You are an expert at categorizing Android apps. Given a list of apps, categorize each one by choosing the BEST matching category from the provided list.

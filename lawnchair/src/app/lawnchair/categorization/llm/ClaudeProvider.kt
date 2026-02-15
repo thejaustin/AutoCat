@@ -147,7 +147,7 @@ class ClaudeProvider(
         appName: String,
         appPackage: String,
         appDescription: String?,
-        availableTabs: List<String>,
+        availableTabs: List<String>, hints: String = "",
         hints: String,
     ): CategorizationResult = withContext(Dispatchers.IO) {
         try {
@@ -193,7 +193,7 @@ class ClaudeProvider(
 
     override suspend fun categorizeAppBatch(
         apps: List<AppBatchInfo>,
-        availableTabs: List<String>,
+        availableTabs: List<String>, hints: String = "",
         hints: String,
     ): Map<String, CategorizationResult> = withContext(Dispatchers.IO) {
         try {
@@ -476,7 +476,7 @@ class ClaudeProvider(
         appName: String,
         appPackage: String,
         appDescription: String?,
-        availableTabs: List<String>,
+        availableTabs: List<String>, hints: String = "",
     ): String {
         // Sanitize all user-controlled inputs
         val safeAppName = sanitizeInput(appName)
@@ -599,7 +599,7 @@ Respond ONLY in this JSON format:
 
     private fun buildBatchPrompt(
         apps: List<AppBatchInfo>,
-        availableTabs: List<String>,
+        availableTabs: List<String>, hints: String = "",
     ): String {
         val appsText = apps.joinToString("\n") { app ->
             // Sanitize all app inputs to prevent injection
@@ -728,7 +728,7 @@ Respond ONLY in this JSON format:
 
     private fun parseResponse(
         responseJson: String,
-        availableTabs: List<String>,
+        availableTabs: List<String>, hints: String = "",
     ): CategorizationResult {
         try {
             val response = JSONObject(responseJson)
@@ -844,7 +844,7 @@ Respond ONLY in this JSON format:
     private fun parseBatchResponse(
         responseJson: String,
         apps: List<AppBatchInfo>,
-        availableTabs: List<String>,
+        availableTabs: List<String>, hints: String = "",
     ): Map<String, CategorizationResult> {
         try {
             val response = JSONObject(responseJson)

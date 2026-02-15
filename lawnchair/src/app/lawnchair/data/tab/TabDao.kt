@@ -116,6 +116,12 @@ interface TabDao {
     suspend fun deleteAppsByPackageNames(packageNames: List<String>)
 
     /**
+     * Deletes all app tab assignments.
+     */
+    @Query("DELETE FROM app_categories")
+    suspend fun deleteAllAppTabs()
+
+    /**
      * Updates the tab name for all apps in a specific tab.
      * Used when renaming a custom tab.
      */

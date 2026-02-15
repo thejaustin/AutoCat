@@ -25,6 +25,7 @@ import app.lawnchair.util.ensureOnMainThread
 import app.lawnchair.util.toTitleCase
 import app.lawnchair.util.useApplicationContext
 import com.android.launcher3.model.data.AppInfo
+import kotlinx.coroutines.launch
 import java.io.InputStream
 import java.util.Locale
 

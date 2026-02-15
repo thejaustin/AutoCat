@@ -77,6 +77,7 @@ import app.lawnchair.data.tab.entities.CustomTab
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
+import app.lawnchair.ui.preferences.navigation.Search
 import app.lawnchair.ui.theme.preferenceGroupColor
 import coil.compose.AsyncImage
 import coil.request.ImageRequest

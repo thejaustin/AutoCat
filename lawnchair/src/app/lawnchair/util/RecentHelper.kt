@@ -1,6 +1,6 @@
 package app.lawnchair.util
 
-import AutoCatLockedStateController
+import app.lawnchair.util.AutoCatLockedStateController
 import android.app.ActivityManager
 import android.app.ActivityTaskManager
 import android.content.Context

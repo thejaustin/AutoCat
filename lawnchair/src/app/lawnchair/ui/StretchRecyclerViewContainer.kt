@@ -18,7 +18,7 @@ open class StretchRecyclerViewContainer @JvmOverloads constructor(
     private val childEffect = StretchEdgeEffect(context, { invalidate() }, { postInvalidateOnAnimation() })
 
     override fun drawChild(canvas: Canvas, child: View, drawingTime: Long): Boolean {
-        if (Utilities.ATLEAST_S || (child !is RecyclerView && child !is PersonalWorkPagedView)) {
+        if (Utilities.ATLEAST_S || (child !is RecyclerView && child !is PersonalWorkPagedView<*>)) {
             return super.drawChild(canvas, child, drawingTime)
         }
 
