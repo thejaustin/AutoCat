@@ -123,7 +123,7 @@ fun PreferenceNavigation(
         composable<AppDrawerHiddenApps> { HiddenAppsPreferences() }
         composable<AppDrawerCategorizationSettings> {
             CategorizationSettingsPreferences(
-                onNavigate = { navController.navigate(it) },
+                onNavigate = { route: PreferenceRoute -> navController.navigate(route) },
             )
         }
         composable<AppDrawerTabManagement> { TabManagementPreferences() }

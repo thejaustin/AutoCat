@@ -147,7 +147,7 @@ class ClaudeProvider(
         appName: String,
         appPackage: String,
         appDescription: String?,
-        availableTabs: List<String>, hints: String = "",
+        availableTabs: List<String>,
         hints: String,
     ): CategorizationResult = withContext(Dispatchers.IO) {
         try {
@@ -193,7 +193,7 @@ class ClaudeProvider(
 
     override suspend fun categorizeAppBatch(
         apps: List<AppBatchInfo>,
-        availableTabs: List<String>, hints: String = "",
+        availableTabs: List<String>,
         hints: String,
     ): Map<String, CategorizationResult> = withContext(Dispatchers.IO) {
         try {
@@ -476,7 +476,8 @@ class ClaudeProvider(
         appName: String,
         appPackage: String,
         appDescription: String?,
-        availableTabs: List<String>, hints: String = "",
+        availableTabs: List<String>,
+        hints: String = "",
     ): String {
         // Sanitize all user-controlled inputs
         val safeAppName = sanitizeInput(appName)
@@ -485,13 +486,14 @@ class ClaudeProvider(
 
         val descriptionText = safeDescription?.let { "\nDescription: $it" } ?: ""
         val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
+        val hintSection = if (hints.isNotEmpty()) "\n\n$hints" else ""
 
         return """
 You are an expert at categorizing Android apps. Given an app's information, choose the BEST matching category from the provided list.
 $languageInstruction
 
 App Name: $safeAppName
-Package: $safeAppPackage$descriptionText
+Package: $safeAppPackage$descriptionText$hintSection
 
 Available Categories:
 ${availableTabs.joinToString("\n") { "- $it" }}
@@ -599,7 +601,8 @@ Respond ONLY in this JSON format:
 
     private fun buildBatchPrompt(
         apps: List<AppBatchInfo>,
-        availableTabs: List<String>, hints: String = "",
+        availableTabs: List<String>,
+        hints: String = "",
     ): String {
         val appsText = apps.joinToString("\n") { app ->
             // Sanitize all app inputs to prevent injection
@@ -611,13 +614,14 @@ Respond ONLY in this JSON format:
         }
 
         val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
+        val hintSection = if (hints.isNotEmpty()) "\n\n$hints" else ""
 
         return """
 You are an expert at categorizing Android apps. Given a list of apps, categorize each one by choosing the BEST matching category from the provided list.
 $languageInstruction
 
 Apps to categorize:
-$appsText
+$appsText$hintSection
 
 Available Categories:
 ${availableTabs.joinToString("\n") { "- $it" }}
@@ -728,7 +732,7 @@ Respond ONLY in this JSON format:
 
     private fun parseResponse(
         responseJson: String,
-        availableTabs: List<String>, hints: String = "",
+        availableTabs: List<String>,
     ): CategorizationResult {
         try {
             val response = JSONObject(responseJson)
@@ -844,7 +848,7 @@ Respond ONLY in this JSON format:
     private fun parseBatchResponse(
         responseJson: String,
         apps: List<AppBatchInfo>,
-        availableTabs: List<String>, hints: String = "",
+        availableTabs: List<String>,
     ): Map<String, CategorizationResult> {
         try {
             val response = JSONObject(responseJson)

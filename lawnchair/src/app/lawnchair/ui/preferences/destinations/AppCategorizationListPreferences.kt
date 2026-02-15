@@ -248,7 +248,7 @@ fun AppCategorizationListPreferences(
                         onValueChange = { searchQuery = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Search apps...") },
-                        leadingIcon = { Icon(Icons.Rounded.Search, null) },
+                        leadingIcon = { Icon(androidx.compose.material.icons.Icons.Rounded.Search, null) },
                         trailingIcon = if (searchQuery.isNotEmpty()) {
                             {
                                 IconButton(onClick = { searchQuery = "" }) {

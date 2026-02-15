@@ -71,7 +71,7 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CategorizationSettingsPreferences(
-    onNavigate: (app.lawnchair.ui.preferences.navigation.PreferenceRootRoute) -> Unit,
+    onNavigate: (app.lawnchair.ui.preferences.navigation.PreferenceRoute) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
