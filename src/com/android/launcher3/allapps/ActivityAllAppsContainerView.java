@@ -83,6 +83,7 @@ import com.android.launcher3.keyboard.FocusedItemDecorator;
 import com.android.launcher3.keyboard.ViewGroupFocusHelper;
 import com.android.launcher3.model.StringCache;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.pageindicators.PageIndicator;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.recyclerview.AllAppsRecyclerViewPool;
 import com.android.launcher3.util.ItemInfoMatcher;
@@ -727,7 +728,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         if (showTabs) {
             mViewPager = (AllAppsPagedView) rvContainer;
             mViewPager.initParentViews(this);
-            mViewPager.getPageIndicator().setOnActivePageChangedListener(this);
+            ((PersonalWorkSlidingTabStrip) mViewPager.getPageIndicator())
+                    .setOnActivePageChangedListener(this);
             // Clear default children from XML if any
             mViewPager.removeAllViews(); 
             

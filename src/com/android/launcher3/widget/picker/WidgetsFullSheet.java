@@ -72,6 +72,7 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.model.UserManagerState;
 import com.android.launcher3.model.WidgetItem;
+import com.android.launcher3.pageindicators.PageIndicator;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.views.RecyclerViewFastScroller;
 import com.android.launcher3.views.SpringRelativeLayout;
@@ -84,6 +85,7 @@ import com.android.launcher3.widget.picker.search.SearchModeListener;
 import com.android.launcher3.widget.picker.search.WidgetsSearchBar;
 import com.android.launcher3.widget.picker.search.WidgetsSearchBar.WidgetsSearchDataProvider;
 import com.android.launcher3.workprofile.PersonalWorkPagedView;
+import com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip;
 import com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip.OnActivePageChangedListener;
 
 import java.util.ArrayList;
@@ -264,8 +266,9 @@ public class WidgetsFullSheet extends BaseWidgetSheet
             mViewPager.setClipToOutline(true);
             mViewPager.setClipChildren(false);
             mViewPager.initParentViews(this);
-            mViewPager.getPageIndicator().setOnActivePageChangedListener(this);
-            mViewPager.getPageIndicator().setActiveMarker(AdapterHolder.PRIMARY);
+            ((PersonalWorkSlidingTabStrip) mViewPager.getPageIndicator())
+                    .setOnActivePageChangedListener(this);
+            ((PageIndicator) mViewPager.getPageIndicator()).setActiveMarker(AdapterHolder.PRIMARY);
             findViewById(R.id.tab_personal)
                     .setOnClickListener((View view) -> mViewPager.snapToPage(0));
             findViewById(R.id.tab_work)
