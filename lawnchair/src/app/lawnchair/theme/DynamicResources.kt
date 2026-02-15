@@ -16,7 +16,9 @@
 
 package app.lawnchair.theme
 
+import android.content.res.Configuration
 import android.content.res.Resources
+import androidx.compose.ui.graphics.toArgb
 import com.android.launcher3.R
 import dev.kdrag0n.monet.theme.ColorScheme
 
@@ -28,6 +30,11 @@ class DynamicResources(
     private val ares: Resources,
     private val colorScheme: ColorScheme,
 ) : Resources(ares.assets, ares.displayMetrics, ares.configuration) {
+
+    private val isDark: Boolean
+        get() =
+            (ares.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
 
     @Throws(NotFoundException::class)
     override fun getColor(id: Int, theme: Resources.Theme?): Int {
@@ -47,50 +54,152 @@ class DynamicResources(
         return ares.getColor(id)
     }
 
+    @Suppress("CyclomaticComplexMethod")
     private fun getDynamicColorOrNull(id: Int): Int? {
+        return if (isDark) getDarkColor(id) else getLightColor(id)
+    }
+
+    private fun getDarkColor(id: Int): Int? {
         return when (id) {
-            // Map our custom XML attributes to the dynamic ColorScheme
-            // Material 3 Color Roles: Primary
-            R.attr.autoCatPrimary -> colorScheme.primary.toAndroidColor()
-            R.attr.autoCatPrimaryInverse -> colorScheme.onPrimary.toAndroidColor() // Assuming primaryInverse maps to onPrimary for now
-            R.attr.autoCatOnPrimary -> colorScheme.onPrimary.toAndroidColor()
-            R.attr.autoCatPrimaryContainer -> colorScheme.primaryContainer.toAndroidColor()
-            R.attr.autoCatOnPrimaryContainer -> colorScheme.onPrimaryContainer.toAndroidColor()
+            // Primary
+            R.attr.autoCatPrimary -> colorScheme.primary(80).toArgb()
 
-            // Material 3 Color Roles: Secondary
-            R.attr.autoCatSecondary -> colorScheme.secondary.toAndroidColor()
-            R.attr.autoCatOnSecondary -> colorScheme.onSecondary.toAndroidColor()
-            R.attr.autoCatSecondaryContainer -> colorScheme.secondaryContainer.toAndroidColor()
-            R.attr.autoCatOnSecondaryContainer -> colorScheme.onSecondaryContainer.toAndroidColor()
+            R.attr.autoCatPrimaryInverse -> colorScheme.primary(40).toArgb()
 
-            // Material 3 Color Roles: Tertiary
-            R.attr.autoCatTertiary -> colorScheme.tertiary.toAndroidColor()
-            R.attr.autoCatOnTertiary -> colorScheme.onTertiary.toAndroidColor()
-            R.attr.autoCatTertiaryContainer -> colorScheme.tertiaryContainer.toAndroidColor()
-            R.attr.autoCatOnTertiaryContainer -> colorScheme.onTertiaryContainer.toAndroidColor()
+            R.attr.autoCatOnPrimary -> colorScheme.primary(20).toArgb()
 
-            // Material 3 Color Roles: Background & Surface
-            R.attr.autoCatBackground -> colorScheme.background.toAndroidColor()
-            R.attr.autoCatOnBackground -> colorScheme.onBackground.toAndroidColor()
-            R.attr.autoCatSurface -> colorScheme.surface.toAndroidColor()
-            R.attr.autoCatOnSurface -> colorScheme.onSurface.toAndroidColor()
-            R.attr.autoCatSurfaceVariant -> colorScheme.surfaceVariant.toAndroidColor()
-            R.attr.autoCatOnSurfaceVariant -> colorScheme.onSurfaceVariant.toAndroidColor()
-            R.attr.autoCatSurfaceInverse -> colorScheme.surfaceInverse.toAndroidColor()
-            R.attr.autoCatOnSurfaceInverse -> colorScheme.onSurfaceInverse.toAndroidColor()
+            R.attr.autoCatPrimaryContainer -> colorScheme.primary(30).toArgb()
 
-            // Material 3 Color Roles: Error
-            R.attr.autoCatError -> colorScheme.error.toAndroidColor()
-            R.attr.autoCatOnError -> colorScheme.onError.toAndroidColor()
-            R.attr.autoCatErrorContainer -> colorScheme.errorContainer.toAndroidColor()
-            R.attr.autoCatOnErrorContainer -> colorScheme.onErrorContainer.toAndroidColor()
+            R.attr.autoCatOnPrimaryContainer -> colorScheme.primary(90).toArgb()
 
-            // Material 3 Color Roles: Outline
-            R.attr.autoCatOutline -> colorScheme.outline.toAndroidColor()
-            R.attr.autoCatOutlineVariant -> colorScheme.outlineVariant.toAndroidColor()
+            // Secondary
+            R.attr.autoCatSecondary -> colorScheme.secondary(80).toArgb()
 
-            // For now, return null for attributes we don't override
+            R.attr.autoCatOnSecondary -> colorScheme.secondary(20).toArgb()
+
+            R.attr.autoCatSecondaryContainer -> colorScheme.secondary(30).toArgb()
+
+            R.attr.autoCatOnSecondaryContainer -> colorScheme.secondary(90).toArgb()
+
+            // Tertiary
+            R.attr.autoCatTertiary -> colorScheme.tertiary(80).toArgb()
+
+            R.attr.autoCatOnTertiary -> colorScheme.tertiary(20).toArgb()
+
+            R.attr.autoCatTertiaryContainer -> colorScheme.tertiary(30).toArgb()
+
+            R.attr.autoCatOnTertiaryContainer -> colorScheme.tertiary(90).toArgb()
+
+            // Background & Surface
+            R.attr.autoCatBackground -> colorScheme.neutral(10).toArgb()
+
+            R.attr.autoCatOnBackground -> colorScheme.neutral(90).toArgb()
+
+            R.attr.autoCatSurface -> colorScheme.neutral(10).toArgb()
+
+            R.attr.autoCatOnSurface -> colorScheme.neutral(90).toArgb()
+
+            R.attr.autoCatSurfaceVariant -> colorScheme.neutralVariant(30).toArgb()
+
+            R.attr.autoCatOnSurfaceVariant -> colorScheme.neutralVariant(80).toArgb()
+
+            R.attr.autoCatSurfaceInverse -> colorScheme.neutral(90).toArgb()
+
+            R.attr.autoCatOnSurfaceInverse -> colorScheme.neutral(20).toArgb()
+
+            // Error (fixed M3 values, monet has no error palette)
+            R.attr.autoCatError -> ERROR_DARK
+
+            R.attr.autoCatOnError -> ON_ERROR_DARK
+
+            R.attr.autoCatErrorContainer -> ERROR_CONTAINER_DARK
+
+            R.attr.autoCatOnErrorContainer -> ON_ERROR_CONTAINER_DARK
+
+            // Outline
+            R.attr.autoCatOutline -> colorScheme.neutralVariant(60).toArgb()
+
+            R.attr.autoCatOutlineVariant -> colorScheme.neutralVariant(30).toArgb()
+
             else -> null
         }
+    }
+
+    private fun getLightColor(id: Int): Int? {
+        return when (id) {
+            // Primary
+            R.attr.autoCatPrimary -> colorScheme.primary(40).toArgb()
+
+            R.attr.autoCatPrimaryInverse -> colorScheme.primary(80).toArgb()
+
+            R.attr.autoCatOnPrimary -> colorScheme.primary(100).toArgb()
+
+            R.attr.autoCatPrimaryContainer -> colorScheme.primary(90).toArgb()
+
+            R.attr.autoCatOnPrimaryContainer -> colorScheme.primary(10).toArgb()
+
+            // Secondary
+            R.attr.autoCatSecondary -> colorScheme.secondary(40).toArgb()
+
+            R.attr.autoCatOnSecondary -> colorScheme.secondary(100).toArgb()
+
+            R.attr.autoCatSecondaryContainer -> colorScheme.secondary(90).toArgb()
+
+            R.attr.autoCatOnSecondaryContainer -> colorScheme.secondary(10).toArgb()
+
+            // Tertiary
+            R.attr.autoCatTertiary -> colorScheme.tertiary(40).toArgb()
+
+            R.attr.autoCatOnTertiary -> colorScheme.tertiary(100).toArgb()
+
+            R.attr.autoCatTertiaryContainer -> colorScheme.tertiary(90).toArgb()
+
+            R.attr.autoCatOnTertiaryContainer -> colorScheme.tertiary(10).toArgb()
+
+            // Background & Surface
+            R.attr.autoCatBackground -> colorScheme.neutral(99).toArgb()
+
+            R.attr.autoCatOnBackground -> colorScheme.neutralVariant(10).toArgb()
+
+            R.attr.autoCatSurface -> colorScheme.neutral(99).toArgb()
+
+            R.attr.autoCatOnSurface -> colorScheme.neutralVariant(10).toArgb()
+
+            R.attr.autoCatSurfaceVariant -> colorScheme.neutralVariant(90).toArgb()
+
+            R.attr.autoCatOnSurfaceVariant -> colorScheme.neutralVariant(30).toArgb()
+
+            R.attr.autoCatSurfaceInverse -> colorScheme.neutral(20).toArgb()
+
+            R.attr.autoCatOnSurfaceInverse -> colorScheme.neutral(95).toArgb()
+
+            // Error (fixed M3 values)
+            R.attr.autoCatError -> ERROR_LIGHT
+
+            R.attr.autoCatOnError -> ON_ERROR_LIGHT
+
+            R.attr.autoCatErrorContainer -> ERROR_CONTAINER_LIGHT
+
+            R.attr.autoCatOnErrorContainer -> ON_ERROR_CONTAINER_LIGHT
+
+            // Outline
+            R.attr.autoCatOutline -> colorScheme.neutralVariant(50).toArgb()
+
+            R.attr.autoCatOutlineVariant -> colorScheme.neutralVariant(80).toArgb()
+
+            else -> null
+        }
+    }
+
+    companion object {
+        // M3 baseline error colors (not derived from monet)
+        private const val ERROR_DARK = 0xFFFFB4AB.toInt()
+        private const val ON_ERROR_DARK = 0xFF690005.toInt()
+        private const val ERROR_CONTAINER_DARK = 0xFF93000A.toInt()
+        private const val ON_ERROR_CONTAINER_DARK = 0xFFFFDAD6.toInt()
+        private const val ERROR_LIGHT = 0xFFB3261E.toInt()
+        private const val ON_ERROR_LIGHT = 0xFFFFFFFF.toInt()
+        private const val ERROR_CONTAINER_LIGHT = 0xFFF9DEDC.toInt()
+        private const val ON_ERROR_CONTAINER_LIGHT = 0xFF410E0B.toInt()
     }
 }
