@@ -52,63 +52,41 @@ class DynamicResources(
             // Map our custom XML attributes to the dynamic ColorScheme
             // Material 3 Color Roles: Primary
             R.attr.autoCatPrimary -> colorScheme.primary.toAndroidColor()
-
-            R.attr.autoCatPrimaryInverse -> colorScheme.onPrimary.toAndroidColor()
-
-            // Assuming primaryInverse maps to onPrimary for now
+            R.attr.autoCatPrimaryInverse -> colorScheme.onPrimary.toAndroidColor() // Assuming primaryInverse maps to onPrimary for now
             R.attr.autoCatOnPrimary -> colorScheme.onPrimary.toAndroidColor()
-
             R.attr.autoCatPrimaryContainer -> colorScheme.primaryContainer.toAndroidColor()
-
             R.attr.autoCatOnPrimaryContainer -> colorScheme.onPrimaryContainer.toAndroidColor()
 
             // Material 3 Color Roles: Secondary
             R.attr.autoCatSecondary -> colorScheme.secondary.toAndroidColor()
-
             R.attr.autoCatOnSecondary -> colorScheme.onSecondary.toAndroidColor()
-
             R.attr.autoCatSecondaryContainer -> colorScheme.secondaryContainer.toAndroidColor()
-
             R.attr.autoCatOnSecondaryContainer -> colorScheme.onSecondaryContainer.toAndroidColor()
 
             // Material 3 Color Roles: Tertiary
             R.attr.autoCatTertiary -> colorScheme.tertiary.toAndroidColor()
-
             R.attr.autoCatOnTertiary -> colorScheme.onTertiary.toAndroidColor()
-
             R.attr.autoCatTertiaryContainer -> colorScheme.tertiaryContainer.toAndroidColor()
-
             R.attr.autoCatOnTertiaryContainer -> colorScheme.onTertiaryContainer.toAndroidColor()
 
             // Material 3 Color Roles: Background & Surface
             R.attr.autoCatBackground -> colorScheme.background.toAndroidColor()
-
             R.attr.autoCatOnBackground -> colorScheme.onBackground.toAndroidColor()
-
             R.attr.autoCatSurface -> colorScheme.surface.toAndroidColor()
-
             R.attr.autoCatOnSurface -> colorScheme.onSurface.toAndroidColor()
-
             R.attr.autoCatSurfaceVariant -> colorScheme.surfaceVariant.toAndroidColor()
-
             R.attr.autoCatOnSurfaceVariant -> colorScheme.onSurfaceVariant.toAndroidColor()
-
             R.attr.autoCatSurfaceInverse -> colorScheme.surfaceInverse.toAndroidColor()
-
             R.attr.autoCatOnSurfaceInverse -> colorScheme.onSurfaceInverse.toAndroidColor()
 
             // Material 3 Color Roles: Error
             R.attr.autoCatError -> colorScheme.error.toAndroidColor()
-
             R.attr.autoCatOnError -> colorScheme.onError.toAndroidColor()
-
             R.attr.autoCatErrorContainer -> colorScheme.errorContainer.toAndroidColor()
-
             R.attr.autoCatOnErrorContainer -> colorScheme.onErrorContainer.toAndroidColor()
 
             // Material 3 Color Roles: Outline
             R.attr.autoCatOutline -> colorScheme.outline.toAndroidColor()
-
             R.attr.autoCatOutlineVariant -> colorScheme.outlineVariant.toAndroidColor()
 
             // For now, return null for attributes we don't override
