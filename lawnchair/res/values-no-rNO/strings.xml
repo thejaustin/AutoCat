@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dw</string>
     <string name="time_months_ago">%dmo</string>
     <string name="time_years_ago">%dy</string>
-    <string name="managed_by_lawnchair">Styrt av Lawnchair</string>
+    <string name="managed_by_lawnchair">Styrt av AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Preferanser</string>
     <string name="settings_button_text">Hjem-innstillinger</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Endre innstillinger</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Andre</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Vis kun unike apper</string>
     <string name="my_folder_label">Min mappe</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">For å utføre visse handlinger (som å låse telefonen din) når du utfører en gest, krever Lawnchair tilgang på tilgjengelighetstjenester.\n\nLawnchair ser ingen brukerhandlinger, men rettighetene til å gjøre dette er nødvendig for alle tilgjengelighetstjenester. Lawnchair forkaster enhver hendelse som systemet sender.\n\nFor å låse telefonen din, eller for å åpne nylig-skjermen, anvender Lawnchair tjenesten performGlobalAction Accessibility</string>
+    <string name="accessibility_service_description">For å utføre visse handlinger (som å låse telefonen din) når du utfører en gest, krever AutoCat tilgang på tilgjengelighetstjenester.\n\nAutoCat ser ingen brukerhandlinger, men rettighetene til å gjøre dette er nødvendig for alle tilgjengelighetstjenester. AutoCat forkaster enhver hendelse som systemet sender.\n\nFor å låse telefonen din, eller for å åpne nylig-skjermen, anvender AutoCat tjenesten performGlobalAction Accessibility</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">Fjern alt knapp, hjørneradius</string>
     <string name="about_label">Om</string>
     <string name="app_info_drop_target_label">App info</string>
-    <string name="debug_restart_launcher">Omstart av Lawnchair</string>
+    <string name="debug_restart_launcher">Omstart av AutoCat</string>
     <string name="experimental_features_label">Eksperimentelle funksjoner</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Endre font</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">For å få tilgang til snarveier og ytterligere funksjoner sett Lawnchair som standard appvelger</string>
+    <string name="set_default_launcher_tip">For å få tilgang til snarveier og ytterligere funksjoner sett AutoCat som standard appvelger</string>
     <string name="notification_dots">Prikker for varsling</string>
     <string name="show_notification_count">Vis antall varsler</string>
     <string name="notification_dots_color">Farge for varselprikk</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">For å bruke <xliff:g example="My Provider" id="providerName">%1$s</xliff:g>, slå på Prikker for varsling. </string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Vis på hjemmeskjerm</string>
-    <string name="smartspace_widget_toggle_description">Hurtig overblikk kan manuelt legges til hjemskjerm ved å placere Lawnchair widgeten</string>
+    <string name="smartspace_widget_toggle_description">Hurtig overblikk kan manuelt legges til hjemskjerm ved å placere AutoCat widgeten</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Hurtig overblikkstilbyder</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Åpne assistent</string>
     <string name="pick_app_for_gesture">Velg app</string>
     <string name="dt2s_admin_hint_title">Administratortilgang er nødvendig</string>
-    <string name="dt2s_admin_hint">For å bruke dobbelt-tapping for å sove, sett Lawnchair som enhetsadministrator app. Trykk på \"åpne instillinger\", trykk på \"Aktiver denne app som enhetsadministrator\"</string>
+    <string name="dt2s_admin_hint">For å bruke dobbelt-tapping for å sove, sett AutoCat som enhetsadministrator app. Trykk på \"åpne instillinger\", trykk på \"Aktiver denne app som enhetsadministrator\"</string>
     <string name="dt2s_admin_warning">Dobbeltrykk for å slukke vil bli slått av.</string>
     <string name="d2ts_recents_a11y_hint_title">Slå på tilgjengelighetsservice</string>
-    <string name="dt2s_a11y_hint">For å bruke dobbelt-tapping for å sove, slå på tilgjengelighetstjenesten for Lawnchair. Trykk på \"Åpne innstillinger\", velg \"Lawnchair\" og slå på \"Bruk Lawnchair.\" \n\nLawnchair bruker tilgjengelighets \'performGlobalAction\'-metode for å utføre denne handlingen. Dette er en sensitiv tillatelse som gjør det mulig å overvåke andre apper. Lawnchair er imidlertid ikke konfigurert for denne funksjonaliteten og mottar ingen hendelser.</string>
+    <string name="dt2s_a11y_hint">For å bruke dobbelt-tapping for å sove, slå på tilgjengelighetstjenesten for AutoCat. Trykk på \"Åpne innstillinger\", velg \"AutoCat\" og slå på \"Bruk AutoCat.\" \n\nAutoCat bruker tilgjengelighets \'performGlobalAction\'-metode for å utføre denne handlingen. Dette er en sensitiv tillatelse som gjør det mulig å overvåke andre apper. AutoCat er imidlertid ikke konfigurert for denne funksjonaliteten og mottar ingen hendelser.</string>
     <string name="dt2s_recents_warning_open_settings">Åpne instillinger</string>
-    <string name="recents_a11y_hint">To use Open Recents screen, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="recents_a11y_hint">To use Open Recents screen, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Lawnchair feilrapport</string>
+    <string name="lawnchair_bug_report">AutoCat feilrapport</string>
     <string name="crash_report_notif_title">%1$s krasjet</string>
     <string name="action_upload_crash_report">Last opp krasjlog</string>
     <string name="action_upload_error">Opplasting feilet</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Appsøk</string>
     <string name="search_provider_custom">Tilpasset</string>
-    <string name="search_provider_sponsored_description">%1$s og Lawnchair har en inntektsdelingsavtale.\n\nÅ søke med %1$s hjelper til med å støtte Lawnchair.</string>
+    <string name="search_provider_sponsored_description">%1$s og AutoCat har en inntektsdelingsavtale.\n\nÅ søke med %1$s hjelper til med å støtte AutoCat.</string>
     <string name="app_label">App</string>
     <string name="website_label">Nettside</string>
     <string name="qsb_search_provider_app_required">App påkrevd</string>
@@ -553,7 +553,7 @@
     <string name="max_folder_columns">Maksimalt antall mappekolonner</string>
     <string name="max_folder_rows">Maksimum mapperader</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">These settings will be ignored as Lawnchair isn\'t set as the Recents screen provider</string>
+    <string name="quickswitch_ignored_warning">These settings will be ignored as AutoCat isn\'t set as the Recents screen provider</string>
     <string name="quickstep_incompatible">Ukompatibel systemintegrering</string>
     <string name="quickstep_incompatible_description">Enheten din er konfigurert til å ha systembevegelser (kjent som Quickstep) levert av %1$s, men denne versjonen av %1$s er ikke kompatibel med Android-versjonen din. Hvis du vil fortsette å bruke enheten, må du avinstallere %1$s-oppdateringer eller deaktivere %1$s som leverandør av systembevegelser.</string>
     <string name="translucent_background">Gjennomskinn bakgrunn</string>

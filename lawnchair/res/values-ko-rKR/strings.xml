@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%d주</string>
     <string name="time_months_ago">%d달</string>
     <string name="time_years_ago">%d년</string>
-    <string name="managed_by_lawnchair">Lawnchair에서 관리</string>
+    <string name="managed_by_lawnchair">AutoCat에서 관리</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">설정</string>
     <string name="settings_button_text">홈 화면 설정</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">설정 변경</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">기타</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">중복 앱 숨기기</string>
     <string name="my_folder_label">내 폴더</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">특정 액션들(휴대전화 잠그기 같은 액션)을 제스처로 작동시키려면, Lawnchair가 접근성 기능에 접근해야 합니다. \n\nLawnchair는 접근성 기능을 필요로 하지만 사용자의 활동을 감시하지 않으며, 시스템에서 발송된 모든 이벤트는 삭제됩니다. \n\nLawnchair는 휴대전화를 잠그거나 최근 앱을 보기 위해서 GlobalActionAccessbility 서비스를 사용합니다.</string>
+    <string name="accessibility_service_description">특정 액션들(휴대전화 잠그기 같은 액션)을 제스처로 작동시키려면, AutoCat가 접근성 기능에 접근해야 합니다. \n\nAutoCat는 접근성 기능을 필요로 하지만 사용자의 활동을 감시하지 않으며, 시스템에서 발송된 모든 이벤트는 삭제됩니다. \n\nAutoCat는 휴대전화를 잠그거나 최근 앱을 보기 위해서 GlobalActionAccessbility 서비스를 사용합니다.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">모두 닫기 버튼, 가장자리 둥글기</string>
     <string name="about_label">더 보기</string>
     <string name="app_info_drop_target_label">앱 정보</string>
-    <string name="debug_restart_launcher">Lawnchair 다시 시작</string>
+    <string name="debug_restart_launcher">AutoCat 다시 시작</string>
     <string name="experimental_features_label">실험적 기능</string>
     <!-- Experimental features -->
     <string name="font_picker_label">글꼴 사용자 정의</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">바로 가기 및 추가 기능에 액세스하려면 Lawnchair를 기본 홈 앱으로 설정하세요.</string>
+    <string name="set_default_launcher_tip">바로 가기 및 추가 기능에 액세스하려면 AutoCat를 기본 홈 앱으로 설정하세요.</string>
     <string name="notification_dots">알림 배지</string>
     <string name="show_notification_count">알림 개수 표시</string>
     <string name="notification_dots_color">알림 배지 색상</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots"><xliff:g example="My Provider" id="providerName">%1$s</xliff:g>를 사용하려면 알림 배지를 활성화하세요.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">홈 화면에 표시</string>
-    <string name="smartspace_widget_toggle_description">한눈에 보기는 Lawnchair 위젯을 배치하여 수동으로 홈 화면에 추가할 수 있습니다</string>
+    <string name="smartspace_widget_toggle_description">한눈에 보기는 AutoCat 위젯을 배치하여 수동으로 홈 화면에 추가할 수 있습니다</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">한 눈에 보기 제공자</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">어시스턴트 열기</string>
     <string name="pick_app_for_gesture">앱 선택</string>
     <string name="dt2s_admin_hint_title">관리자 권한이 필요합니다</string>
-    <string name="dt2s_admin_hint">두 번 눌러 화면 끄기 기능을 사용하려면, Lawnchair 앱을 기기 관리자 앱으로 할당 받아야 합니다. \"설정 열기\"를 누른 후, \"이 기기 관리자 앱 활성화\"를 누르세요.</string>
+    <string name="dt2s_admin_hint">두 번 눌러 화면 끄기 기능을 사용하려면, AutoCat 앱을 기기 관리자 앱으로 할당 받아야 합니다. \"설정 열기\"를 누른 후, \"이 기기 관리자 앱 활성화\"를 누르세요.</string>
     <string name="dt2s_admin_warning">두 번 눌러 화면 끄기 기능이 비활성화됩니다.</string>
     <string name="d2ts_recents_a11y_hint_title">접근성 서비스가 활성화되어야합니다</string>
-    <string name="dt2s_a11y_hint">두 번 눌러 화면 끄기 기능을 사용하려면 Lawnchair 접근성 서비스를 사용해야 합니다. \"설정 열기\"를 눌러 나오는 화면에서 \"Lawnchair\"를 누른 뒤, \"Lawnchair 사용\"을 켜세요.\n\nLawnchair는 기기를 잠그거나 최근 앱 화면을 열기 위해 접근성 서비스의 performGlobalAction 메소드를 사용합니다. 이 메소드는 다른 앱을 감시할 수 있는 민감한 권한이지만, Lawnchair는 앱 감시 기능이 없으며 시스템에서 보내는 이벤트를 모두 무시합니다.</string>
+    <string name="dt2s_a11y_hint">두 번 눌러 화면 끄기 기능을 사용하려면 AutoCat 접근성 서비스를 사용해야 합니다. \"설정 열기\"를 눌러 나오는 화면에서 \"AutoCat\"를 누른 뒤, \"AutoCat 사용\"을 켜세요.\n\nAutoCat는 기기를 잠그거나 최근 앱 화면을 열기 위해 접근성 서비스의 performGlobalAction 메소드를 사용합니다. 이 메소드는 다른 앱을 감시할 수 있는 민감한 권한이지만, AutoCat는 앱 감시 기능이 없으며 시스템에서 보내는 이벤트를 모두 무시합니다.</string>
     <string name="dt2s_recents_warning_open_settings">설정 열기</string>
-    <string name="recents_a11y_hint">최근 앱 화면을 사용하려면 접근성 서비스에서 Lawnchair 를 켜주셔야 합니다. \"설정 열기\"를 탭하고, \"Lawnchair\"를 \"Lawnchair 사용\"으로 켜 주십시오.\n\nLawnchair 는 최근 앱 화면 열기 를 실행하는 방법으로 접근성의 `performGlobalAction`을 사용합니다. 이 권한은 다른 앱을 감시할 수 있는 민감한 권한이나, Lawnchair 는 그러한 기능이 없으며 관련된 이벤트를 받지 않습니다.</string>
+    <string name="recents_a11y_hint">최근 앱 화면을 사용하려면 접근성 서비스에서 AutoCat 를 켜주셔야 합니다. \"설정 열기\"를 탭하고, \"AutoCat\"를 \"AutoCat 사용\"으로 켜 주십시오.\n\nAutoCat 는 최근 앱 화면 열기 를 실행하는 방법으로 접근성의 `performGlobalAction`을 사용합니다. 이 권한은 다른 앱을 감시할 수 있는 민감한 권한이나, AutoCat 는 그러한 기능이 없으며 관련된 이벤트를 받지 않습니다.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Lawnchair 버그 신고</string>
+    <string name="lawnchair_bug_report">AutoCat 버그 신고</string>
     <string name="crash_report_notif_title">%1$s가 종료되었습니다</string>
     <string name="action_upload_crash_report">크래시 로그 업로드</string>
     <string name="action_upload_error">업로드 실패</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">앱 검색</string>
     <string name="search_provider_custom">개인화</string>
-    <string name="search_provider_sponsored_description">%1$s과 Lawnchair는 수익 공유 계약을 맺었습니다.\n\n%1$s로 검색하면 Lawnchair 지원에 도움이 됩니다.</string>
+    <string name="search_provider_sponsored_description">%1$s과 AutoCat는 수익 공유 계약을 맺었습니다.\n\n%1$s로 검색하면 AutoCat 지원에 도움이 됩니다.</string>
     <string name="app_label">앱</string>
     <string name="website_label">웹사이트</string>
     <string name="qsb_search_provider_app_required">앱 필요</string>
@@ -552,7 +552,7 @@
     <string name="max_folder_columns">최대 폴더 열</string>
     <string name="max_folder_rows">최대 폴더 행</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">Lawnchair 가 최근 앱 보기 화면 제공자로 지정되지 않았으므로 이 설정은 무시됩니다</string>
+    <string name="quickswitch_ignored_warning">AutoCat 가 최근 앱 보기 화면 제공자로 지정되지 않았으므로 이 설정은 무시됩니다</string>
     <string name="quickstep_incompatible">호환되지 않는 시스템 통합</string>
     <string name="quickstep_incompatible_description">기기가 %1$s에서 제공하는 시스템 제스처(Quickstep으로 알려져 있음)가 설정되어 있지만 %1$s의 이 버전은 사용하고 계신 Android 버전과 호환되지 않습니다. 장치를 계속 사용하려면 %1$s 업데이트를 제거하거나 %1$s을(를) 시스템 제스처 공급자에서 비활성화하십시오.</string>
     <string name="translucent_background">반투명 배경</string>

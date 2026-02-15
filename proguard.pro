@@ -1,4 +1,4 @@
-# The rules from AOSP are located in proguard.flags file, we can just maintain Lawnchair related rules here.
+# The rules from AOSP are located in proguard.flags file, we can just maintain AutoCat related rules here.
 
 # Optimization options.
 -allowaccessmodification
@@ -48,8 +48,8 @@
   public static final ** CREATOR;
 }
 
-# Lawnchair specific rules.
--keep class app.lawnchair.LawnchairProto$* { *; }
+# AutoCat specific rules.
+-keep class app.lawnchair.AutoCatProto$* { *; }
 -keep class app.lawnchair.AutoCatApp { *; }
 -keep class app.lawnchair.AutoCatLauncher { *; }
 -keep class app.lawnchair.compatlib.** { *; }

@@ -34,7 +34,7 @@ class AutoCatWindowManagerProxy @Inject constructor() : WindowManagerProxy(Utili
     val TAG = "LC-WindowManagerProxy"
 
     override fun estimateInternalDisplayBounds(displayInfoContext: Context): ArrayMap<CachedDisplayInfo, List<WindowBounds>> {
-        // Lawnchair-TODO(Foldable): See estimateInternalDisplayBounds in [SystemWindowManagerProxy]
+        // AutoCat-TODO(Foldable): See estimateInternalDisplayBounds in [SystemWindowManagerProxy]
         // Wait... If SWMP fallback to getMaximumWindowMetrics from [WindowManager] public APIs
         // That means that we can combine getMaximumWindowMetrics with getCurrentWindowMetrics!
         // Wait... but doesn't that only account for two screens? What if there were more than two

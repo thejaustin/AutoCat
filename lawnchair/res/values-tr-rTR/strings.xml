@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dhft</string>
     <string name="time_months_ago">%day</string>
     <string name="time_years_ago">%dyıl</string>
-    <string name="managed_by_lawnchair">Lawnchair tarafından yönetilmektedir</string>
+    <string name="managed_by_lawnchair">AutoCat tarafından yönetilmektedir</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Tercihler</string>
     <string name="settings_button_text">Ana ekran ayarları</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Ayarları değiştir</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Diğerleri</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Sadece farklı uygulamaları göster</string>
     <string name="my_folder_label">Benim klasörüm</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">Belirli eylemleri (örneğin telefonunuzu kilitlemek) bir hareketle gerçekleştirebilmek için, Lawnchair erişilebilirlik iznine ihtiyaç duyar.\n\nLawnchair hiçbir kullanıcı etkinliğini izlemez; ancak tüm erişilebilirlik servislerinde bu ayrıcalık gereklidir. Lawnchair, sistem tarafından gönderilen tüm olayları yok sayar.\n\nTelefonunuzu kilitlemek veya Son uygulamalar ekranını açmak için Lawnchair, performGlobalAction Erişilebilirlik servisini kullanır.</string>
+    <string name="accessibility_service_description">Belirli eylemleri (örneğin telefonunuzu kilitlemek) bir hareketle gerçekleştirebilmek için, AutoCat erişilebilirlik iznine ihtiyaç duyar.\n\nAutoCat hiçbir kullanıcı etkinliğini izlemez; ancak tüm erişilebilirlik servislerinde bu ayrıcalık gereklidir. AutoCat, sistem tarafından gönderilen tüm olayları yok sayar.\n\nTelefonunuzu kilitlemek veya Son uygulamalar ekranını açmak için AutoCat, performGlobalAction Erişilebilirlik servisini kullanır.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">Tümünü Temizle tuşu, köşe yarıçapı</string>
     <string name="about_label">Hakkında</string>
     <string name="app_info_drop_target_label">Uygulama Hakkında</string>
-    <string name="debug_restart_launcher">Lawnchair\'i Yeniden Başlat</string>
+    <string name="debug_restart_launcher">AutoCat\'i Yeniden Başlat</string>
     <string name="experimental_features_label">Deneyimsel özellikler</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Yazı tipi özelleştirmesi</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">Kısayollar ve ek özellikler için Lawnchair\'ı varsayılan başlatıcınız yapın</string>
+    <string name="set_default_launcher_tip">Kısayollar ve ek özellikler için AutoCat\'ı varsayılan başlatıcınız yapın</string>
     <string name="notification_dots">Bildirim rozetleri</string>
     <string name="show_notification_count">Bildirim sayımı göster</string>
     <string name="notification_dots_color">Bildirim noktası rengi</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots"><xliff:g example="My Provider" id="providerName">%1$s</xliff:g> kullanmak için, bildirim noktalarını aç.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Ana ekranda göster</string>
-    <string name="smartspace_widget_toggle_description">Bir Bakışta widget\'i ana ekrana manuel olarak Lawnchair widget\'i kullanılarak eklenebilir</string>
+    <string name="smartspace_widget_toggle_description">Bir Bakışta widget\'i ana ekrana manuel olarak AutoCat widget\'i kullanılarak eklenebilir</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Bir Bakışta sağlayıcı</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Asistanı aç</string>
     <string name="pick_app_for_gesture">Uygulama seç</string>
     <string name="dt2s_admin_hint_title">Yönetici izinleri gerekli</string>
-    <string name="dt2s_admin_hint">Ekranı Kapatmak İçin Çift Dokunun\'u kullanmak için Lawnchair\'i bir cihaz yöneticisi uygulaması olarak ayarlayın. Ayarları Aç\'a tıklayın, ardından \"Bu cihaz yöneticisi uygulamasını aktif et\" seçeneğine tıklayın</string>
+    <string name="dt2s_admin_hint">Ekranı Kapatmak İçin Çift Dokunun\'u kullanmak için AutoCat\'i bir cihaz yöneticisi uygulaması olarak ayarlayın. Ayarları Aç\'a tıklayın, ardından \"Bu cihaz yöneticisi uygulamasını aktif et\" seçeneğine tıklayın</string>
     <string name="dt2s_admin_warning">Ekranı Kapatmak İçin Çift Dokunun kapatılacaktır.</string>
     <string name="d2ts_recents_a11y_hint_title">Erişilebilirlik hizmetini açın</string>
-    <string name="dt2s_a11y_hint">Çift Dokunarak Uyutma özelliğini kullanmak için Lawnchair erişilebilirlik servisini açın. \"Ayarları aç\" seçeneğine dokunun, \"Lawnchair\"i seçin ve \"Etkinleştir\" seçeneğini aktif edin.\n\nLawnchair, bu işlemi gerçekleştirmek için Erişilebilirlik’in performGlobalAction yöntemini kullanır. Bu, diğer uygulamaları izlemeye olanak tanıyan hassas bir izindir. Ancak, Lawnchair bu işlevsellik için yapılandırılmamıştır ve herhangi bir etkinlik almaz.</string>
+    <string name="dt2s_a11y_hint">Çift Dokunarak Uyutma özelliğini kullanmak için AutoCat erişilebilirlik servisini açın. \"Ayarları aç\" seçeneğine dokunun, \"AutoCat\"i seçin ve \"Etkinleştir\" seçeneğini aktif edin.\n\nAutoCat, bu işlemi gerçekleştirmek için Erişilebilirlik’in performGlobalAction yöntemini kullanır. Bu, diğer uygulamaları izlemeye olanak tanıyan hassas bir izindir. Ancak, AutoCat bu işlevsellik için yapılandırılmamıştır ve herhangi bir etkinlik almaz.</string>
     <string name="dt2s_recents_warning_open_settings">Ayarları aç</string>
-    <string name="recents_a11y_hint">Son Kullanılanlar özelliğini kullanmak için Lawnchair erişilebilirlik hizmetini açın. \"Ayarları aç\"a dokunun, \"Lawnchair\"i seçin ve etkinleştirin.\n\nLawnchair, bu işlemi gerçekleştirmek için Accessibility\'nin performGlobalAction yöntemini kullanır. Bu, diğer uygulamaları izlemeye olanak tanıyan hassas bir izindir. Ancak Lawnchair, bu işlev için yapılandırılmamıştır ve herhangi bir olay almaz.</string>
+    <string name="recents_a11y_hint">Son Kullanılanlar özelliğini kullanmak için AutoCat erişilebilirlik hizmetini açın. \"Ayarları aç\"a dokunun, \"AutoCat\"i seçin ve etkinleştirin.\n\nAutoCat, bu işlemi gerçekleştirmek için Accessibility\'nin performGlobalAction yöntemini kullanır. Bu, diğer uygulamaları izlemeye olanak tanıyan hassas bir izindir. Ancak AutoCat, bu işlev için yapılandırılmamıştır ve herhangi bir olay almaz.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Lawnchair Hata Bildirme</string>
+    <string name="lawnchair_bug_report">AutoCat Hata Bildirme</string>
     <string name="crash_report_notif_title">%1$s çalışmayı Durdurdu</string>
     <string name="action_upload_crash_report">Çökme günlüğünü yükle</string>
     <string name="action_upload_error">Yükleme Başarısız</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Uygulama araması</string>
     <string name="search_provider_custom">Özel</string>
-    <string name="search_provider_sponsored_description">Lawnchar\'ın %1$s ile sponsorluk anlaşması vardır\n\n %1$s ile arama yaparak Lawnchair\'a katkı sağlayabilirsiniz.</string>
+    <string name="search_provider_sponsored_description">Lawnchar\'ın %1$s ile sponsorluk anlaşması vardır\n\n %1$s ile arama yaparak AutoCat\'a katkı sağlayabilirsiniz.</string>
     <string name="app_label">Uygulama</string>
     <string name="website_label">Web sitesi</string>
     <string name="qsb_search_provider_app_required">Uygulama gerekli</string>
@@ -553,7 +553,7 @@
     <string name="max_folder_columns">Maksimum klasör sütunları</string>
     <string name="max_folder_rows">Maksimum klasör satırı</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">Bu ayarlar Lawnchair Son Kullanılanlar sağlayıcısı olmadığı sürece yok sayılacak</string>
+    <string name="quickswitch_ignored_warning">Bu ayarlar AutoCat Son Kullanılanlar sağlayıcısı olmadığı sürece yok sayılacak</string>
     <string name="quickstep_incompatible">Uyumsuz sistem entegrasyonu</string>
     <string name="quickstep_incompatible_description">Cihazınız %1$s tarafından sağlanan sistem hareketlerine (Quickstep olarak bilinir) sahip olacak şekilde yapılandırılmıştır, ancak %1$s\'nin bu sürümü Android sürümünüzle uyumlu değildir. Cihazınızı kullanmaya devam etmek için lütfen %1$s güncellemelerini kaldırın veya sistem hareketi sağlayıcısı olarak %1$s\'ı devre dışı bırakın.</string>
     <string name="translucent_background">Yarı saydam arka plan</string>

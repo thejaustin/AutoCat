@@ -211,7 +211,7 @@ class AutoCatShortcut {
             val outObj = Array<Any?>(1) { null }
             var icon = Utilities.loadFullDrawableWithoutTheme(launcher, appInfo, 0, 0, outObj)
             if (mItemInfo.screenId != NO_ID && icon is BitmapInfo.Extender) {
-                // Lawnchair-TODO-BubbleTea: Fix getThemedDrawable
+                // AutoCat-TODO-BubbleTea: Fix getThemedDrawable
                 // icon = icon.getThemedDrawable(launcher)
             }
             val launcherActivityInfo = outObj[0] as LauncherActivityInfo?

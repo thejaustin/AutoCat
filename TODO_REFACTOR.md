@@ -1,8 +1,8 @@
 # Internal Code Refactor Tasks (Branding)
 
-This document tracks planned internal code refactors to finalize the transition from Lawnchair to AutoCat branding. These are low-priority but important for codebase consistency.
+This document tracks the internal code refactors completed to finalize the transition from Lawnchair to AutoCat branding.
 
-## Tasks
+## Completed Tasks
 
 - [x] **Class Renaming**
   - [x] Rename `LawnchairApp` to `AutoCatApp`.
@@ -26,5 +26,9 @@ This document tracks planned internal code refactors to finalize the transition 
 - [x] **Log Tags**
   - [x] Systematically update all `TAG` constants from `Lawnchair*` to `AutoCat*`.
 
+- [x] **Resources & Protos**
+  - [x] Rename `lawnchair.proto` to `autocat.proto` and outer class to `AutoCatProto`.
+  - [x] Updated localized strings and copyright headers.
+
 ---
-*Created on 2026-01-16*
+*Last Updated: February 12, 2026*

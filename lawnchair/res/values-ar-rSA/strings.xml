@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dأسبوع</string>
     <string name="time_months_ago">%dشهر</string>
     <string name="time_years_ago">%dعام</string>
-    <string name="managed_by_lawnchair">تتم الإدارة بواسطة Lawnchair</string>
+    <string name="managed_by_lawnchair">تتم الإدارة بواسطة AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">التفضيلات</string>
     <string name="settings_button_text">إعدادات الصفحة الرئيسية</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">تغيير الإعدادات</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">آحرون</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">إظهار التطبيقات الفريدة فقط</string>
     <string name="my_folder_label">مجلدي</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">للقيام بإجراءات معينة (مثل غلق الهاتف) عند تنفيذ إيماءة، يتطلب Lawnchair منح الاذن إلى إمكانية الوصول.\n\nلا يراقب Lawnchair أي إجراء للمستخدم، على الرغم من ذلك فان الاذن مطلوب لجميع خدمات إمكانية الوصول. يتجاهل Lawnchair أي حدث يرسله النظام.\n\nلغلق هاتفك أو فتح \"التطبيقات الأخيرة\"، يستخدم Lawnchair خدمة إمكانية الوصول performGlobalAction.</string>
+    <string name="accessibility_service_description">للقيام بإجراءات معينة (مثل غلق الهاتف) عند تنفيذ إيماءة، يتطلب AutoCat منح الاذن إلى إمكانية الوصول.\n\nلا يراقب AutoCat أي إجراء للمستخدم، على الرغم من ذلك فان الاذن مطلوب لجميع خدمات إمكانية الوصول. يتجاهل AutoCat أي حدث يرسله النظام.\n\nلغلق هاتفك أو فتح \"التطبيقات الأخيرة\"، يستخدم AutoCat خدمة إمكانية الوصول performGlobalAction.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">زر \"مسح الكل\"، نصف قطر الزاوية</string>
     <string name="about_label">حول التطبيق</string>
     <string name="app_info_drop_target_label">معلومات التطبيق</string>
-    <string name="debug_restart_launcher">إعادة تشغيل Lawnchair</string>
+    <string name="debug_restart_launcher">إعادة تشغيل AutoCat</string>
     <string name="experimental_features_label">الميزات التجريبية</string>
     <!-- Experimental features -->
     <string name="font_picker_label">تخصيص الخط</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">للوصول إلى الاختصارات والميزات الإضافية، عيّن Lawnchair كمشغل افتراضي</string>
+    <string name="set_default_launcher_tip">للوصول إلى الاختصارات والميزات الإضافية، عيّن AutoCat كمشغل افتراضي</string>
     <string name="notification_dots">نقاط الإشعارات</string>
     <string name="show_notification_count">عرض عداد الإشعارات</string>
     <string name="notification_dots_color">لون نقطة الإشعار</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">لاستخدام <xliff:g example="My Provider" id="providerName">%1$s</xliff:g>، قم بتفعيل نقاط الإشعارات.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">عرض على الشاشة الرئيسية</string>
-    <string name="smartspace_widget_toggle_description">يمكنك إضافة لمحة يدوياً إلى الشاشة الرئيسية عن طريق وضع ويدجيت Lawnchair</string>
+    <string name="smartspace_widget_toggle_description">يمكنك إضافة لمحة يدوياً إلى الشاشة الرئيسية عن طريق وضع ويدجيت AutoCat</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">مزود لمحة</string>
     <string name="smartspace_mode_google">جوجل</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">مساعد مفتوح</string>
     <string name="pick_app_for_gesture">اختر التطبيق</string>
     <string name="dt2s_admin_hint_title">أذونات المشرف مطلوبة</string>
-    <string name="dt2s_admin_hint">لاستخدام النقرة المزدوجة لإطفاء الشاشة، عيّن Lawnchair كتطبيق مشرف للجهاز. انقر على فتح الإعدادات، ثم انقر على \"فعِّل التطبيق كمشرف على الجهاز.\"</string>
+    <string name="dt2s_admin_hint">لاستخدام النقرة المزدوجة لإطفاء الشاشة، عيّن AutoCat كتطبيق مشرف للجهاز. انقر على فتح الإعدادات، ثم انقر على \"فعِّل التطبيق كمشرف على الجهاز.\"</string>
     <string name="dt2s_admin_warning">سيتم إيقاف تشغيل الضغط المزدوج للسكون.</string>
     <string name="d2ts_recents_a11y_hint_title">تشغيل خدمة الوصول</string>
-    <string name="dt2s_a11y_hint">لاستخدام ميزة النقر المزدوج للسكون، قم بتفعيل خدمة الوصول الخاصة بـ Lawnchair. اضغط على \"فتح الإعدادات\"، ثم اختر \"Lawnchair\" وقم بتفعيل \"استخدام Lawnchair\". يستخدم Lawnchair طريقة performGlobalAction من خدمات الوصول لتنفيذ هذا الإجراء. هذه إذن حساس يسمح بمراقبة التطبيقات الأخرى. ومع ذلك، لم يتم تكوين Lawnchair لهذه الوظيفة ولا يستقبل أي أحداث.</string>
+    <string name="dt2s_a11y_hint">لاستخدام ميزة النقر المزدوج للسكون، قم بتفعيل خدمة الوصول الخاصة بـ AutoCat. اضغط على \"فتح الإعدادات\"، ثم اختر \"AutoCat\" وقم بتفعيل \"استخدام AutoCat\". يستخدم AutoCat طريقة performGlobalAction من خدمات الوصول لتنفيذ هذا الإجراء. هذه إذن حساس يسمح بمراقبة التطبيقات الأخرى. ومع ذلك، لم يتم تكوين AutoCat لهذه الوظيفة ولا يستقبل أي أحداث.</string>
     <string name="dt2s_recents_warning_open_settings">فتح الإعدادات</string>
-    <string name="recents_a11y_hint">لاستخدام فتح التطبيقات الأخيرة، قم بتفعيل خدمة الوصول الخاصة بـ Lawnchair. اضغط على \"فتح الإعدادات\"، ثم اختر \"Lawnchair\" وقم بتفعيل \"استخدام Lawnchair\n\n.\"Lawnchair يستخدم خدمة وصول performGlobalAction لتنفيذ هذا الإجراء. هذا إذن ذو صلاحيات حساسة تسمح بمراقبة التطبيقات الأخرى. ومع ذلك، لم يتم تصميمLawnchair لهذه الوظيفة ولا يستقبل أي أحداث.</string>
+    <string name="recents_a11y_hint">لاستخدام فتح التطبيقات الأخيرة، قم بتفعيل خدمة الوصول الخاصة بـ AutoCat. اضغط على \"فتح الإعدادات\"، ثم اختر \"AutoCat\" وقم بتفعيل \"استخدام AutoCat\n\n.\"AutoCat يستخدم خدمة وصول performGlobalAction لتنفيذ هذا الإجراء. هذا إذن ذو صلاحيات حساسة تسمح بمراقبة التطبيقات الأخرى. ومع ذلك، لم يتم تصميمAutoCat لهذه الوظيفة ولا يستقبل أي أحداث.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">تقرير خطأ Lawnchair</string>
+    <string name="lawnchair_bug_report">تقرير خطأ AutoCat</string>
     <string name="crash_report_notif_title">%1$s تعطل</string>
     <string name="action_upload_crash_report">تحميل سجل التعطل</string>
     <string name="action_upload_error">فشل التحميل</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">بحث التطبيقات</string>
     <string name="search_provider_custom">تخصيص</string>
-    <string name="search_provider_sponsored_description">%1$s وLawnchair لديهما اتفاقية مشاركة الإيرادات.\n\nالبحث باستخدام %1$s يساعد في دعم Lawnchair.</string>
+    <string name="search_provider_sponsored_description">%1$s وAutoCat لديهما اتفاقية مشاركة الإيرادات.\n\nالبحث باستخدام %1$s يساعد في دعم AutoCat.</string>
     <string name="app_label">التطبيق</string>
     <string name="website_label">الموقع</string>
     <string name="qsb_search_provider_app_required">التطبيق مطلوب</string>
@@ -557,7 +557,7 @@
     <string name="max_folder_columns">أقصى عدد من الأعمدة في المجلد</string>
     <string name="max_folder_rows">أقصى عدد من الصفوف في المجلد</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">سيتم تجاهل هذه الإعدادات لأن Lawnchair لم يتم اختياره كمزود لقائمة التطبيقات الأخيرة</string>
+    <string name="quickswitch_ignored_warning">سيتم تجاهل هذه الإعدادات لأن AutoCat لم يتم اختياره كمزود لقائمة التطبيقات الأخيرة</string>
     <string name="quickstep_incompatible">تكامل النظام غير متوافق</string>
     <string name="quickstep_incompatible_description">تم تكوين جهازك ليحتوي على إيماءات النظام (المعروفة باسم Quickstep) المقدمة بواسطة %1$s، ولكن هذا الإصدار من %1$s غير متوافق مع إصدار Android الخاص بك. لمتابعة استخدام جهازك، يرجى إلغاء تثبيت تحديثات %1$s أو تعطيل %1$s كمزود لإيماءات النظام.</string>
     <string name="translucent_background">خلفية شفافة</string>

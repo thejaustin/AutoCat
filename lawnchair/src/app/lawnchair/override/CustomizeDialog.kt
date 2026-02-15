@@ -147,7 +147,7 @@ fun CustomizeAppDialog(
     }
     val launcherAppState = LauncherAppState.getInstance(context)
 
-    // Lawnchair-TODO: We use rememberLauncherForActivityResult, but it was broke so intent was used.
+    // AutoCat-TODO: We use rememberLauncherForActivityResult, but it was broke so intent was used.
 
     val route = SelectIcon(componentKey.toString())
 

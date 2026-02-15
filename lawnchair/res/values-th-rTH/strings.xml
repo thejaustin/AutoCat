@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dw</string>
     <string name="time_months_ago">%dmo</string>
     <string name="time_years_ago">%dy</string>
-    <string name="managed_by_lawnchair">จัดการโดย Lawnchair</string>
+    <string name="managed_by_lawnchair">จัดการโดย AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">ปรับแต่ง</string>
     <string name="settings_button_text">การตั้งค่าหน้าโฮม</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">เปลี่ยนการตั้งค่า</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">อื่นๆ</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Only show unique apps</string>
     <string name="my_folder_label">My folder</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, Lawnchair requires accessibility access.\n\nLawnchair doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. Lawnchair discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, Lawnchair uses the performGlobalAction Accessibility service.</string>
+    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, AutoCat requires accessibility access.\n\nAutoCat doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. AutoCat discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, AutoCat uses the performGlobalAction Accessibility service.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">ล้างปุ่มทั้งหมด, รัศมีมุม</string>
     <string name="about_label">เกี่ยวกับ</string>
     <string name="app_info_drop_target_label">ข้อมูลแอป</string>
-    <string name="debug_restart_launcher">เริ่มต้น Lawnchair ใหม่</string>
+    <string name="debug_restart_launcher">เริ่มต้น AutoCat ใหม่</string>
     <string name="experimental_features_label">ฟีเจอร์ทดลอง</string>
     <!-- Experimental features -->
     <string name="font_picker_label">การปรับแต่งแบบอักษร</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">หากต้องการเข้าถึงทางลัดและคุณสมบัติเพิ่มเติม ให้ตั้งค่า Lawnchair เป็นแอปหน้าแรกเริ่มต้น</string>
+    <string name="set_default_launcher_tip">หากต้องการเข้าถึงทางลัดและคุณสมบัติเพิ่มเติม ให้ตั้งค่า AutoCat เป็นแอปหน้าแรกเริ่มต้น</string>
     <string name="notification_dots">จุดแสดงการแจ้งเตือน</string>
     <string name="show_notification_count">แสดงตัวเลขจากการแจ้งเตือน</string>
     <string name="notification_dots_color">สีจุดการแจ้งเตือน</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">หากต้องการใช้ <xliff:g example="My Provider" id="providerName">%1$s</xliff:g> ให้เปิดจุดแสดงการแจ้งเตือน</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">แสดงบนหน้าจอหลัก</string>
-    <string name="smartspace_widget_toggle_description">สามารถเพิ่มข้อมูลโดยย่อในหน้าหลักได้ด้วยตนเองโดยวางวิดเจ็ต Lawnchair</string>
+    <string name="smartspace_widget_toggle_description">สามารถเพิ่มข้อมูลโดยย่อในหน้าหลักได้ด้วยตนเองโดยวางวิดเจ็ต AutoCat</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">ผู้ให้บริการข้อมูลโดยย่อ</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Open assistant</string>
     <string name="pick_app_for_gesture">เลือกแอป</string>
     <string name="dt2s_admin_hint_title">จำเป็นต้องมีสิทธิ์ผู้ดูแลอุปกรณ์</string>
-    <string name="dt2s_admin_hint">หากต้องการแตะสองครั้งเพี่อปิดจอ ให้ตั้งค่า Lawnchair เป็นแอปผู้ดูแลอุปกรณ์ แตะเปิดการตั้งค่า จากนั้นแตะ “เปิดใช้งานแอปผู้ดูแลระบบอุปกรณ์นี้”</string>
+    <string name="dt2s_admin_hint">หากต้องการแตะสองครั้งเพี่อปิดจอ ให้ตั้งค่า AutoCat เป็นแอปผู้ดูแลอุปกรณ์ แตะเปิดการตั้งค่า จากนั้นแตะ “เปิดใช้งานแอปผู้ดูแลระบบอุปกรณ์นี้”</string>
     <string name="dt2s_admin_warning">แตะสองครั้งเพื่อเข้าสู่โหมดสลีป หน้าจอจะถูกปิด</string>
     <string name="d2ts_recents_a11y_hint_title">เปิดบริการการช่วยการเข้าถึง</string>
-    <string name="dt2s_a11y_hint">To use Double-Tap to Sleep, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="dt2s_a11y_hint">To use Double-Tap to Sleep, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
     <string name="dt2s_recents_warning_open_settings">เปิดการตั้งค่า</string>
-    <string name="recents_a11y_hint">To use Open Recents screen, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="recents_a11y_hint">To use Open Recents screen, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">รายงานข้อผิดพลาดให้กับ Lawnchair</string>
+    <string name="lawnchair_bug_report">รายงานข้อผิดพลาดให้กับ AutoCat</string>
     <string name="crash_report_notif_title">%1$s ทำงานผิดพลาด</string>
     <string name="action_upload_crash_report">อัปโหลด Log ข้อผิดพลาด</string>
     <string name="action_upload_error">อัปโหลดไม่สำเร็จ</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">ค้นหาแอป</string>
     <string name="search_provider_custom">ปรับแต่ง</string>
-    <string name="search_provider_sponsored_description">%1$s และ Lawnchair มีข้อตกลงแบ่งรายได้ร่วมกัน\n\nการค้นหาด้วย %1$s ช่วยสนับสนุน Lawnchair</string>
+    <string name="search_provider_sponsored_description">%1$s และ AutoCat มีข้อตกลงแบ่งรายได้ร่วมกัน\n\nการค้นหาด้วย %1$s ช่วยสนับสนุน AutoCat</string>
     <string name="app_label">แอป</string>
     <string name="website_label">เว็บไซต์</string>
     <string name="qsb_search_provider_app_required">จำเป็นต้องมีแอป</string>
@@ -552,7 +552,7 @@
     <string name="max_folder_columns">จำนวนคอลัมน์สูงสุดของโฟลเดอร์</string>
     <string name="max_folder_rows">จำนวนแถวสูงสุดของโฟลเดอร์</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">These settings will be ignored as Lawnchair isn\'t set as the Recents screen provider</string>
+    <string name="quickswitch_ignored_warning">These settings will be ignored as AutoCat isn\'t set as the Recents screen provider</string>
     <string name="quickstep_incompatible">ระบบไม่สามารถเข้ากันได้</string>
     <string name="quickstep_incompatible_description">อุปกรณ์ของคุณได้รับการกำหนดค่าให้มีรูปแบบลายเส้นของระบบ (เรียกว่า Quickstep) ซึ่งให้บริการโดย %1$s แต่ %1$s เวอร์ชันนี้ไม่สามารถทำงานร่วมกับ Android เวอร์ชันของคุณได้ หากต้องการใช้อุปกรณ์ของคุณต่อไป โปรดถอนการติดตั้งการอัปเดต %1$s หรือปิดใช้งาน %1$s ในการตั้งค่า</string>
     <string name="translucent_background">พื้นหลังโปร่งแสง</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dw</string>
     <string name="time_months_ago">%dmo</string>
     <string name="time_years_ago">%dy</string>
-    <string name="managed_by_lawnchair">A Lawnchair által kezelve</string>
+    <string name="managed_by_lawnchair">A AutoCat által kezelve</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Beállítások</string>
     <string name="settings_button_text">Kezdőoldal-beállítások</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Beállítások módosítása</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Egyebek</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Csak az egyedi alkalmazások jelenjenek meg</string>
     <string name="my_folder_label">Mappáim</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, Lawnchair requires accessibility access.\n\nLawnchair doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. Lawnchair discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, Lawnchair uses the performGlobalAction Accessibility service.</string>
+    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, AutoCat requires accessibility access.\n\nAutoCat doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. AutoCat discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, AutoCat uses the performGlobalAction Accessibility service.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d × %2$d</string>
     <string name="x_and_y">%1$s és %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">„Összes törlése” gomb, sarok sugara</string>
     <string name="about_label">Névjegy</string>
     <string name="app_info_drop_target_label">Alkalmazásinformáció</string>
-    <string name="debug_restart_launcher">A Lawnchair újraindítása</string>
+    <string name="debug_restart_launcher">A AutoCat újraindítása</string>
     <string name="experimental_features_label">Kísérleti funkciók</string>
     <!-- Experimental features -->
     <string name="font_picker_label">A betűkészlet testreszabása</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">A parancsikonok és a további funkciók eléréséhez állítsa be a Lawnchair-t alapértelmezettként</string>
+    <string name="set_default_launcher_tip">A parancsikonok és a további funkciók eléréséhez állítsa be a AutoCat-t alapértelmezettként</string>
     <string name="notification_dots">Értesítési pöttyök</string>
     <string name="show_notification_count">Legyen látható az értesítés-számláló</string>
     <string name="notification_dots_color">Az értesítési pöttyök színe</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">Kapcsolja be az Értesítési pöttyöket a <xliff:g example="My Provider" id="providerName">%1$s</xliff:g> használatához</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Megjelenítés a Kezdőképernyőn</string>
-    <string name="smartspace_widget_toggle_description">Az \'Áttekintés\' manuálisan hozzáadható a Kezdőképernyőhöz a Lawnchair kisalkalmazás elhelyezésével</string>
+    <string name="smartspace_widget_toggle_description">Az \'Áttekintés\' manuálisan hozzáadható a Kezdőképernyőhöz a AutoCat kisalkalmazás elhelyezésével</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Az \'Áttekintés\' szolgáltatója</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">A segéd indítása</string>
     <string name="pick_app_for_gesture">Egy alkalmazás választása</string>
     <string name="dt2s_admin_hint_title">Adminisztrátori jogosultság szükséges</string>
-    <string name="dt2s_admin_hint">A \'Képernyőkikapcsolás Duplakoppal\' funkcióhoz állítsa be készülékvezérlőként a Lawnchair-t. Nyissa meg a Beállításokat és érintse meg az \"Aktiválja a készülék-adminisztrátori alkalmazást\" lehetőséget</string>
+    <string name="dt2s_admin_hint">A \'Képernyőkikapcsolás Duplakoppal\' funkcióhoz állítsa be készülékvezérlőként a AutoCat-t. Nyissa meg a Beállításokat és érintse meg az \"Aktiválja a készülék-adminisztrátori alkalmazást\" lehetőséget</string>
     <string name="dt2s_admin_warning">A \'Képernyőkikapcsolás Duplakoppal\' kikapcsolásra kerül.</string>
     <string name="d2ts_recents_a11y_hint_title">A \'Kisegítő lehetőségek\' bekapcsolása</string>
-    <string name="dt2s_a11y_hint">A \'Képernyőkikapcsolás Duplakoppal\' használatához kapcsolja be a Lawnchair \'Kisegítő lehetőségei\'-t. Koppintson a „Beállítások megnyitása”, válassza a „Lawnchair” lehetőséget, és kapcsolja be a „Lawnchair használata” lehetőséget.\n\nA Lawnchair az akadálymentesítés „performGlobalAction” metódusát használja a művelet végrehajtásához. Ez egy bizalmas engedély, amely lehetővé teszi más alkalmazások figyelését. A Lawnchair azonban nincs konfigurálva ehhez a funkcióhoz, és nem fogad eseményeket.</string>
+    <string name="dt2s_a11y_hint">A \'Képernyőkikapcsolás Duplakoppal\' használatához kapcsolja be a AutoCat \'Kisegítő lehetőségei\'-t. Koppintson a „Beállítások megnyitása”, válassza a „AutoCat” lehetőséget, és kapcsolja be a „AutoCat használata” lehetőséget.\n\nA AutoCat az akadálymentesítés „performGlobalAction” metódusát használja a művelet végrehajtásához. Ez egy bizalmas engedély, amely lehetővé teszi más alkalmazások figyelését. A AutoCat azonban nincs konfigurálva ehhez a funkcióhoz, és nem fogad eseményeket.</string>
     <string name="dt2s_recents_warning_open_settings">A Beállítások megnyitása</string>
-    <string name="recents_a11y_hint">To use Open Recents screen, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="recents_a11y_hint">To use Open Recents screen, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Lawnchair-hibajelentés</string>
+    <string name="lawnchair_bug_report">AutoCat-hibajelentés</string>
     <string name="crash_report_notif_title">A(z) %1$s összeomlott</string>
     <string name="action_upload_crash_report">Összeomlási napló feltöltése</string>
     <string name="action_upload_error">Feltöltési hiba</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Alkalmazáskereső</string>
     <string name="search_provider_custom">Egyéni</string>
-    <string name="search_provider_sponsored_description">%1$s és a Lawnchair bevételmegosztási megállapodást kötött.\n\nHa %1$s végzi a keresést, azzal segít a Lawnchair-nek is.</string>
+    <string name="search_provider_sponsored_description">%1$s és a AutoCat bevételmegosztási megállapodást kötött.\n\nHa %1$s végzi a keresést, azzal segít a AutoCat-nek is.</string>
     <string name="app_label">Alkalmazás</string>
     <string name="website_label">Weboldal</string>
     <string name="qsb_search_provider_app_required">Ehhez kell egy alkalmazás</string>
@@ -553,7 +553,7 @@
     <string name="max_folder_columns">A mappaoszlopok maximuma</string>
     <string name="max_folder_rows">A mappasorok maximuma</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">These settings will be ignored as Lawnchair isn\'t set as the Recents screen provider</string>
+    <string name="quickswitch_ignored_warning">These settings will be ignored as AutoCat isn\'t set as the Recents screen provider</string>
     <string name="quickstep_incompatible">Nem kompatibilis rendszer-integráció</string>
     <string name="quickstep_incompatible_description">Készüléke úgy van konfigurálva, hogy a(z) %1$s által biztosított rendszermozdulatokat (az úgynevezett Quickstep-et) tartalmazza, de a %1$s-verzió nem kompatibilis az Android-verzióval. A készülék további használatához, kérjük távolítsa el az utolsó %1$s-frissítést vagy állítsa be úgy készülékét hogy nem a(z) %1$s a rendszer mozdulatvezérlője.</string>
     <string name="translucent_background">Átlátszó háttér</string>

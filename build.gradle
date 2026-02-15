@@ -162,7 +162,7 @@ final def quickstepMaxSdk = "36"
 android {
     namespace = "com.android.launcher3"
     defaultConfig {
-        // AutoCat - Fork of AutoCat Launcher 16.0
+        // AutoCat - Fork of Lawnchair Launcher 16.0
         def autocatBuildCode = ciRunNumber != "local" ? (ciRunNumber.toInteger()) : 0
         versionCode 160000 + autocatBuildCode
         versionName "${versionDisplayName}"

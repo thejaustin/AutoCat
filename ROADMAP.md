@@ -10,7 +10,7 @@ AutoCat's goal is to be:
 
 * **Intelligent:** Use AI to make app organization effortless.
 * **Simple:** Match the core Pixel Launcher experience while adding power.
-* **Stable:** Provide a rock-solid, reliable foundation based on Lawnchair 16.
+* **Stable:** Provide a rock-solid, reliable foundation based on AutoCat 16.
 
 ## Roadmap
 
@@ -18,7 +18,7 @@ AutoCat's goal is to be:
 
 - **Settings UI Enhancement:** Integrated Material 3 search bar, top-level customization actions, and polished animations for settings category reordering.
 - **Versioning:** Migrated to clean 6-digit `160000+` versioning scheme for the fork.
-- **Branding:** Full internal codebase refactor from Lawnchair to AutoCat (Classes, Styles, Log Tags).
+- **Branding:** Full internal codebase refactor from AutoCat to AutoCat (Classes, Styles, Log Tags).
 - **LLM Reliability:** Implemented exponential backoff and rate-limit handling for AI providers.
 - **Diagnostics:** Added a dedicated Developer Diagnostics UI for database and log inspection.
 - **Parallelism:** Optimized LLM batch categorization with parallel coroutine processing.

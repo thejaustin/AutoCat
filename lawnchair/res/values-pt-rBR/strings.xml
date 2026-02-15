@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dsem</string>
     <string name="time_months_ago">%dm</string>
     <string name="time_years_ago">%da</string>
-    <string name="managed_by_lawnchair">Gerenciado por Lawnchair</string>
+    <string name="managed_by_lawnchair">Gerenciado por AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Preferências</string>
     <string name="settings_button_text">Configurações da tela inicial</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Alterar configurações</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Outros</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Mostrar apenas apps únicos</string>
     <string name="my_folder_label">Minha pasta</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">Para executar certas ações (como bloquear seu telefone) utilizando gestos, o Lawnchair precisar obter acesso aos recursos de acessibilidade.\n\nO Lawnchair não rastreia nenhuma ação do usuário, mesmo que o privilégio para fazer isso seja exigido para todos os serviços de acessibilidade. O Lawnchair descartará qualquer evento enviado pelo sistema.\n\nPara bloquear seu telefone, ou abrir a janela de aplicativos recentes, o Lawnchair utiliza o serviço de acessibilidade performGlobalAction.</string>
+    <string name="accessibility_service_description">Para executar certas ações (como bloquear seu telefone) utilizando gestos, o AutoCat precisar obter acesso aos recursos de acessibilidade.\n\nO AutoCat não rastreia nenhuma ação do usuário, mesmo que o privilégio para fazer isso seja exigido para todos os serviços de acessibilidade. O AutoCat descartará qualquer evento enviado pelo sistema.\n\nPara bloquear seu telefone, ou abrir a janela de aplicativos recentes, o AutoCat utiliza o serviço de acessibilidade performGlobalAction.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">Botão \"Limpar Tudo\", raio de canto</string>
     <string name="about_label">Sobre</string>
     <string name="app_info_drop_target_label">Informações do app</string>
-    <string name="debug_restart_launcher">Reiniciar o Lawnchair</string>
+    <string name="debug_restart_launcher">Reiniciar o AutoCat</string>
     <string name="experimental_features_label">Recursos experimentais</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Customização de fonte</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">Para acessar atalhos e recursos adicionais, configure o Lawnchair como sua launcher padrão</string>
+    <string name="set_default_launcher_tip">Para acessar atalhos e recursos adicionais, configure o AutoCat como sua launcher padrão</string>
     <string name="notification_dots">Pontos de notificação</string>
     <string name="show_notification_count">Mostrar contador de notificação</string>
     <string name="notification_dots_color">Cor do ponto de notificação</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">Para usar <xliff:g example="My Provider" id="providerName">%1$s</xliff:g>, ative os pontos de notificação.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Mostrar na tela inicial</string>
-    <string name="smartspace_widget_toggle_description">O widget de Resumo pode ser adicionado manualmente à tela inicial ao colocar o widget do Lawnchair</string>
+    <string name="smartspace_widget_toggle_description">O widget de Resumo pode ser adicionado manualmente à tela inicial ao colocar o widget do AutoCat</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Provedor de Resumo</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Abrir assistente</string>
     <string name="pick_app_for_gesture">Escolher aplicativo</string>
     <string name="dt2s_admin_hint_title">Permissões de administrador necessárias</string>
-    <string name="dt2s_admin_hint">Para usar o duplo clique para desligar a tela, defina o Lawnchair como um aplicativo de administrador do dispositivo. Toque em \"Abrir configurações\" e depois em \"Ativar o aplicativo de administrador do dispositivo.\"</string>
+    <string name="dt2s_admin_hint">Para usar o duplo clique para desligar a tela, defina o AutoCat como um aplicativo de administrador do dispositivo. Toque em \"Abrir configurações\" e depois em \"Ativar o aplicativo de administrador do dispositivo.\"</string>
     <string name="dt2s_admin_warning">O Toque Duplo para Desligar a tela será desativado.</string>
     <string name="d2ts_recents_a11y_hint_title">Ativar serviço de acessibilidade</string>
-    <string name="dt2s_a11y_hint">Para usar o toque duplo para desligar, ative o serviço de acessibilidade do Lawnchair. Toque em \"Abrir configurações\", selecione \"Lawnchair\" e ative \"Usar Lawnchair.\n\nLawnchair usa o método de acessibilidade `performGlobalAction` para executar essa ação. Essa é uma permissão sensível que permite monitorar outros aplicativos. No entanto, o Lawnchair não está configurado para essa funcionalidade e não recebe eventos.</string>
+    <string name="dt2s_a11y_hint">Para usar o toque duplo para desligar, ative o serviço de acessibilidade do AutoCat. Toque em \"Abrir configurações\", selecione \"AutoCat\" e ative \"Usar AutoCat.\n\nAutoCat usa o método de acessibilidade `performGlobalAction` para executar essa ação. Essa é uma permissão sensível que permite monitorar outros aplicativos. No entanto, o AutoCat não está configurado para essa funcionalidade e não recebe eventos.</string>
     <string name="dt2s_recents_warning_open_settings">Abrir as configurações</string>
-    <string name="recents_a11y_hint">Para usar Abrir Recentes, ative o serviço de acessibilidade do Lawnchair. Toque em \"Abrir configurações\", selecione \"Lawnchair\" e ative \"Usar o Lawnchair.\"\n\nO Lawnchair usa o método de acessibilidade `performGlobalAction` para executar essa ação. Essa é uma permissão sensível que permite monitorar outros aplicativos. No entanto, o Lawnchair não está configurado para essa funcionalidade e não irá receber eventos.</string>
+    <string name="recents_a11y_hint">Para usar Abrir Recentes, ative o serviço de acessibilidade do AutoCat. Toque em \"Abrir configurações\", selecione \"AutoCat\" e ative \"Usar o AutoCat.\"\n\nO AutoCat usa o método de acessibilidade `performGlobalAction` para executar essa ação. Essa é uma permissão sensível que permite monitorar outros aplicativos. No entanto, o AutoCat não está configurado para essa funcionalidade e não irá receber eventos.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Relatório de bugs do Lawnchair</string>
+    <string name="lawnchair_bug_report">Relatório de bugs do AutoCat</string>
     <string name="crash_report_notif_title">%1$s crashou</string>
     <string name="action_upload_crash_report">Enviar registro de erro</string>
     <string name="action_upload_error">Falha no envio</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Pesquisa de aplicativos</string>
     <string name="search_provider_custom">Personalizar</string>
-    <string name="search_provider_sponsored_description">%1$s e Lawnchair têm um acordo de participação na receita.\n\nPesquisar usando %1$s ajuda a apoiar o Lawnchair.</string>
+    <string name="search_provider_sponsored_description">%1$s e AutoCat têm um acordo de participação na receita.\n\nPesquisar usando %1$s ajuda a apoiar o AutoCat.</string>
     <string name="app_label">Aplicativo</string>
     <string name="website_label">Site da Internet</string>
     <string name="qsb_search_provider_app_required">Aplicativo necessário</string>
@@ -553,7 +553,7 @@
     <string name="max_folder_columns">Máximo de colunas nas pastas</string>
     <string name="max_folder_rows">Máximo de linhas nas pastas</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">Estas configurações serão ignoradas, já que o Lawnchair não está definido como o provedor de aplicativos recentes</string>
+    <string name="quickswitch_ignored_warning">Estas configurações serão ignoradas, já que o AutoCat não está definido como o provedor de aplicativos recentes</string>
     <string name="quickstep_incompatible">Integração de sistema incompatível</string>
     <string name="quickstep_incompatible_description">Seu dispositivo está configurado para ter gestos do sistema (conhecido como Quickstep) fornecidos por %1$s, mas esta versão do %1$s não é compatível com sua versão do Android. Para continuar usando o seu dispositivo, desinstale as atualizações de %1$s ou desative %1$s como provedor de gestos do sistema.</string>
     <string name="translucent_background">Fundo translúcido</string>

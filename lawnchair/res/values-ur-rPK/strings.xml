@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@
     <string name="title_change_settings">ترتیبات کو تبدیل کریں۔</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">دوسرے</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">صرف منفرد ایپس دکھائیں۔</string>
     <string name="my_folder_label">میرا فولڈر</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, Lawnchair requires accessibility access.\n\nLawnchair doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. Lawnchair discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, Lawnchair uses the performGlobalAction Accessibility service.</string>
+    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, AutoCat requires accessibility access.\n\nAutoCat doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. AutoCat discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, AutoCat uses the performGlobalAction Accessibility service.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -416,12 +416,12 @@
     <string name="gesture_handler_open_assistant">اسسٹنٹ کھولیں۔</string>
     <string name="pick_app_for_gesture">ایپ چنیں۔</string>
     <string name="dt2s_admin_hint_title">ایڈمن کی اجازت درکار ہے۔</string>
-    <string name="dt2s_admin_hint">سونے کے لیے ڈبل تھپتھپائیں استعمال کرنے کے لیے، Lawnchair کو بطور ڈیوائس ایڈمن ایپ سیٹ کریں۔ \"کھولیں ترتیبات\" کو تھپتھپائیں، پھر \"اس ڈیوائس ایڈمن ایپ کو چالو کریں\" پر ٹیپ کریں۔</string>
+    <string name="dt2s_admin_hint">سونے کے لیے ڈبل تھپتھپائیں استعمال کرنے کے لیے، AutoCat کو بطور ڈیوائس ایڈمن ایپ سیٹ کریں۔ \"کھولیں ترتیبات\" کو تھپتھپائیں، پھر \"اس ڈیوائس ایڈمن ایپ کو چالو کریں\" پر ٹیپ کریں۔</string>
     <string name="dt2s_admin_warning">دو بار دوبا کر سولانا غیر فعال ہو جائے گا۔.</string>
     <string name="d2ts_recents_a11y_hint_title">ایکسیسبیلٹی سروس کو آن کریں۔</string>
-    <string name="dt2s_a11y_hint">سونے کے لیے ڈبل تھپتھپائیں استعمال کرنے کے لیے، لانچ چیئر تک رسائی کی خدمت کو آن کریں۔ \"اوپن سیٹنگز\" کو تھپتھپائیں، \"لان چیئر\" کو منتخب کریں اور \"لان چیئر کا استعمال کریں\" کو آن کریں۔\n\nلان چیئر اس کارروائی کو انجام دینے کے لیے ایکسیسبیلٹی کا `پرفارم گلوبل ایکشن` طریقہ استعمال کرتی ہے۔ یہ ایک حساس اجازت ہے جو دوسری ایپس کی نگرانی کرنے کی اجازت دیتی ہے۔ تاہم، Lawnchair کو اس فعالیت کے لیے ترتیب نہیں دیا گیا ہے اور اسے کوئی ایونٹ نہیں ملتا ہے۔</string>
+    <string name="dt2s_a11y_hint">سونے کے لیے ڈبل تھپتھپائیں استعمال کرنے کے لیے، لانچ چیئر تک رسائی کی خدمت کو آن کریں۔ \"اوپن سیٹنگز\" کو تھپتھپائیں، \"لان چیئر\" کو منتخب کریں اور \"لان چیئر کا استعمال کریں\" کو آن کریں۔\n\nلان چیئر اس کارروائی کو انجام دینے کے لیے ایکسیسبیلٹی کا `پرفارم گلوبل ایکشن` طریقہ استعمال کرتی ہے۔ یہ ایک حساس اجازت ہے جو دوسری ایپس کی نگرانی کرنے کی اجازت دیتی ہے۔ تاہم، AutoCat کو اس فعالیت کے لیے ترتیب نہیں دیا گیا ہے اور اسے کوئی ایونٹ نہیں ملتا ہے۔</string>
     <string name="dt2s_recents_warning_open_settings">ترتیبات کھولیں۔</string>
-    <string name="recents_a11y_hint">To use Open Recents screen, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="recents_a11y_hint">To use Open Recents screen, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
     <!--
 
     Bug reporting
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">ایپ کی تلاش</string>
     <string name="search_provider_custom">حسب ضرورت</string>
-    <string name="search_provider_sponsored_description">%1$s اور Lawnchair کا ریونیو شیئر کا معاہدہ ہے۔\n\n%1$s کے ساتھ تلاش کرنے سے Lawnchair کو سپورٹ کرنے میں مدد ملتی ہے۔</string>
+    <string name="search_provider_sponsored_description">%1$s اور AutoCat کا ریونیو شیئر کا معاہدہ ہے۔\n\n%1$s کے ساتھ تلاش کرنے سے AutoCat کو سپورٹ کرنے میں مدد ملتی ہے۔</string>
     <string name="app_label">ایپ</string>
     <string name="website_label">ویب سائٹ</string>
     <string name="qsb_search_provider_app_required">ایپ درکار ہے۔</string>
@@ -553,7 +553,7 @@
     <string name="max_folder_columns">زیادہ سے زیادہ فولڈر کالم</string>
     <string name="max_folder_rows">فولڈر کی زیادہ سے زیادہ قطاریں۔</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">These settings will be ignored as Lawnchair isn\'t set as the Recents screen provider</string>
+    <string name="quickswitch_ignored_warning">These settings will be ignored as AutoCat isn\'t set as the Recents screen provider</string>
     <string name="quickstep_incompatible">غیر مطابقت پذیر نظام کا انضمام</string>
     <string name="quickstep_incompatible_description">آپ کے آلے کو %1$s کے ذریعہ فراہم کردہ سسٹم اشاروں (جسے Quickstep کہا جاتا ہے) کے لیے ترتیب دیا گیا ہے، لیکن %1$s کا یہ ورژن آپ کے Android ورژن کے ساتھ مطابقت نہیں رکھتا ہے۔ اپنے آلے کا استعمال جاری رکھنے کے لیے، براہ کرم %1$s اپ ڈیٹس کو اَن انسٹال کریں یا %1$s کو سسٹم اشارہ فراہم کنندہ کے طور پر غیر فعال کریں۔</string>
     <string name="translucent_background">شفاف پس منظر</string>

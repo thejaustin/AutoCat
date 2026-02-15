@@ -920,7 +920,7 @@ constructor(
 
                     if (
                         TransitionUtil.isClosingType(change.mode)
-                        // Lawnchair-TOOD:
+                        // AutoCat-TOOD:
                         // TODO:
                         //  Disabled because of kotlin compiler dependency conflict
                         //  In other word:

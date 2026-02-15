@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dه</string>
     <string name="time_months_ago">%dماه</string>
     <string name="time_years_ago">%dسال</string>
-    <string name="managed_by_lawnchair">مدیریت شده توسط Lawnchair</string>
+    <string name="managed_by_lawnchair">مدیریت شده توسط AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">ترجیحات</string>
     <string name="settings_button_text">تنظیمات خانه</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">تغییر تنظیمات</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">بقیه</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">فقط برنامه های ویژه را نشان بده</string>
     <string name="my_folder_label">پوشه من</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">برای انجام برخی اقدامات (مانند قفل کردن تلفن شما) هنگام انجام یک حرکت، Lawnchair نیاز به دسترسی به قابلیت دسترسی دارد.\n\nLawnchair هیچ اقدام کاربر را زیر نظر نمی‌گیرد، اگرچه امتیاز انجام این کار برای همه سرویس‌های دسترسی لازم است. Lawnchair هر رویدادی را که توسط سیستم ارسال شود، نادیده می‌گیرد.\n\nبرای قفل کردن تلفن شما یا باز کردن صفحه اخیراً، Lawnchair از سرویس دسترسی اقدام جهانی استفاده می‌کند.</string>
+    <string name="accessibility_service_description">برای انجام برخی اقدامات (مانند قفل کردن تلفن شما) هنگام انجام یک حرکت، AutoCat نیاز به دسترسی به قابلیت دسترسی دارد.\n\nAutoCat هیچ اقدام کاربر را زیر نظر نمی‌گیرد، اگرچه امتیاز انجام این کار برای همه سرویس‌های دسترسی لازم است. AutoCat هر رویدادی را که توسط سیستم ارسال شود، نادیده می‌گیرد.\n\nبرای قفل کردن تلفن شما یا باز کردن صفحه اخیراً، AutoCat از سرویس دسترسی اقدام جهانی استفاده می‌کند.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">دکمه پاک‌کردن همه، شعاع گوشه‌ها</string>
     <string name="about_label">درباره</string>
     <string name="app_info_drop_target_label">اطلاعات برنامه</string>
-    <string name="debug_restart_launcher">راه‌اندازی مجدد Lawnchair</string>
+    <string name="debug_restart_launcher">راه‌اندازی مجدد AutoCat</string>
     <string name="experimental_features_label">قابلیت‌های آزمایشی</string>
     <!-- Experimental features -->
     <string name="font_picker_label">شخصی‌سازی قلم</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">برای دسترسی به میانبرها و ویژگی‌های اضافی، Lawnchair را به عنوان راه‌انداز پیش‌فرض خود تنظیم کنید</string>
+    <string name="set_default_launcher_tip">برای دسترسی به میانبرها و ویژگی‌های اضافی، AutoCat را به عنوان راه‌انداز پیش‌فرض خود تنظیم کنید</string>
     <string name="notification_dots">نشان اعلان‌ها</string>
     <string name="show_notification_count">نشان‌دادن تعداد اعلان‌ها</string>
     <string name="notification_dots_color">رنگ نشان اعلان‌ها</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">برای استفاده از <xliff:g example="My Provider" id="providerName">%1$s</xliff:g>، نقاط اعلان را روشن کنید.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">نشان دادن در صفحه ‌اصلی</string>
-    <string name="smartspace_widget_toggle_description">در یک نگاه را می‌توان به‌طور دستی با قرار دادن ابزارک Lawnchair به صفحه اصلی اضافه کرد</string>
+    <string name="smartspace_widget_toggle_description">در یک نگاه را می‌توان به‌طور دستی با قرار دادن ابزارک AutoCat به صفحه اصلی اضافه کرد</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">ارائه دهنده در یک نگاه</string>
     <string name="smartspace_mode_google">گوگل</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">بازکردن دستیار</string>
     <string name="pick_app_for_gesture">انتخاب برنامه</string>
     <string name="dt2s_admin_hint_title">دسترسی ادمین نیاز است</string>
-    <string name="dt2s_admin_hint">برای استفاده از قابلیت خواب با دو ضربه، Lawnchair را به عنوان یک برنامه‌ی مدیرِ دستگاه بگذارید. بر روی باز کردن تنظیمات ضربه بزنید، سپس بر روی «فعال سازی این برنامه مدیر دستگاه» ضربه بزنید.</string>
+    <string name="dt2s_admin_hint">برای استفاده از قابلیت خواب با دو ضربه، AutoCat را به عنوان یک برنامه‌ی مدیرِ دستگاه بگذارید. بر روی باز کردن تنظیمات ضربه بزنید، سپس بر روی «فعال سازی این برنامه مدیر دستگاه» ضربه بزنید.</string>
     <string name="dt2s_admin_warning">دو ضربه سریع برای خواب خاموش خواهد شد.</string>
     <string name="d2ts_recents_a11y_hint_title">فعال‌سازی سرویس دسترس‌پذیری</string>
-    <string name="dt2s_a11y_hint">برای استفاده از قابلیت خواب با دو ضربه، سرویس دسترسی به Lawnchair را روشن کنید. روی «بازکردن تنظیمات» ضربه بزنید، «Lawnchair» را انتخاب کنید و «استفاده از Lawnchair» را روشن کنید.\n\nLawnchair از روش «انجام عملکرد جهانی» برای انجام این عمل استفاده می‌کند. این یک مجوز حساس است که امکان نظارت بر برنامه های دیگر را فراهم می کند. با این حال، Lawnchair برای آن پیکربندی نشده است و هیچ رویدادی دریافت نمی‌کند.</string>
+    <string name="dt2s_a11y_hint">برای استفاده از قابلیت خواب با دو ضربه، سرویس دسترسی به AutoCat را روشن کنید. روی «بازکردن تنظیمات» ضربه بزنید، «AutoCat» را انتخاب کنید و «استفاده از AutoCat» را روشن کنید.\n\nAutoCat از روش «انجام عملکرد جهانی» برای انجام این عمل استفاده می‌کند. این یک مجوز حساس است که امکان نظارت بر برنامه های دیگر را فراهم می کند. با این حال، AutoCat برای آن پیکربندی نشده است و هیچ رویدادی دریافت نمی‌کند.</string>
     <string name="dt2s_recents_warning_open_settings">بازکردن تنظیمات</string>
-    <string name="recents_a11y_hint">برای استفاده از صفحه باز کردن برنامه‌های اخیر، سرویس دسترسی Lawnchair را روشن کنید. روی «باز کردن تنظیمات» ضربه بزنید، «Lawnchair» را انتخاب کنید و «استفاده از Lawnchair» را روشن کنید.\n\nLawnchair از متد «انجام عمل جهانی» در قابلیت دسترسی برای انجام این عمل استفاده می‌کند. این یک مجوز حساس است که امکان نظارت بر سایر برنامه‌ها را فراهم می‌کند. با این حال، Lawnchair برای این عملکرد پیکربندی نشده است و هیچ رویدادی دریافت نمی‌کند.</string>
+    <string name="recents_a11y_hint">برای استفاده از صفحه باز کردن برنامه‌های اخیر، سرویس دسترسی AutoCat را روشن کنید. روی «باز کردن تنظیمات» ضربه بزنید، «AutoCat» را انتخاب کنید و «استفاده از AutoCat» را روشن کنید.\n\nAutoCat از متد «انجام عمل جهانی» در قابلیت دسترسی برای انجام این عمل استفاده می‌کند. این یک مجوز حساس است که امکان نظارت بر سایر برنامه‌ها را فراهم می‌کند. با این حال، AutoCat برای این عملکرد پیکربندی نشده است و هیچ رویدادی دریافت نمی‌کند.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">گزارش مشکلات Lawnchair</string>
+    <string name="lawnchair_bug_report">گزارش مشکلات AutoCat</string>
     <string name="crash_report_notif_title">%1$s خطا داد</string>
     <string name="action_upload_crash_report">ارسال گزارش خطا</string>
     <string name="action_upload_error">آپلود با خطا مواجه شد</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">جستجو برنامه</string>
     <string name="search_provider_custom">شخصی</string>
-    <string name="search_provider_sponsored_description">%1$s و Lawnchair یک قرارداد سهم درآمد دارند.\n\nجستجو با %1$s به پشتیبانی از Lawnchair کمک می‌کند.</string>
+    <string name="search_provider_sponsored_description">%1$s و AutoCat یک قرارداد سهم درآمد دارند.\n\nجستجو با %1$s به پشتیبانی از AutoCat کمک می‌کند.</string>
     <string name="app_label">برنامه</string>
     <string name="website_label">وب‌سایت</string>
     <string name="qsb_search_provider_app_required">برنامه نیاز است</string>
@@ -553,7 +553,7 @@
     <string name="max_folder_columns">حداکثر ستون‌های پوشه‌</string>
     <string name="max_folder_rows">حداکثر ردیف پوشه</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">این تنظیمات نادیده گرفته می‌شوند زیرا Lawnchair به عنوان ارائه دهنده صفحه اخیراً تنظیم نشده</string>
+    <string name="quickswitch_ignored_warning">این تنظیمات نادیده گرفته می‌شوند زیرا AutoCat به عنوان ارائه دهنده صفحه اخیراً تنظیم نشده</string>
     <string name="quickstep_incompatible">یکپارچه سازی سیستم ناسازگار</string>
     <string name="quickstep_incompatible_description">دستگاه شما به گونه‌ای پیکربندی شده که ژست‌های حرکتی سیستم (معروف به Quickstep) توسط %1$s ارائه شده سازگار باشد، ولی این نسخه %1$s با اندروید شما سازگار نیست. برای ادامه استفاده از دستگاهتان، لطفاً به‌روزرسانی‌ %1$s را حذف نصب کنید یا %1$s را به‌عنوان ارائه‌دهنده اشاره سیستم غیرفعال کنید.</string>
     <string name="translucent_background">پس‌زمینه نیمه شفاف</string>

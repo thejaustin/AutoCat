@@ -224,7 +224,7 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
                     val activityIcon = iconProvider.getIcon(activityInfo)
                     val bitmap = li.createIconBitmap(activityIcon, 1f)
                     val bitmapInfo = BitmapInfo.of(bitmap, packageIcon.color)
-                    // Lawnchair-TODO-Postmerge: AOSP removed it -- 393bc59246f0f88f62b9879000d57fde36cdb214
+                    // AutoCat-TODO-Postmerge: AOSP removed it -- 393bc59246f0f88f62b9879000d57fde36cdb214
 //                    info.bitmap = li.badgeBitmap(info.bitmap.icon, bitmapInfo)
                 } catch (_: PackageManager.NameNotFoundException) {
                 }

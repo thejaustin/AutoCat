@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dεβδομάδες</string>
     <string name="time_months_ago">%dμήνες</string>
     <string name="time_years_ago">%dχρόνια</string>
-    <string name="managed_by_lawnchair">Διαχειριζόμενο από τον εκκινητή Lawnchair</string>
+    <string name="managed_by_lawnchair">Διαχειριζόμενο από τον εκκινητή AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Προτιμήσεις</string>
     <string name="settings_button_text">Ρυθμίσεις Αρχ. Οθ.</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Αλλαγή ρυθμίσεων</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Άλλα</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Εμφάνιση μόνο ιδιαίτερων εφαρμογών</string>
     <string name="my_folder_label">Ο φάκελός μου</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">Για την εκτέλεση ορισμένων ενεργειών (όπως το κλείδωμα του τηλεφώνου σας) κατά την εκτέλεση μιας χειρονομίας, ο εκκινητής Lawnchair απαιτεί δικαιώματα προσβασιμότητας.\n\nΟ εκκινητής Lawnchair δεν παρακολουθεί καμία ενέργεια χρήστη, αν και το δικαίωμα αυτό απαιτείται για όλες τις υπηρεσίες προσβασιμότητας. Ο εκκινητής Lawnchair απορρίπτει οποιοδήποτε συμβάν αποστέλλεται από το σύστημα.\n\nΓια να κλειδώσετε το τηλέφωνό σας ή για να ανοίξετε την οθόνη Πρόσφατων εφαρμογών, ο εκκινητής Lawnchair χρησιμοποιεί την υπηρεσία προσβασιμότητας performGlobalAction.</string>
+    <string name="accessibility_service_description">Για την εκτέλεση ορισμένων ενεργειών (όπως το κλείδωμα του τηλεφώνου σας) κατά την εκτέλεση μιας χειρονομίας, ο εκκινητής AutoCat απαιτεί δικαιώματα προσβασιμότητας.\n\nΟ εκκινητής AutoCat δεν παρακολουθεί καμία ενέργεια χρήστη, αν και το δικαίωμα αυτό απαιτείται για όλες τις υπηρεσίες προσβασιμότητας. Ο εκκινητής AutoCat απορρίπτει οποιοδήποτε συμβάν αποστέλλεται από το σύστημα.\n\nΓια να κλειδώσετε το τηλέφωνό σας ή για να ανοίξετε την οθόνη Πρόσφατων εφαρμογών, ο εκκινητής AutoCat χρησιμοποιεί την υπηρεσία προσβασιμότητας performGlobalAction.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d × %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">Κουμπί καθαρισμού όλων, ακτίνα γωνίας</string>
     <string name="about_label">Πληροφορίες</string>
     <string name="app_info_drop_target_label">Πληροφορίες εφαρμογής</string>
-    <string name="debug_restart_launcher">Επανεκκίνηση του Lawnchair</string>
+    <string name="debug_restart_launcher">Επανεκκίνηση του AutoCat</string>
     <string name="experimental_features_label">Πειραματικές λειτουργίες</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Προσαρμογή γραμματοσειράς</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">Για να αποκτήσετε πρόσβαση σε συντομεύσεις και πρόσθετες δυνατότητες, ορίστε τον εκκινητή Lawnchair ως προεπιλεγμένο πρόγραμμα εκκίνησης</string>
+    <string name="set_default_launcher_tip">Για να αποκτήσετε πρόσβαση σε συντομεύσεις και πρόσθετες δυνατότητες, ορίστε τον εκκινητή AutoCat ως προεπιλεγμένο πρόγραμμα εκκίνησης</string>
     <string name="notification_dots">Κουκκίδες ειδοποιήσεων</string>
     <string name="show_notification_count">Εμφάνιση μετρητή ειδοποιήσεων</string>
     <string name="notification_dots_color">Χρώμα κουκκίδας ειδοποιήσεων</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">Για να χρησιμοποιήσετε <xliff:g example="Ο Πάροχος μου" id="providerName">%1$s</xliff:g>, ενεργοποιήστε τις κουκκίδες ειδοποιήσεων.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Εμφάνιση στην αρχική οθόνη</string>
-    <string name="smartspace_widget_toggle_description">Το γραφικό στοιχείο “Με μια Ματιά” μπορεί να προστεθεί χειροκίνητα τοποθετώντας το γραφικό με ονομασία “Lawnchair”</string>
+    <string name="smartspace_widget_toggle_description">Το γραφικό στοιχείο “Με μια Ματιά” μπορεί να προστεθεί χειροκίνητα τοποθετώντας το γραφικό με ονομασία “AutoCat”</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Πάροχος γραφικού Με μια Ματιά</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Άνοιγμα βοηθού</string>
     <string name="pick_app_for_gesture">Επιλογή εφαρμογής</string>
     <string name="dt2s_admin_hint_title">Απαιτούνται δικαιώματα διαχειριστή</string>
-    <string name="dt2s_admin_hint">Για να χρησιμοποιήσετε το διπλό πάτημα για ύπνο, ορίστε τον εκκινητή Lawnchair ως εφαρμογή διαχείρισης συσκευής. Πατήστε στο “Άνοιγμα ρυθμίσεων” και μετά πατήστε “Ενεργοποίηση αυτής της εφαρμογής ως διαχειριστή της συσκευής.”</string>
+    <string name="dt2s_admin_hint">Για να χρησιμοποιήσετε το διπλό πάτημα για ύπνο, ορίστε τον εκκινητή AutoCat ως εφαρμογή διαχείρισης συσκευής. Πατήστε στο “Άνοιγμα ρυθμίσεων” και μετά πατήστε “Ενεργοποίηση αυτής της εφαρμογής ως διαχειριστή της συσκευής.”</string>
     <string name="dt2s_admin_warning">Double Tap to Sleep will be disabled.</string>
     <string name="d2ts_recents_a11y_hint_title">Ενεργοποίηση υπηρεσίας προσβασιμότητας</string>
-    <string name="dt2s_a11y_hint">Για να χρησιμοποιήσετε την λειτουργία Διπλό Πάτημα Για Ύπνο, ενεργοποιήστε την υπηρεσία προσβασιμότητας του εκκινητή Lawnchair. Πατήστε \"Άνοιγμα ρυθμίσεων\", επιλέξτε \"Lawnchair\" και ενεργοποιήστε τη \"Χρήση Lawnchair\".\n\nΟ εκκινητής Lawnchair χρησιμοποιεί τη μέθοδο `performGlobalAction` της Προσβασιμότητας Εφαρμογών για την εκτέλεση αυτής της ενέργειας. Αυτή είναι μια ευαίσθητη άδεια που επιτρέπει την παρακολούθηση άλλων εφαρμογών. Ωστόσο, ο εκκινητής Lawnchair δεν έχει ρυθμιστεί για αυτήν τη λειτουργία και δεν λαμβάνει συμβάντα.</string>
+    <string name="dt2s_a11y_hint">Για να χρησιμοποιήσετε την λειτουργία Διπλό Πάτημα Για Ύπνο, ενεργοποιήστε την υπηρεσία προσβασιμότητας του εκκινητή AutoCat. Πατήστε \"Άνοιγμα ρυθμίσεων\", επιλέξτε \"AutoCat\" και ενεργοποιήστε τη \"Χρήση AutoCat\".\n\nΟ εκκινητής AutoCat χρησιμοποιεί τη μέθοδο `performGlobalAction` της Προσβασιμότητας Εφαρμογών για την εκτέλεση αυτής της ενέργειας. Αυτή είναι μια ευαίσθητη άδεια που επιτρέπει την παρακολούθηση άλλων εφαρμογών. Ωστόσο, ο εκκινητής AutoCat δεν έχει ρυθμιστεί για αυτήν τη λειτουργία και δεν λαμβάνει συμβάντα.</string>
     <string name="dt2s_recents_warning_open_settings">Άνοιγμα ρυθμίσεων</string>
-    <string name="recents_a11y_hint">Για να χρησιμοποιήσετε την οθόνη Άνοιγμα πρόσφατων εφαρμογών, ενεργοποιήστε την υπηρεσία προσβασιμότητας του εκκινητή Lawnchair. Πατήστε «Άνοιγμα ρυθμίσεων», επιλέξτε \"Lawchchair\" και ενεργοποιήστε την «Χρήση Lawnchair».\n\nΟ εκκινητής Lawnchair χρησιμοποιεί τη μέθοδο `performGlobalAction` της Προσβασιμότητας για την εκτέλεση αυτής της ενέργειας. Πρόκειται για ένα ευαίσθητο δικαίωμα που επιτρέπει την παρακολούθηση άλλων εφαρμογών. Ωστόσο, ο εκκινητής Lawnchair δεν έχει διαμορφωθεί για αυτήν τη λειτουργικότητα και δεν λαμβάνει συμβάντα.</string>
+    <string name="recents_a11y_hint">Για να χρησιμοποιήσετε την οθόνη Άνοιγμα πρόσφατων εφαρμογών, ενεργοποιήστε την υπηρεσία προσβασιμότητας του εκκινητή AutoCat. Πατήστε «Άνοιγμα ρυθμίσεων», επιλέξτε \"Lawchchair\" και ενεργοποιήστε την «Χρήση AutoCat».\n\nΟ εκκινητής AutoCat χρησιμοποιεί τη μέθοδο `performGlobalAction` της Προσβασιμότητας για την εκτέλεση αυτής της ενέργειας. Πρόκειται για ένα ευαίσθητο δικαίωμα που επιτρέπει την παρακολούθηση άλλων εφαρμογών. Ωστόσο, ο εκκινητής AutoCat δεν έχει διαμορφωθεί για αυτήν τη λειτουργικότητα και δεν λαμβάνει συμβάντα.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Αναφορά σφάλματος του Lawnchair</string>
+    <string name="lawnchair_bug_report">Αναφορά σφάλματος του AutoCat</string>
     <string name="crash_report_notif_title">%1$s κράσαρε</string>
     <string name="action_upload_crash_report">Μεταφόρτωση αρχείου καταγραφής σφαλμάτων</string>
     <string name="action_upload_error">Αποτυχία μεταφόρτωσης</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Αναζήτηση εφαρμογών</string>
     <string name="search_provider_custom">Προσαρμοσμένο</string>
-    <string name="search_provider_sponsored_description">%1$s και ο εκκινητής Lawnchair έχουν συμφωνία μεριδίου εσόδων.\n\nΗ αναζήτηση μέσω του %1$s βοηθά στην υποστήριξη του Lawnchair.</string>
+    <string name="search_provider_sponsored_description">%1$s και ο εκκινητής AutoCat έχουν συμφωνία μεριδίου εσόδων.\n\nΗ αναζήτηση μέσω του %1$s βοηθά στην υποστήριξη του AutoCat.</string>
     <string name="app_label">Εφαρμογή</string>
     <string name="website_label">Ιστοσελίδα</string>
     <string name="qsb_search_provider_app_required">Απαιτείται η εφαρμογή</string>
@@ -553,7 +553,7 @@
     <string name="max_folder_columns">Μέγιστος αριθμός στηλών φακέλου</string>
     <string name="max_folder_rows">Μέγιστος αριθμός σειρών φακέλου</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">Αυτές οι ρυθμίσεις θα αγνοηθούν, καθώς ο εκκινητής Lawnchair δεν έχει οριστεί ως πάροχος οθόνης Πρόσφατων εφαρμογών</string>
+    <string name="quickswitch_ignored_warning">Αυτές οι ρυθμίσεις θα αγνοηθούν, καθώς ο εκκινητής AutoCat δεν έχει οριστεί ως πάροχος οθόνης Πρόσφατων εφαρμογών</string>
     <string name="quickstep_incompatible">Μη συμβατή ενσωμάτωση συστήματος</string>
     <string name="quickstep_incompatible_description">Η συσκευή σας έχει ρυθμιστεί ώστε να διαθέτει χειρονομίες συστήματος (υπηρεσία γνωστή ως Quickstep) που παρέχονται από το %1$s, αλλά αυτή η έκδοση του %1$s δεν είναι συμβατή με την έκδοση Android που διαθέτετε. Για να συνεχίσετε να χρησιμοποιείτε τη συσκευή σας, απεγκαταστήστε τις ενημερώσεις %1$s ή απενεργοποιήστε το %1$s ως πάροχο χειρονομιών συστήματος.</string>
     <string name="translucent_background">Ημιδιάφανο φόντο</string>

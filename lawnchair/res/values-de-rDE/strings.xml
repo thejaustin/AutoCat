@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dW.</string>
     <string name="time_months_ago">%dMon.</string>
     <string name="time_years_ago">%dJ.</string>
-    <string name="managed_by_lawnchair">Von Lawnchair verwaltet</string>
+    <string name="managed_by_lawnchair">Von AutoCat verwaltet</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Voreinstellungen</string>
     <string name="settings_button_text">Home-Einstellungen</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Einstellungen ändern</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Andere</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Nur Apps, die keine Duplikate sind, zeigen</string>
     <string name="my_folder_label">Mein Ordner</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">Um bestimmte Aktionen (bspw. das Mobiltelefon sperren) auszuführen, wenn eine Geste ausgeführt wird, benötigt Lawnchair Bedienungshilfen-Zugriff.\n\nLawnchair nimmt keine deiner Aktionen auf, jedoch ist die Berechtigung, dies zu tun, Teil des Bedienungshilfen-Zugriffes. Lawnchair löscht jedes Ereigniss, das vom System gesendet wird.\n\nUm das Gerät zu sperren, oder die zulezt geöffneten Apps zu öffnen, wird der performGlobalAction Bedienungshilfen-Service verwendet.</string>
+    <string name="accessibility_service_description">Um bestimmte Aktionen (bspw. das Mobiltelefon sperren) auszuführen, wenn eine Geste ausgeführt wird, benötigt AutoCat Bedienungshilfen-Zugriff.\n\nAutoCat nimmt keine deiner Aktionen auf, jedoch ist die Berechtigung, dies zu tun, Teil des Bedienungshilfen-Zugriffes. AutoCat löscht jedes Ereigniss, das vom System gesendet wird.\n\nUm das Gerät zu sperren, oder die zulezt geöffneten Apps zu öffnen, wird der performGlobalAction Bedienungshilfen-Service verwendet.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d × %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">\"Alle Apps schließen\"-Schaltfläche, Eckradius</string>
     <string name="about_label">Über</string>
     <string name="app_info_drop_target_label">App-Info</string>
-    <string name="debug_restart_launcher">Lawnchair neustarten</string>
+    <string name="debug_restart_launcher">AutoCat neustarten</string>
     <string name="experimental_features_label">Experimentelle Funktionen</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Schriftartanpassung</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">Um auf Verknüpfungen und zusätzliche Funktionen zuzugreifen, richte Lawnchair als Standard-Start-App ein</string>
+    <string name="set_default_launcher_tip">Um auf Verknüpfungen und zusätzliche Funktionen zuzugreifen, richte AutoCat als Standard-Start-App ein</string>
     <string name="notification_dots">Benachrichtigungspunkte</string>
     <string name="show_notification_count">Benachrichtigungszähler anzeigen</string>
     <string name="notification_dots_color">Farbe des Benachrichtigungspunktes</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">Um <xliff:g example="My Provider" id="providerName">%1$s</xliff:g> zu verwenden, aktiviere Benachrichtigungspunkte.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Auf Startbildschirm anzeigen</string>
-    <string name="smartspace_widget_toggle_description">At a Glance kann manuell zum Startbildschirm hinzugefügt werden, indem man das Widget Lawnchair platziert</string>
+    <string name="smartspace_widget_toggle_description">At a Glance kann manuell zum Startbildschirm hinzugefügt werden, indem man das Widget AutoCat platziert</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">At a Glance Anbieter</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Assistent-App öffnen</string>
     <string name="pick_app_for_gesture">App auswählen</string>
     <string name="dt2s_admin_hint_title">Administrator-Berechtigungen erforderlich</string>
-    <string name="dt2s_admin_hint">Um Doppeltippen zum Display Ausschalten zu verwenden, aktiviere Lawnchair als App zur Geräteverwaltung. Tippe auf \"Einstellungen öffnen\" und tippe auf „Diese App zur Geräteverwaltung aktivieren“.</string>
+    <string name="dt2s_admin_hint">Um Doppeltippen zum Display Ausschalten zu verwenden, aktiviere AutoCat als App zur Geräteverwaltung. Tippe auf \"Einstellungen öffnen\" und tippe auf „Diese App zur Geräteverwaltung aktivieren“.</string>
     <string name="dt2s_admin_warning">Doppeltes Tippen zum Schlafen wird deaktiviert.</string>
     <string name="d2ts_recents_a11y_hint_title">Bedienungshilfen aktivieren</string>
-    <string name="dt2s_a11y_hint">Um Doppeltippen zum Display ausschalten zu verwenden, aktiviere die Bedienungshilfen. Tippe auf \"Einstellungen öffnen\", wähle \"Lawnchair\" aus und aktiviere \"Lawnchair verwenden\"\"\n\nLawnchair verwendet die Bedienungshilfe \'performGlobalAction\', um diese Aktion auszuführen. Dies ist eine sensible Berechtigung, die es ermöglicht, andere Apps zu überwachen. Lawnchair ist jedoch nicht für derartige Funktionen konfiguriert und liest keine Vorgänge aus.</string>
+    <string name="dt2s_a11y_hint">Um Doppeltippen zum Display ausschalten zu verwenden, aktiviere die Bedienungshilfen. Tippe auf \"Einstellungen öffnen\", wähle \"AutoCat\" aus und aktiviere \"AutoCat verwenden\"\"\n\nAutoCat verwendet die Bedienungshilfe \'performGlobalAction\', um diese Aktion auszuführen. Dies ist eine sensible Berechtigung, die es ermöglicht, andere Apps zu überwachen. AutoCat ist jedoch nicht für derartige Funktionen konfiguriert und liest keine Vorgänge aus.</string>
     <string name="dt2s_recents_warning_open_settings">Einstellungen öffnen</string>
-    <string name="recents_a11y_hint">Um die letzten Apps anzuzeigen, aktiviere den Lawnchair Bedienungshilfen-Dienst für Lawnchair. Tippe auf „Einstellungen öffnen\", wähle „Lawnchair“ und aktiviere „Lawnchair verwenden“.\n\nLawnchair verwendet die „performGlobalAction“ Funktion des Bedienungshilfen-Dienstes um diese Aktion durchzuführen. Dies ist eine sensible Berechtigung, die die Überwachung anderer Apps erlaubt. Lawnchair ist jedoch nicht für diese Funktionalität konfiguriert und empfängt keine Ereignisse.</string>
+    <string name="recents_a11y_hint">Um die letzten Apps anzuzeigen, aktiviere den AutoCat Bedienungshilfen-Dienst für AutoCat. Tippe auf „Einstellungen öffnen\", wähle „AutoCat“ und aktiviere „AutoCat verwenden“.\n\nAutoCat verwendet die „performGlobalAction“ Funktion des Bedienungshilfen-Dienstes um diese Aktion durchzuführen. Dies ist eine sensible Berechtigung, die die Überwachung anderer Apps erlaubt. AutoCat ist jedoch nicht für diese Funktionalität konfiguriert und empfängt keine Ereignisse.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Lawnchair-Fehlerbericht</string>
+    <string name="lawnchair_bug_report">AutoCat-Fehlerbericht</string>
     <string name="crash_report_notif_title">%1$s abgestürzt</string>
     <string name="action_upload_crash_report">Absturzprotokoll hochladen</string>
     <string name="action_upload_error">Upload fehlgeschlagen</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">App-Suche</string>
     <string name="search_provider_custom">Benutzerdefiniert</string>
-    <string name="search_provider_sponsored_description">%1$s &amp; Lawnchair haben eine Umsatzbeteiligungsvereinbarung.\n\nSuchen mit %1$s unterstützten Lawnchair.</string>
+    <string name="search_provider_sponsored_description">%1$s &amp; AutoCat haben eine Umsatzbeteiligungsvereinbarung.\n\nSuchen mit %1$s unterstützten AutoCat.</string>
     <string name="app_label">App</string>
     <string name="website_label">Webseite</string>
     <string name="qsb_search_provider_app_required">App erforderlich</string>
@@ -553,7 +553,7 @@
     <string name="max_folder_columns">Maximalzahl Ordnerspalten</string>
     <string name="max_folder_rows">Maximalzahl Ordnerzeilen</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">Diese Einstellungen werden ignoriert, da Lawnchair nicht als Letzte-Apps-Anbieter eingestellt ist</string>
+    <string name="quickswitch_ignored_warning">Diese Einstellungen werden ignoriert, da AutoCat nicht als Letzte-Apps-Anbieter eingestellt ist</string>
     <string name="quickstep_incompatible">Inkompatible Systemintegration</string>
     <string name="quickstep_incompatible_description">Dein Gerät ist so konfiguriert, dass Systemgesten (bekannt als Quickstep) von %1$s bereitgestellt werden, diese Version von %1$s ist jedoch nicht mit deiner Android-Version kompatibel. Um dein Gerät weiterzuverwenden, deinstalliere bitte %1$s-Updates oder deaktiviere %1$s als Systemgesten-Provider.</string>
     <string name="translucent_background">Transluzenter Hintergrund</string>

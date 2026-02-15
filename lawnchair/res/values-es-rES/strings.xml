@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%ds</string>
     <string name="time_months_ago">%dmes</string>
     <string name="time_years_ago">%daño</string>
-    <string name="managed_by_lawnchair">Gestionado por Lawnchair</string>
+    <string name="managed_by_lawnchair">Gestionado por AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Preferencias</string>
     <string name="settings_button_text">Ajustes del lanzador</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Cambiar ajustes</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Otros</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Mostrar solo aplicaciones únicas</string>
     <string name="my_folder_label">Mi carpeta</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">Para realizar ciertas acciones (como bloquear tu dispositivo al realizar un gesto) Lawnchair necesita añadirse como proveedor de accesibilidad.\n\nLawnchair no rastrea ni graba ninguna acción del usuario, aunque entre dentro de los privilegios concedidos, descartando cualquier evento enviado por el sistema.\n\nPara realizar la acción de bloquear la pantalla Lawnchair solo utiliza un servicio de accesibilidad llamado «performGlobalAction».</string>
+    <string name="accessibility_service_description">Para realizar ciertas acciones (como bloquear tu dispositivo al realizar un gesto) AutoCat necesita añadirse como proveedor de accesibilidad.\n\nAutoCat no rastrea ni graba ninguna acción del usuario, aunque entre dentro de los privilegios concedidos, descartando cualquier evento enviado por el sistema.\n\nPara realizar la acción de bloquear la pantalla AutoCat solo utiliza un servicio de accesibilidad llamado «performGlobalAction».</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">Botón de «borrar todo» y curvatura</string>
     <string name="about_label">Acerca de</string>
     <string name="app_info_drop_target_label">Información de la aplicación</string>
-    <string name="debug_restart_launcher">Reiniciar Lawnchair</string>
+    <string name="debug_restart_launcher">Reiniciar AutoCat</string>
     <string name="experimental_features_label">Funciones experimentales</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Tipografía personalizada</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">Para acceder a atajos y más cosas pon a Lawnchair como tu lanzador de aplicaciones predeterminado</string>
+    <string name="set_default_launcher_tip">Para acceder a atajos y más cosas pon a AutoCat como tu lanzador de aplicaciones predeterminado</string>
     <string name="notification_dots">Burbujas de notificación</string>
     <string name="show_notification_count">Mostrar el contador de notificaciones</string>
     <string name="notification_dots_color">Color del contador de notificaciones</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">Para usar <xliff:g example="My Provider" id="providerName">%1$s</xliff:g>, activa las burbujas de notificación.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Mostrar en la pantalla de inicio</string>
-    <string name="smartspace_widget_toggle_description">Puedes añadir «de un vistazo» a la pantalla de inicio colocando el widget llamado «Lawnchair»</string>
+    <string name="smartspace_widget_toggle_description">Puedes añadir «de un vistazo» a la pantalla de inicio colocando el widget llamado «AutoCat»</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Proveedor de contenido para «de un vistazo»</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Abrir asistente</string>
     <string name="pick_app_for_gesture">Elegir aplicación</string>
     <string name="dt2s_admin_hint_title">Se necesitan permisos de administrador</string>
-    <string name="dt2s_admin_hint">Para hacer que funcione el doble toque para apagar pantalla, establece Lawnchair como aplicación del administrador de dispositivos. Pulsa en «Abrir ajustes», luego en «Activar esta aplicación de administrador de dispositivos».</string>
+    <string name="dt2s_admin_hint">Para hacer que funcione el doble toque para apagar pantalla, establece AutoCat como aplicación del administrador de dispositivos. Pulsa en «Abrir ajustes», luego en «Activar esta aplicación de administrador de dispositivos».</string>
     <string name="dt2s_admin_warning">Se desactivará el doble toque para apagar la pantalla.</string>
     <string name="d2ts_recents_a11y_hint_title">Activar el servicio de accesibilidad</string>
-    <string name="dt2s_a11y_hint">Para hacer que funcione el doble toque para apagar pantalla activa el servicio de accesibilidad de Lawnchair. Pulsa en «Abrir ajustes», elige «Lawnchair» y activa «Usar Lawnchair». \n\nLawnchair solo utiliza el método `performGlobalAction` de la función de accesibilidad para realizar esta acción. Este es un permiso muy amplio que permite controlar otras aplicaciones, pero Lawnchair no hace nada más, ni recibe eventos.</string>
+    <string name="dt2s_a11y_hint">Para hacer que funcione el doble toque para apagar pantalla activa el servicio de accesibilidad de AutoCat. Pulsa en «Abrir ajustes», elige «AutoCat» y activa «Usar AutoCat». \n\nAutoCat solo utiliza el método `performGlobalAction` de la función de accesibilidad para realizar esta acción. Este es un permiso muy amplio que permite controlar otras aplicaciones, pero AutoCat no hace nada más, ni recibe eventos.</string>
     <string name="dt2s_recents_warning_open_settings">Abrir ajustes</string>
-    <string name="recents_a11y_hint">Para hacer que funcione «Aplicaciones recientes» activa el servicio de accesibilidad de Lawnchair. Pulsa en «Abrir ajustes», elige «Lawnchair» y activa «Usar Lawnchair». \n\nLawnchair solo utiliza el método `performGlobalAction` de la función de accesibilidad para realizar esta acción. Este es un permiso muy amplio que permite controlar otras aplicaciones, pero Lawnchair no hace nada más, ni recibe eventos.</string>
+    <string name="recents_a11y_hint">Para hacer que funcione «Aplicaciones recientes» activa el servicio de accesibilidad de AutoCat. Pulsa en «Abrir ajustes», elige «AutoCat» y activa «Usar AutoCat». \n\nAutoCat solo utiliza el método `performGlobalAction` de la función de accesibilidad para realizar esta acción. Este es un permiso muy amplio que permite controlar otras aplicaciones, pero AutoCat no hace nada más, ni recibe eventos.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Informar de fallos de Lawnchair</string>
+    <string name="lawnchair_bug_report">Informar de fallos de AutoCat</string>
     <string name="crash_report_notif_title">%1$s ha dejado de funcionar</string>
     <string name="action_upload_crash_report">Subir registro de fallos</string>
     <string name="action_upload_error">No se pudo subir el archivo</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Búsqueda de aplicaciones</string>
     <string name="search_provider_custom">Personalizado</string>
-    <string name="search_provider_sponsored_description">%1$s y Lawnchair tienen un acuerdo de reparto de ingresos.\n\nPor lo que al buscar con %1$s nos ayudas económicamente.</string>
+    <string name="search_provider_sponsored_description">%1$s y AutoCat tienen un acuerdo de reparto de ingresos.\n\nPor lo que al buscar con %1$s nos ayudas económicamente.</string>
     <string name="app_label">Aplicación</string>
     <string name="website_label">Página web</string>
     <string name="qsb_search_provider_app_required">Aplicación necesaria</string>
@@ -553,7 +553,7 @@
     <string name="max_folder_columns">Columnas en carpeta</string>
     <string name="max_folder_rows">Filas en carpeta</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">Estos ajustes se ignorarán porque Lawnchair no está configurado como el proveedor de aplicaciones recientes</string>
+    <string name="quickswitch_ignored_warning">Estos ajustes se ignorarán porque AutoCat no está configurado como el proveedor de aplicaciones recientes</string>
     <string name="quickstep_incompatible">La integración del sistema es incompatible</string>
     <string name="quickstep_incompatible_description">Tu dispositivo está configurado para tener gestos del sistema (conocidos como Quickstep) proporcionados por %1$s, pero esta versión de %1$s no es compatible con tu versión de Android. Para poder seguir usándolo desinstala las actualizaciones de %1$s o inhabilita a %1$s como proveedor de gestos del sistema.</string>
     <string name="translucent_background">Fondo translúcido</string>

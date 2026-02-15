@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dnäd.</string>
     <string name="time_months_ago">%dkuud</string>
     <string name="time_years_ago">%daastat</string>
-    <string name="managed_by_lawnchair">Haldab Lawnchair</string>
+    <string name="managed_by_lawnchair">Haldab AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Eelistused</string>
     <string name="settings_button_text">Käivitaja seaded</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Muuda seadeid</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Muud</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Kuva ainult unikaalsed rakendused</string>
     <string name="my_folder_label">Minu kaust</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">Teatud toimingute (näiteks telefoni lukustamise) sooritamiseks viipe abil vajab Lawnchair luba juurdepääsetavuse teenuse kautamiseks.\n\nLawnchair ei jälgi kasutaja toiminguid, kuigi juurdepääsetavuse teenus annab selleks vajaliku õiguse. Lawnchair hülgab kõik süsteemi saadetud sündmused.\n\nTelefoni lukustamiseks või hiljutiste toimingute ekraani avamiseks kasutab Lawnchair performGlobalAction juurdepääsetavuse teenust.</string>
+    <string name="accessibility_service_description">Teatud toimingute (näiteks telefoni lukustamise) sooritamiseks viipe abil vajab AutoCat luba juurdepääsetavuse teenuse kautamiseks.\n\nAutoCat ei jälgi kasutaja toiminguid, kuigi juurdepääsetavuse teenus annab selleks vajaliku õiguse. AutoCat hülgab kõik süsteemi saadetud sündmused.\n\nTelefoni lukustamiseks või hiljutiste toimingute ekraani avamiseks kasutab AutoCat performGlobalAction juurdepääsetavuse teenust.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">Nupp Kustuta kõik, nurgaraadius</string>
     <string name="about_label">Teave</string>
     <string name="app_info_drop_target_label">Rakenduse teave</string>
-    <string name="debug_restart_launcher">Taaskäivita Lawnchair</string>
+    <string name="debug_restart_launcher">Taaskäivita AutoCat</string>
     <string name="experimental_features_label">Katselised omadused</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Fondi kohandamine</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">Otseteede ja lisafunktsioonide kasutamiseks määra Lawnchair vaikekäivitajaks</string>
+    <string name="set_default_launcher_tip">Otseteede ja lisafunktsioonide kasutamiseks määra AutoCat vaikekäivitajaks</string>
     <string name="notification_dots">Märguandetäpid</string>
     <string name="show_notification_count">Kuva märguandeloendur</string>
     <string name="notification_dots_color">Märguandetäpi värv</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">Et kasutada <xliff:g example="My Provider" id="providerName">%1$s</xliff:g>, luba Märguandetäpid.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Kuva avakuval</string>
-    <string name="smartspace_widget_toggle_description">Ülevaate saab avakuvale lisada käsitsi, paigutades sinna Lawnchair vidina</string>
+    <string name="smartspace_widget_toggle_description">Ülevaate saab avakuvale lisada käsitsi, paigutades sinna AutoCat vidina</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Ülevaate pakkuja</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Ava assistent</string>
     <string name="pick_app_for_gesture">Vali rakendus</string>
     <string name="dt2s_admin_hint_title">Vaja on administraatori õigusi</string>
-    <string name="dt2s_admin_hint">Topeltpuudutusega unerežiimi kasutamiseks määra Lawnchair seadme administraatorirakenduseks. Puuduta valikut \"Ava seaded\", seejärel puuduta \"Aktiveeri selle seadme administraatorirakendus\".</string>
+    <string name="dt2s_admin_hint">Topeltpuudutusega unerežiimi kasutamiseks määra AutoCat seadme administraatorirakenduseks. Puuduta valikut \"Ava seaded\", seejärel puuduta \"Aktiveeri selle seadme administraatorirakendus\".</string>
     <string name="dt2s_admin_warning">Topeltpuudutus unerežiimi lülitamiseks lülitatakse välja.</string>
     <string name="d2ts_recents_a11y_hint_title">Lülita juurdepääsetavuse teenus sisse</string>
-    <string name="dt2s_a11y_hint">Ekraani väljalülitamiseks topeltpuudutusega lülita sisse juurdepääsetavuse teenus. Puuduta valikut \"Ava Seaded\" ja luba Lawnchairi kasutamine. \"\n\nSee on tundlik luba, mis võimaldab jälgida muid rakendusi. Kuid Lawnchair pole selle funktsiooni jaoks seadistatud ega võta sündmusi vastu.</string>
+    <string name="dt2s_a11y_hint">Ekraani väljalülitamiseks topeltpuudutusega lülita sisse juurdepääsetavuse teenus. Puuduta valikut \"Ava Seaded\" ja luba AutoCati kasutamine. \"\n\nSee on tundlik luba, mis võimaldab jälgida muid rakendusi. Kuid AutoCat pole selle funktsiooni jaoks seadistatud ega võta sündmusi vastu.</string>
     <string name="dt2s_recents_warning_open_settings">Ava seaded</string>
-    <string name="recents_a11y_hint">Hiljutiste rakenduste akna kasutamiseks lülita sisse juurdepääsetavuse teenus. Puuduta valikut \"Ava Seaded\" ja luba Lawnchairi kasutamine. \"\n\nSelle toimingu tegemiseks kasutab Lawnchair juurdepääsetavuse meetodit `performGlobalAction`. See on tundlik luba, mis võimaldab jälgida muid rakendusi. Kuid Lawnchair pole selle funktsiooni jaoks seadistatud ega võta sündmusi vastu.</string>
+    <string name="recents_a11y_hint">Hiljutiste rakenduste akna kasutamiseks lülita sisse juurdepääsetavuse teenus. Puuduta valikut \"Ava Seaded\" ja luba AutoCati kasutamine. \"\n\nSelle toimingu tegemiseks kasutab AutoCat juurdepääsetavuse meetodit `performGlobalAction`. See on tundlik luba, mis võimaldab jälgida muid rakendusi. Kuid AutoCat pole selle funktsiooni jaoks seadistatud ega võta sündmusi vastu.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Lawnchair\'i veaaruanne</string>
+    <string name="lawnchair_bug_report">AutoCat\'i veaaruanne</string>
     <string name="crash_report_notif_title">%1$s jooksis kokku</string>
     <string name="action_upload_crash_report">Laadi krahhilogi üles</string>
     <string name="action_upload_error">Üleslaadimine nurjus</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Rakenduse otsing</string>
     <string name="search_provider_custom">Kohandatud</string>
-    <string name="search_provider_sponsored_description">%1$s ja Lawnchairil on tulu jagamise leping.\n\nOtsing %1$s abil aitab Lawnchairi toetada.</string>
+    <string name="search_provider_sponsored_description">%1$s ja AutoCatil on tulu jagamise leping.\n\nOtsing %1$s abil aitab AutoCati toetada.</string>
     <string name="app_label">Rakendus</string>
     <string name="website_label">Veebileht</string>
     <string name="qsb_search_provider_app_required">Vajalik on rakendus</string>
@@ -553,7 +553,7 @@
     <string name="max_folder_columns">Maksimaalne tulpade arv kaustas</string>
     <string name="max_folder_rows">Maksimaalne ridade arv kaustas</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">Neid sätteid eiratakse, kuna Lawnchair ei ole määratud hiljutiste rakenduste pakkujaks</string>
+    <string name="quickswitch_ignored_warning">Neid sätteid eiratakse, kuna AutoCat ei ole määratud hiljutiste rakenduste pakkujaks</string>
     <string name="quickstep_incompatible">Ühildumatu süsteemiintegratsioon</string>
     <string name="quickstep_incompatible_description">See seade on määratud kasutama süsteemiliigutusi (tuntud kui Quickstep), mida pakub %1$s, kuid see %1$s versioon ei ühildu Androidi versiooniga. Seadme kasutamise jätkamiseks eemalda %1$s värskendus või keela %1$s süsteemiliigutuse pakkujana.</string>
     <string name="translucent_background">Läbipaistev taust</string>

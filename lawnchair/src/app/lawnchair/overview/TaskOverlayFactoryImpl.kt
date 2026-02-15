@@ -14,7 +14,7 @@ class TaskOverlayFactoryImpl(@Suppress("UNUSED_PARAMETER") context: Context) : T
     class TaskOverlay(
         taskThumbnailView: TaskContainer,
     ) : TaskOverlayFactory.TaskOverlay<AutoCatOverviewActionsView>(taskThumbnailView) {
-        // Lawnchair-TODO-Recents: The entire code for initOverlay moved to Go variant???
+        // AutoCat-TODO-Recents: The entire code for initOverlay moved to Go variant???
     }
 
     sealed interface OverlayUICallbacks : TaskOverlayFactory.OverlayUICallbacks {

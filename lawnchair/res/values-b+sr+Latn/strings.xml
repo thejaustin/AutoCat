@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dw</string>
     <string name="time_months_ago">%dmo</string>
     <string name="time_years_ago">%dy</string>
-    <string name="managed_by_lawnchair">Upravlja Lawnchair</string>
+    <string name="managed_by_lawnchair">Upravlja AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Podešavanja</string>
     <string name="settings_button_text">Podešavanja početnog ekrana</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Promenite podešavanja</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Others</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Only show unique apps</string>
     <string name="my_folder_label">My folder</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, Lawnchair requires accessibility access.\n\nLawnchair doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. Lawnchair discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, Lawnchair uses the performGlobalAction Accessibility service.</string>
+    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, AutoCat requires accessibility access.\n\nAutoCat doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. AutoCat discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, AutoCat uses the performGlobalAction Accessibility service.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s i %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">Dugme „Obriši sve”, zaobljenost uglova</string>
     <string name="about_label">O aplikaciji</string>
     <string name="app_info_drop_target_label">Informacije o aplikaciji</string>
-    <string name="debug_restart_launcher">Restartuj Lawnchair</string>
+    <string name="debug_restart_launcher">Restartuj AutoCat</string>
     <string name="experimental_features_label">Eksperimentalne funkcije</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Prilagođavanje fonta</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">Da biste pristupali prečicama i drugim funkcijama, podesite Lawnchair kao podrazumevani pokretač</string>
+    <string name="set_default_launcher_tip">Da biste pristupali prečicama i drugim funkcijama, podesite AutoCat kao podrazumevani pokretač</string>
     <string name="notification_dots">Tačke za obaveštenja</string>
     <string name="show_notification_count">Prikazuj broj obaveštenja</string>
     <string name="notification_dots_color">Boja tačke za obaveštenja</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">Da biste koristili „<xliff:g example="My Provider" id="providerName">%1$s</xliff:g>”, uključite tačke za obaveštenja.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Prikaži na početnom ekranu</string>
-    <string name="smartspace_widget_toggle_description">„Kratak pregled” možete da dodate ručno postavljanjem vidžeta „Lawnchair”</string>
+    <string name="smartspace_widget_toggle_description">„Kratak pregled” možete da dodate ručno postavljanjem vidžeta „AutoCat”</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Dobavljač za „Kratak pregled”</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Open assistant</string>
     <string name="pick_app_for_gesture">Izaberite aplikaciju</string>
     <string name="dt2s_admin_hint_title">Potrebne su administratorske dozvole</string>
-    <string name="dt2s_admin_hint">Da biste koristili funkciju „Dodirnite dvaput za stanje spavanja”, podesite Lawnchair kao administrator uređaja. U podešavanjima dodirnite „Aktiviraj ovu aplikaciju za administratora uređaja”.</string>
+    <string name="dt2s_admin_hint">Da biste koristili funkciju „Dodirnite dvaput za stanje spavanja”, podesite AutoCat kao administrator uređaja. U podešavanjima dodirnite „Aktiviraj ovu aplikaciju za administratora uređaja”.</string>
     <string name="dt2s_admin_warning">Funkcija „Dodirnite dvaput za stanje spavanja” će biti isključena</string>
     <string name="d2ts_recents_a11y_hint_title">Uključi uslugu pristupačnosti</string>
-    <string name="dt2s_a11y_hint">Da biste koristili funkciju „Dodirnite dvaput za stanje spavanja”, uključite Lawnchair-ovu uslugu pristupačnosti. Dodirnite „Otvori podešavanja”, izaberite „Lawnchair” i uključite „Koristi Lawnchair”.\n\nOva dozvola je osetljiva jer omogućava nadgledanje drugih aplikacija, ali je Lawnchair ne koristi u te svrhe.</string>
+    <string name="dt2s_a11y_hint">Da biste koristili funkciju „Dodirnite dvaput za stanje spavanja”, uključite AutoCat-ovu uslugu pristupačnosti. Dodirnite „Otvori podešavanja”, izaberite „AutoCat” i uključite „Koristi AutoCat”.\n\nOva dozvola je osetljiva jer omogućava nadgledanje drugih aplikacija, ali je AutoCat ne koristi u te svrhe.</string>
     <string name="dt2s_recents_warning_open_settings">Otvori podešavanja</string>
-    <string name="recents_a11y_hint">To use Open Recents screen, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="recents_a11y_hint">To use Open Recents screen, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Izveštaj o grešci u Lawnchairu</string>
+    <string name="lawnchair_bug_report">Izveštaj o grešci u AutoCatu</string>
     <string name="crash_report_notif_title">%1$s je otkazao</string>
     <string name="action_upload_crash_report">Otpremi evidenciju o otkazivanju</string>
     <string name="action_upload_error">Otpremanje nije uspelo</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Pretraga aplikacija</string>
     <string name="search_provider_custom">Prilagođena</string>
-    <string name="search_provider_sponsored_description">%1$s i Lawnchair imaju ugovor o podeli prihoda.\n\nPretraživanjem pomoću usluge %1$s podržavate Lawnchair.</string>
+    <string name="search_provider_sponsored_description">%1$s i AutoCat imaju ugovor o podeli prihoda.\n\nPretraživanjem pomoću usluge %1$s podržavate AutoCat.</string>
     <string name="app_label">Aplikacija</string>
     <string name="website_label">Sajt</string>
     <string name="qsb_search_provider_app_required">Potrebna je aplikacija</string>
@@ -554,7 +554,7 @@
     <string name="max_folder_columns">Maksimalan broj kolona u folderu</string>
     <string name="max_folder_rows">Maksimalan broj redova u folderu</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">These settings will be ignored as Lawnchair isn\'t set as the Recents screen provider</string>
+    <string name="quickswitch_ignored_warning">These settings will be ignored as AutoCat isn\'t set as the Recents screen provider</string>
     <string name="quickstep_incompatible">Nekompatibilna sistemska integracija</string>
     <string name="quickstep_incompatible_description">Uređaj je podešen da koristi sistemske pokrete (poznate kao Quickstep), koje pruža %1$s, ali ova verzija %1$sa nije kompatibilna sa vašom verzijom Androida. Da biste nastavili da koristite uređaj, deinstalirajte ažuriranja %1$sa ili onemogućite %1$s kao dobavljača sistemskih pokreta.</string>
     <string name="translucent_background">Poluprozirna pozadina</string>

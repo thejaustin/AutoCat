@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dw</string>
     <string name="time_months_ago">%dmo</string>
     <string name="time_years_ago">%dy</string>
-    <string name="managed_by_lawnchair">Gerido por Lawnchair</string>
+    <string name="managed_by_lawnchair">Gerido por AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Preferências</string>
     <string name="settings_button_text">Definições do ecrã principal</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Alterar definições</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Outros</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Only show unique apps</string>
     <string name="my_folder_label">A minha pasta</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">Para efetuar algumas ações, o Lawnchair precisa de permissões de Acessibilidade \n\nPor favor ative os serviços de acessibilidade.</string>
+    <string name="accessibility_service_description">Para efetuar algumas ações, o AutoCat precisa de permissões de Acessibilidade \n\nPor favor ative os serviços de acessibilidade.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">Botão limpar tudo, raio do canto</string>
     <string name="about_label">Sobre</string>
     <string name="app_info_drop_target_label">Informação das aplicações</string>
-    <string name="debug_restart_launcher">Reiniciar o Lawnchair</string>
+    <string name="debug_restart_launcher">Reiniciar o AutoCat</string>
     <string name="experimental_features_label">Funcionalidades experimentais</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Personalização de fontes</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">Para aceder a atalhos e funcionalidades adicionais, define o Lawnchair como o teu launcher predefinido</string>
+    <string name="set_default_launcher_tip">Para aceder a atalhos e funcionalidades adicionais, define o AutoCat como o teu launcher predefinido</string>
     <string name="notification_dots">Pontos de notificação</string>
     <string name="show_notification_count">Mostrar contador de notificações</string>
     <string name="notification_dots_color">Cor do ponto de notificação</string>
@@ -346,7 +346,7 @@ Transparentes</string>
     <string name="event_provider_missing_notification_dots">Para usar <xliff:g example="My Provider" id="providerName">%1$s</xliff:g>, ative os Pontos de Notificação.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Mostrar no ecrã principal</string>
-    <string name="smartspace_widget_toggle_description">A Visualização rápida pode ser adicionada manualmente ao ecrã inicial colocando o widget Lawnchair</string>
+    <string name="smartspace_widget_toggle_description">A Visualização rápida pode ser adicionada manualmente ao ecrã inicial colocando o widget AutoCat</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Fornecedor de Visualização rápida</string>
     <string name="smartspace_mode_google">Google</string>
@@ -417,18 +417,18 @@ Transparentes</string>
     <string name="gesture_handler_open_assistant">Abrir assistente</string>
     <string name="pick_app_for_gesture">Escolher aplicação</string>
     <string name="dt2s_admin_hint_title">Permissões de administrador necessárias</string>
-    <string name="dt2s_admin_hint">Para usar o Toque Duplo para Adormecer, defina o Lawnchair como uma aplicação de administração do dispositivo. Toque em \"Abrir definições\", depois em \"Ativar esta aplicação de administração do dispositivo.\"</string>
+    <string name="dt2s_admin_hint">Para usar o Toque Duplo para Adormecer, defina o AutoCat como uma aplicação de administração do dispositivo. Toque em \"Abrir definições\", depois em \"Ativar esta aplicação de administração do dispositivo.\"</string>
     <string name="dt2s_admin_warning">O Duplo Toque para Dormir será desativado.</string>
     <string name="d2ts_recents_a11y_hint_title">Ativar o serviço de acessibilidade</string>
-    <string name="dt2s_a11y_hint">Para usar o Toque Duplo para Dormir, ativa o serviço de acessibilidade do Lawnchair. Toca em \"Abrir definições\", seleciona \"Lawnchair\" e ativa \"Usar Lawnchair\".\n\nO Lawnchair utiliza o método `performGlobalAction` da Acessibilidade para realizar esta ação. Esta é uma permissão sensível que permite monitorizar outras aplicações. No entanto, o Lawnchair não está configurado para essa funcionalidade e não recebe eventos.</string>
+    <string name="dt2s_a11y_hint">Para usar o Toque Duplo para Dormir, ativa o serviço de acessibilidade do AutoCat. Toca em \"Abrir definições\", seleciona \"AutoCat\" e ativa \"Usar AutoCat\".\n\nO AutoCat utiliza o método `performGlobalAction` da Acessibilidade para realizar esta ação. Esta é uma permissão sensível que permite monitorizar outras aplicações. No entanto, o AutoCat não está configurado para essa funcionalidade e não recebe eventos.</string>
     <string name="dt2s_recents_warning_open_settings">Abrir definições</string>
-    <string name="recents_a11y_hint">To use Open Recents screen, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="recents_a11y_hint">To use Open Recents screen, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Relatório de erro do Lawnchair</string>
+    <string name="lawnchair_bug_report">Relatório de erro do AutoCat</string>
     <string name="crash_report_notif_title">%1$s parou de funcionar</string>
     <string name="action_upload_crash_report">Carregar registo de falhas</string>
     <string name="action_upload_error">Falha no envio</string>
@@ -521,7 +521,7 @@ Transparentes</string>
     <!-- Search providers -->
     <string name="search_provider_app_search">Pesquisa de aplicações</string>
     <string name="search_provider_custom">Personalizado</string>
-    <string name="search_provider_sponsored_description">%1$s e o Lawnchair têm um acordo de partilha de receitas.\n\nPesquisar com o %1$s ajuda a apoiar o Lawnchair.</string>
+    <string name="search_provider_sponsored_description">%1$s e o AutoCat têm um acordo de partilha de receitas.\n\nPesquisar com o %1$s ajuda a apoiar o AutoCat.</string>
     <string name="app_label">Aplicação</string>
     <string name="website_label">Website</string>
     <string name="qsb_search_provider_app_required">Aplicação necessária</string>
@@ -554,7 +554,7 @@ Transparentes</string>
     <string name="max_folder_columns">Número máximo de colunas na pasta</string>
     <string name="max_folder_rows">Número máximo de linhas na pasta</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">These settings will be ignored as Lawnchair isn\'t set as the Recents screen provider</string>
+    <string name="quickswitch_ignored_warning">These settings will be ignored as AutoCat isn\'t set as the Recents screen provider</string>
     <string name="quickstep_incompatible">Integração do sistema incompatível</string>
     <string name="quickstep_incompatible_description">O seu dispositivo está configurado para ter gestos do sistema (conhecidos como Quickstep) fornecidos por %1$s, mas esta versão de %1$s não é compatível com a versão do seu Android. Para continuar a usar o seu dispositivo, desinstale as atualizações de %1$s ou desative %1$s como fornecedor de gestos do sistema.</string>
     <string name="translucent_background">Fundo translúcido</string>

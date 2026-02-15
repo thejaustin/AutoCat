@@ -140,7 +140,7 @@ class AutoCatIconProvider @JvmOverloads constructor(
 
     fun getThemedIconMap(): MutableMap<String, ThemeData> {
         if (mThemedIconMap != null) {
-            return mThemedIconMap!!.toMutableMap() // Lawnchair-TODO: This feels cursed?
+            return mThemedIconMap!!.toMutableMap() // AutoCat-TODO: This feels cursed?
         }
         val map = ArrayMap<String, ThemeData>()
         val res = mContext.getResources()
@@ -177,7 +177,7 @@ class AutoCatIconProvider @JvmOverloads constructor(
             Log.e(TAG, "Unable to parse icon map", e)
         }
         mThemedIconMap = map
-        return mThemedIconMap!!.toMutableMap() // Lawnchair-TODO: This feels cursed?
+        return mThemedIconMap!!.toMutableMap() // AutoCat-TODO: This feels cursed?
     }
 
     override fun getIcon(info: PackageItemInfo?, appInfo: ApplicationInfo?, iconDpi: Int): Drawable {

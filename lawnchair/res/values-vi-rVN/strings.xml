@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dt</string>
     <string name="time_months_ago">%dth</string>
     <string name="time_years_ago">%dn</string>
-    <string name="managed_by_lawnchair">Quản lí bởi Lawnchair</string>
+    <string name="managed_by_lawnchair">Quản lí bởi AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Tùy chỉnh</string>
     <string name="settings_button_text">Cài đặt trang chủ</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Thay đổi cài đặt</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Khác</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Chỉ hiển thị các ứng dụng duy nhất</string>
     <string name="my_folder_label">Thư mục của tôi</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">Để thực hiện một số hành động nhất định (chẳng hạn như khóa điện thoại) khi thực hiện cử chỉ, Lawnchair cần có quyền truy cập trợ năng.\n\nLawnchair không theo dõi bất kỳ hành động nào của người dùng, mặc dù quyền làm như vậy là bắt buộc đối với tất cả các dịch vụ trợ năng. Lawnchair loại bỏ bất kỳ sự kiện nào được hệ thống gửi đi.\n\nĐể khóa điện thoại hoặc mở màn hình Gần đây, Lawnchair sử dụng dịch vụ Trợ năng performGlobalAction.</string>
+    <string name="accessibility_service_description">Để thực hiện một số hành động nhất định (chẳng hạn như khóa điện thoại) khi thực hiện cử chỉ, AutoCat cần có quyền truy cập trợ năng.\n\nAutoCat không theo dõi bất kỳ hành động nào của người dùng, mặc dù quyền làm như vậy là bắt buộc đối với tất cả các dịch vụ trợ năng. AutoCat loại bỏ bất kỳ sự kiện nào được hệ thống gửi đi.\n\nĐể khóa điện thoại hoặc mở màn hình Gần đây, AutoCat sử dụng dịch vụ Trợ năng performGlobalAction.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">Xóa tất cả nút, bán kính góc</string>
     <string name="about_label">Giới thiệu</string>
     <string name="app_info_drop_target_label">Thông tin ứng dụng</string>
-    <string name="debug_restart_launcher">Khởi chạy lại Lawnchair</string>
+    <string name="debug_restart_launcher">Khởi chạy lại AutoCat</string>
     <string name="experimental_features_label">Chức năng thử nghiệm</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Đổi phông chữ</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">Để truy cập các phím tắt và tính năng bổ sung, hãy đặt Lawnchair làm ứng dụng mặc định màn hình chính của bạn</string>
+    <string name="set_default_launcher_tip">Để truy cập các phím tắt và tính năng bổ sung, hãy đặt AutoCat làm ứng dụng mặc định màn hình chính của bạn</string>
     <string name="notification_dots">Dấu chấm thông báo</string>
     <string name="show_notification_count">Hiển thị số đếm thông báo</string>
     <string name="notification_dots_color">Màu chấm thông báo</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">Để sử dụng <xliff:g example="My Provider" id="providerName">%1$s</xliff:g>, bật chức năng Chấm Thông báo.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Hiển thị trên màn hình chính</string>
-    <string name="smartspace_widget_toggle_description">Có thể thêm Xem nhanh vào màn hình chính bằng cách đặt tiện ích Lawnchair</string>
+    <string name="smartspace_widget_toggle_description">Có thể thêm Xem nhanh vào màn hình chính bằng cách đặt tiện ích AutoCat</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Nhà cung cấp Xem nhanh</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Mở trợ lý ảo</string>
     <string name="pick_app_for_gesture">Chọn ứng dụng</string>
     <string name="dt2s_admin_hint_title">Cần quyền Quản trị viên</string>
-    <string name="dt2s_admin_hint">Để sử dụng Chạm Hai Lần để Tắt, hãy đặt Lawnchair làm ứng dụng quản trị thiết bị. Nhấn \"Mở cài đặt\", sau đó nhấn \"Kích hoạt ứng dụng quản trị thiết bị này.\"</string>
+    <string name="dt2s_admin_hint">Để sử dụng Chạm Hai Lần để Tắt, hãy đặt AutoCat làm ứng dụng quản trị thiết bị. Nhấn \"Mở cài đặt\", sau đó nhấn \"Kích hoạt ứng dụng quản trị thiết bị này.\"</string>
     <string name="dt2s_admin_warning">Nhấp đôi để khoá màn hình sẽ được tắt.</string>
     <string name="d2ts_recents_a11y_hint_title">Bật dịch vụ trợ năng</string>
-    <string name="dt2s_a11y_hint">Để sử dụng Chạm Hai Lần, hãy bật dịch vụ trợ năng Lawnchair. Nhấn \"Mở cài đặt\", chọn \"Lawnchair\" và bật \"Sử dụng Lawnchair.\"\n\nLawnchair sử dụng phương thức `performGlobalAction` của Khả năng tiếp cận để thực hiện hành động này. Đây là quyền nhạy cảm cho phép giám sát các ứng dụng khác. Tuy nhiên, Lawnchair không được sử dụng cho mục đích đó.</string>
+    <string name="dt2s_a11y_hint">Để sử dụng Chạm Hai Lần, hãy bật dịch vụ trợ năng AutoCat. Nhấn \"Mở cài đặt\", chọn \"AutoCat\" và bật \"Sử dụng AutoCat.\"\n\nAutoCat sử dụng phương thức `performGlobalAction` của Khả năng tiếp cận để thực hiện hành động này. Đây là quyền nhạy cảm cho phép giám sát các ứng dụng khác. Tuy nhiên, AutoCat không được sử dụng cho mục đích đó.</string>
     <string name="dt2s_recents_warning_open_settings">Mở Cài đặt</string>
-    <string name="recents_a11y_hint">Để sử dụng màn hình Mở gần đây, hãy bật dịch vụ trợ năng Lawnchair. Nhấn \"Mở cài đặt\", chọn \"Lawnchair\" và bật \"Sử dụng Lawnchair\".\n\nLawnchair sử dụng phương thức `performGlobalAction` của Accessibility để thực hiện hành động này. Đây là quyền nhạy cảm cho phép giám sát các ứng dụng khác. Tuy nhiên, Lawnchair không được sử dụng cho mục đích đó.</string>
+    <string name="recents_a11y_hint">Để sử dụng màn hình Mở gần đây, hãy bật dịch vụ trợ năng AutoCat. Nhấn \"Mở cài đặt\", chọn \"AutoCat\" và bật \"Sử dụng AutoCat\".\n\nAutoCat sử dụng phương thức `performGlobalAction` của Accessibility để thực hiện hành động này. Đây là quyền nhạy cảm cho phép giám sát các ứng dụng khác. Tuy nhiên, AutoCat không được sử dụng cho mục đích đó.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Báo lỗi của Lawnchair</string>
+    <string name="lawnchair_bug_report">Báo lỗi của AutoCat</string>
     <string name="crash_report_notif_title">%1$s đã dừng hoạt động</string>
     <string name="action_upload_crash_report">Tải lên thông tin sự cố</string>
     <string name="action_upload_error">Tải lên thất bại</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Tìm kiếm ứng dụng</string>
     <string name="search_provider_custom">Tùy chỉnh</string>
-    <string name="search_provider_sponsored_description">%1$s và Lawnchair có thỏa thuận chia sẻ doanh thu.\n\nTìm kiếm với %1$s giúp hỗ trợ Lawnchair.</string>
+    <string name="search_provider_sponsored_description">%1$s và AutoCat có thỏa thuận chia sẻ doanh thu.\n\nTìm kiếm với %1$s giúp hỗ trợ AutoCat.</string>
     <string name="app_label">Ứng dụng</string>
     <string name="website_label">Trang web</string>
     <string name="qsb_search_provider_app_required">Yêu cầu ứng dụng được cài đặt trên máy</string>
@@ -552,7 +552,7 @@
     <string name="max_folder_columns">Số cột của thư mục tối đa</string>
     <string name="max_folder_rows">Số hàng thư mục tối đa</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">Những thiết lập này sẽ bị bỏ qua vì Lawnchair không được đặt làm nhà cung cấp màn hình Gần đây</string>
+    <string name="quickswitch_ignored_warning">Những thiết lập này sẽ bị bỏ qua vì AutoCat không được đặt làm nhà cung cấp màn hình Gần đây</string>
     <string name="quickstep_incompatible">Tích hợp hệ thống không tương thích</string>
     <string name="quickstep_incompatible_description">Thiết bị của bạn được cấu hình để có cử chỉ hệ thống (được gọi là Quickstep) được cung cấp bởi %1$s, nhưng phiên bản này của %1$s không tương thích với phiên bản Android của bạn. Để tiếp tục sử dụng thiết bị của bạn, vui lòng gỡ cài đặt các bản cập nhật cho %1$s hoặc vô hiệu hóa %1$s với tư cách là nhà cung cấp cử chỉ hệ thống.</string>
     <string name="translucent_background">Nền trong suốt</string>

@@ -262,7 +262,7 @@ public class DesktopModeStatus {
                 && DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_MODE.isTrue())
                 || isDesktopModeEnabledByDevOption(context);
         } catch (Throwable e) {
-            // Lawnchair-TODO-Postmerge: All of the LC-Ignored MAY be only accessible to newer APIs.
+            // AutoCat-TODO-Postmerge: All of the LC-Ignored MAY be only accessible to newer APIs.
             // LC-Ignored
             return false;
         }

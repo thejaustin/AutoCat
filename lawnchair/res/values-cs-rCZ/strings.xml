@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dw</string>
     <string name="time_months_ago">%dmo</string>
     <string name="time_years_ago">%dy</string>
-    <string name="managed_by_lawnchair">Spravováno aplikací Lawnchair</string>
+    <string name="managed_by_lawnchair">Spravováno aplikací AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Předvolby</string>
     <string name="settings_button_text">Nastavení domovské obrazovky</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Změnit nastavení</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Ostatní</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Zobrazit pouze unikátní aplikace</string>
     <string name="my_folder_label">Moje složka</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, Lawnchair requires accessibility access.\n\nLawnchair doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. Lawnchair discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, Lawnchair uses the performGlobalAction Accessibility service.</string>
+    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, AutoCat requires accessibility access.\n\nAutoCat doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. AutoCat discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, AutoCat uses the performGlobalAction Accessibility service.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">Tlačítko „Vymazat vše“, Poloměr rohů</string>
     <string name="about_label">O aplikaci</string>
     <string name="app_info_drop_target_label">Informace o aplikaci</string>
-    <string name="debug_restart_launcher">Restartovat Lawnchair</string>
+    <string name="debug_restart_launcher">Restartovat AutoCat</string>
     <string name="experimental_features_label">Experimentální funkce</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Přizbpůsobení fontu</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">Pro přístup ke zkratkám a dalším funkcím nastavte Lawnchair jako výchozí spouštěč</string>
+    <string name="set_default_launcher_tip">Pro přístup ke zkratkám a dalším funkcím nastavte AutoCat jako výchozí spouštěč</string>
     <string name="notification_dots">Notifikační tečky</string>
     <string name="show_notification_count">Zobrazit počet oznámení</string>
     <string name="notification_dots_color">Barva oznamovací tečky</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">To use <xliff:g example="My Provider" id="providerName">%1$s</xliff:g>, turn on Notification Dots.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Zobrazit na domovské obrazovce</string>
-    <string name="smartspace_widget_toggle_description">At a Glanc je možné přidat ručně umístěním widgetu \"Lawnchair\"</string>
+    <string name="smartspace_widget_toggle_description">At a Glanc je možné přidat ručně umístěním widgetu \"AutoCat\"</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">At a Glance provider</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Otevřít asistenta</string>
     <string name="pick_app_for_gesture">Vybrat aplikaci</string>
     <string name="dt2s_admin_hint_title">Vyžaduje oprávnění administrátora</string>
-    <string name="dt2s_admin_hint">To use Double-Tap to Sleep, set Lawnchair as a device admin app. Tap \"Open settings\", then tap \"Activate this device admin app.\"</string>
+    <string name="dt2s_admin_hint">To use Double-Tap to Sleep, set AutoCat as a device admin app. Tap \"Open settings\", then tap \"Activate this device admin app.\"</string>
     <string name="dt2s_admin_warning">Uspání dvojitým poklepáním bude vypnuto.</string>
     <string name="d2ts_recents_a11y_hint_title">Zapnout službu usnadnění</string>
-    <string name="dt2s_a11y_hint">To use Double-Tap to Sleep, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="dt2s_a11y_hint">To use Double-Tap to Sleep, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
     <string name="dt2s_recents_warning_open_settings">Otevřít nastavení</string>
-    <string name="recents_a11y_hint">To use Open Recents screen, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="recents_a11y_hint">To use Open Recents screen, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Hlášení o chybě v Lawnchair</string>
+    <string name="lawnchair_bug_report">Hlášení o chybě v AutoCat</string>
     <string name="crash_report_notif_title">%1$s přestal fungovat</string>
     <string name="action_upload_crash_report">Nahrát protokol pádů</string>
     <string name="action_upload_error">Nahrávání selhalo</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Hledání aplikací</string>
     <string name="search_provider_custom">Vlastní</string>
-    <string name="search_provider_sponsored_description">%1$s a Lawnchair má smlouvu o sdílení příjmů.\n\nVyhledávání pomocí %1$s pomáhá podpořit Lawnchair.</string>
+    <string name="search_provider_sponsored_description">%1$s a AutoCat má smlouvu o sdílení příjmů.\n\nVyhledávání pomocí %1$s pomáhá podpořit AutoCat.</string>
     <string name="app_label">Aplikace</string>
     <string name="website_label">Web</string>
     <string name="qsb_search_provider_app_required">Aplikace je vyžadována</string>
@@ -555,7 +555,7 @@
     <string name="max_folder_columns">Maximální počet sloupců složky</string>
     <string name="max_folder_rows">Maximální počet řádků složky</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">These settings will be ignored as Lawnchair isn\'t set as the Recents screen provider</string>
+    <string name="quickswitch_ignored_warning">These settings will be ignored as AutoCat isn\'t set as the Recents screen provider</string>
     <string name="quickstep_incompatible">Nekompatibilní systémová integrace</string>
     <string name="quickstep_incompatible_description">Your device is configured to have system gestures (known as Quickstep) provided by %1$s, but this version of %1$s isn\'t compatible with your Android version. To continue using your device, please uninstall %1$s updates or disable %1$s as a system gesture provider.</string>
     <string name="translucent_background">Průsvitné pozadí</string>

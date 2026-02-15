@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, Lawnchair
+  ~ Copyright 2021, AutoCat
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%dw</string>
     <string name="time_months_ago">%dmo</string>
     <string name="time_years_ago">%dy</string>
-    <string name="managed_by_lawnchair">Керується Lawnchair</string>
+    <string name="managed_by_lawnchair">Керується AutoCat</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Налаштування</string>
     <string name="settings_button_text">Налаштування головного екрана</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Змінити налаштування</string>
     <!--
 
-    General "words" used throughout Lawnchair
+    General "words" used throughout AutoCat
 
     -->
     <string name="others_category_label">Інші</string>
@@ -115,7 +115,7 @@
     <string name="folders_filter_duplicates">Only show unique apps</string>
     <string name="my_folder_label">Моя папка</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, Lawnchair requires accessibility access.\n\nLawnchair doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. Lawnchair discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, Lawnchair uses the performGlobalAction Accessibility service.</string>
+    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, AutoCat requires accessibility access.\n\nAutoCat doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. AutoCat discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, AutoCat uses the performGlobalAction Accessibility service.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d на %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
@@ -144,7 +144,7 @@
     <string name="quickstep_description">Кнопка \"Очистити все\", радіус заокруглення кутів</string>
     <string name="about_label">Про додаток</string>
     <string name="app_info_drop_target_label">Про застосунок</string>
-    <string name="debug_restart_launcher">Перезавантажте Lawnchair</string>
+    <string name="debug_restart_launcher">Перезавантажте AutoCat</string>
     <string name="experimental_features_label">Експериментальні можливості</string>
     <!-- Experimental features -->
     <string name="font_picker_label">Налаштування шрифту</string>
@@ -172,7 +172,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">Щоб отримати доступ до ярликів і додаткових функцій, встановіть Lawnchair як лаунчер за замовчуванням</string>
+    <string name="set_default_launcher_tip">Щоб отримати доступ до ярликів і додаткових функцій, встановіть AutoCat як лаунчер за замовчуванням</string>
     <string name="notification_dots">Позначки сповіщень</string>
     <string name="show_notification_count">Показувати лічильник сповіщень</string>
     <string name="notification_dots_color">Колір позначки сповіщень</string>
@@ -345,7 +345,7 @@
     <string name="event_provider_missing_notification_dots">Щоб використовувати <xliff:g example="My Provider" id="providerName">%1$s</xliff:g>, увімкніть Позначки Сповіщень.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Показувати на головному екрані</string>
-    <string name="smartspace_widget_toggle_description">Віджет At a Glance можна додати на головний екран вручну, помістивши віджет \"Lawnchair\"</string>
+    <string name="smartspace_widget_toggle_description">Віджет At a Glance можна додати на головний екран вручну, помістивши віджет \"AutoCat\"</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Постачальник At a Glance</string>
     <string name="smartspace_mode_google">Google</string>
@@ -416,18 +416,18 @@
     <string name="gesture_handler_open_assistant">Open assistant</string>
     <string name="pick_app_for_gesture">Обрати додаток</string>
     <string name="dt2s_admin_hint_title">Потрібен дозвіл Адміністратора</string>
-    <string name="dt2s_admin_hint">Щоб використовувати «Подвійний Дотик для Переходу в Режим Сну», надайте Lawnchair дозвіл адміністратора. Натисніть «Відкрити Налаштування», потім натисніть «Активувати цю програму адміністрування пристрою.»</string>
+    <string name="dt2s_admin_hint">Щоб використовувати «Подвійний Дотик для Переходу в Режим Сну», надайте AutoCat дозвіл адміністратора. Натисніть «Відкрити Налаштування», потім натисніть «Активувати цю програму адміністрування пристрою.»</string>
     <string name="dt2s_admin_warning">«Подвійне Натискання в Сплячий Режим» буде відключено.</string>
     <string name="d2ts_recents_a11y_hint_title">Увімкнути службу Спеціальних Можливостей</string>
-    <string name="dt2s_a11y_hint">Щоб використовувати \"Подвійний Дотик для Переходу в Режим Сну\", увімкніть службу доступності Lawnchair. Натисніть \"Відкрити налаштування\", виберіть \"Lawnchair\" і увімкніть \"Використовувати Lawnchair\".\n\nLawnchair використовує метод доступності `performGlobalAction` для виконання цієї дії. Це чутливий дозвіл, який дозволяє контролювати інші програми. Втім, Lawnchair не налаштований на цю можливість і не отримує жодних подій.</string>
+    <string name="dt2s_a11y_hint">Щоб використовувати \"Подвійний Дотик для Переходу в Режим Сну\", увімкніть службу доступності AutoCat. Натисніть \"Відкрити налаштування\", виберіть \"AutoCat\" і увімкніть \"Використовувати AutoCat\".\n\nAutoCat використовує метод доступності `performGlobalAction` для виконання цієї дії. Це чутливий дозвіл, який дозволяє контролювати інші програми. Втім, AutoCat не налаштований на цю можливість і не отримує жодних подій.</string>
     <string name="dt2s_recents_warning_open_settings">Відкрити Налаштування</string>
-    <string name="recents_a11y_hint">To use Open Recents screen, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"\n\nLawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
+    <string name="recents_a11y_hint">To use Open Recents screen, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Звіт про помилку Lawnchair</string>
+    <string name="lawnchair_bug_report">Звіт про помилку AutoCat</string>
     <string name="crash_report_notif_title">%1$s завершив роботу</string>
     <string name="action_upload_crash_report">Завантажити журнал збоїв</string>
     <string name="action_upload_error">Помилка завантаження</string>
@@ -520,7 +520,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Пошук додатків</string>
     <string name="search_provider_custom">Користувацькі налаштування</string>
-    <string name="search_provider_sponsored_description">%1$s та Lawnchair уклали партнерську угоду.\n\nПошук через %1$s допомагає підтримувати Lawnchair.</string>
+    <string name="search_provider_sponsored_description">%1$s та AutoCat уклали партнерську угоду.\n\nПошук через %1$s допомагає підтримувати AutoCat.</string>
     <string name="app_label">Застосунок</string>
     <string name="website_label">Вебсайт</string>
     <string name="qsb_search_provider_app_required">Необхідний додаток</string>
@@ -555,7 +555,7 @@
     <string name="max_folder_columns">Максимальна кількість стовпців у теці</string>
     <string name="max_folder_rows">Максимальна кількість рядків у теці</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">These settings will be ignored as Lawnchair isn\'t set as the Recents screen provider</string>
+    <string name="quickswitch_ignored_warning">These settings will be ignored as AutoCat isn\'t set as the Recents screen provider</string>
     <string name="quickstep_incompatible">Несумісна системна інтеграція</string>
     <string name="quickstep_incompatible_description">Ваш пристрій налаштовано на використання системних жестів (відомих як Quickstep) від %1$s, але ця версія %1$s несумісна з вашою версією Android. Щоб продовжити користуватися пристроєм, видаліть оновлення %1$s або вимкніть %1$s як постачальника системних жестів.</string>
     <string name="translucent_background">Напівпрозорий фон</string>
