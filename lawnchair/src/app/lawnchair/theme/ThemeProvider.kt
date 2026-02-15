@@ -41,6 +41,9 @@ class ThemeProvider @Inject constructor(
     private val wallpaperManager = WallpaperManagerCompat.INSTANCE.get(context)
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
+    lateinit var currentColorScheme: ColorScheme
+        private set
+
     private var accentColor: ColorOption = preferenceManager2.accentColor.firstBlocking()
     private var colorStyle: ColorStyle = preferenceManager2.colorStyle.firstBlocking()
 
@@ -67,6 +70,13 @@ class ThemeProvider @Inject constructor(
             colorStyle = it
             notifyColorSchemeChanged()
         }
+        
+        currentColorScheme = colorScheme
+        addListener(object : ColorSchemeChangeListener {
+            override fun onColorSchemeChanged() {
+                currentColorScheme = colorScheme
+            }
+        })
     }
 
     private fun registerOverlayChangedListener() {

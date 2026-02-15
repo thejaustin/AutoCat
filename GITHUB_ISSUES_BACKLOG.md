@@ -99,6 +99,104 @@ Fix broken theming for apps in the Work Profile.
 - [x] Update `AutoCatIconProvider` to resolve user handles via app UID
 - [x] Ensure icon packs correctly map to Work Profile package names
 
+### Issue #70: Zen Mode (Dynamic Focus Categories)
+**Description:**
+Link AutoCat categories to Android's "Focus Modes" (Work, Sleep, DND) to dynamically hide or surface app tabs based on context.
+- [ ] Implement `FocusModeListener` to track system state
+- [ ] Add "Focus Rules" UI in Categorization Settings
+- [ ] Filter drawer tabs/folders based on active focus rule
+
+### Issue #71: Natural Language Layout Generator
+**Description:**
+Use LLM to create home screen layouts from chat prompts (e.g., "Create a travel page").
+- [ ] Create chat interface in Settings
+- [ ] Map LLM intent output to `LauncherLayoutBuilder`
+- [ ] Auto-provision widgets and category-based folders
+
+### Issue #72: The Vault (Biometric Categories)
+**Description:**
+Secure sensitive AI categories (e.g., Finance, Dating) with biometric authentication.
+- [ ] Add "Protected" toggle to Category settings
+- [ ] Integrate `BiometricPrompt` before expanding protected folders or tabs
+- [ ] Hide preview content for protected categories
+
+### Issue #73: AI Icon Generation (Gap Filling)
+**Description:**
+Automatically generate themed icons for apps missing from icon packs using on-device image processing or LLM-vision.
+- [ ] Implement logo shape extraction
+- [ ] Apply system Material You palette to extracted shapes
+- [ ] Cache generated icons in `IconOverrideRepository`
+
+### Issue #74: Deep Action Search
+**Description:**
+Extend Semantic Search to query and surface app shortcuts and deep links (e.g., "Order food" shows Uber Eats shortcuts).
+- [ ] Index `ShortcutInfo` alongside app names
+- [ ] Update `AutoCatSemanticSearchAlgorithm` to rank shortcuts by intent
+- [ ] Add shortcut UI to search results
+
+### Issue #75: App Decay (Smart Archiving)
+**Description:**
+Automatically identify and hibernate unused apps to keep the drawer lean.
+- [ ] Track app usage via `UsageStatsManager`
+- [ ] Group apps unused for >60 days into an "Archive" tab
+- [ ] Add one-tap Shizuku action to "Hibernate" (disable) archived apps
+
+### Issue #76: Contextual Widget Stacks (Smart Stacks)
+**Description:**
+Implement stackable widgets that auto-rotate based on time of day, location, or usage history.
+- [ ] Create `WidgetStack` container view
+- [ ] Add vertical swipe gesture to switch widgets
+- [ ] Implement basic "Smart Rotation" logic based on usage patterns
+
+### Issue #77: On-Device LLM (Local AI) Support
+**Description:**
+Reduce dependency on external APIs and improve privacy by integrating on-device models (e.g., Gemini Nano via AICore or ML Kit).
+- [ ] Implement `LocalLLMProvider` using Android AICore
+- [ ] Add fallback logic to switch between Local and Cloud providers
+- [ ] Implement on-device embedding for offline Semantic Search
+
+### Issue #78: AI-Suggested Category Icons
+**Description:**
+Automatically assign relevant Material icons to newly created AI categories.
+- [ ] Map common category keywords to Material Icon set
+- [ ] Use LLM to suggest the "best fit" icon during the categorization phase
+- [ ] Add UI to preview and accept suggested icons
+
+### Issue #79: Battery Saver & Wi-Fi Logic for AI
+**Description:**
+Optimize resource usage by scheduling heavy LLM batch processing tasks based on device state.
+- [ ] Add "Only on Wi-Fi" and "Only while charging" toggles to LLM Settings
+- [ ] Integrate with `WorkManager` for deferred background processing
+- [ ] Implement battery level thresholds for active categorization
+
+### Issue #80: Encrypted Category & Layout Sync
+**Description:**
+Allow users to backup and sync their AutoCat organization across devices securely.
+- [ ] Implement encrypted export of `TabDatabase` and layout preferences
+- [ ] Add support for Google Drive or local encrypted file sync
+- [ ] Create "Import/Merge" conflict resolution UI
+
+### Issue #81: Query Folders (Smart Lists)
+**Description:**
+Allow users to create folders defined by dynamic rules instead of manual app selection.
+- [ ] Implement rule engine (UsageStats, StorageStats, Icon color)
+- [ ] Add UI to create and edit "Query Folders"
+- [ ] Update folder contents dynamically in the background
+
+### Issue #82: Conscious Launch (AI Interception)
+**Description:**
+For user-selected apps, intercept frequent launch attempts and present a gentle, AI-generated prompt encouraging a different action or a mindful pause.
+- [ ] Track launch frequency per-app
+- [ ] Implement interception overlay
+- [ ] Add LLM prompt for generating mindful suggestions
+
+### Issue #83: Chameleon Theming (Contextual Adaptation)
+**Description:**
+Allow the launcher theme to adapt dynamically to the current context, such as album art, time of day, or battery state.
+- [ ] Listen for `MediaSession` updates to extract album art colors
+- [ ] Use `WallpaperColors` API for color extraction
+- [ ] Implement logic to switch between light/dark/grayscale themes based on rules
+
 ### Issue #64: Final Package Migration (High Risk)
 **Description:**
 Migrate `app.lawnchair` package to `app.autocat`.

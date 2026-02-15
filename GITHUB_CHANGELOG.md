@@ -26,11 +26,14 @@ Compatibility list:
 
 #### Features
 - [AutoCat] New "Discovery" tab in app drawer for recently installed apps
-- [Search] Implemented `AutoCatSemanticSearchAlgorithm`
+- [Search] Implemented `AutoCatSemanticSearchAlgorithm` for intent-based results
+- [Settings] Global Search Bar added to Settings Dashboard
+- [Settings] New "Customize" mode to reorder/hide settings categories
 - [LLM] Support for localized prompts in 10+ languages
-- [Settings] New "Smart Discovery" section in dashboard for AI features
-- [Settings] User controls for LLM Batch Size and Auto-Provider selection
-- [Logic] Support for Home Screen folder synchronization
+- [LLM] Parallel batch processing (up to 8x faster initial categorization)
+- [Integrations] Shizuku support for advanced app management (disabling/archiving)
+- [Settings] User controls for LLM Batch Size and Accuracy-based Auto-Provider selection
+- [Logic] Support for Dual Folder Sync (Drawer + Home Screen synchronization)
 
 #### Fixes
 - [Stability] Fixed infinite loading hang during Home layout setup

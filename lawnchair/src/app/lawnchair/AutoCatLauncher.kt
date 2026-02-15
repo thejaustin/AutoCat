@@ -152,6 +152,11 @@ class AutoCatLauncher : QuickstepLauncher() {
 
     val gestureController by unsafeLazy { GestureController(this) }
 
+    override fun attachBaseContext(newBase: Context) {
+        val themeProvider = ThemeProvider.INSTANCE.get(newBase)
+        super.attachBaseContext(DynamicThemeContextWrapper(newBase, themeProvider.currentColorScheme))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         layoutInflater.factory2 = AutoCatLayoutFactory(this)
         super.onCreate(savedInstanceState)
@@ -239,7 +244,6 @@ class AutoCatLauncher : QuickstepLauncher() {
         }
 
         colorScheme = themeProvider.colorScheme
-
         showQuickstepWarningIfNecessary()
 
         reloadIconsIfNeeded()
