@@ -38,9 +38,10 @@ class NightlyBuildsRepository(
         coroutineScope.launch(Dispatchers.Default) {
             _updateState.update { UpdateState.Checking }
             try {
-                val releases = api.getReleases()
-                val nightly = releases.firstOrNull { it.tagName == "nightly" }
-                val asset = nightly?.assets?.firstOrNull()
+                val releases = api.getReleases("thejaustin", "AutoCat")
+                // Look for any release that has an APK asset
+                val latestRelease = releases.firstOrNull { it.assets.any { asset -> asset.name.endsWith(".apk") } }
+                val asset = latestRelease?.assets?.firstOrNull { it.name.endsWith(".apk") }
 
                 // As of now the version string looks like this (CI builds only):
                 // <major>.<branch>.(#<CI build number>)
@@ -50,8 +51,10 @@ class NightlyBuildsRepository(
                     .substringAfterLast("#")
                     .removeSuffix(")")
                     .toIntOrNull() ?: 0
+
+                // Filename example: AutoCat.16-dev (#123).play.release.apk
                 latestBuildNumber =
-                    asset?.name?.substringAfter("_")?.substringBefore("-")?.toIntOrNull() ?: 0
+                    asset?.name?.substringAfterLast("#")?.substringBefore(")")?.toIntOrNull() ?: 0
 
                 if (asset != null && latestBuildNumber > currentBuildNumber) {
                     val commitList = getCommitsSinceCurrentVersion()
@@ -133,7 +136,7 @@ class NightlyBuildsRepository(
     private suspend fun getCommitsSinceCurrentVersion(): List<GitHubCommit>? {
         return try {
             // Get the latest commits (last 100)
-            val commits = api.getRepositoryCommits("AutoCatLauncher", "lawnchair")
+            val commits = api.getRepositoryCommits("thejaustin", "AutoCat")
 
             // Find the index of current commit
             val currentIndex = commits.indexOfFirst { it.sha.startsWith(currentCommitHash) }

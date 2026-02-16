@@ -548,6 +548,7 @@
     <string name="archive_category_dialog_message">All apps in the \"%1$s\" category will be archived. Their data will be kept.</string>
     <string name="restore_category_dialog_title">Restore %1$s?</string>
     <string name="restore_category_dialog_message">All archived apps in the \"%1$s\" category will be restored.</string>
+    <string name="check_for_update">Check for update</string>
 
     <!--
 

@@ -35,7 +35,6 @@ class AboutViewModel(
                 commitHash = BuildConfig.COMMIT_HASH,
                 coreTeam = team,
                 supportAndPr = supportAndPr,
-                topLinks = topLinks,
                 bottomLinks = bottomLinks,
             )
         }
@@ -49,12 +48,10 @@ class AboutViewModel(
             _uiState.update { it.copy(coreTeam = updatedCoreTeam) }
         }
 
-        if (BuildConfig.APPLICATION_ID.contains("nightly")) {
-            nightlyBuildsRepository.checkForUpdate()
-            viewModelScope.launch {
-                nightlyBuildsRepository.updateState.collect { state ->
-                    _uiState.update { it.copy(updateState = state) }
-                }
+        nightlyBuildsRepository.checkForUpdate()
+        viewModelScope.launch {
+            nightlyBuildsRepository.updateState.collect { state ->
+                _uiState.update { it.copy(updateState = state) }
             }
         }
     }
@@ -67,9 +64,13 @@ class AboutViewModel(
         nightlyBuildsRepository.installUpdate(file)
     }
 
+    fun checkForUpdate() {
+        nightlyBuildsRepository.checkForUpdate()
+    }
+
     private suspend fun fetchActiveContributors(): Set<String> {
         return runCatching {
-            nightlyBuildsRepository.api.getRepositoryEvents("AutoCatLauncher", "lawnchair")
+            nightlyBuildsRepository.api.getRepositoryEvents("thejaustin", "AutoCat")
                 .map { it.actor.login.lowercase() }
                 .toSet()
         }.getOrDefault(emptySet())
@@ -164,19 +165,6 @@ class AboutViewModel(
                 photoUrl = "https://avatars.githubusercontent.com/u/41836211",
                 socialUrl = "https://yasan.glass",
                 githubUsername = "yasanglass",
-            ),
-        )
-
-        private val topLinks = listOf(
-            Link(
-                iconResId = R.drawable.ic_github,
-                labelResId = R.string.github,
-                url = "https://github.com/thejaustin/AutoCat",
-            ),
-            Link(
-                iconResId = R.drawable.ic_bug_notification,
-                labelResId = R.string.autocat_issues,
-                url = "https://github.com/thejaustin/AutoCat/issues",
             ),
         )
 

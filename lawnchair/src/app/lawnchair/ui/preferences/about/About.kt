@@ -155,21 +155,7 @@ fun About(
             Spacer(modifier = Modifier.height(8.dp))
         }
         item {
-            UpdateSection(
-                updateState = uiState.updateState,
-                onInstall = {
-                    viewModel.installUpdate(it)
-                },
-                onViewChanges = {
-                    openBottomSheet = true
-                    scope.launch {
-                        sheetState.show()
-                    }
-                },
-            )
-        }
-        item {
-            Spacer(modifier = Modifier.requiredHeight(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
         item {
             Row(
@@ -177,14 +163,36 @@ fun About(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
             ) {
-                uiState.topLinks.forEach { link ->
-                    AutoCatLink(
-                        iconResId = link.iconResId,
-                        label = stringResource(id = link.labelResId),
-                        modifier = Modifier.weight(weight = 1f),
-                        url = link.url,
-                    )
-                }
+                // GitHub Link
+                AutoCatLink(
+                    iconResId = R.drawable.ic_github,
+                    label = stringResource(id = R.string.github),
+                    modifier = Modifier.weight(weight = 1f),
+                    url = "https://github.com/thejaustin/AutoCat",
+                )
+
+                // Update Link
+                UpdateLink(
+                    updateState = uiState.updateState,
+                    onCheck = { viewModel.checkForUpdate() },
+                    onDownload = { viewModel.downloadUpdate() },
+                    onInstall = { viewModel.installUpdate(it) },
+                    onViewChanges = {
+                        openBottomSheet = true
+                        scope.launch {
+                            sheetState.show()
+                        }
+                    },
+                    modifier = Modifier.weight(weight = 1f),
+                )
+
+                // Issues Link
+                AutoCatLink(
+                    iconResId = R.drawable.ic_bug_notification,
+                    label = stringResource(id = R.string.autocat_issues),
+                    modifier = Modifier.weight(weight = 1f),
+                    url = "https://github.com/thejaustin/AutoCat/issues",
+                )
             }
         }
         preferenceGroupItems(
