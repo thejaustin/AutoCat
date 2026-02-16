@@ -23,9 +23,11 @@ plugins {
 
 sentry {
     includeProguardMapping = true
-    autoUploadProguardMapping = false
+    autoUploadProguardMapping = true
     uploadNativeSymbols = false
     includeNativeSources = false
+    org = "af-developments"
+    projectName = "autocat"
 }
 
 // LC-Build-TODO: addFrameworkJar() doesn't work, what???
@@ -178,7 +180,7 @@ android {
         buildConfigField "String", "MAJOR_VERSION", "\"${majorVersion}\""
         buildConfigField "String", "COMMIT_HASH", "\"${buildCommit}\""
         buildConfigField "boolean", "ENABLE_AUTO_INSTALLS_LAYOUT", "false"
-        buildConfigField "String", "SENTRY_DSN", "\"${System.getenv("SENTRY_DSN") ?: ""}\""
+        buildConfigField "String", "SENTRY_DSN", "\"${System.getenv("SENTRY_DSN") ?: "https://37b429ef733c8265749a5cf8ad90ce00@o4510887187841024.ingest.us.sentry.io/4510892814303232"}\""
 
         manifestPlaceholders.quickstepMinSdk = quickstepMinSdk
         manifestPlaceholders.quickstepMaxSdk = quickstepMaxSdk
