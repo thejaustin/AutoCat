@@ -86,7 +86,7 @@ fun UpdateLink(
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
                 strokeWidth = 2.dp,
-                progress = { if (updateState is UpdateState.Downloading) updateState.progress else 0f },
+                progress = if (updateState is UpdateState.Downloading) updateState.progress else 0f,
             )
         } else {
             Image(
