@@ -318,7 +318,7 @@ class PreferenceManager2 @Inject constructor(
 
     val showLocalCrashUi = preference(
         key = booleanPreferencesKey(name = "show_local_crash_ui"),
-        defaultValue = true,
+        defaultValue = false,
     )
 
     val lastCrashId = preference(

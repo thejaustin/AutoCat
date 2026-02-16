@@ -5,6 +5,8 @@ import androidx.annotation.StringRes
 import app.lawnchair.ui.preferences.navigation.About
 import app.lawnchair.ui.preferences.navigation.AppDrawer
 import app.lawnchair.ui.preferences.navigation.AppDrawerCategorizationSettings
+import app.lawnchair.ui.preferences.navigation.BackupAndRestore
+import app.lawnchair.ui.preferences.navigation.Developer
 import app.lawnchair.ui.preferences.navigation.Dock
 import app.lawnchair.ui.preferences.navigation.Folders
 import app.lawnchair.ui.preferences.navigation.General
@@ -117,12 +119,28 @@ object DefaultSettingsCategories {
             isConditional = true,
         ),
         SettingsCategory(
+            id = "backup",
+            labelResId = com.android.launcher3.R.string.create_backup,
+            descriptionResId = com.android.launcher3.R.string.restore_backup,
+            iconResId = com.android.launcher3.R.drawable.ic_upload,
+            route = BackupAndRestore,
+            order = 10,
+        ),
+        SettingsCategory(
+            id = "developer",
+            labelResId = com.android.launcher3.R.string.debug_label,
+            descriptionResId = com.android.launcher3.R.string.experimental_features_label,
+            iconResId = com.android.launcher3.R.drawable.ic_warning,
+            route = Developer,
+            order = 11,
+        ),
+        SettingsCategory(
             id = "about",
             labelResId = com.android.launcher3.R.string.about_label,
             descriptionResId = com.android.launcher3.R.string.about_label, // Will be overridden with version
             iconResId = com.android.launcher3.R.drawable.ic_about,
             route = About,
-            order = 10,
+            order = 12,
         ),
     )
 }

@@ -24,9 +24,11 @@ import app.lawnchair.ui.preferences.components.search.SearchProviderPreferenceSc
 import app.lawnchair.ui.preferences.destinations.AppCategorizationListPreferences
 import app.lawnchair.ui.preferences.destinations.AppDrawerFoldersPreference
 import app.lawnchair.ui.preferences.destinations.AppDrawerPreferences
+import app.lawnchair.ui.preferences.destinations.BackupPreferences
 import app.lawnchair.ui.preferences.destinations.CategorizationSettingsPreferences
 import app.lawnchair.ui.preferences.destinations.CustomIconShapePreference
 import app.lawnchair.ui.preferences.destinations.DebugMenuPreferences
+import app.lawnchair.ui.preferences.destinations.DeveloperPreferences
 import app.lawnchair.ui.preferences.destinations.DiagnosticsPreferences
 import app.lawnchair.ui.preferences.destinations.DockPreferences
 import app.lawnchair.ui.preferences.destinations.DummyPreference
@@ -158,6 +160,9 @@ fun PreferenceNavigation(
 
         composable<DebugMenu> { DebugMenuPreferences() }
         composable<FeatureFlags> { FeatureFlagsPreference() }
+
+        composable<BackupAndRestore> { BackupPreferences() }
+        composable<Developer> { DeveloperPreferences() }
 
         composable<SelectIcon> { backStackEntry ->
             val args: SelectIcon = backStackEntry.toRoute()

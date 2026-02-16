@@ -360,6 +360,12 @@ fun CategorizationSettingsPreferences(
                         destination = AppDrawerLLMSettings,
                     )
 
+                    NavigationActionPreference(
+                        label = "Diagnostics",
+                        subtitle = "View database stats and live LLM logs",
+                        destination = AppDrawerDiagnostics,
+                    )
+
                     ClickablePreference(
                         label = "Reset to Factory Defaults",
                         subtitle = "Clear all AutoCat settings and start over.",
@@ -378,18 +384,6 @@ fun CategorizationSettingsPreferences(
                             }
                         },
                     )
-                }
-            }
-
-            if (devMode) {
-                item {
-                    PreferenceGroup(heading = "Developer") {
-                        NavigationActionPreference(
-                            label = "Diagnostics",
-                            subtitle = "View database stats and live LLM logs",
-                            destination = AppDrawerDiagnostics,
-                        )
-                    }
                 }
             }
         }
