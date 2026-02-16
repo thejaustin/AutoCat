@@ -56,6 +56,7 @@ import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.quickstep.RecentsActivity
 import com.android.systemui.shared.system.QuickStepContract
+import com.patrykmichalik.opto.core.firstBlocking
 import io.sentry.android.core.SentryAndroid
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
@@ -72,23 +73,27 @@ class AutoCatApp : Application() {
     val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
 
     override fun onCreate() {
+        val preferenceManager2 = PreferenceManager2.getInstance(this)
+        val userSentryDsn = preferenceManager2.sentryDsn.firstBlocking()
+        val dsn = userSentryDsn.ifEmpty { BuildConfig.SENTRY_DSN }
+
+        if (dsn.isNotEmpty()) {
+            SentryAndroid.init(this) { options ->
+                options.dsn = dsn
+                options.tracesSampleRate = 1.0
+                options.profilesSampleRate = 1.0
+            }
+        }
+
         super.onCreate()
         instance = this
         QuickStepContract.sRecentsDisabled = !recentsEnabled
         Flowerpot.Manager.getInstance(this)
 
-        val preferenceManager2 = PreferenceManager2.getInstance(this)
         CoroutineScope(Dispatchers.Main).launch {
             val lastCrashId = preferenceManager2.lastCrashId.get().first()
             if (lastCrashId != -1) {
                 BugReportActivity.show(this@AutoCatApp, lastCrashId)
-            }
-
-            val sentryDsn = preferenceManager2.sentryDsn.get().first()
-            if (sentryDsn.isNotEmpty()) {
-                SentryAndroid.init(this@AutoCatApp) { options ->
-                    options.dsn = sentryDsn
-                }
             }
         }
     }
