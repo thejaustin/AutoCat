@@ -92,7 +92,7 @@ fun UpdateLink(
 
             is UpdateState.Downloading -> {
                 CircularProgressIndicator(
-                    progress = updateState.progress,
+                    progress = { updateState.progress },
                     modifier = Modifier.size(24.dp),
                     strokeWidth = 2.dp,
                 )
