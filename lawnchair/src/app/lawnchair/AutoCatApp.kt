@@ -89,7 +89,8 @@ class AutoCatApp : Application() {
         val preferenceManager2 = PreferenceManager2.getInstance(this)
         CoroutineScope(Dispatchers.Main).launch {
             val lastCrashId = preferenceManager2.lastCrashId.get().first()
-            if (lastCrashId != -1) {
+            val showLocalUi = preferenceManager2.showLocalCrashUi.get().first()
+            if (lastCrashId != -1 && showLocalUi) {
                 BugReportActivity.show(this@AutoCatApp, lastCrashId)
             }
         }

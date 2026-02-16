@@ -44,9 +44,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.data.tab.TabDatabase
+import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
+import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.controls.TextFieldPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
@@ -89,6 +91,16 @@ fun DiagnosticsPreferences(
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
         PreferenceLazyColumn(it) {
+            item {
+                PreferenceGroup(heading = "Crash Reporting") {
+                    SwitchPreference(
+                        adapter = preferenceManager2.showLocalCrashUi.getAdapter(),
+                        label = "Show Local Crash UI",
+                        description = "Display a detailed report inside the app on launch after a crash",
+                    )
+                }
+            }
+
             item {
                 PreferenceGroup(heading = "Database Stats") {
                     StatRow(icon = Icons.Rounded.Storage, label = "Total Categorized Apps", value = appCount.toString())
