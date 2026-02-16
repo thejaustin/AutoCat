@@ -45,6 +45,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
 import app.lawnchair.ui.util.preview.PreviewAutoCat
+import app.lawnchair.ui.util.rememberExpressiveHaptics
 import com.android.launcher3.R
 import kotlin.math.roundToInt
 
@@ -112,6 +113,7 @@ private fun SliderPreference(
     showUnit: String = "",
 ) {
     var sliderValue by remember { mutableFloatStateOf(value) }
+    val haptics = rememberExpressiveHaptics()
 
     DisposableEffect(value) {
         sliderValue = value
@@ -156,8 +158,16 @@ private fun SliderPreference(
         description = {
             Slider(
                 value = sliderValue,
-                onValueChange = { newValue -> sliderValue = newValue },
-                onValueChangeFinished = { onValueChangeFinished(sliderValue) },
+                onValueChange = { newValue ->
+                    if (snapSliderValue(valueRange.start, newValue, step) != snapSliderValue(valueRange.start, sliderValue, step)) {
+                        haptics.tick()
+                    }
+                    sliderValue = newValue
+                },
+                onValueChangeFinished = {
+                    haptics.click()
+                    onValueChangeFinished(sliderValue)
+                },
                 valueRange = valueRange,
                 steps = getSteps(valueRange, step),
                 modifier = Modifier

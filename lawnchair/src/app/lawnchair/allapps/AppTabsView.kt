@@ -52,6 +52,7 @@ import app.lawnchair.categorization.TabActionController
 import app.lawnchair.theme.color.tokens.ColorTokens
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.ui.util.bottomSheetHandler
+import app.lawnchair.ui.util.rememberExpressiveHaptics
 import com.android.launcher3.R
 import kotlinx.coroutines.launch
 
@@ -65,6 +66,7 @@ fun AppTabsView(
     val tabActionController = remember { TabActionController.getInstance(context) }
     val tabs by controller.tabNames.collectAsState()
     val currentTab by controller.currentTabIndex.collectAsState()
+    val haptics = rememberExpressiveHaptics()
 
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -94,8 +96,12 @@ fun AppTabsView(
                 title = title,
                 isSelected = index == currentTab,
                 onClick = {
+                    haptics.click()
                     controller.setCurrentTab(index)
                     onTabSelect(index)
+                },
+                onLongClick = {
+                    haptics.longPress()
                 },
                 onArchive = if (!isSpecialTab) {
                     {
@@ -104,7 +110,10 @@ fun AppTabsView(
                                 title = stringResource(id = R.string.archive_category_dialog_title, title),
                                 description = stringResource(id = R.string.archive_category_dialog_message, title),
                                 confirmLabel = stringResource(id = R.string.archive_category_label),
-                                onConfirm = { tabActionController.archiveCategory(tabName) },
+                                onConfirm = {
+                                    haptics.success()
+                                    tabActionController.archiveCategory(tabName)
+                                },
                                 onDismiss = { bottomSheetHandler.hide() },
                             )
                         }
@@ -119,7 +128,10 @@ fun AppTabsView(
                                 title = stringResource(id = R.string.restore_category_dialog_title, title),
                                 description = stringResource(id = R.string.restore_category_dialog_message, title),
                                 confirmLabel = stringResource(id = R.string.restore_category_label),
-                                onConfirm = { tabActionController.restoreCategory(tabName) },
+                                onConfirm = {
+                                    haptics.success()
+                                    tabActionController.restoreCategory(tabName)
+                                },
                                 onDismiss = { bottomSheetHandler.hide() },
                             )
                         }
@@ -138,6 +150,7 @@ private fun TabItem(
     title: String,
     isSelected: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     onArchive: (() -> Unit)? = null,
     onRestore: (() -> Unit)? = null,
 ) {
@@ -173,6 +186,7 @@ private fun TabItem(
                     indication = null,
                     onClick = onClick,
                     onLongClick = {
+                        onLongClick()
                         if (onArchive != null || onRestore != null) {
                             showMenu = true
                         }

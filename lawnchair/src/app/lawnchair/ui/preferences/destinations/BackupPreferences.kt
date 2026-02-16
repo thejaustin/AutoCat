@@ -21,6 +21,7 @@ import app.lawnchair.ui.preferences.components.controls.ClickablePreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.navigation.CreateBackup
+import app.lawnchair.ui.util.rememberExpressiveHaptics
 import com.android.launcher3.R
 import kotlinx.coroutines.launch
 
@@ -32,6 +33,7 @@ fun BackupPreferences(
     val scope = rememberCoroutineScope()
     val navController = LocalNavController.current
     val openRestoreBackup = restoreBackupOpener()
+    val haptics = rememberExpressiveHaptics()
 
     val slImportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -43,12 +45,14 @@ fun BackupPreferences(
                 val result = importer.importFromUri(uri)
                 when (result) {
                     is SmartLauncherImporter.ImportResult.Success -> {
+                        haptics.success()
                         val sortResult = app.lawnchair.categorization.FolderAutoSortService.getInstance(context).autoSortAll()
                         val wsMsg = if (result.workspaceImported) " & Workspace" else ""
                         Toast.makeText(context, "✅ Imported ${result.count} apps$wsMsg. Created ${sortResult.foldersCreated} folders.", Toast.LENGTH_LONG).show()
                     }
 
                     is SmartLauncherImporter.ImportResult.Error -> {
+                        haptics.error()
                         Toast.makeText(context, "❌ Import failed: ${result.message}", Toast.LENGTH_LONG).show()
                     }
                 }

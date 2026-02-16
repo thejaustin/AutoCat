@@ -47,6 +47,7 @@ import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.theme.dividerColor
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
 import app.lawnchair.ui.util.preview.PreviewAutoCat
+import app.lawnchair.ui.util.rememberExpressiveHaptics
 
 @Composable
 fun SwitchPreference(
@@ -59,9 +60,13 @@ fun SwitchPreference(
     onClick: (() -> Unit)? = null,
 ) {
     val checked = adapter.state.value
+    val haptics = rememberExpressiveHaptics()
     SwitchPreference(
         checked = checked,
-        onCheckedChange = adapter::onChange,
+        onCheckedChange = {
+            haptics.click()
+            adapter.onChange(it)
+        },
         label = label,
         modifier = modifier,
         description = description,
@@ -86,6 +91,7 @@ fun SwitchPreference(
     onClick: (() -> Unit)? = null,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val haptics = rememberExpressiveHaptics()
 
     PreferenceTemplate(
         startWidget = icon?.let {
@@ -103,6 +109,7 @@ fun SwitchPreference(
             indication = ripple(),
             interactionSource = interactionSource,
         ) {
+            haptics.click()
             if (onClick != null) {
                 onClick()
             } else {
@@ -130,7 +137,10 @@ fun SwitchPreference(
                     .padding(all = 16.dp)
                     .height(24.dp),
                 checked = checked,
-                onCheckedChange = onCheckedChange,
+                onCheckedChange = {
+                    haptics.click()
+                    onCheckedChange(it)
+                },
                 enabled = enabled,
                 interactionSource = interactionSource,
                 thumbContent = {

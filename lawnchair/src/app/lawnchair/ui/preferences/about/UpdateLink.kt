@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
@@ -84,20 +85,29 @@ fun UpdateLink(
                 }
             },
     ) {
-        if (updateState is UpdateState.Checking || updateState is UpdateState.Downloading) {
-            LoadingIndicator(
-                modifier = Modifier.size(24.dp),
-                progress = if (updateState is UpdateState.Downloading) updateState.progress else 0f,
-            )
-        } else {
-            Image(
-                painterResource(id = R.drawable.ic_download),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(color = LocalContentColor.current),
-                modifier = Modifier
-                    .size(24.dp)
-                    .graphicsLayer(alpha = iconAlpha),
-            )
+        when (updateState) {
+            is UpdateState.Checking -> {
+                LoadingIndicator(modifier = Modifier.size(24.dp))
+            }
+
+            is UpdateState.Downloading -> {
+                CircularProgressIndicator(
+                    progress = updateState.progress,
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                )
+            }
+
+            else -> {
+                Image(
+                    painterResource(id = R.drawable.ic_download),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(color = LocalContentColor.current),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .graphicsLayer(alpha = iconAlpha),
+                )
+            }
         }
         Spacer(modifier = Modifier.requiredHeight(4.dp))
         Text(

@@ -69,6 +69,7 @@ import app.lawnchair.data.tab.entities.CustomTab
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
+import app.lawnchair.ui.util.rememberExpressiveHaptics
 import com.android.launcher3.R
 import kotlinx.coroutines.launch
 
@@ -78,6 +79,7 @@ fun TabManagementPreferences(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val haptics = rememberExpressiveHaptics()
 
     var database by remember { mutableStateOf<TabDatabase?>(null) }
     var appProvider by remember { mutableStateOf<AutoCatAppProvider?>(null) }
@@ -137,6 +139,7 @@ fun TabManagementPreferences(
                     tab = tab,
                     onEdit = { editingTab = it },
                     onDelete = {
+                        haptics.click()
                         scope.launch(kotlinx.coroutines.Dispatchers.IO) {
                             database?.tabDao()?.deleteCustomTab(it)
                             tabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
@@ -156,7 +159,10 @@ fun TabManagementPreferences(
                 ) {
                     // Manual Add
                     ElevatedButton(
-                        onClick = { showAddDialog = true },
+                        onClick = {
+                            haptics.click()
+                            showAddDialog = true
+                        },
                         modifier = Modifier.fillMaxWidth(0.85f),
                         shape = RoundedCornerShape(14.dp),
                     ) {
@@ -196,6 +202,7 @@ fun TabManagementPreferences(
 
                             FilledTonalButton(
                                 onClick = {
+                                    haptics.click()
                                     isLoadingSuggestions = true
                                     suggestionsError = null
                                     scope.launch {
@@ -217,9 +224,11 @@ fun TabManagementPreferences(
                                             suggestionsProvider = provider.name
                                             suggestedTabs = provider.suggestCategories(installedApps, existingTabs, 5)
                                             showSuggestionsDialog = true
+                                            haptics.success()
                                         } catch (e: Exception) {
                                             android.util.Log.e("TabManagement", "Error getting suggestions: ${e.message}", e)
                                             suggestionsError = "Failed to get suggestions: ${e.message}"
+                                            haptics.error()
                                         } finally {
                                             isLoadingSuggestions = false
                                         }
@@ -343,12 +352,18 @@ fun TabManagementPreferences(
                             android.util.Log.d("TabManagement", "  - ${t.name} (visible: ${t.isVisible}, sortOrder: ${t.sortOrder})")
                         }
                         appProvider?.refreshCache()
-                        showAddDialog = false
-                        editingTab = null
-                        suggestionsError = null // Clear any previous errors
+                        withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            haptics.success()
+                            showAddDialog = false
+                            editingTab = null
+                            suggestionsError = null // Clear any previous errors
+                        }
                     } catch (e: Exception) {
                         android.util.Log.e("TabManagement", "Error saving tab: ${e.message}", e)
                         successMessage = "❌ Error: ${e.message}"
+                        withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            haptics.error()
+                        }
                     }
                 }
             },
@@ -377,9 +392,15 @@ fun TabManagementPreferences(
 
                         successMessage = "✓ Added '${suggestion.name}' tab! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
                         suggestionsError = null
+                        withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            haptics.success()
+                        }
                     } catch (e: Exception) {
                         android.util.Log.e("TabManagement", "Error adding suggested tab: ${e.message}", e)
                         successMessage = "❌ Error: ${e.message}"
+                        withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            haptics.error()
+                        }
                     }
                 }
             },

@@ -63,6 +63,7 @@ import app.lawnchair.ui.preferences.navigation.AppDrawerDiagnostics
 import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
 import app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement
 import app.lawnchair.ui.preferences.navigation.Search as SearchDestination
+import app.lawnchair.ui.util.rememberExpressiveHaptics
 import com.android.launcher3.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -77,6 +78,7 @@ fun CategorizationSettingsPreferences(
     val context = LocalContext.current
     val prefs = preferenceManager()
     val scope = rememberCoroutineScope()
+    val haptics = rememberExpressiveHaptics()
 
     var categorizationManager by remember { mutableStateOf<CategorizationManager?>(null) }
     var database by remember { mutableStateOf<TabDatabase?>(null) }
@@ -140,8 +142,10 @@ fun CategorizationSettingsPreferences(
                                         try {
                                             categorizationManager?.recategorizeAll()
                                             categorizationStatus = "✅ Categorization complete!"
+                                            haptics.success()
                                         } catch (e: Exception) {
                                             categorizationStatus = "❌ Error: ${e.message}"
+                                            haptics.error()
                                         }
                                     }
                                 },
@@ -169,6 +173,7 @@ fun CategorizationSettingsPreferences(
                                         database?.tabDao()?.deleteAllAppTabs()
                                         withContext(Dispatchers.Main) {
                                             categorizationStatus = "✅ All assignments cleared"
+                                            haptics.click()
                                         }
                                     }
                                 },
@@ -190,7 +195,7 @@ fun CategorizationSettingsPreferences(
                         AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
                             Column {
                                 LinearProgressIndicator(
-                                    progress = { progress.progressPercentage },
+                                    progress = progress.progressPercentage,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                                 if (progress.isRunning) {

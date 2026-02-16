@@ -38,6 +38,7 @@ import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.bottomSheetHandler
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
 import app.lawnchair.ui.util.preview.PreviewAutoCat
+import app.lawnchair.ui.util.rememberExpressiveHaptics
 
 @Composable
 fun ClickablePreference(
@@ -49,6 +50,7 @@ fun ClickablePreference(
     onClick: () -> Unit,
 ) {
     val bottomSheetHandler = bottomSheetHandler
+    val haptics = rememberExpressiveHaptics()
     PreferenceTemplate(
         title = { Text(text = label) },
         startWidget = icon?.let {
@@ -63,6 +65,7 @@ fun ClickablePreference(
         },
         modifier = modifier
             .clickable {
+                haptics.click()
                 if (confirmationText != null) {
                     bottomSheetHandler.show {
                         PreferenceClickConfirmation(
