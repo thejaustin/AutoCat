@@ -25,7 +25,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.android.launcher3.R
 import java.io.File
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun UpdateLink(
     updateState: UpdateState,
@@ -83,9 +85,8 @@ fun UpdateLink(
             },
     ) {
         if (updateState is UpdateState.Checking || updateState is UpdateState.Downloading) {
-            CircularProgressIndicator(
+            LoadingIndicator(
                 modifier = Modifier.size(24.dp),
-                strokeWidth = 2.dp,
                 progress = if (updateState is UpdateState.Downloading) updateState.progress else 0f,
             )
         } else {

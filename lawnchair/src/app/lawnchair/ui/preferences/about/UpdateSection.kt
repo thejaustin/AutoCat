@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +34,7 @@ fun UpdateSection(
             UpdateState.Hidden -> { /* Render nothing */ }
 
             UpdateState.Checking -> {
-                CircularProgressIndicator(modifier = Modifier.padding(top = 8.dp))
+                LoadingIndicator(modifier = Modifier.padding(top = 8.dp))
             }
 
             UpdateState.UpToDate -> {
