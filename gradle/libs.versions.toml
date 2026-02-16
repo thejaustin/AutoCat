@@ -64,6 +64,7 @@ protobuf = "0.9.5"
 licensee = "1.14.1"
 refine = "4.4.0"
 spotless = "8.2.0"
+sentryPlugin = "4.14.1"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -80,6 +81,7 @@ google-protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }
 cash-licensee = { id = "app.cash.licensee", version.ref = "licensee" }
 rikka-refine = { id = "dev.rikka.tools.refine", version.ref = "refine" }
 diffplug-spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+sentry = { id = "io.sentry.android.gradle", version.ref = "sentryPlugin" }
 
 [libraries]
 # AndroidX

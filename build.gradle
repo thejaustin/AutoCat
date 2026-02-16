@@ -18,6 +18,14 @@ plugins {
     alias(libs.plugins.cash.licensee)
     alias(libs.plugins.rikka.refine)
     alias(libs.plugins.diffplug.spotless)
+    alias(libs.plugins.sentry)
+}
+
+sentry {
+    includeProguardMapping = true
+    autoUploadProguardMapping = false
+    uploadNativeSymbols = false
+    includeNativeSources = false
 }
 
 // LC-Build-TODO: addFrameworkJar() doesn't work, what???
