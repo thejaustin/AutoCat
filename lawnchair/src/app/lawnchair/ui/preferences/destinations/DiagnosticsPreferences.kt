@@ -44,16 +44,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.data.tab.TabDatabase
+import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import app.lawnchair.ui.preferences.components.controls.ClickablePreference
+import app.lawnchair.ui.preferences.components.controls.TextFieldPreference
+import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
+import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
+import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlinx.coroutines.withContext
-import app.lawnchair.ui.preferences.components.controls.ClickablePreference
-import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
-import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
-import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -64,6 +65,7 @@ fun DiagnosticsPreferences(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val preferenceManager2 = PreferenceManager2.getInstance(context)
     var appCount by remember { mutableIntStateOf(0) }
     var tabCount by remember { mutableIntStateOf(0) }
     var overrideCount by remember { mutableIntStateOf(0) }
@@ -87,6 +89,17 @@ fun DiagnosticsPreferences(
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
         PreferenceLazyColumn(it) {
+            item {
+                PreferenceGroup(heading = "Automated Reporting (Obtainium+ style)") {
+                    TextFieldPreference(
+                        label = "Crash Report Webhook",
+                        subtitle = "Discord or Slack webhook URL for automated crash logs",
+                        preference = preferenceManager2.crashReportWebhook,
+                        placeholder = "https://discord.com/api/webhooks/...",
+                    )
+                }
+            }
+
             item {
                 PreferenceGroup(heading = "Database Stats") {
                     StatRow(icon = Icons.Rounded.Storage, label = "Total Categorized Apps", value = appCount.toString())
@@ -230,7 +243,10 @@ fun getLogColor(level: LLMLogger.LogLevel): Color = when (level) {
 }
 
 @Composable
-fun CrashLogItem(file: File) {
+fun CrashLogItem(
+    file: File,
+    modifier: Modifier = Modifier,
+) {
     var expanded by remember { mutableStateOf(false) }
     val content = remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -244,7 +260,7 @@ fun CrashLogItem(file: File) {
     }
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .animateContentSize(),
@@ -293,4 +309,3 @@ fun CrashLogItem(file: File) {
         }
     }
 }
-

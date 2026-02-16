@@ -88,8 +88,10 @@ fun BugReportScreen(
     report: BugReport,
     onDismiss: () -> Unit,
     onShare: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { Text("Crash Detected") },

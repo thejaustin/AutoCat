@@ -38,35 +38,36 @@ class AutoCatBugReporter(private val context: Context) {
             ),
         )
 
-                val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
-                Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-                    val report = sendNotification(throwable)
-                    if (report != null) {
-                        PreferenceManager2.getInstance(context).lastCrashId.setBlocking(report.id)
-                        if (PreferenceManager2.getInstance(context).autoCrashReporting.firstBlocking()) {
-                            context.startService(
-                                android.content.Intent(context, UploaderService::class.java)
-                                    .putExtra("report", report),
-                            )
-                        }
-                    }
-                    defaultHandler?.uncaughtException(thread, throwable)
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            val report = sendNotification(throwable)
+            if (report != null) {
+                PreferenceManager2.getInstance(context).lastCrashId.setBlocking(report.id)
+                if (PreferenceManager2.getInstance(context).autoCrashReporting.firstBlocking()) {
+                    context.startService(
+                        android.content.Intent(context, UploaderService::class.java)
+                            .putExtra("report", report),
+                    )
                 }
-        
-                removeOldLogs()
             }
-        
-            fun getReport(id: Int): BugReport? {
-                val folder = File(logsFolder, String.format("%x", id))
-                val file = folder.listFiles()?.firstOrNull { it.extension == "txt" } ?: return null
-                val contents = file.readText()
-                val lines = contents.lines()
-                val title = lines.firstOrNull() ?: ""
-                val remainingContents = lines.drop(1).joinToString("\n")
-                return BugReport(id, BugReport.TYPE_UNCAUGHT_EXCEPTION, "", remainingContents, file)
-            }
-        
-            private fun removeOldLogs() {        val sevenDaysAgo = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
+
+        removeOldLogs()
+    }
+
+    fun getReport(id: Int): BugReport? {
+        val folder = File(logsFolder, String.format("%x", id))
+        val file = folder.listFiles()?.firstOrNull { it.extension == "txt" } ?: return null
+        val contents = file.readText()
+        val lines = contents.lines()
+        val title = lines.firstOrNull() ?: ""
+        val remainingContents = lines.drop(1).joinToString("\n")
+        return BugReport(id, BugReport.TYPE_UNCAUGHT_EXCEPTION, "", remainingContents, file)
+    }
+
+    private fun removeOldLogs() {
+        val sevenDaysAgo = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000
         logsFolder.listFiles()?.forEach { file ->
             if (file.lastModified() < sevenDaysAgo) {
                 file.deleteRecursively()

@@ -321,6 +321,11 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = -1,
     )
 
+    val crashReportWebhook = preference(
+        key = stringPreferencesKey(name = "crash_report_webhook"),
+        defaultValue = "",
+    )
+
     val legacyPopupOptionsMigrated = preference(
         key = booleanPreferencesKey(name = "legacy_popup_options_migrated"),
         defaultValue = false,
