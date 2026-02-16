@@ -468,7 +468,7 @@ fun CategorizationStatus(
                     )
                     if (progress.isRunning) {
                         LinearProgressIndicator(
-                            progress = progress.progressPercentage,
+                            progress = { progress.progressPercentage },
                             modifier = Modifier.width(150.dp).padding(top = 4.dp).height(4.dp).clip(RoundedCornerShape(2.dp)),
                         )
                     }

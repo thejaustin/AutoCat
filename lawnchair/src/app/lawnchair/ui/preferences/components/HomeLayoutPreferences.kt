@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -88,7 +88,7 @@ fun HomeLayoutSettings(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    LoadingIndicator(
+                    ContainedLoadingIndicator(
                         modifier = Modifier.padding(bottom = 16.dp),
                     )
                     if (loadingMessage.isNotEmpty()) {
@@ -208,7 +208,7 @@ fun PreviewLayout(
                     .fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
-                LoadingIndicator()
+                ContainedLoadingIndicator()
             }
         } else {
             if (topQsb) {

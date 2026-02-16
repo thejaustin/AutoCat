@@ -26,8 +26,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -87,7 +87,7 @@ fun UpdateLink(
     ) {
         when (updateState) {
             is UpdateState.Checking -> {
-                LoadingIndicator(modifier = Modifier.size(24.dp))
+                ContainedLoadingIndicator(modifier = Modifier.size(24.dp))
             }
 
             is UpdateState.Downloading -> {

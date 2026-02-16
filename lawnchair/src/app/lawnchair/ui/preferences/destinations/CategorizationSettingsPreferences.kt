@@ -195,7 +195,7 @@ fun CategorizationSettingsPreferences(
                         AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
                             Column {
                                 LinearProgressIndicator(
-                                    progress = progress.progressPercentage,
+                                    progress = { progress.progressPercentage },
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                                 if (progress.isRunning) {

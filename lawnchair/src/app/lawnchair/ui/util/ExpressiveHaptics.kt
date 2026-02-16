@@ -51,14 +51,22 @@ class ExpressiveHaptics(private val view: android.view.View) {
      * Error/Warning signal. Double pulse.
      */
     fun error() {
-        view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        } else {
+            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+        }
     }
 
     /**
      * Success/Confirmation signal.
      */
     fun success() {
-        view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        } else {
+            view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+        }
     }
 }
 
