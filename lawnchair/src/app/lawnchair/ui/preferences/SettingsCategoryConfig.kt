@@ -120,7 +120,7 @@ object DefaultSettingsCategories {
         ),
         SettingsCategory(
             id = "backup",
-            labelResId = com.android.launcher3.R.string.create_backup,
+            labelResId = com.android.launcher3.R.string.backup_label,
             descriptionResId = com.android.launcher3.R.string.restore_backup,
             iconResId = com.android.launcher3.R.drawable.ic_upload,
             route = BackupAndRestore,

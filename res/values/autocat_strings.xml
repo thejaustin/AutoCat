@@ -25,4 +25,6 @@
     <string name="tab_management_description">Custom tabs allow you to organize your app drawer. Apps are automatically sorted into these categories.</string>
     <string name="customize_settings">Customize Settings</string>
     <string name="done">Done</string>
+    <string name="debug_label">Developer</string>
+    <string name="backup_label">Backup &amp; Restore</string>
 </resources>
