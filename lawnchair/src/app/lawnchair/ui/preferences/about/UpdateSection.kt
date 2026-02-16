@@ -57,7 +57,7 @@ fun UpdateSection(
 
             is UpdateState.Downloading -> {
                 LinearProgressIndicator(
-                    progress = updateState.progress,
+                    progress = { updateState.progress },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
