@@ -326,6 +326,11 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = "",
     )
 
+    val sentryDsn = preference(
+        key = stringPreferencesKey(name = "sentry_dsn"),
+        defaultValue = "",
+    )
+
     val legacyPopupOptionsMigrated = preference(
         key = booleanPreferencesKey(name = "legacy_popup_options_migrated"),
         defaultValue = false,

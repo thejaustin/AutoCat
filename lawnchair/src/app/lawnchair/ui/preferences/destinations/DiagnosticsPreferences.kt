@@ -97,6 +97,12 @@ fun DiagnosticsPreferences(
                         preference = preferenceManager2.crashReportWebhook,
                         placeholder = "https://discord.com/api/webhooks/...",
                     )
+                    TextFieldPreference(
+                        label = "Sentry DSN",
+                        subtitle = "Sentry Data Source Name for remote error tracking",
+                        preference = preferenceManager2.sentryDsn,
+                        placeholder = "https://example@sentry.io/...",
+                    )
                 }
             }
 

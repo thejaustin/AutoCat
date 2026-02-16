@@ -56,6 +56,7 @@ import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.quickstep.RecentsActivity
 import com.android.systemui.shared.system.QuickStepContract
+import io.sentry.android.core.SentryAndroid
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -81,6 +82,13 @@ class AutoCatApp : Application() {
             val lastCrashId = preferenceManager2.lastCrashId.get().first()
             if (lastCrashId != -1) {
                 BugReportActivity.show(this@AutoCatApp, lastCrashId)
+            }
+
+            val sentryDsn = preferenceManager2.sentryDsn.get().first()
+            if (sentryDsn.isNotEmpty()) {
+                SentryAndroid.init(this@AutoCatApp) { options ->
+                    options.dsn = sentryDsn
+                }
             }
         }
     }
