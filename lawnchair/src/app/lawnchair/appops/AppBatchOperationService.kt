@@ -11,6 +11,7 @@ import android.util.Log
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.shizuku.ShizukuManager
 import com.topjohnwu.superuser.Shell
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

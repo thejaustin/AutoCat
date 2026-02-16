@@ -11,6 +11,7 @@ import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.util.DaggerSingletonObject
 import com.topjohnwu.superuser.Shell
+import java.io.File
 import javax.inject.Inject
 import rikka.shizuku.Shizuku
 
@@ -116,7 +117,7 @@ class ShizukuManager @Inject constructor(
         }
     }
 
-    fun installApp(file: java.io.File): Boolean {
+    fun installApp(file: File): Boolean {
         return if (preferenceManager.archivalMethod.get() == "root") {
             Shell.cmd("pm install -r \"${file.absolutePath}\"").exec().isSuccess
         } else {
