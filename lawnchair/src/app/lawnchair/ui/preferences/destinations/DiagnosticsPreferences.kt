@@ -90,23 +90,6 @@ fun DiagnosticsPreferences(
     ) {
         PreferenceLazyColumn(it) {
             item {
-                PreferenceGroup(heading = "Automated Reporting (Obtainium+ style)") {
-                    TextFieldPreference(
-                        label = "Crash Report Webhook",
-                        subtitle = "Discord or Slack webhook URL for automated crash logs",
-                        preference = preferenceManager2.crashReportWebhook,
-                        placeholder = "https://discord.com/api/webhooks/...",
-                    )
-                    TextFieldPreference(
-                        label = "Sentry DSN",
-                        subtitle = "Sentry Data Source Name for remote error tracking",
-                        preference = preferenceManager2.sentryDsn,
-                        placeholder = "https://example@sentry.io/...",
-                    )
-                }
-            }
-
-            item {
                 PreferenceGroup(heading = "Database Stats") {
                     StatRow(icon = Icons.Rounded.Storage, label = "Total Categorized Apps", value = appCount.toString())
                     StatRow(icon = Icons.Rounded.BugReport, label = "User Overrides", value = overrideCount.toString())

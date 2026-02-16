@@ -73,13 +73,9 @@ class AutoCatApp : Application() {
     val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
 
     override fun onCreate() {
-        val preferenceManager2 = PreferenceManager2.getInstance(this)
-        val userSentryDsn = preferenceManager2.sentryDsn.firstBlocking()
-        val dsn = userSentryDsn.ifEmpty { BuildConfig.SENTRY_DSN }
-
-        if (dsn.isNotEmpty()) {
+        if (BuildConfig.SENTRY_DSN.isNotEmpty()) {
             SentryAndroid.init(this) { options ->
-                options.dsn = dsn
+                options.dsn = BuildConfig.SENTRY_DSN
                 options.tracesSampleRate = 1.0
                 options.profilesSampleRate = 1.0
             }
@@ -90,6 +86,7 @@ class AutoCatApp : Application() {
         QuickStepContract.sRecentsDisabled = !recentsEnabled
         Flowerpot.Manager.getInstance(this)
 
+        val preferenceManager2 = PreferenceManager2.getInstance(this)
         CoroutineScope(Dispatchers.Main).launch {
             val lastCrashId = preferenceManager2.lastCrashId.get().first()
             if (lastCrashId != -1) {

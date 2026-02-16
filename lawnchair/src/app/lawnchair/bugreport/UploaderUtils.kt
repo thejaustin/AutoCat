@@ -15,11 +15,8 @@ object UploaderUtils {
     const val IS_ALIVE_AVAILABLE = true
 
     suspend fun upload(report: BugReport): String {
-        val context = app.lawnchair.AutoCatApp.instance
-        val webhookUrl = PreferenceManager2.getInstance(context).crashReportWebhook.get().first()
-
-        if (webhookUrl.isNotEmpty()) {
-            sendToWebhook(webhookUrl, report)
+        if (BuildConfig.CRASH_REPORT_WEBHOOK.isNotEmpty()) {
+            sendToWebhook(BuildConfig.CRASH_REPORT_WEBHOOK, report)
         }
 
         val body = KatbinUploadBody(KatbinPaste(content = report.contents))
