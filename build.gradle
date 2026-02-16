@@ -179,7 +179,6 @@ android {
         buildConfigField "String", "COMMIT_HASH", "\"${buildCommit}\""
         buildConfigField "boolean", "ENABLE_AUTO_INSTALLS_LAYOUT", "false"
         buildConfigField "String", "SENTRY_DSN", "\"${System.getenv("SENTRY_DSN") ?: ""}\""
-        buildConfigField "String", "CRASH_REPORT_WEBHOOK", "\"${System.getenv("CRASH_REPORT_WEBHOOK") ?: ""}\""
 
         manifestPlaceholders.quickstepMinSdk = quickstepMinSdk
         manifestPlaceholders.quickstepMaxSdk = quickstepMaxSdk
