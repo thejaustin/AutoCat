@@ -537,6 +537,11 @@
     <string name="backup_restore_error">Failed to restore backup</string>
     <string name="invalid_backup_file">Invalid backup file</string>
 
+    <string name="smart_categories_label">AutoCat</string>
+    <string name="smart_categories_subtitle">Intelligent app drawer categories</string>
+    <string name="debug_label">Developer</string>
+    <string name="backup_label">Backup &amp; Restore</string>
+
     <!--
 
     Gesture settings
