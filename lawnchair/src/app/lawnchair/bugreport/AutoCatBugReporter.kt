@@ -12,6 +12,7 @@ import app.lawnchair.util.requireSystemService
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
 import com.patrykmichalik.opto.core.firstBlocking
+import com.patrykmichalik.opto.core.setBlocking
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date

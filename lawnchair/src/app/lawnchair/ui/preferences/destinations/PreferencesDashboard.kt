@@ -59,6 +59,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.getSystemService
 import app.lawnchair.AutoCatApp
 import app.lawnchair.AutoCatLauncher
 import app.lawnchair.preferences.getAdapter

@@ -230,6 +230,7 @@ private fun TabItem(
     }
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryActionConfirmDialog(
     title: String,

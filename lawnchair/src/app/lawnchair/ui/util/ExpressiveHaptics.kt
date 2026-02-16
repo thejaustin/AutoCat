@@ -16,6 +16,7 @@
 
 package app.lawnchair.ui.util
 
+import android.annotation.SuppressLint
 import android.view.HapticFeedbackConstants
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -50,7 +51,7 @@ class ExpressiveHaptics(private val view: android.view.View) {
     /**
      * Error/Warning signal. Double pulse.
      */
-    @androidx.annotation.SuppressLint("NewApi")
+    @SuppressLint("NewApi")
     fun error() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             view.performHapticFeedback(HapticFeedbackConstants.REJECT)
@@ -62,7 +63,7 @@ class ExpressiveHaptics(private val view: android.view.View) {
     /**
      * Success/Confirmation signal.
      */
-    @androidx.annotation.SuppressLint("NewApi")
+    @SuppressLint("NewApi")
     fun success() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
             view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)

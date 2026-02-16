@@ -72,6 +72,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import app.lawnchair.ui.util.rememberExpressiveHaptics
 import com.android.launcher3.R
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun TabManagementPreferences(
