@@ -116,6 +116,14 @@ class ShizukuManager @Inject constructor(
         }
     }
 
+    fun installApp(file: java.io.File): Boolean {
+        return if (preferenceManager.archivalMethod.get() == "root") {
+            Shell.cmd("pm install -r \"${file.absolutePath}\"").exec().isSuccess
+        } else {
+            runCommand(arrayOf("pm", "install", "-r", file.absolutePath))
+        }
+    }
+
     fun archiveAppRoot(packageName: String): Boolean {
         val pkg = validatePackageName(packageName) ?: return false
         return Shell.cmd("pm uninstall -k $pkg").exec().isSuccess

@@ -6,6 +6,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import app.lawnchair.appops.AppBatchOperationService
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.Utilities
 import java.io.File
@@ -26,6 +27,7 @@ class NightlyBuildsRepository(
     val api: GitHubService,
 ) {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val batchService = AppBatchOperationService(applicationContext)
 
     private val _updateState = MutableStateFlow<UpdateState>(UpdateState.UpToDate)
     val updateState = _updateState.asStateFlow()
@@ -116,6 +118,15 @@ class NightlyBuildsRepository(
     }
 
     fun installUpdate(file: File) {
+        coroutineScope.launch {
+            val result = batchService.installApk(file)
+            if (result is AppBatchOperationService.OperationResult.RequiresUserConfirmation) {
+                fallbackInstall(file)
+            }
+        }
+    }
+
+    private fun fallbackInstall(file: File) {
         if (!applicationContext.hasInstallPermission()) {
             // todo expose proper permission UI instead of requesting immediately on click
             applicationContext.requestInstallPermission()

@@ -462,6 +462,32 @@ class AppBatchOperationService(private val context: Context) {
     }
 
     /**
+     * Install an APK file using the best available method.
+     */
+    suspend fun installApk(file: File): OperationResult = withContext(Dispatchers.IO) {
+        val preferredMethod = prefs.archivalMethod.get()
+
+        if (preferredMethod == "shizuku" && shizukuManager.isShizukuAvailable()) {
+            if (shizukuManager.installApp(file)) {
+                return@withContext OperationResult.Success
+            }
+        }
+
+        if (preferredMethod == "root" && try {
+                Shell.getShell().isRoot
+            } catch (e: Exception) {
+                false
+            }
+        ) {
+            if (shizukuManager.installApp(file)) {
+                return@withContext OperationResult.Success
+            }
+        }
+
+        OperationResult.RequiresUserConfirmation
+    }
+
+    /**
      * Disable multiple apps with progress reporting.
      */
     suspend fun disableApps(
