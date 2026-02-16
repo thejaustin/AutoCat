@@ -502,12 +502,13 @@ class AutoCatLauncher : QuickstepLauncher() {
 
     /**
      * Reloads app icons if there is an active icon pack & [PreferenceManager2.alwaysReloadIcons] is enabled.
+     * This is now done asynchronously to avoid blocking the main thread on startup.
      */
     private fun reloadIconsIfNeeded() {
-        if (
-            preferenceManager2.alwaysReloadIcons.firstBlocking()
-        ) {
-            LauncherAppState.getInstance(this).model.reloadIfActive()
+        lifecycleScope.launch {
+            if (preferenceManager2.alwaysReloadIcons.get().first()) {
+                LauncherAppState.getInstance(this@AutoCatLauncher).model.reloadIfActive()
+            }
         }
     }
 
