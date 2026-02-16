@@ -37,7 +37,9 @@
     <string name="quickstep_description">Kitufe cha kufuta yote, Radi ya Kona</string>
     <string name="about_label">Kuhusu</string>
     <!-- <string name="version" /> (unknown source) -->
-    <!-- PreferencesOverflowMenu() in PreferencesDashboard -->
+    <!--
+    PreferencesDashboard
+    -->
     <string name="app_info_drop_target_label">Maelezo ya Programu</string>
     <string name="debug_restart_launcher">Anzisha AutoCat</string>
     <string name="experimental_features_label">Vipengele vya Majaribio</string>

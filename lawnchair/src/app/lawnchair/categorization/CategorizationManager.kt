@@ -352,6 +352,24 @@ class CategorizationManager(private val context: Context) {
         llmCategorizer.resetCircuitBreakers()
     }
 
+    /**
+     * Gets all package names assigned to a specific tab.
+     *
+     * @param tabName The name of the tab (null for "Other" tab)
+     * @return List of package names
+     */
+    suspend fun getPackagesInTab(tabName: String?): List<String> = withContext(Dispatchers.IO) {
+        if (tabName == null) {
+            // "Other" tab: apps not in app_categories table but installed
+            val categorizedPackages = categoryDao.getAllAppTabs().map { it.packageName }.toSet()
+            metadataProvider.getInstalledApps()
+                .map { it.packageName }
+                .filter { it !in categorizedPackages }
+        } else {
+            categoryDao.getAppsByTab(tabName).map { it.packageName }
+        }
+    }
+
     companion object {
         private const val TAG = "CategorizationManager"
 

@@ -410,6 +410,84 @@ class AppBatchOperationService(private val context: Context) {
     }
 
     /**
+     * Unarchive (Restore) multiple apps with progress reporting.
+     */
+    suspend fun unarchiveApps(
+        packages: List<String>,
+        onProgress: (BatchProgress) -> Unit,
+    ): Map<String, OperationResult> = withContext(Dispatchers.IO) {
+        val results = mutableMapOf<String, OperationResult>()
+
+        packages.forEachIndexed { index, pkg ->
+            onProgress(
+                BatchProgress(
+                    current = index + 1,
+                    total = packages.size,
+                    currentPackage = pkg,
+                    results = results.toMap(),
+                ),
+            )
+
+            val result = unarchiveApp(pkg)
+            results[pkg] = result
+        }
+
+        results
+    }
+
+    /**
+     * Enable multiple apps with progress reporting.
+     */
+    suspend fun enableApps(
+        packages: List<String>,
+        onProgress: (BatchProgress) -> Unit,
+    ): Map<String, OperationResult> = withContext(Dispatchers.IO) {
+        val results = mutableMapOf<String, OperationResult>()
+
+        packages.forEachIndexed { index, pkg ->
+            onProgress(
+                BatchProgress(
+                    current = index + 1,
+                    total = packages.size,
+                    currentPackage = pkg,
+                    results = results.toMap(),
+                ),
+            )
+
+            val result = enableApp(pkg)
+            results[pkg] = result
+        }
+
+        results
+    }
+
+    /**
+     * Disable multiple apps with progress reporting.
+     */
+    suspend fun disableApps(
+        packages: List<String>,
+        onProgress: (BatchProgress) -> Unit,
+    ): Map<String, OperationResult> = withContext(Dispatchers.IO) {
+        val results = mutableMapOf<String, OperationResult>()
+
+        packages.forEachIndexed { index, pkg ->
+            onProgress(
+                BatchProgress(
+                    current = index + 1,
+                    total = packages.size,
+                    currentPackage = pkg,
+                    results = results.toMap(),
+                ),
+            )
+
+            val result = disableApp(pkg)
+            results[pkg] = result
+        }
+
+        results
+    }
+
+    /**
      * Create an intent to launch the system uninstall dialog for a package.
      * Used as fallback when root is not available.
      */
