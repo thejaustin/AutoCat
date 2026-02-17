@@ -77,7 +77,6 @@ class AutoCatApp : Application() {
             SentryAndroid.init(this) { options ->
                 options.dsn = BuildConfig.SENTRY_DSN
                 options.tracesSampleRate = 1.0
-                options.profilesSampleRate = 1.0
             }
         }
 
