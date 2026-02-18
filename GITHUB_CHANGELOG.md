@@ -1,5 +1,31 @@
-Lawnchair 16 pE Development 2 is here! Contributors are encouraged to target this branch instead of 
+Lawnchair 16 pE Development 2 is here! Contributors are encouraged to target this branch instead of
 older (i.e., Lawnchair `15-dev`).
+
+### 🚧 Development 5 (In Progress)
+
+A milestone focused entirely on **UI/UX polish** — making AutoCat's Smart Categories feature intuitive for first-time users while giving power users better controls and feedback.
+
+#### ✨ Highlights (Planned)
+- **Onboarding Wizard**: First-launch setup flow for the AI engine ([#75](https://github.com/thejaustin/AutoCat/issues/75))
+- **Richer Categorization Feedback**: See exactly which app is being processed, with ETA ([#77](https://github.com/thejaustin/AutoCat/issues/77))
+- **Simplified AI Engine Screen**: Technical options collapsed behind Advanced section ([#76](https://github.com/thejaustin/AutoCat/issues/76))
+- **Empty States**: Helpful guidance when no categories or tabs exist yet ([#78](https://github.com/thejaustin/AutoCat/issues/78))
+
+#### Features
+- [UX] First-launch onboarding wizard for Smart Categories setup ([#75](https://github.com/thejaustin/AutoCat/issues/75))
+- [UX] Simplified AI Engine settings screen with collapsible Advanced section ([#76](https://github.com/thejaustin/AutoCat/issues/76))
+- [UX] Richer categorization progress: current app, count, ETA, and Cancel button ([#77](https://github.com/thejaustin/AutoCat/issues/77))
+- [UX] Empty states for unconfigured/uncategorized screens with actionable CTAs ([#78](https://github.com/thejaustin/AutoCat/issues/78))
+- [UX] Improved Test Connection: shows confirmed model name and sample categorization ([#80](https://github.com/thejaustin/AutoCat/issues/80))
+- [UX] Selective override reset per app (Reset to AI suggestion in edit dialog) ([#81](https://github.com/thejaustin/AutoCat/issues/81))
+- [UX] Custom color picker for drawer tabs, beyond 10 preset swatches ([#82](https://github.com/thejaustin/AutoCat/issues/82))
+- [UX] Smart Categories dashboard card adapts to configured/unconfigured state ([#83](https://github.com/thejaustin/AutoCat/issues/83))
+
+#### Fixes
+- [UX] Diagnostics screen moved to Developer Options (not user-facing) ([#79](https://github.com/thejaustin/AutoCat/issues/79))
+- [Stability] Sentry double-initialization fixed; crash reporting now active ([#4c6942f](https://github.com/thejaustin/AutoCat/commit/4c6942fdc7))
+
+---
 
 ### 🥞 Development 4
 
