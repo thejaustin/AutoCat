@@ -25,6 +25,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.data.liveinfo.liveInformationManager
 import app.lawnchair.ui.preferences.data.liveinfo.model.LiveInformation
+import app.lawnchair.ui.preferences.navigation.AppDrawerDiagnostics
 import app.lawnchair.ui.preferences.navigation.FeatureFlags
 import com.android.launcher3.settings.SettingsActivity
 import com.android.launcher3.settings.SettingsActivity.DEVELOPER_OPTIONS_KEY
@@ -58,6 +59,11 @@ fun DebugMenuPreferences(
     ) {
         MainSwitchPreference(adapter = enableDebug, label = "Show debug menu") {
             PreferenceGroup {
+                ClickablePreference(
+                    label = "Diagnostics",
+                    subtitle = "Database stats, crash logs, and live LLM logs",
+                    onClick = { navController.navigate(AppDrawerDiagnostics) },
+                )
                 ClickablePreference(
                     label = "Feature flags (Views)",
                     onClick = {

@@ -101,6 +101,7 @@ fun LLMSettingsPreferences(
     val selectedProvider by prefs.llmProviderPreference.getAdapter()
     val isAutoSelect by prefs.llmAutoSelectBestModel.getAdapter()
     var showAllProviders by remember { mutableStateOf(false) }
+    var showAdvanced by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -192,7 +193,14 @@ fun LLMSettingsPreferences(
                                     "perplexity" -> PerplexityProvider(context).testConnection()
                                     else -> TestResult(false, "Unknown provider")
                                 }
-                                testStatus = testStatus + (activeProvider to if (result.success) "✅ Connected (${result.latencyMs}ms)" else "❌ ${result.message}")
+                                testStatus = testStatus + (
+                                    activeProvider to if (result.success) {
+                                        val model = result.modelVersion ?: "Connected"
+                                        "✅ $model · ${result.latencyMs}ms"
+                                    } else {
+                                        "❌ ${result.message}"
+                                    }
+                                    )
                             }
                         },
                     )
@@ -239,7 +247,14 @@ fun LLMSettingsPreferences(
                                                 "perplexity" -> PerplexityProvider(context).testConnection()
                                                 else -> TestResult(false, "Unknown provider")
                                             }
-                                            testStatus = testStatus + (pid to if (result.success) "✅ Connected (${result.latencyMs}ms)" else "❌ ${result.message}")
+                                            testStatus = testStatus + (
+                                                pid to if (result.success) {
+                                                    val model = result.modelVersion ?: "Connected"
+                                                    "✅ $model · ${result.latencyMs}ms"
+                                                } else {
+                                                    "❌ ${result.message}"
+                                                }
+                                                )
                                         }
                                     },
                                 )
@@ -251,32 +266,56 @@ fun LLMSettingsPreferences(
 
             // ===== ADVANCED SETTINGS =====
             item {
-                PreferenceGroup(heading = "Reliability & Safety") {
-                    SwitchPreference(
-                        adapter = prefs.circuitBreakerEnabled.getAdapter(),
-                        label = "Smart Fallback",
-                        description = "Automatically skip engines that are currently offline or unresponsive.",
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showAdvanced = !showAdvanced }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = "Advanced",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
                     )
+                    Icon(
+                        imageVector = if (showAdvanced) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
 
-                    AnimatedVisibility(visible = prefs.circuitBreakerEnabled.get()) {
-                        Column {
-                            SliderPreference(
-                                adapter = prefs.circuitBreakerFailureThreshold.getAdapter(),
-                                label = "Error Tolerance",
-                                valueRange = 1..10,
-                                step = 1,
-                                showUnit = " consecutive errors",
+            item {
+                AnimatedVisibility(visible = showAdvanced) {
+                    PreferenceGroup(heading = "Reliability & Safety") {
+                        SwitchPreference(
+                            adapter = prefs.circuitBreakerEnabled.getAdapter(),
+                            label = "Smart Fallback",
+                            description = "Automatically skip engines that are currently offline or unresponsive.",
+                        )
+
+                        AnimatedVisibility(visible = prefs.circuitBreakerEnabled.get()) {
+                            Column {
+                                SliderPreference(
+                                    adapter = prefs.circuitBreakerFailureThreshold.getAdapter(),
+                                    label = "Error Tolerance",
+                                    valueRange = 1..10,
+                                    step = 1,
+                                    showUnit = " consecutive errors",
+                                )
+                            }
+                        }
+
+                        val devMode by prefs.autoCatDevMode.getAdapter().state
+                        if (devMode) {
+                            SwitchPreference(
+                                adapter = prefs.autoCatEnableRateLimiting.getAdapter(),
+                                label = "Force Parallel Streams",
+                                description = "Run batches simultaneously ignoring rate limits. HIGH RISK.",
                             )
                         }
-                    }
-
-                    val devMode by prefs.autoCatDevMode.getAdapter().state
-                    if (devMode) {
-                        SwitchPreference(
-                            adapter = prefs.autoCatEnableRateLimiting.getAdapter(),
-                            label = "Force Parallel Streams",
-                            description = "Run batches simultaneously ignoring rate limits. HIGH RISK.",
-                        )
                     }
                 }
             }
@@ -307,10 +346,10 @@ fun LLMSettingsPreferences(
                 }
             }
 
-            // ===== LIVE LOGS =====
+            // ===== ENGINE STATUS (under Advanced) =====
             item {
-                PreferenceGroup(heading = "Engine Status") {
-                    AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
+                AnimatedVisibility(visible = showAdvanced && (progress.isRunning || progress.processedCount > 0)) {
+                    PreferenceGroup(heading = "Engine Status") {
                         CategorizationStatus(progress)
                     }
                 }

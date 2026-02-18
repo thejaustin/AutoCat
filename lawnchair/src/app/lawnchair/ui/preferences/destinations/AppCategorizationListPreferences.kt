@@ -102,6 +102,7 @@ fun AppCategorizationListPreferences(
 
     val packageManager = context.packageManager
 
+    var isLoading by remember { mutableStateOf(true) }
     var appTabs by remember { mutableStateOf<List<AppTab>>(emptyList()) }
     var availableCustomTabs by remember { mutableStateOf<List<CustomTab>>(emptyList()) }
     var editingApp by remember { mutableStateOf<AppTab?>(null) }
@@ -136,6 +137,8 @@ fun AppCategorizationListPreferences(
             } catch (e: Exception) {
                 Log.e("AppCategorization", "Error initializing screen: ${e.message}", e)
                 initializationError = "Failed to load tabs: ${e.message}"
+            } finally {
+                isLoading = false
             }
         }
     }
@@ -294,6 +297,35 @@ fun AppCategorizationListPreferences(
                             selected = filterMode == FilterMode.SLBK_SORTED,
                             onClick = { filterMode = FilterMode.SLBK_SORTED },
                             label = "SLBK Sorted",
+                        )
+                    }
+                }
+            }
+
+            if (!isLoading && appTabs.isEmpty() && initializationError == null) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Search,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        )
+                        Text(
+                            text = "No apps categorized yet",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = "Run Smart Categories to automatically assign your apps to tabs.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         )
                     }
                 }
@@ -860,15 +892,22 @@ private fun TabOverrideDialog(
         },
         confirmButton = {
             Row {
-                // Auto Categorize button (conditional)
-                if (appTab.source != AppTab.SOURCE_LLM &&
-                    appTab.source != AppTab.SOURCE_ML &&
-                    !appTab.isUserOverride
-                ) {
+                // Reset to AI button — only when user has overridden
+                if (appTab.isUserOverride) {
                     TextButton(
                         onClick = {
                             onAutoCategorize(appTab.packageName)
-                            onDismiss() // Dismiss dialog after triggering auto-categorization
+                            onDismiss()
+                        },
+                    ) {
+                        Text("Reset to AI")
+                    }
+                } else if (appTab.source != AppTab.SOURCE_LLM && appTab.source != AppTab.SOURCE_ML) {
+                    // Auto Categorize button for non-AI-sorted apps without override
+                    TextButton(
+                        onClick = {
+                            onAutoCategorize(appTab.packageName)
+                            onDismiss()
                         },
                     ) {
                         Text("Auto")

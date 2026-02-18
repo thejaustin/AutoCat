@@ -135,6 +135,35 @@ fun TabManagementPreferences(
                 )
             }
 
+            if (tabs.isEmpty() && initializationError == null) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Category,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        )
+                        Text(
+                            text = "No tabs yet",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = "Create a custom tab or let AI suggest groupings for your apps.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        )
+                    }
+                }
+            }
+
             items(tabs, key = { it.id }) { tab ->
                 TabItem(
                     tab = tab,
@@ -600,6 +629,34 @@ private fun TabDialog(
                                 }
                             }
                         }
+                    }
+
+                    // Custom hex color input
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        OutlinedTextField(
+                            value = colorHex,
+                            onValueChange = { input ->
+                                val sanitized = if (input.startsWith("#")) input else "#$input"
+                                if (sanitized.length <= 7) colorHex = sanitized
+                            },
+                            label = { Text("Custom (#rrggbb)") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(
+                                    color = parseColor(colorHex),
+                                    shape = CircleShape,
+                                )
+                                .border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape),
+                        )
                     }
                 }
             }

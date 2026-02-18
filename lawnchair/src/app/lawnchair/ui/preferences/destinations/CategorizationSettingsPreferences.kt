@@ -59,7 +59,6 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations
-import app.lawnchair.ui.preferences.navigation.AppDrawerDiagnostics
 import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
 import app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement
 import app.lawnchair.ui.preferences.navigation.Search as SearchDestination
@@ -115,12 +114,61 @@ fun CategorizationSettingsPreferences(
 
     val devMode by prefs.autoCatDevMode.getAdapter().state
 
+    // Detect whether any AI provider has been configured
+    val googleKey by prefs.llmGoogleAIKey.getAdapter().state
+    val claudeKey by prefs.llmClaudeKey.getAdapter().state
+    val openAIKey by prefs.llmOpenAIKey.getAdapter().state
+    val perplexityKey by prefs.llmPerplexityKey.getAdapter().state
+    val isAIConfigured = googleKey.isNotBlank() || claudeKey.isNotBlank() ||
+        openAIKey.isNotBlank() || perplexityKey.isNotBlank()
+
     PreferenceScaffold(
         label = stringResource(R.string.smart_categories_label),
         modifier = modifier,
         isExpandedScreen = LocalIsExpandedScreen.current,
     ) {
         PreferenceLazyColumn(it) {
+            // ===== SETUP NUDGE (when AI not configured) =====
+            if (!isAIConfigured) {
+                item {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clickable { onNavigate(AppDrawerLLMSettings) },
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        tonalElevation = 2.dp,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.TipsAndUpdates,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(28.dp),
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Set up your AI engine",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                )
+                                Text(
+                                    text = "Add an API key to start categorizing your apps automatically. Tap to configure.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // ===== PRIMARY ACTIONS =====
             item {
                 PreferenceGroup(heading = "Actions") {
@@ -193,17 +241,32 @@ fun CategorizationSettingsPreferences(
 
                         // Progress indicator
                         AnimatedVisibility(visible = progress.isRunning || progress.processedCount > 0) {
-                            Column {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 LinearProgressIndicator(
                                     progress = progress.progressPercentage,
                                     modifier = Modifier.fillMaxWidth(),
                                 )
                                 if (progress.isRunning) {
-                                    Text(
-                                        text = "Processed: ${progress.processedCount}/${progress.totalCount}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        modifier = Modifier.align(Alignment.End).padding(top = 4.dp),
-                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                    ) {
+                                        Text(
+                                            text = if (!progress.currentAppName.isNullOrBlank()) {
+                                                progress.currentAppName
+                                            } else {
+                                                progress.currentStage
+                                            },
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.weight(1f),
+                                        )
+                                        Text(
+                                            text = "${progress.processedCount}/${progress.totalCount}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -363,12 +426,6 @@ fun CategorizationSettingsPreferences(
                         label = "AI Engine Settings",
                         subtitle = "Change API keys and model preferences.",
                         destination = AppDrawerLLMSettings,
-                    )
-
-                    NavigationActionPreference(
-                        label = "Diagnostics",
-                        subtitle = "View database stats and live LLM logs",
-                        destination = AppDrawerDiagnostics,
                     )
 
                     ClickablePreference(
