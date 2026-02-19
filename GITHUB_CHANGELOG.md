@@ -1,11 +1,11 @@
 Lawnchair 16 pE Development 2 is here! Contributors are encouraged to target this branch instead of
 older (i.e., Lawnchair `15-dev`).
 
-### 🚧 Development 5 (In Progress)
+### ✅ Development 5
 
 A milestone focused entirely on **UI/UX polish** — making AutoCat's Smart Categories feature intuitive for first-time users while giving power users better controls and feedback.
 
-#### ✨ Highlights (Planned)
+#### ✨ Highlights
 - **Onboarding Wizard**: First-launch setup flow for the AI engine ([#75](https://github.com/thejaustin/AutoCat/issues/75))
 - **Richer Categorization Feedback**: See exactly which app is being processed, with ETA ([#77](https://github.com/thejaustin/AutoCat/issues/77))
 - **Simplified AI Engine Screen**: Technical options collapsed behind Advanced section ([#76](https://github.com/thejaustin/AutoCat/issues/76))
@@ -24,6 +24,8 @@ A milestone focused entirely on **UI/UX polish** — making AutoCat's Smart Cate
 #### Fixes
 - [UX] Diagnostics screen moved to Developer Options (not user-facing) ([#79](https://github.com/thejaustin/AutoCat/issues/79))
 - [Stability] Sentry double-initialization fixed; crash reporting now active ([#4c6942f](https://github.com/thejaustin/AutoCat/commit/4c6942fdc7))
+- [Crash] App drawer crash on launch: `AppTabsHeaderView` cast fix in tab strip (#42)
+- [Crash] Custom tabs now use correct per-tab filter instead of work profile matcher (#42)
 
 ---
 

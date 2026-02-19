@@ -13,6 +13,7 @@ opto = "1.0.18"
 protocVersion = "4.33.4"
 retrofit = "3.0.0"
 room = "2.8.4"
+tensorflowLite = "2.14.0"
 
 activityCompose = "1.12.0"
 airbnbLottie = "6.7.1"
@@ -180,6 +181,8 @@ rikka-refine-runtime = { group = "dev.rikka.tools.refine", name = "runtime", ver
 rikka-shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
 rikka-shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 sentry-android = { group = "io.sentry", name = "sentry-android", version.ref = "sentry" }
+tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version.ref = "tensorflowLite" }
+tensorflow-lite-support = { group = "org.tensorflow", name = "tensorflow-lite-support", version.ref = "tensorflowLite" }
 smartspacer-sdk = { group = "com.kieronquinn.smartspacer", name = "sdk-client", version.ref = "smartspacer" }
 xdrop-fuzzywuzzy = { group = "me.xdrop", name = "fuzzywuzzy", version.ref = "fuzzywuzzy" }
 

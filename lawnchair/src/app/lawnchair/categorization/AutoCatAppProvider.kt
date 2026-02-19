@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import app.lawnchair.categorization.stages.LLMCategorizer
+import app.lawnchair.categorization.stages.MLCategorizer
 import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.tab.TabDatabase
 import java.util.concurrent.ConcurrentHashMap
@@ -28,6 +29,7 @@ class AutoCatAppProvider(private val context: Context) {
     private val database by lazy { TabDatabase.getInstance(context) }
     private val categoryDao by lazy { database.tabDao() }
     private val llmCategorizer by lazy { LLMCategorizer(context, categoryDao) }
+    private val mlCategorizer by lazy { MLCategorizer(context, categoryDao) }
     private val packageManager = context.packageManager
 
     private data class CategoryInfo(val tabName: String, val subCategory: String?)
@@ -229,8 +231,14 @@ class AutoCatAppProvider(private val context: Context) {
                     description = null,
                 )
 
-                // Categorize using LLMCategorizer
-                llmCategorizer.categorize(appInfo)
+                // Stage 1: LLM categorizer
+                val llmSuccess = llmCategorizer.categorize(appInfo)
+
+                // Stage 2: On-device ML categorizer (fallback when LLM fails or no key)
+                if (!llmSuccess) {
+                    mlCategorizer.categorize(appInfo)
+                }
+
                 refreshCache()
                 Log.d(TAG, "Successfully categorized and cached new app: $packageName")
             } catch (e: Exception) {

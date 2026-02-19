@@ -533,6 +533,11 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
             mTabsController.setCurrentTab(currentActivePage);
         }
         
+        // If a tab was clicked (triggering this), snap the pager to match.
+        if (mViewPager != null && mViewPager.getNextPage() != currentActivePage) {
+            mViewPager.snapToPage(currentActivePage);
+        }
+
         mHeader.setActiveRV(currentActivePage);
         reset(true /* animate */, !isSearching() /* exitSearch */);
 
@@ -593,9 +598,8 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                     mAH.add(new AdapterHolder(AdapterHolder.WORK,
                         new AutoCatAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, mWorkManager, null)));
                 } else {
-                    // Custom Tab - Use standard list for now, filtering handled by adapter
-                    // AutoCat TODO: Implement filter for custom tabs in AutoCatAlphabeticalAppsList
-                    mAH.add(new AdapterHolder(AdapterHolder.WORK, // Reusing WORK type for generic secondary tab for now
+                    // Custom Tab
+                    mAH.add(new AdapterHolder(AdapterHolder.CUSTOM_TAB,
                         new AutoCatAlphabeticalAppsList<>(mActivityContext, mAllAppsStore, null, null)));
                 }
             }
@@ -632,14 +636,10 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
                 } else if (holder.isMain()) {
                     matcher = mPersonalMatcher;
                     tabName = AppTabsController.TAB_ALL;
-                } else {
-                    // Custom Tab
-                    // Calculate index logic: 
-                    // i=0 is MAIN (All Apps). 
-                    // i=1..N are Custom Tabs. 
-                    // But mAH contains: [MAIN, Tab1, Tab2, ..., SEARCH]
-                    // Loop is i=0 to size-2.
-                    // So i corresponds exactly to the Tab Controller index (since it also has All Apps at 0).
+                } else if (holder.isCustomTab()) {
+                    // Custom Tab: i corresponds to the Tab Controller index
+                    // (MAIN is i=0, custom tabs start at i=1, matching controller indices)
+                    matcher = mPersonalMatcher;
                     tabName = mTabsController.getTabNameForTab(i);
                 }
                 
@@ -728,8 +728,12 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         if (showTabs) {
             mViewPager = (AllAppsPagedView) rvContainer;
             mViewPager.initParentViews(this);
-            ((PersonalWorkSlidingTabStrip) mViewPager.getPageIndicator())
-                    .setOnActivePageChangedListener(this);
+            PageIndicator pageIndicator = (PageIndicator) mViewPager.getPageIndicator();
+            if (pageIndicator instanceof AppTabsHeaderView) {
+                ((AppTabsHeaderView) pageIndicator).setOnActivePageChangedListener(this);
+            } else if (pageIndicator instanceof PersonalWorkSlidingTabStrip) {
+                ((PersonalWorkSlidingTabStrip) pageIndicator).setOnActivePageChangedListener(this);
+            }
             // Clear default children from XML if any
             mViewPager.removeAllViews(); 
             
@@ -1513,6 +1517,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         public static final int MAIN = 0;
         public static final int WORK = 1;
         public static final int SEARCH = 2;
+        public static final int CUSTOM_TAB = 3;
 
         private final int mType;
         public final BaseAllAppsAdapter<T> mAdapter;
@@ -1582,6 +1587,10 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
         public boolean isMain() {
             return mType == MAIN;
+        }
+
+        public boolean isCustomTab() {
+            return mType == CUSTOM_TAB;
         }
     }
 }
