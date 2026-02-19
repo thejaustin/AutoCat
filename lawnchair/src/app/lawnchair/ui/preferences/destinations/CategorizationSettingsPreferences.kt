@@ -252,11 +252,8 @@ fun CategorizationSettingsPreferences(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                     ) {
                                         Text(
-                                            text = if (!progress.currentAppName.isNullOrBlank()) {
-                                                progress.currentAppName
-                                            } else {
-                                                progress.currentStage
-                                            },
+                                            text = progress.currentAppName.takeIf { !it.isNullOrBlank() }
+                                                ?: progress.currentStage,
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.weight(1f),
