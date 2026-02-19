@@ -53,6 +53,7 @@ import app.lawnchair.ui.preferences.destinations.SearchPreferences
 import app.lawnchair.ui.preferences.destinations.SearchProviderPreferences
 import app.lawnchair.ui.preferences.destinations.SelectAppsForDrawerFolder
 import app.lawnchair.ui.preferences.destinations.SelectIconPreference
+import app.lawnchair.ui.preferences.destinations.SmartCategoriesOnboardingPreferences
 import app.lawnchair.ui.preferences.destinations.SmartspacePreferences
 import app.lawnchair.ui.preferences.destinations.TabManagementPreferences
 import com.android.launcher3.util.ComponentKey
@@ -138,6 +139,11 @@ fun PreferenceNavigation(
         composable<AppDrawerAppCategorizations> { AppCategorizationListPreferences() }
         composable<AppDrawerLLMSettings> { LLMSettingsPreferences() }
         composable<AppDrawerDiagnostics> { DiagnosticsPreferences() }
+        composable<SmartCategoriesOnboarding> {
+            SmartCategoriesOnboardingPreferences(
+                onFinish = { navController.popBackStack() },
+            )
+        }
 
         composable<Search> { backStackEntry ->
             val route: Search = backStackEntry.toRoute()

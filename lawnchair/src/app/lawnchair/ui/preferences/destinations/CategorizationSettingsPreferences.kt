@@ -62,6 +62,7 @@ import app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations
 import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
 import app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement
 import app.lawnchair.ui.preferences.navigation.Search as SearchDestination
+import app.lawnchair.ui.preferences.navigation.SmartCategoriesOnboarding
 import app.lawnchair.ui.util.rememberExpressiveHaptics
 import com.android.launcher3.R
 import kotlinx.coroutines.Dispatchers
@@ -135,7 +136,7 @@ fun CategorizationSettingsPreferences(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .clickable { onNavigate(AppDrawerLLMSettings) },
+                            .clickable { onNavigate(SmartCategoriesOnboarding) },
                         shape = RoundedCornerShape(16.dp),
                         color = MaterialTheme.colorScheme.primaryContainer,
                         tonalElevation = 2.dp,

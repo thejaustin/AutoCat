@@ -199,6 +199,9 @@ class PreferenceManager @Inject constructor(
     // AutoCat: Archival/Disabling Method
     val archivalMethod = StringPref("pref_archivalMethod", "none", {})
 
+    // AutoCat: Onboarding
+    val smartCategoriesOnboardingCompleted = BoolPref("pref_smartCatOnboardingCompleted", false, {})
+
     override fun close() {
     }
 

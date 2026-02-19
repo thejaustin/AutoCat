@@ -126,6 +126,9 @@ data object AppDrawerLLMSettings : PreferenceRoute
 @Serializable
 data object AppDrawerDiagnostics : PreferenceRoute
 
+@Serializable
+data object SmartCategoriesOnboarding : PreferenceRoute
+
 // Search section routes
 @Serializable
 data class SearchProviderPreference(val id: SearchProviderId) : PreferenceRoute
