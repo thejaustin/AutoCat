@@ -446,7 +446,6 @@ dependencies {
 
     // TensorFlow Lite for on-device ML categorization
     implementation libs.tensorflow.lite
-    implementation libs.tensorflow.lite.support
 
     implementation platform(libs.compose.bom)
     implementation libs.compose.ui

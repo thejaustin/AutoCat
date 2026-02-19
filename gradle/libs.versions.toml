@@ -182,7 +182,6 @@ rikka-shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "
 rikka-shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 sentry-android = { group = "io.sentry", name = "sentry-android", version.ref = "sentry" }
 tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version.ref = "tensorflowLite" }
-tensorflow-lite-support = { group = "org.tensorflow", name = "tensorflow-lite-support", version.ref = "tensorflowLite" }
 smartspacer-sdk = { group = "com.kieronquinn.smartspacer", name = "sdk-client", version.ref = "smartspacer" }
 xdrop-fuzzywuzzy = { group = "me.xdrop", name = "fuzzywuzzy", version.ref = "fuzzywuzzy" }
 
