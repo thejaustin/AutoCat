@@ -67,7 +67,7 @@ import kotlinx.coroutines.launch
 
 /**
  * AutoCat Application class with optimized startup performance.
- * 
+ *
  * Performance optimizations:
  * - Lazy initialization of non-critical components
  * - Deferred initialization when not default launcher
@@ -80,12 +80,12 @@ class AutoCatApp : Application() {
     private val isAtleastT = Utilities.ATLEAST_T
     internal var accessibilityService: AutoCatAccessibilityService? = null
     val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
-    
+
     // Lazy initialization flags to avoid unnecessary work during startup
     private var _isDefaultLauncher: Boolean? = null
     private var sentryInitialized: Boolean = false
     private var flowerpotInitialized: Boolean = false
-    
+
     /**
      * Check if AutoCat is the default launcher.
      * Cached after first check to avoid repeated PackageManager queries.
@@ -97,7 +97,7 @@ class AutoCatApp : Application() {
             }
             return _isDefaultLauncher!!
         }
-    
+
     private fun checkIsDefaultLauncher(): Boolean {
         return try {
             val intent = Intent(Intent.ACTION_MAIN)
@@ -113,7 +113,7 @@ class AutoCatApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        
+
         // Only initialize heavy components if we're the default launcher
         // This prevents unnecessary resource usage when AutoCat is not active
         if (isDefaultLauncher) {
@@ -124,7 +124,7 @@ class AutoCatApp : Application() {
             QuickStepContract.sRecentsDisabled = !recentsEnabled
         }
     }
-    
+
     /**
      * Initialize critical components for when AutoCat is the default launcher.
      * Runs on main thread but defers non-critical work to background.
@@ -144,16 +144,16 @@ class AutoCatApp : Application() {
                 Log.e(TAG, "Failed to initialize Sentry", e)
             }
         }
-        
+
         // Set up instance state
         QuickStepContract.sRecentsDisabled = !recentsEnabled
-        
+
         // Defer non-critical initialization to background thread
         CoroutineScope(Dispatchers.IO).launch {
             initializeBackgroundComponents()
         }
     }
-    
+
     /**
      * Initialize non-critical components on background thread.
      * This prevents blocking the main thread during cold start.
@@ -166,7 +166,7 @@ class AutoCatApp : Application() {
                 flowerpotInitialized = true
                 Log.d(TAG, "Flowerpot Manager initialized")
             }
-            
+
             // Initialize App Drawer Cache for performance
             try {
                 app.lawnchair.allapps.AppDrawerCache.initialize(this@AutoCatApp)
@@ -192,7 +192,7 @@ class AutoCatApp : Application() {
             Log.e(TAG, "Error in background initialization", e)
         }
     }
-    
+
     /**
      * Called when launcher state changes (e.g., user sets AutoCat as default).
      * Ensures all components are initialized when needed.
@@ -201,7 +201,7 @@ class AutoCatApp : Application() {
         if (!isDefaultLauncher) {
             _isDefaultLauncher = checkIsDefaultLauncher()
         }
-        
+
         if (isDefaultLauncher && !sentryInitialized) {
             initializeCriticalComponents()
         }

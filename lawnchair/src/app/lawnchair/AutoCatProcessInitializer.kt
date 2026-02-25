@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Process initializer for AutoCat with optimized startup performance.
- * 
+ *
  * Performance optimizations:
  * - Defers non-critical initialization to background thread
  * - Avoids blocking main thread during cold start
@@ -27,7 +27,7 @@ class AutoCatProcessInitializer(context: Context) : QuickstepProcessInitializer(
             try {
                 // Initialize bug reporter (can be done in background)
                 AutoCatBugReporter.INSTANCE.get(context)
-                
+
                 // Set up themed icon color loader on main thread (required for UI)
                 // This is lightweight and just sets a lambda
                 ThemedIconDrawable.COLORS_LOADER = {
@@ -47,7 +47,7 @@ class AutoCatProcessInitializer(context: Context) : QuickstepProcessInitializer(
                 // Silently handle initialization errors to prevent crashes
             }
         }
-        
+
         // Call super last to ensure our setup completes first
         super.init(context)
     }

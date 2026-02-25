@@ -398,7 +398,7 @@ dependencies {
     implementation projects.mechanics
 
     // Recents lib dependency
-    withQuickstepCompileOnly projects.hiddenapi
+    withQuickstepCompileOnly projects.hiddenApi
     withQuickstepImplementation projects.shared
     withQuickstepImplementation projects.animation
     withQuickstepImplementation projects.unfold

@@ -16,7 +16,8 @@
 
 package app.lawnchair.ui.preferences.destinations
 
-<<<<<<< HEAD
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.AspectRatio
@@ -35,10 +36,6 @@ import androidx.compose.material.icons.rounded.RoundedCorner
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.VerticalAlignTop
 import androidx.compose.material.icons.rounded.Wallpaper
-=======
-import android.content.Context
-import android.widget.Toast
->>>>>>> upstream/16-dev
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember

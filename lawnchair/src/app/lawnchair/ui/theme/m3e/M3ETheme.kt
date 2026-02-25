@@ -26,13 +26,13 @@ import app.lawnchair.ui.theme.AutoCatTheme
 
 /**
  * Material 3 Expressive theme wrapper for AutoCat.
- * 
+ *
  * Provides consistent M3E styling across all settings screens:
  * - Expressive shapes (extra-small through extra-large)
  * - M3E typography scale
  * - Dynamic color integration
  * - Motion preferences respect
- * 
+ *
  * Usage:
  * ```kotlin
  * @Composable
@@ -50,7 +50,7 @@ import app.lawnchair.ui.theme.AutoCatTheme
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun M3ETheme(
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     AutoCatTheme {
         ProvideExpressiveShapes(
@@ -75,19 +75,19 @@ fun M3ETheme(
 
 /**
  * Haptic feedback helper for M3E interactions.
- * 
+ *
  * Provides consistent haptic feedback across all interactive elements
  * while respecting accessibility settings.
- * 
+ *
  * Features:
  * - Respects system haptic feedback settings
  * - Different patterns for different interactions
  * - Accessible fallbacks
- * 
+ *
  * Usage:
  * ```kotlin
  * val haptics = rememberExpressiveHaptics()
- * 
+ *
  * Button(
  *     onClick = {
  *         haptics.click()
@@ -102,16 +102,16 @@ class ExpressiveHaptics(
     private val view: View,
     private val context: Context,
 ) {
-    
+
     private val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-    
+
     /**
      * Check if haptic feedback is enabled.
      */
     private val isHapticEnabled: Boolean
         get() = !accessibilityManager.isTouchExplorationEnabled &&
-                view.isHapticFeedbackEnabled
-    
+            view.isHapticFeedbackEnabled
+
     /**
      * Perform click haptic feedback.
      * Light tap for button clicks and toggles.
@@ -121,7 +121,7 @@ class ExpressiveHaptics(
             view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         }
     }
-    
+
     /**
      * Perform selection haptic feedback.
      * Medium tap for list item selection.
@@ -131,7 +131,7 @@ class ExpressiveHaptics(
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         }
     }
-    
+
     /**
      * Perform state change haptic feedback.
      * Distinct feedback for switches and checkboxes.
@@ -141,7 +141,7 @@ class ExpressiveHaptics(
             view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
         }
     }
-    
+
     /**
      * Perform scroll haptic feedback.
      * Subtle feedback for scroll boundaries.
@@ -167,7 +167,7 @@ fun rememberExpressiveHaptics(): ExpressiveHaptics {
 
 /**
  * M3E-style clickable wrapper with haptics and indication.
- * 
+ *
  * Usage:
  * ```kotlin
  * M3EClickable(
@@ -182,21 +182,21 @@ fun rememberExpressiveHaptics(): ExpressiveHaptics {
 @Composable
 fun M3EClickable(
     onClick: () -> Unit,
-    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
     label: String,
+    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
     enabled: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed = interactionSource.collectIsPressedAsState().value
     val haptics = rememberExpressiveHaptics()
-    
+
     LaunchedEffect(isPressed) {
         if (isPressed) {
             haptics.click()
         }
     }
-    
+
     androidx.compose.foundation.clickable(
         interactionSource = interactionSource,
         indication = LocalIndication.current,
