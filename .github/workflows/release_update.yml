@@ -30,11 +30,11 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v6
         with:
           submodules: true
-      - uses: actions/setup-java@3a44283bc7483717389f007969733d135ad99745 # v5
+      - uses: actions/setup-java@3a4f611406f44a9a0f49720d3e193516efd41c7c # v5
         with:
           distribution: 'zulu'
           java-version: 21
-      - uses: gradle/actions/setup-gradle@6f2296843464710c197f3eaddf6a86923d644493 # v5
+      - uses: gradle/actions/setup-gradle@94baf225fe0a508e58197d90057f109565bb962c # v5
       - name: Write sign info
         id: sign-release-apk
         if: github.repository_owner == 'LawnchairLauncher'
@@ -51,11 +51,11 @@ jobs:
       - name: Rename artifact
         run: mv build/outputs/apk/**/**/*.apk "${{ github.event.inputs.artifactName }}"
       - name: Attest
-        uses: actions/attest-build-provenance@c99954572282f944e52558f994139f3b40e3ee21 # v3
+        uses: actions/attest-build-provenance@96278af4e58a37347b52b3981644f43d3ccffdd2 # v3
         with:
           subject-path: ${{ github.event.inputs.artifactName }}
       - name: Upload artifact
-        uses: actions/upload-artifact@b7c566a385ad051e03624be482630d467b141f45 # v6
+        uses: actions/upload-artifact@b7c566a073f6528939c3588445031d8010d5ad11 # v6
         with:
           name: Release APK
           path: ${{ github.event.inputs.artifactName }}
@@ -68,12 +68,12 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v6
       - name: Download artifact
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392f023099f72867da # v7
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e0059713729680a139 # v4
         with:
           name: Release APK
           path: artifacts/release-apk
       - name: Publish GitHub release
-        uses: softprops/action-gh-release@a06a81ae30182547825c0d3074499ad93ee66ca1 # v2
+        uses: softprops/action-gh-release@a06a81ae3018251469c0d381d0633d8359fd3a94 # v2
         with:
           tag_name: ${{ github.event.inputs.tagName }}
           prerelease: ${{ github.event.inputs.prerelease }}
@@ -88,11 +88,11 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v6
       - name: Download artifact
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392f023099f72867da # v7
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e0059713729680a139 # v4
         with:
           name: Release APK
           path: artifacts/release-apk
-      - uses: actions/setup-python@72794c829372e1771d73e568d1147dfdd3704622 # v6
+      - uses: actions/setup-python@3975157804581319831b512222f46914d003d44a # v6
         with:
           python-version: 3.x
       - name: Install Python packages
