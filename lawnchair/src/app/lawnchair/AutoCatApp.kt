@@ -22,6 +22,7 @@ import android.app.Application
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -64,6 +65,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+/**
+ * AutoCat Application class with optimized startup performance.
+ * 
+ * Performance optimizations:
+ * - Lazy initialization of non-critical components
+ * - Deferred initialization when not default launcher
+ * - Background thread initialization for heavy operations
+ */
 class AutoCatApp : Application() {
     private val compatible = Build.VERSION.SDK_INT in BuildConfig.QUICKSTEP_MIN_SDK..BuildConfig.QUICKSTEP_MAX_SDK
     private val isRecentsComponent: Boolean by unsafeLazy { checkRecentsComponent() }
@@ -71,27 +80,122 @@ class AutoCatApp : Application() {
     private val isAtleastT = Utilities.ATLEAST_T
     internal var accessibilityService: AutoCatAccessibilityService? = null
     val isVibrateOnIconAnimation: Boolean by unsafeLazy { getSystemUiBoolean("config_vibrateOnIconAnimation", false) }
+    
+    // Lazy initialization flags to avoid unnecessary work during startup
+    private var _isDefaultLauncher: Boolean? = null
+    private var sentryInitialized: Boolean = false
+    private var flowerpotInitialized: Boolean = false
+    
+    /**
+     * Check if AutoCat is the default launcher.
+     * Cached after first check to avoid repeated PackageManager queries.
+     */
+    val isDefaultLauncher: Boolean
+        get() {
+            if (_isDefaultLauncher == null) {
+                _isDefaultLauncher = checkIsDefaultLauncher()
+            }
+            return _isDefaultLauncher!!
+        }
+    
+    private fun checkIsDefaultLauncher(): Boolean {
+        return try {
+            val intent = Intent(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_HOME)
+            val resolveInfo = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+            resolveInfo?.activityInfo?.packageName == packageName
+        } catch (e: Exception) {
+            Log.w(TAG, "Error checking default launcher", e)
+            false
+        }
+    }
 
     override fun onCreate() {
-        if (BuildConfig.SENTRY_DSN.isNotEmpty()) {
-            SentryAndroid.init(this) { options ->
-                options.dsn = BuildConfig.SENTRY_DSN
-                options.tracesSampleRate = 1.0
-            }
-        }
-
         super.onCreate()
         instance = this
-        QuickStepContract.sRecentsDisabled = !recentsEnabled
-        Flowerpot.Manager.getInstance(this)
-
-        val preferenceManager2 = PreferenceManager2.getInstance(this)
-        CoroutineScope(Dispatchers.Main).launch {
-            val lastCrashId = preferenceManager2.lastCrashId.get().first()
-            val showLocalUi = preferenceManager2.showLocalCrashUi.get().first()
-            if (lastCrashId != -1 && showLocalUi) {
-                BugReportActivity.show(this@AutoCatApp, lastCrashId)
+        
+        // Only initialize heavy components if we're the default launcher
+        // This prevents unnecessary resource usage when AutoCat is not active
+        if (isDefaultLauncher) {
+            initializeCriticalComponents()
+        } else {
+            Log.d(TAG, "AutoCat is not the default launcher - deferring initialization")
+            // Still set up minimal state needed for potential future activation
+            QuickStepContract.sRecentsDisabled = !recentsEnabled
+        }
+    }
+    
+    /**
+     * Initialize critical components for when AutoCat is the default launcher.
+     * Runs on main thread but defers non-critical work to background.
+     */
+    private fun initializeCriticalComponents() {
+        // Initialize Sentry first for crash reporting
+        if (BuildConfig.SENTRY_DSN.isNotEmpty() && !sentryInitialized) {
+            try {
+                SentryAndroid.init(this) { options ->
+                    options.dsn = BuildConfig.SENTRY_DSN
+                    options.tracesSampleRate = 0.1 // Reduced from 1.0 for performance
+                    options.sampleRate = 0.1
+                }
+                sentryInitialized = true
+                Log.d(TAG, "Sentry initialized")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to initialize Sentry", e)
             }
+        }
+        
+        // Set up instance state
+        QuickStepContract.sRecentsDisabled = !recentsEnabled
+        
+        // Defer non-critical initialization to background thread
+        CoroutineScope(Dispatchers.IO).launch {
+            initializeBackgroundComponents()
+        }
+    }
+    
+    /**
+     * Initialize non-critical components on background thread.
+     * This prevents blocking the main thread during cold start.
+     */
+    private fun initializeBackgroundComponents() {
+        try {
+            // Initialize Flowerpot Manager (theming)
+            if (!flowerpotInitialized) {
+                Flowerpot.Manager.getInstance(this@AutoCatApp)
+                flowerpotInitialized = true
+                Log.d(TAG, "Flowerpot Manager initialized")
+            }
+            
+            // Check for crash reports (deferred from main thread)
+            try {
+                val preferenceManager2 = PreferenceManager2.getInstance(this@AutoCatApp)
+                val lastCrashId = preferenceManager2.lastCrashId.get().first()
+                val showLocalUi = preferenceManager2.showLocalCrashUi.get().first()
+                if (lastCrashId != -1 && showLocalUi) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        BugReportActivity.show(this@AutoCatApp, lastCrashId)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Error checking crash reports", e)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in background initialization", e)
+        }
+    }
+    
+    /**
+     * Called when launcher state changes (e.g., user sets AutoCat as default).
+     * Ensures all components are initialized when needed.
+     */
+    fun ensureInitialized() {
+        if (!isDefaultLauncher) {
+            _isDefaultLauncher = checkIsDefaultLauncher()
+        }
+        
+        if (isDefaultLauncher && !sentryInitialized) {
+            initializeCriticalComponents()
         }
     }
 
