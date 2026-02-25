@@ -14,10 +14,10 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
     - name: Upload Strings
-      uses: crowdin/github-action@f485097477124911d0442371465e96f131a982a7 # v2.4.1
+      uses: crowdin/github-action@8818ff65bfc4322384f983ea37e3926948c11745 # v2
       with:
         upload_translations: false
         upload_sources: true
