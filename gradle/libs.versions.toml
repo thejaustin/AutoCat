@@ -12,6 +12,7 @@ retrofit = "3.0.0"
 dagger = "2.59.1"
 libsu = "6.0.0"
 refine = "4.4.0"
+sentry = "6.1.0"
 
 guava = "33.5.0-android"
 junitVersion = "4.13.2"
@@ -35,6 +36,7 @@ google-protobuf = "com.google.protobuf:0.9.6"
 cash-licensee = "app.cash.licensee:1.14.1"
 rikka-refine = { id = "dev.rikka.tools.refine", version.ref = "refine" }
 diffplug-spotless = "com.diffplug.spotless:8.2.1"
+sentry = { id = "io.sentry.android.gradle", version.ref = "sentry" }
 
 [libraries]
 # AndroidX
@@ -45,6 +47,7 @@ androidx-constraintlayout = "androidx.constraintlayout:constraintlayout:2.2.1"
 androidx-core-animation = "androidx.core:core-animation:1.0.0"
 androidx-core-ktx = "androidx.core:core-ktx:1.17.0"
 androidx-datastore-preferences = "androidx.datastore:datastore-preferences:1.2.0"
+sentry-android = "io.sentry:sentry-android:8.33.0"
 androidx-dynamicanimation = "androidx.dynamicanimation:dynamicanimation:1.1.0"
 androidx-espresso-core = "androidx.test.espresso:espresso-core:3.7.0"
 androidx-graphics-core = "androidx.graphics:graphics-core:1.0.4"
