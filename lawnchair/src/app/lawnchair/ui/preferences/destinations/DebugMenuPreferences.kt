@@ -107,21 +107,35 @@ fun DebugMenuPreferences(
 
             PreferenceGroup(heading = "Debug flags") {
                 flags2.forEach {
-                    SwitchPreference(
-                        adapter = it.getAdapter(),
-                        label = it.key.name,
-                    )
+                    Item { _ ->
+                        SwitchPreference(
+                            adapter = it.getAdapter(),
+                            label = it.key.name,
+                        )
+                    }
                 }
                 flags.forEach {
-                    SwitchPreference(
-                        adapter = it.getAdapter(),
-                        label = it.key,
-                    )
+                    Item { _ ->
+                        SwitchPreference(
+                            adapter = it.getAdapter(),
+                            label = it.key,
+                        )
+                    }
                 }
                 textFlags.forEach {
+                    Item { _ ->
+                        TextPreference(
+                            adapter = it.getAdapter(),
+                            label = it.key.name,
+                        )
+                    }
+                }
+                Item {
+                    // Codename for Lawnchair to intentionally omit version number from the public,
+                    // Crash log will continue to show them normally.
                     TextPreference(
-                        adapter = it.getAdapter(),
-                        label = it.key.name,
+                        label = "Custom version info",
+                        adapter = prefs.pseudonymVersion.getAdapter(),
                     )
                 }
                 TextPreference(
@@ -140,6 +154,40 @@ fun DebugMenuPreferences(
                     label = "App prediction",
                     subtitle = apmSupport.toString(),
                 ) {}
+            }
+
+            val hasOpenedSettings = prefs.hasOpenedSettings.getAdapter()
+            PreferenceGroup(heading = "Smartspace Onboarding") {
+                Item {
+                    ClickablePreference(
+                        label = "Reset All Apps Bounce",
+                        subtitle = "Reset it in Feature Flags page",
+                    ) { }
+                }
+                Item {
+                    ClickablePreference(
+                        label = "Reset open lawn settings",
+                        subtitle = hasOpenedSettings.state.value.toString(),
+                    ) {
+                        hasOpenedSettings.onChange(false)
+                    }
+                }
+            }
+
+            val apmSupport = context.checkCallingOrSelfPermission(Manifest.permission.PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED
+            PreferenceGroup(heading = "Supported features") {
+                Item {
+                    ClickablePreference(
+                        label = "Window blurs",
+                        subtitle = BlurUtils.supportsBlursOnWindows().toString(),
+                    ) { }
+                }
+                Item {
+                    ClickablePreference(
+                        label = "App prediction",
+                        subtitle = apmSupport.toString(),
+                    ) {}
+                }
             }
         }
     }

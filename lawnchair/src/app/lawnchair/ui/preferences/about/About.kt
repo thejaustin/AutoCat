@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.NavigationActionPreference
 import app.lawnchair.ui.preferences.components.controls.ClickablePreference
@@ -74,6 +75,8 @@ fun About(
     val sheetState = rememberModalBottomSheetState(true)
     var openBottomSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
+    val prefs: PreferenceManager = PreferenceManager.getInstance(context)
 
     if (openBottomSheet) {
         val updateState = uiState.updateState
@@ -136,7 +139,11 @@ fun About(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    text = BuildConfig.VERSION_DISPLAY_NAME,
+                    text = if (prefs.hideVersionInfo.get()) {
+                        prefs.pseudonymVersion.get() + " (pseudonym)"
+                    } else {
+                        BuildConfig.VERSION_DISPLAY_NAME
+                    },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -156,7 +163,27 @@ fun About(
             Spacer(modifier = Modifier.height(8.dp))
         }
         item {
-            Spacer(modifier = Modifier.height(8.dp))
+            UpdateSection(
+                updateState = uiState.updateState,
+                onInstall = {
+                    viewModel.installUpdate(it)
+                },
+                onForceInstall = {
+                    viewModel.installUpdate(it, forceInstall = true)
+                },
+                onViewChanges = {
+                    openBottomSheet = true
+                    scope.launch {
+                        sheetState.show()
+                    }
+                },
+                onDismissMajorUpdate = {
+                    viewModel.resetToDownloaded(it)
+                },
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.requiredHeight(16.dp))
         }
         item {
             Row(
@@ -198,9 +225,9 @@ fun About(
         }
         preferenceGroupItems(
             items = uiState.coreTeam,
-            key = { _, it -> it.name },
             isFirstChild = false,
-            heading = { "Original Lawnchair Development Team" },
+            heading = { stringResource(id = R.string.product) },
+            key = { _, it -> it.name },
         ) { _, it ->
             ContributorRow(
                 member = it,
@@ -208,27 +235,25 @@ fun About(
         }
         preferenceGroupItems(
             items = uiState.supportAndPr,
-            key = { _, it -> it.name },
             isFirstChild = false,
-            heading = { "Original Lawnchair Support Team" },
+            heading = { stringResource(id = R.string.support_and_pr) },
+            key = { _, it -> it.name },
         ) { _, it ->
             ContributorRow(
                 member = it,
             )
         }
-        if (uiState.bottomLinks.isNotEmpty()) {
-            preferenceGroupItems(
-                items = uiState.bottomLinks,
-                key = { _, it -> it.labelResId },
-                isFirstChild = false,
-                heading = { stringResource(id = R.string.community) },
-            ) { _, it ->
-                HorizontalAutoCatLink(
-                    iconResId = it.iconResId,
-                    label = stringResource(id = it.labelResId),
-                    url = it.url,
-                )
-            }
+        preferenceGroupItems(
+            items = uiState.bottomLinks,
+            isFirstChild = false,
+            heading = { stringResource(id = R.string.community) },
+            key = { _, it -> it.labelResId },
+        ) { _, it ->
+            HorizontalAutoCatLink(
+                iconResId = it.iconResId,
+                label = stringResource(id = it.labelResId),
+                url = it.url,
+            )
         }
         item {
             PreferenceGroupHeading(
@@ -247,11 +272,13 @@ fun About(
             }
         }
         item {
+            Spacer(Modifier.height(3.dp))
+        }
+        item {
             PreferenceGroupItem(
                 cutTop = true,
-                cutBottom = true,
+                cutBottom = false,
             ) {
-                PreferenceDivider()
                 ClickablePreference(
                     label = stringResource(id = R.string.privacy_policy),
                     onClick = {

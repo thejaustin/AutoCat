@@ -24,9 +24,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Backup
-import androidx.compose.material.icons.outlined.Science
-import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.Check
@@ -37,10 +34,13 @@ import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.TipsAndUpdates
+import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
@@ -182,29 +182,7 @@ fun PreferencesDashboard(
     }
 }
 
-@Composable
-fun PreferenceCategoryGroup(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    val color = preferenceGroupColor()
-
-    Surface(
-        modifier = modifier.padding(horizontal = 16.dp),
-        shape = MaterialTheme.shapes.large,
-        color = color,
-        tonalElevation = if (isSelectedThemeDark) 1.dp else 0.dp,
-    ) {
-        DividerColumn(
-            content = content,
-            startIndent = (-16).dp,
-            endIndent = (-16).dp,
-            color = MaterialTheme.colorScheme.surface,
-            thickness = 2.dp,
-        )
-    }
-}
-
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PreferencesDebugWarning(
     modifier: Modifier = Modifier,

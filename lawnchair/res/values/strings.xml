@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, AutoCat
+  ~ Copyright 2021, Lawnchair
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,21 +17,6 @@
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- TODO: Rename all strings to follow CONTRIBUTING.md guidelines -->
-
-    <!--
-
-    AutoCat Branding & Attribution
-
-    -->
-    <string name="autocat_app_name">AutoCat</string>
-    <string name="autocat_tagline">Intelligent App Categorization</string>
-    <string name="autocat_based_on">Based on Lawnchair Launcher</string>
-    <string name="autocat_about">AutoCat is a fork of AutoCat that adds intelligent automatic app categorization to your app drawer.</string>
-    <string name="lawnchair_attribution">Built on AutoCat</string>
-    <string name="lawnchair_website">lawnchair.app</string>
-    <string name="autocat_github">github.com/thejaustin/AutoCat</string>
-    <string name="autocat_issues_url">https://github.com/thejaustin/AutoCat/issues</string>
-
     <!--
 
     Actions and Verbs
@@ -88,7 +73,7 @@
     <string name="time_months_ago">%dmo</string>
     <string name="time_years_ago">%dy</string>
 
-    <string name="managed_by_lawnchair">Managed by AutoCat</string>
+    <string name="managed_by_lawnchair">Managed by Lawnchair</string>
 
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Preferences</string>
@@ -98,11 +83,10 @@
 
     <!--
 
-    General "words" used throughout AutoCat
+    General "words" used throughout Lawnchair
 
     -->
     <string name="others_category_label">Others</string>
-
 
     <!-- Selection options -->
     <string name="dynamic">Dynamic</string>
@@ -159,7 +143,7 @@
     <string name="my_folder_label">My folder</string>
 
     <!-- A11y description -->
-    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, AutoCat requires accessibility access.\n\nAutoCat doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. AutoCat discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, AutoCat uses the performGlobalAction Accessibility service.</string>
+    <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, Lawnchair requires accessibility access.\n\nLawnchair doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. Lawnchair discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, Lawnchair uses the performGlobalAction Accessibility service.</string>
 
     <string name="iconPackPackageDefault" translatable="false">""</string>
 
@@ -176,15 +160,14 @@
     <string name="reorderable_disabled_hint">Disabled items will appear here. Drag an item here or tap the remove button to make an item active.</string>
     <string name="reorderable_add_hint_items">Active items will appear here. Drag an item here or tap the add button to make an item active.</string>
 
-        <!-- Preference Dashboard -->
+    <!--
 
-        <string name="settings">Settings</string>
+    Preference Dashboard
 
-        <string name="search_settings">Search settings</string>
+    -->
+    <string name="settings">Settings</string>
 
-    
-
-        <string name="general_label">General</string>
+    <string name="general_label">General</string>
     <string name="general_description">Colors, icon packs, notification dots</string>
 
     <string name="home_screen_label">Home screen</string>
@@ -213,10 +196,16 @@
     <string name="about_label">About</string>
 
     <string name="app_info_drop_target_label">App info</string>
-    <string name="debug_restart_launcher">Restart AutoCat</string>
+    <string name="debug_restart_launcher">Restart Lawnchair</string>
     <string name="experimental_features_label">Experimental features</string>
 
     <!-- Experimental features -->
+    <string name="workspace_label">Workspace</string>
+    <string name="smartspace_label">Smartspace</string>
+
+    <string name="internal_label">Internal</string>
+    <string name="internal_description">Internal may be more unstable than other experimental group</string>
+
     <string name="font_picker_label">Font customization</string>
     <string name="font_picker_description">Some text remains unchanged</string>
 
@@ -228,12 +217,25 @@
 
     <string name="always_reload_icons_label">Always reload icons</string>
     <string name="always_reload_icons_description">Avoid using cached icons from icon packs</string>
+    <string name="always_reload_icons_warning">Will cause icon to reload regularly, this is not required if icon pack doesn\'t update regularly</string>
 
     <string name="icon_swipe_gestures">Icon swipe gestures</string>
     <string name="icon_swipe_gestures_description">Perform actions when swiping left or right on icons instead of moving the home screen</string>
 
     <string name="show_deck_layout">Deck layout</string>
     <string name="show_deck_layout_description">Show a layout option to hide the app drawer and automatically add new apps to the home screen</string>
+
+    <string name="material_expressive_label">Material 3 Expressive</string>
+    <string name="material_expressive_description">Enable Material 3 Expressive changes in workspace</string>
+
+    <string name="experimental_folder_shape_modify_label">Customizable folder shape</string>
+    <string name="folder_shape_label">Folder</string>
+    <string name="app_icon_shape_label">App</string>
+
+    <string name="gesturenavcontract_label">GestureNavContract API</string>
+    <string name="gesturenavcontract_description">Render launcher animations without root, does not work with heavily modified AOSP</string>
+    <string name="gesturenavcontract_warning_incompatibility">GestureNavContract may cause artifacting during animations</string>
+
 
     <string name="recents_lock_unlock">Lock/unlock</string>
     <string name="recents_lock_unlock_description">Prevent selected app from closing when pressing \"Clear all\"</string>
@@ -251,7 +253,7 @@
 
     -->
 
-    <string name="set_default_launcher_tip">To access shortcuts and additional features, set AutoCat as your default launcher</string>
+    <string name="set_default_launcher_tip">To access shortcuts and additional features, set Lawnchair as your default launcher</string>
 
     <string name="notification_dots">Notification dots</string>
     <string name="show_notification_count">Show notification counter</string>
@@ -313,12 +315,12 @@
     <string name="icon_shape_square">Square</string>
     <string name="icon_shape_squircle">Squircle</string>
     <string name="icon_shape_teardrop">Teardrop</string>
-    <!-- Icon shape (Material 3 Expressive) -->
-    <string name="icon_shape_arch">Arch</string>
+    <!-- Icon shapes (Material 3 Expressive) -->
+    <string name="icon_shape_very_sunny">Very sunny</string>
     <string name="icon_shape_complex_clover">Complex clover</string>
     <string name="icon_shape_four_sided_cookie">Four-sided cookie</string>
     <string name="icon_shape_seven_sided_cookie">Seven-sided cookie</string>
-    <string name="icon_shape_very_sunny">Very sunny</string>
+    <string name="icon_shape_arch">Arch</string>
 
     <!-- Custom icon shapes -->
     <string name="custom_icon_shape">Custom icon shape</string>
@@ -342,6 +344,8 @@
     <string name="themed_icon_pack">Themed icon source</string>
     <string name="themed_icon_pack_tint">Tint with accent color</string>
     <string name="system_icons">System icons</string>
+    <string name="force_monochrome_label">Force monochrome</string>
+    <string name="force_monochrome_description">Require restart, tint unsupported apps with accent color</string>
 
     <string name="themed_icon_title">Themed icons</string>
     <string name="themed_icons_off_label">Off</string>
@@ -426,21 +430,18 @@
     <!-- Date formats -->
     <string name="smartspace_calendar_gregorian">Gregorian</string>
     <string name="smartspace_calendar_persian">Persian</string>
+    <string name="smartspace_calendar_lunar">Lunar</string>
 
     <string name="generic_smartspace_concatenated_desc">%1$s, %2$s</string>
     <string name="smartspace_icu_date_pattern_gregorian_wday_month_day_no_year" translatable="false">EEEMMMd</string>
     <string name="smartspace_icu_date_pattern_gregorian_time" translatable="false">HH:mm</string>
     <string name="smartspace_icu_date_pattern_gregorian_time_12h" translatable="false">hh:mm aa</string>
     <string name="smartspace_icu_date_pattern_gregorian_date" translatable="false"> dd MMMM</string>
-    <string name="smartspace_icu_date_pattern_persian_wday_month_day_no_year" translatable="false">l، j F</string>
-    <string name="smartspace_icu_date_pattern_persian_time" translatable="false">H:i</string>
-    <string name="smartspace_icu_date_pattern_persian_time_12h" translatable="false">g:i a</string>
-    <string name="smartspace_icu_date_pattern_persian_date" translatable="false">"j F، "</string>
 
     <!-- Battery labels -->
-    <string name="smartspace_battery_charging">Charging</string>
     <string name="smartspace_battery_fast_charging">Fast charging</string>
     <string name="smartspace_battery_slow_charging">Slow charging</string>
+    <string name="smartspace_battery_charging">Charging</string>
     <string name="smartspace_battery_full">Charged</string>
     <string name="smartspace_battery_low">Battery low</string>
     <string name="battery_charging_percentage_charging_time">"%1$d%% — Full in %2$s"</string>
@@ -462,6 +463,17 @@
     <string name="smartspace_weather">Weather</string>
     <string name="smartspace_battery_status">Battery status</string>
     <string name="smartspace_now_playing">Now Playing</string>
+    <string name="smartspace_onboarding">Onboarding</string>
+
+    <!-- Onboarding strings -->
+    <string name="onboarding_open_settings_title">Configure your Lawnchair</string>
+    <string name="onboarding_open_settings_subtitle">Long-press on the Home Screen to open Settings</string>
+
+    <string name="onboarding_major_upgrade_title">Welcome to Lawnchair <xliff:g example="16" id="next_major_version">%1$d</xliff:g>!</string>
+    <string name="onboarding_major_upgrade_subtitle">See what\'s new!</string>
+
+    <string name="onboarding_welcome">Welcome to Lawnchair!</string>
+    <string name="onboarding_swipe_up">Swipe up to open the App Drawer</string>
 
     <!-- Smartspacer strings -->
     <string name="maximum_number_of_targets">Maximum number of targets</string>
@@ -474,11 +486,11 @@
 
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Show on home screen</string>
-    <string name="smartspace_widget_toggle_description">At a Glance can be manually added to the home screen by placing the AutoCat widget</string>
+    <string name="smartspace_widget_toggle_description">At a Glance can be manually added to the home screen by placing the Lawnchair widget</string>
 
     <!-- List of available providers -->
     <string name="smartspace_mode_label">At a Glance provider</string>
-    <string name="smartspace_mode_lawnchair" translatable="false">AutoCat</string>
+    <string name="smartspace_mode_lawnchair" translatable="false">Lawnchair</string>
     <string name="smartspace_mode_google">Google</string>
     <string name="smartspace_mode_google_search">Google Search</string>
     <string name="smartspace_mode_smartspacer" translatable="false">Smartspacer</string>
@@ -519,6 +531,13 @@
     <string name="contributor_status_active">Active</string>
 
     <string name="update_check_failed">Failed to check for updates</string>
+    <string name="major_update_label">Breaking change!</string>
+    <string name="major_update_description">You are about to update from Lawnchair <xliff:g example="15" id="current_major_version">%1$s</xliff:g> to Lawnchair <xliff:g example="16" id="next_major_version">%2$s</xliff:g>, please consider carefully as newer major version may be unstable than current version.</string>
+
+    <string name="pro_disabled_by_unknown">Cannot update!</string>
+    <string name="pro_disabled_by_major_is_newer">Cannot update, This build is way too new!</string>
+
+    <string name="updater">Updater</string>
 
     <!--
 
@@ -537,19 +556,6 @@
     <string name="backup_restore_error">Failed to restore backup</string>
     <string name="invalid_backup_file">Invalid backup file</string>
 
-    <string name="smart_categories_label">AutoCat</string>
-    <string name="smart_categories_subtitle">Intelligent app drawer categories</string>
-    <string name="debug_label">Developer</string>
-    <string name="backup_label">Backup &amp; Restore</string>
-
-    <string name="archive_category_label">Archive Category</string>
-    <string name="restore_category_label">Restore Category</string>
-    <string name="archive_category_dialog_title">Archive %1$s?</string>
-    <string name="archive_category_dialog_message">All apps in the \"%1$s\" category will be archived. Their data will be kept.</string>
-    <string name="restore_category_dialog_title">Restore %1$s?</string>
-    <string name="restore_category_dialog_message">All archived apps in the \"%1$s\" category will be restored.</string>
-    <string name="check_for_update">Check for update</string>
-
     <!--
 
     Gesture settings
@@ -567,46 +573,38 @@
     <string name="gesture_handler_sleep">Sleep</string>
     <string name="gesture_handler_recents">Open Recents screen</string>
     <string name="gesture_handler_open_notifications">Open notification panel</string>
-    <string name="gesture_handler_open_quick_settings">Open quick settings</string>
+    <string name="gesture_handler_open_quick_settings">Open Quick Settings</string>
     <string name="gesture_handler_open_app_option">Open app</string>
+    <string name="gesture_handler_open_app_config">Open %1$s</string>
     <string name="gesture_handler_open_app_drawer">Open app drawer</string>
     <string name="gesture_handler_open_app_search">Open app search</string>
     <string name="gesture_handler_open_search">Open search</string>
     <string name="gesture_handler_open_assistant">Open assistant</string>
-    <string name="gesture_handler_open_folder">Open folder</string>
-    <string name="gesture_handler_open_app_config">Open <xliff:g id="app_name" example="Messenger">%1$s</xliff:g></string>
 
     <string name="pick_app_for_gesture">Pick app</string>
 
-    <!-- Accessibility hints -->
-    <string name="generic_a11y_hint">Enable accessibility service to use this gesture</string>
-    <string name="generic_a11y_disclaimer">This gesture requires accessibility service access</string>
-    <string name="notifications_fallback_a11y_hint">Enable accessibility service to open notifications</string>
-    <string name="quick_settings_a11y_hint">Enable accessibility service to open quick settings</string>
-    <string name="recents_screen_a11y_hint">Enable accessibility service to open recents</string>
-    <string name="sleep_a11y_hint">Enable accessibility service to use sleep gesture</string>
-
     <string name="dt2s_admin_hint_title">Admin permissions required</string>
-    <string name="dt2s_admin_hint">To use Double-Tap to Sleep, set AutoCat as a device admin app. Tap \"Open settings\", then tap \"Activate this device admin app.\"</string>
-    <string name="dt2s_admin_warning">Double-Tap to Sleep will be turned off.</string>
-
+    <string name="dt2s_admin_hint">To put the device to sleep, set Lawnchair as a device admin app. Tap \"Open settings\", then tap \"Activate this device admin app.\"</string>
+    <string name="dt2s_admin_warning">Gestures to put the device to sleep will be turned off.</string>
 
     <string name="d2ts_recents_a11y_hint_title">Turn on accessibility service</string>
-    <string name="dt2s_a11y_hint">To use Double-Tap to Sleep, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
-    <string name="dt2s_recents_warning_open_settings">Open settings</string>
 
-    <string name="recents_a11y_hint">To use Open Recents screen, turn on the AutoCat accessibility service. Tap \"Open settings\", select \"AutoCat\" and turn on \"Use AutoCat.\"\n\nAutoCat uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, AutoCat is not configured for that functionality and receives no events.</string>
+    <string name="sleep_a11y_hint">put the device to sleep</string>
+    <string name="notifications_fallback_a11y_hint">open the notification panel</string>
+    <string name="quick_settings_a11y_hint">open the Quick Settings panel</string>
+    <string name="recents_screen_a11y_hint">open the Recents screen</string>
+
+    <string name="generic_a11y_hint">To %1$s, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"</string>
+    <string name="generic_a11y_disclaimer">Lawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
 
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">AutoCat bug report</string>
-    <string name="autocat_issues">GitHub Issues</string>
+    <string name="lawnchair_bug_report">Lawnchair bug report</string>
     <string name="crash_report_notif_title">%1$s crashed</string>
     <string name="action_upload_crash_report">Upload crash log</string>
-
 
     <string name="action_upload_error">Upload failed</string>
     <string name="dogbin_uploading">Uploading…</string>
@@ -625,6 +623,9 @@
     <!-- General and home screen settings -->
     <string name="home_screen_rotation_label">Home screen rotation</string>
     <string name="home_screen_rotation_description">Allow home screen rotation when device is rotated</string>
+
+    <string name="auto_updater_label">Auto updater</string>
+    <string name="auto_updater_description">Automatically check for Nightly update when going to About section</string>
 
     <string name="wallpaper_blur">Blur wallpaper (experimental)</string>
     <string name="wallpaper_background_blur">Blur intensity</string>
@@ -654,11 +655,6 @@
     <string name="home_screen_unlock">Unlock home screen</string>
     <string name="home_screen_locked">Home screen is locked</string>
     <string name="home_screen_lock_description">Prevent changes to the home screen layout</string>
-
-    <string name="show_dot_pagination_label">Show dot pagination</string>
-    <string name="show_dot_pagination_description">Use dots instead of lines to show page number</string>
-    <string name="show_material_u_popup_label">Use new pop-up style</string>
-    <string name="show_material_u_popup_description">Use Material You\'s bouncy and slightly consolidated pop-up style</string>
 
     <string name="popup_menu">Pop-up menu</string>
     <string name="popup_menu_items">Pop-up menu items</string>
@@ -694,9 +690,8 @@
     <string name="search_bar_settings">Search bar settings</string>
     <string name="hotseat_mode_label">Search bar widget</string>
     <string name="hotseat_mode_disabled">Disabled</string>
-    <string name="hotseat_mode_lawnchair" translatable="false">AutoCat</string>
+    <string name="hotseat_mode_lawnchair" translatable="false">Lawnchair</string>
     <string name="hotseat_mode_google_search">Google Search bar</string>
-
 
     <string name="qsb_hotseat_background_transparency">Background opacity</string>
     <string name="qsb_hotseat_stroke_width">Outline width</string>
@@ -720,31 +715,6 @@
     <string name="paused_apps_dialog_title">App paused</string>
     <string name="paused_apps_dialog_message">%1$s was directly paused from the launcher</string>
     <string name="paused_apps_drop_target_label">Pause app</string>
-
-    <!-- Archive app shortcut -->
-    <string name="archive_app_label">Archive</string>
-    <string name="archive_app_dialog_title">Archive %1$s?</string>
-    <string name="archive_app_dialog_message">The app will be removed but its data will be kept. You can restore it later.</string>
-    <string name="archive_app_success">%1$s archived</string>
-    <string name="archive_app_failed">Failed to archive %1$s</string>
-    <string name="archive_app_system_error">System apps cannot be archived</string>
-    <string name="archive_app_no_root">Archiving requires root access or Android 15+</string>
-
-    <!-- Archive all (category/folder) -->
-    <string name="archive_all_label">Archive All</string>
-    <string name="archive_all_dialog_title">Archive all apps in \"%1$s\"?</string>
-    <string name="archive_all_dialog_message">%1$d apps will be archived. %2$d system apps will be skipped.\n\nArchived apps keep their data and can be restored later.</string>
-    <string name="archive_all_progress_title">Archiving apps\u2026</string>
-    <string name="archive_all_progress_message">Archiving %1$s (%2$d/%3$d)</string>
-    <string name="archive_all_complete">Archived %1$d apps (%2$d skipped, %3$d failed)</string>
-    <string name="archive_all_requires_confirmation">Root not available. Each app will require manual confirmation.</string>
-
-    <!-- App info shortcut -->
-    <string name="app_info_label">App info</string>
-
-    <!-- Store page shortcut -->
-    <string name="store_page_label">Store page</string>
-    <string name="store_not_found">Store app not found</string>
 
     <string name="dock_icons">Dock icons</string>
     <string name="hotseat_bottom_space_label">Bottom padding</string>
@@ -773,7 +743,7 @@
     <string name="search_provider_kagi" translatable="false">Kagi</string>
     <string name="search_provider_custom">Custom</string>
 
-    <string name="search_provider_sponsored_description">%1$s and AutoCat have a revenue share agreement.\n\nSearching with %1$s helps support AutoCat.</string>
+    <string name="search_provider_sponsored_description">%1$s and Lawnchair have a revenue share agreement.\n\nSearching with %1$s helps support Lawnchair.</string>
 
     <string name="app_label">App</string>
     <string name="website_label">Website</string>
@@ -799,6 +769,8 @@
     <string name="row_height_label">Row height</string>
     <string name="app_drawer_indent_label">Horizontal padding</string>
     <string name="app_drawer_bg_color_label">Background color</string>
+    <string name="work_profile_tab_background_label">Tabs background color</string>
+    <string name="work_profile_tab_container_background_label">Separated Tab container background</string>
 
     <!-- HiddenAppsPreferences -->
     <string name="hide_from_drawer">Hide from app drawer</string>
@@ -817,7 +789,7 @@
     <string name="max_folder_rows">Maximum folder rows</string>
 
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">These settings will be ignored as AutoCat isn\'t set as the Recents screen provider</string>
+    <string name="quickswitch_ignored_warning">These settings will be ignored as Lawnchair isn\'t set as the Recents screen provider</string>
 
     <string name="quickstep_incompatible">Incompatible system integration</string>
     <string name="quickstep_incompatible_description">Your device is configured to have system gestures (known as Quickstep) provided by %1$s, but this version of %1$s isn\'t compatible with your Android version. To continue using your device, please uninstall %1$s updates or disable %1$s as a system gesture provider.</string>
@@ -976,16 +948,6 @@
     <string name="grant_requested_permissions">Grant permissions</string>
     <string name="permissions_needed">Permissions needed</string>
     <string name="grant_requested_permissions_tap">Tap to grant permissions</string>
-
-    <!-- AutoCat: Category management -->
-    <string name="change_category_title">Change Category</string>
-
-    <!-- AutoCat: Folder sync strings -->
-    <string name="folder_sync_mode_label">Folder Sync Mode</string>
-    <string name="folder_sync_mode_drawer">App drawer only</string>
-    <string name="folder_sync_mode_home">Home screen only</string>
-    <string name="folder_sync_mode_both">Drawer and home screen</string>
-
     <!-- Message shown when all home screen views are removed -->
     <string name="home_screen_all_views_removed_msg">Home screen cleared</string>
 </resources>

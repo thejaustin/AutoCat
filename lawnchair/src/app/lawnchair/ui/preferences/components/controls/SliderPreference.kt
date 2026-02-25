@@ -172,7 +172,7 @@ private fun SliderPreference(
                 steps = getSteps(valueRange, step),
                 modifier = Modifier
                     .padding(top = 2.dp, bottom = 12.dp)
-                    .padding(horizontal = 10.dp)
+                    .padding(horizontal = 14.dp)
                     .height(24.dp),
             )
         },
@@ -208,14 +208,16 @@ private fun SliderPreferencePreview(
 ) {
     AutoCatTheme {
         PreferenceGroupPreviewContainer {
-            SliderPreference(
-                label = "Label",
-                value = sliderValue,
-                onValueChangeFinished = {},
-                valueRange = 0f..1f,
-                step = 0.1f,
-                showAsPercentage = true,
-            )
+            Item {
+                SliderPreference(
+                    label = "Label",
+                    value = sliderValue,
+                    onValueChangeFinished = {},
+                    valueRange = 0f..1f,
+                    step = 0.1f,
+                    showAsPercentage = true,
+                )
+            }
         }
     }
 }

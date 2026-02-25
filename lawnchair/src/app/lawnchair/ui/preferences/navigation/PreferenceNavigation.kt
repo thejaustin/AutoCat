@@ -54,6 +54,7 @@ import app.lawnchair.ui.preferences.destinations.SearchProviderPreferences
 import app.lawnchair.ui.preferences.destinations.SelectAppsForDrawerFolder
 import app.lawnchair.ui.preferences.destinations.SelectIconPreference
 import app.lawnchair.ui.preferences.destinations.SmartCategoriesOnboardingPreferences
+import app.lawnchair.ui.preferences.destinations.ShapePreference
 import app.lawnchair.ui.preferences.destinations.SmartspacePreferences
 import app.lawnchair.ui.preferences.destinations.TabManagementPreferences
 import com.android.launcher3.util.ComponentKey
@@ -109,7 +110,10 @@ fun PreferenceNavigation(
             FontSelection(pref)
         }
         composable<GeneralIconPack> { IconPackPreferences() }
-        composable<GeneralIconShape> { IconShapePreference() }
+        composable<GeneralIconShape> { backStackEntry ->
+            val route: GeneralIconShape = backStackEntry.toRoute()
+            ShapePreference(currentTab = route.selectedId)
+        }
         composable<GeneralCustomIconShapeCreator> { CustomIconShapePreference() }
 
         composable<HomeScreen> { HomeScreenPreferences() }

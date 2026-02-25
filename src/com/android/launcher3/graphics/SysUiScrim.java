@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Modifications copyright 2025, AutoCat
+ * Modifications copyright 2025, Lawnchair
  */
 package com.android.launcher3.graphics;
 
@@ -189,7 +189,7 @@ public class SysUiScrim implements View.OnAttachStateChangeListener {
     public void onInsetsChanged(Rect insets) {
         DeviceProfile dp = mContainer.getDeviceProfile();
         mDrawTopScrim = insets.top > 0;
-        mDrawBottomScrim = !dp.isVerticalBarLayout() && !dp.isGestureMode && !dp.isTaskbarPresent;
+        mDrawBottomScrim = !dp.isVerticalBarLayout() && !dp.getDeviceProperties().isGestureMode() && !dp.isTaskbarPresent;
     }
 
     @Override

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021, AutoCat
+  ~ Copyright 2021, Lawnchair
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
     <string name="time_weeks_ago">%d vkr</string>
     <string name="time_months_ago">%d mån</string>
     <string name="time_years_ago">%d år</string>
-    <string name="managed_by_lawnchair">Hanteras av AutoCat</string>
+    <string name="managed_by_lawnchair">Hanteras av Lawnchair</string>
     <!-- When mentioning settings UI -->
     <string name="smartspace_preferences">Alternativ</string>
     <string name="settings_button_text">Startinställningar</string>
@@ -69,7 +69,7 @@
     <string name="title_change_settings">Ändra inställningar</string>
     <!--
 
-    General "words" used throughout AutoCat
+    General "words" used throughout Lawnchair
 
     -->
     <string name="others_category_label">Övriga</string>
@@ -102,6 +102,8 @@
     <string name="caddy_beta">Skrin (beta)</string>
     <string name="caddy">Skrin</string>
     <string name="app_drawer_folder">Mappar i applådan</string>
+    <string name="selected_apps">Selected apps</string>
+    <string name="add_apps">Add apps</string>
     <string name="app_drawer_folder_settings">Applådemapp</string>
     <string name="add_folder">Skapa mapp</string>
     <string name="edit_folder">Redigera mapp</string>
@@ -115,11 +117,16 @@
     <string name="folders_filter_duplicates">Visa endast unika appar</string>
     <string name="my_folder_label">Min mapp</string>
     <!-- A11y description -->
-    <string name="accessibility_service_description">För att kunna utföra vissa åtgärder (såsom att låsa din telefon) när en gest görs, kräver AutoCat tillgänglighetsåtkomst.\n\nAutoCat övervakar inte några användaraktiviteter, men behörigheten att kunna göra detta krävs för alla tillgänglighetstjänster. AutoCat ignorerar alla händelser som skickas av systemet.\n\nFör att kunna låsa din telefon eller öppna Senaste-skärmen använder AutoCat tillgänglighetstjänsten performGlobalAction.</string>
+    <string name="accessibility_service_description">För att kunna utföra vissa åtgärder (såsom att låsa din telefon) när en gest görs, kräver Lawnchair tillgänglighetsåtkomst.\n\nLawnchair övervakar inte några användaraktiviteter, men behörigheten att kunna göra detta krävs för alla tillgänglighetstjänster. Lawnchair ignorerar alla händelser som skickas av systemet.\n\nFör att kunna låsa din telefon eller öppna Senaste-skärmen använder Lawnchair tillgänglighetstjänsten performGlobalAction.</string>
     <string name="x_with_y_count">%1$s (%2$d)</string>
     <string name="x_by_y">%1$d x %2$d</string>
     <string name="x_and_y">%1$s &amp; %2$s</string>
     <string name="advanced">Avancerat</string>
+    <!-- Draggable -->
+    <string name="reorderable_active_items">Active items</string>
+    <string name="reorderable_disabled_items">Other items</string>
+    <string name="reorderable_disabled_hint">Disabled items will appear here. Drag an item here or tap the remove button to make an item active.</string>
+    <string name="reorderable_add_hint_items">Active items will appear here. Drag an item here or tap the add button to make an item active.</string>
     <!--
 
     Preference Dashboard
@@ -130,6 +137,7 @@
     <string name="general_description">Färger, ikonpaket, aviseringsprickar</string>
     <string name="home_screen_label">Startskärm</string>
     <string name="home_screen_description">Flöde, rutnät, ikoner</string>
+    <string name="home_screen_actions">Home screen actions</string>
     <string name="dock_label">Favoritfält</string>
     <string name="dock_description">Sökfält, ikonantal</string>
     <string name="app_drawer_label">Applåda</string>
@@ -144,9 +152,13 @@
     <string name="quickstep_description">Rensa alla-knapp, hörnradie</string>
     <string name="about_label">Om</string>
     <string name="app_info_drop_target_label">Appinfo</string>
-    <string name="debug_restart_launcher">Starta om AutoCat</string>
+    <string name="debug_restart_launcher">Starta om Lawnchair</string>
     <string name="experimental_features_label">Experimentella funktioner</string>
     <!-- Experimental features -->
+    <string name="workspace_label">Workspace</string>
+    <string name="smartspace_label">Smartspace</string>
+    <string name="internal_label">Internal</string>
+    <string name="internal_description">Internal may be more unstable than other experimental group</string>
     <string name="font_picker_label">Anpassning av typsnitt</string>
     <string name="font_picker_description">En del text förblir oförändrad</string>
     <string name="smartspace_calendar_label">Anpassning av snabböversiktskalender</string>
@@ -155,10 +167,19 @@
     <string name="workspace_increase_max_grid_size_description">Utöka maximalt tillåten storlek på startskärmsrutnätet från 10 x 10 till 20 x 20</string>
     <string name="always_reload_icons_label">Ladda alltid om ikoner</string>
     <string name="always_reload_icons_description">Undvik att använda cachade ikoner från ikonpaket</string>
+    <string name="always_reload_icons_warning">Will cause icon to reload regularly, this is not required if icon pack doesn\'t update regularly</string>
     <string name="icon_swipe_gestures">Svepgester för ikoner</string>
     <string name="icon_swipe_gestures_description">Utför åtgärder när du sveper åt vänster eller höger på ikoner i stället för att flytta startskärmen</string>
     <string name="show_deck_layout">Kortlekslayout</string>
     <string name="show_deck_layout_description">Visa ett layoutalternativ för att dölja applådan och automatiskt lägga till nya appar på startskärmen</string>
+    <string name="material_expressive_label">Material 3 Expressive</string>
+    <string name="material_expressive_description">Enable Material 3 Expressive changes in workspace</string>
+    <string name="experimental_folder_shape_modify_label">Customizable folder shape</string>
+    <string name="folder_shape_label">Folder</string>
+    <string name="app_icon_shape_label">App</string>
+    <string name="gesturenavcontract_label">GestureNavContract API</string>
+    <string name="gesturenavcontract_description">Render launcher animations without root, does not work with heavily modified AOSP</string>
+    <string name="gesturenavcontract_warning_incompatibility">GestureNavContract may cause artifacting during animations</string>
     <string name="recents_lock_unlock">Lås/lås upp</string>
     <string name="recents_lock_unlock_description">Förhindra att vald app stängs när \"Rensa alla\" används</string>
     <!--Overlay-->
@@ -172,7 +193,7 @@
     Notifications
 
     -->
-    <string name="set_default_launcher_tip">För att komma åt genvägar och ytterligare funktioner, ange AutoCat som din förvalda startskärmsapp</string>
+    <string name="set_default_launcher_tip">För att komma åt genvägar och ytterligare funktioner, ange Lawnchair som din förvalda startskärmsapp</string>
     <string name="notification_dots">Aviseringsprickar</string>
     <string name="show_notification_count">Visa aviseringsräknare</string>
     <string name="notification_dots_color">Aviseringsprickens färg</string>
@@ -201,6 +222,8 @@
     <string name="adaptive_icon_background_description">Använd 100 % bakgrundsljushet för vitt</string>
     <string name="reset_custom_icons">Återställ anpassade ikoner</string>
     <string name="reset_custom_icons_confirmation">Alla anpassade ikoner kommer att återställas. Vill du fortsätta?</string>
+    <string name="remove_all_views_from_home_screen">Clear home screen</string>
+    <string name="remove_all_views_from_home_screen_desc">Home screen will be cleared. Do you want to continue?</string>
     <!-- Icon picker -->
     <string name="icon_picker_default_category">Ikoner</string>
     <string name="icon_picker_reset_to_default">Återställ till standard</string>
@@ -222,7 +245,9 @@
     <string name="icon_shape_square">Kvadrat</string>
     <string name="icon_shape_squircle">Kvirkel</string>
     <string name="icon_shape_teardrop">Droppe</string>
-    <!-- Icon shape (Material 3 Expressive) -->
+    <!-- Icon shapes (Material 3 Expressive) -->
+    <string name="icon_shape_very_sunny">Very sunny</string>
+    <string name="icon_shape_complex_clover">Complex clover</string>
     <string name="icon_shape_four_sided_cookie">Fyrsidig kaka</string>
     <string name="icon_shape_seven_sided_cookie">Sjusidig kaka</string>
     <string name="icon_shape_arch">Valvbåge</string>
@@ -246,6 +271,8 @@
     <string name="themed_icon_pack">Källa till tematiserade ikoner</string>
     <string name="themed_icon_pack_tint">Tona med accentfärg</string>
     <string name="system_icons">Systemikoner</string>
+    <string name="force_monochrome_label">Force monochrome</string>
+    <string name="force_monochrome_description">Require restart, tint unsupported apps with accent color</string>
     <string name="themed_icon_title">Tematiserade ikoner</string>
     <string name="themed_icons_off_label">Av</string>
     <string name="themed_icons_home_label">Startskärm</string>
@@ -315,8 +342,11 @@
     <!-- Date formats -->
     <string name="smartspace_calendar_gregorian">Gregoriansk</string>
     <string name="smartspace_calendar_persian">Persisk</string>
+    <string name="smartspace_calendar_lunar">Lunar</string>
     <string name="generic_smartspace_concatenated_desc">%1$s, %2$s</string>
     <!-- Battery labels -->
+    <string name="smartspace_battery_fast_charging">Fast charging</string>
+    <string name="smartspace_battery_slow_charging">Slow charging</string>
     <string name="smartspace_battery_charging">Laddar</string>
     <string name="smartspace_battery_full">Laddat</string>
     <string name="smartspace_battery_low">Lågt batteri</string>
@@ -336,6 +366,14 @@
     <string name="smartspace_weather">Väder</string>
     <string name="smartspace_battery_status">Batteristatus</string>
     <string name="smartspace_now_playing">Nu spelas</string>
+    <string name="smartspace_onboarding">Onboarding</string>
+    <!-- Onboarding strings -->
+    <string name="onboarding_open_settings_title">Configure your Lawnchair</string>
+    <string name="onboarding_open_settings_subtitle">Long-press on the Home Screen to open Settings</string>
+    <string name="onboarding_major_upgrade_title">Welcome to Lawnchair <xliff:g example="16" id="next_major_version">%1$d</xliff:g>!</string>
+    <string name="onboarding_major_upgrade_subtitle">See what\'s new!</string>
+    <string name="onboarding_welcome">Welcome to Lawnchair!</string>
+    <string name="onboarding_swipe_up">Swipe up to open the App Drawer</string>
     <!-- Smartspacer strings -->
     <string name="maximum_number_of_targets">Maximalt antal mål</string>
     <string name="open_smartspacer_settings">Öppna Smartspacer-inställningar</string>
@@ -345,7 +383,7 @@
     <string name="event_provider_missing_notification_dots">För att använda <xliff:g example="My Provider" id="providerName">%1$s</xliff:g>, aktivera aviseringsprickar.</string>
     <!-- Toggle button for enabling Smartspace -->
     <string name="smartspace_widget_toggle_label">Visa på startskärmen</string>
-    <string name="smartspace_widget_toggle_description">Snabböversikt kan läggas till manuellt på startskärmen genom att placera ut AutoCat-widgeten</string>
+    <string name="smartspace_widget_toggle_description">Snabböversikt kan läggas till manuellt på startskärmen genom att placera ut Lawnchair-widgeten</string>
     <!-- List of available providers -->
     <string name="smartspace_mode_label">Snabböversiktsleverantör</string>
     <string name="smartspace_mode_google">Google</string>
@@ -376,6 +414,11 @@
     <string name="privacy_policy">Integritetspolicy</string>
     <string name="contributor_status_active">Aktiv</string>
     <string name="update_check_failed">Misslyckades med att söka efter uppdateringar</string>
+    <string name="major_update_label">Breaking change!</string>
+    <string name="major_update_description">You are about to update from Lawnchair <xliff:g example="15" id="current_major_version">%1$s</xliff:g> to Lawnchair <xliff:g example="16" id="next_major_version">%2$s</xliff:g>, please consider carefully as newer major version may be unstable than current version.</string>
+    <string name="pro_disabled_by_unknown">Cannot update!</string>
+    <string name="pro_disabled_by_major_is_newer">Cannot update, This build is way too new!</string>
+    <string name="updater">Updater</string>
     <!--
 
     Backup and restore
@@ -408,6 +451,7 @@
     <string name="gesture_handler_sleep">Vila</string>
     <string name="gesture_handler_recents">Öppna Senaste-skärm</string>
     <string name="gesture_handler_open_notifications">Öppna aviseringspanel</string>
+    <string name="gesture_handler_open_quick_settings">Open Quick Settings</string>
     <string name="gesture_handler_open_app_option">Öppna app</string>
     <string name="gesture_handler_open_app_config">Öppna %1$s</string>
     <string name="gesture_handler_open_app_drawer">Öppna applåda</string>
@@ -416,18 +460,21 @@
     <string name="gesture_handler_open_assistant">Öppna assistent</string>
     <string name="pick_app_for_gesture">Välj app</string>
     <string name="dt2s_admin_hint_title">Adminbehörigheter krävs</string>
-    <string name="dt2s_admin_hint">För att använda Dubbeltryck för att vila, ange AutoCat som en enhetsadminapp. Tryck på \"Öppna inställningar\", tryck sedan på \"Aktivera denna enhetsadminapp\".</string>
-    <string name="dt2s_admin_warning">Dubbeltryck för att vila kommer att inaktiveras.</string>
+    <string name="dt2s_admin_hint">To put the device to sleep, set Lawnchair as a device admin app. Tap \"Open settings\", then tap \"Activate this device admin app.\"</string>
+    <string name="dt2s_admin_warning">Gestures to put the device to sleep will be turned off.</string>
     <string name="d2ts_recents_a11y_hint_title">Aktivera tillgänglighetstjänst</string>
-    <string name="dt2s_a11y_hint">För att använda Dubbeltryck för att vila, aktivera AutoCats tillgänglighetstjänst. Tryck på \"Öppna inställningar\", välj \"AutoCat\" och aktivera \"Använd AutoCat\".\n\nAutoCat använder Tillgänglighets `performGlobalAction`-metod för att utföra denna åtgärd. Detta är en känslig behörighet som tillåter övervakning av andra appar. AutoCat är dock inte konfigurerad för den funktionen och tar inte emot några händelser.</string>
-    <string name="dt2s_recents_warning_open_settings">Öppna inställningar</string>
-    <string name="recents_a11y_hint">För att använda Öppna Senaste-skärm, aktivera AutoCats tillgänglighetstjänst. Tryck på \"Öppna inställningar\", välj \"AutoCat\" och aktivera \"Använd AutoCat\".\n\nAutoCat använder Tillgänglighets `performGlobalAction`-metod för att utföra denna åtgärd. Detta är en känslig behörighet som tillåter övervakning av andra appar. AutoCat är dock inte konfigurerad för den funktionen och tar inte emot några händelser.</string>
+    <string name="sleep_a11y_hint">put the device to sleep</string>
+    <string name="notifications_fallback_a11y_hint">open the notification panel</string>
+    <string name="quick_settings_a11y_hint">open the Quick Settings panel</string>
+    <string name="recents_screen_a11y_hint">open the Recents screen</string>
+    <string name="generic_a11y_hint">To %1$s, turn on the Lawnchair accessibility service. Tap \"Open settings\", select \"Lawnchair\" and turn on \"Use Lawnchair.\"</string>
+    <string name="generic_a11y_disclaimer">Lawnchair uses Accessibility\'s `performGlobalAction` method to perform this action. This is a sensitive permission that allows monitoring other apps. However, Lawnchair is not configured for that functionality and receives no events.</string>
     <!--
 
     Bug reporting
 
     -->
-    <string name="lawnchair_bug_report">Buggrapport för AutoCat</string>
+    <string name="lawnchair_bug_report">Buggrapport för Lawnchair</string>
     <string name="crash_report_notif_title">%1$s kraschade</string>
     <string name="action_upload_crash_report">Ladda upp kraschlogg</string>
     <string name="action_upload_error">Uppladdningen misslyckades</string>
@@ -444,6 +491,8 @@
     <!-- General and home screen settings -->
     <string name="home_screen_rotation_label">Rotation av startskärmen</string>
     <string name="home_screen_rotation_description">Tillåt rotation av startskärmen när enheten roteras</string>
+    <string name="auto_updater_label">Auto updater</string>
+    <string name="auto_updater_description">Automatically check for Nightly update when going to About section</string>
     <string name="wallpaper_blur">Gör bakgrundsbild oskarp (experimentell)</string>
     <string name="wallpaper_background_blur">Oskärpans intensitet</string>
     <string name="wallpaper_background_blur_factor">Faktortröskel</string>
@@ -459,15 +508,13 @@
     <string name="wallpaper_depth_effect_label">Djupeffekt på bakgrundsbild</string>
     <string name="wallpaper_depth_effect_description">Zooma in och ut på bakgrundsbilden vid övergång mellan startskärmsappens lägen</string>
     <string name="show_sys_ui_scrim">Toppskugga</string>
+    <string name="infinite_scrolling_label">Infinite scrolling</string>
+    <string name="infinite_scrolling_description">Swipe to loop between the first and last pages</string>
     <string name="home_screen_grid">Rutnät på startskärmen</string>
     <string name="home_screen_lock">Lås startskärm</string>
     <string name="home_screen_unlock">Lås upp startskärm</string>
     <string name="home_screen_locked">Startskärmen är låst</string>
     <string name="home_screen_lock_description">Förhindra ändringar av startskärmens layout</string>
-    <string name="show_dot_pagination_label">Visa prickpaginering</string>
-    <string name="show_dot_pagination_description">Använd prickar i stället för linjer för att visa sidnummer</string>
-    <string name="show_material_u_popup_label">Använd ny popup-stil</string>
-    <string name="show_material_u_popup_description">Använd Material Yous studsiga och något tätare popup-stil</string>
     <string name="popup_menu">Snabbmeny</string>
     <string name="popup_menu_items">Objekt i snabbmenyn</string>
     <string name="edit_menu_items">Redigera objekt i snabbmenyn</string>
@@ -520,7 +567,7 @@
     <!-- Search providers -->
     <string name="search_provider_app_search">Appsökning</string>
     <string name="search_provider_custom">Anpassad</string>
-    <string name="search_provider_sponsored_description">%1$s och AutoCat har ett avtal om intäktsdelning.\n\nSökning med %1$s hjälper till att stödja AutoCat.</string>
+    <string name="search_provider_sponsored_description">%1$s och Lawnchair har ett avtal om intäktsdelning.\n\nSökning med %1$s hjälper till att stödja Lawnchair.</string>
     <string name="app_label">App</string>
     <string name="website_label">Webbplats</string>
     <string name="qsb_search_provider_app_required">App krävs</string>
@@ -539,6 +586,8 @@
     <string name="row_height_label">Radhöjd</string>
     <string name="app_drawer_indent_label">Vågrätt avstånd</string>
     <string name="app_drawer_bg_color_label">Bakgrundsfärg</string>
+    <string name="work_profile_tab_background_label">Tabs background color</string>
+    <string name="work_profile_tab_container_background_label">Separated Tab container background</string>
     <!-- HiddenAppsPreferences -->
     <string name="hide_from_drawer">Dölj från applådan</string>
     <string name="hidden_apps_label_with_count">Dolda appar (%1$d)</string>
@@ -553,7 +602,7 @@
     <string name="max_folder_columns">Maximalt antal mappkolumner</string>
     <string name="max_folder_rows">Maximalt antal mapprader</string>
     <!-- Quickstep settings -->
-    <string name="quickswitch_ignored_warning">Dessa inställningar kommer att ignoreras eftersom AutoCat inte är inställd som Senaste-skärmsleverantör</string>
+    <string name="quickswitch_ignored_warning">Dessa inställningar kommer att ignoreras eftersom Lawnchair inte är inställd som Senaste-skärmsleverantör</string>
     <string name="quickstep_incompatible">Inkompatibel systemintegration</string>
     <string name="quickstep_incompatible_description">Din enhet är konfigurerad för att ha systemgester (kända som Quickstep) tillhandahållna av %1$s, men denna version av %1$s är inte kompatibel med din Android-version. För att fortsätta att använda din enhet, vänligen avinstallera uppdateringar till %1$s eller inaktivera %1$s som systemgestsleverantör.</string>
     <string name="translucent_background">Genomlysande bakgrund</string>
@@ -574,7 +623,7 @@
 
     -->
     <!-- Launcher strings used -->
-    <string name="all_apps_device_search_hint">Sök appar, webben med mera</string>
+    <string name="all_apps_device_search_hint">Search web and more</string>
     <string name="all_apps_search_bar_hint">Sök efter appar</string>
     <string name="all_apps_no_search_results">Inga appar hittades som matchar \"<xliff:g example="Android" id="query">%1$s</xliff:g>\"</string>
     <string name="all_apps_search_result_suggestions">Från webben</string>
@@ -674,4 +723,6 @@
     <string name="grant_requested_permissions">Bevilja behörigheter</string>
     <string name="permissions_needed">Behörigheter krävs</string>
     <string name="grant_requested_permissions_tap">Tryck för att bevilja behörigheter</string>
+    <!-- Message shown when all home screen views are removed -->
+    <string name="home_screen_all_views_removed_msg">Home screen cleared</string>
 </resources>

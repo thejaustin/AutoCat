@@ -9,7 +9,6 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.android.test) apply false
     alias(libs.plugins.androidx.baselineprofile)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
@@ -49,8 +48,8 @@ allprojects {
                 }
             }
             defaultConfig {
-                minSdk 26
-                targetSdk 36
+                minSdk = 26
+                targetSdk = 36
                 vectorDrawables.useSupportLibrary = true
             }
             lint {
@@ -72,12 +71,11 @@ allprojects {
         protobuf {
             // Configure the protoc executable
             protoc {
-                artifact = "com.google.protobuf:protoc:${libs.versions.protocVersion.get()}"
+                artifact = libs.protobuf.protoc.get().toString()
             }
             generateProtoTasks {
                 all().configureEach { task ->
                     task.builtins {
-                        remove java
                         java {
                             option "lite"
                         }
@@ -101,15 +99,6 @@ allprojects {
         compilerOptions {
             jvmDefault = JvmDefaultMode.ENABLE
             jvmTarget = JvmTarget.fromTarget(libs.versions.jdkRelease.get())
-        }
-    }
-
-    configurations.configureEach {
-        resolutionStrategy.eachDependency {
-            // Fix duplicate class kotlinx.android.parcel.* found in these 2 dependencies.
-            if (requested.module == libs.kotlin.androidExtensionRuntime.get().module) {
-                useTarget(libs.kotlin.parcelizeRuntime)
-            }
         }
     }
 
@@ -302,7 +291,7 @@ android {
 
         withQuickstep {
             dimension "recents"
-            minSdk 26
+            minSdk = 26
         }
 
         github {
@@ -329,7 +318,11 @@ android {
     sourceSets {
         main {
             res.srcDirs = ['res']
-            java.srcDirs = ['src', 'src_plugins']
+
+            // Lawnchair-TODO: Don't include Compose Disabled, but there's has to be another way of making this NOT long
+            java.srcDirs = ['src', 'src_plugins', 'compose/facade/core', 'compose/facade/enabled', 'compose/features']
+            kotlin.directories.addAll('src', 'src_plugins', 'compose/facade/core', 'compose/facade/enabled', 'compose/features')
+
             manifest.srcFile 'AndroidManifest-common.xml'
             proto {
                 srcDirs = ['protos/', 'quickstep/protos_overrides/']
@@ -338,6 +331,7 @@ android {
 
         lawn {
             java.srcDirs = ['src_flags', 'src_shortcuts_overrides', 'lawnchair/src', 'tests/shared']
+            kotlin.directories.addAll('src_flags', 'src_shortcuts_overrides', 'lawnchair/src', 'tests/shared')
             aidl.srcDirs = ['lawnchair/aidl']
             res.srcDirs = ['lawnchair/res', 'platform_frameworks_libs_systemui/animationlib/res']
             manifest.srcFile "lawnchair/AndroidManifest.xml"
@@ -372,9 +366,16 @@ android {
         withQuickstep {
             res.srcDirs = ['quickstep/res', 'quickstep/recents_ui_overrides/res']
             java.srcDirs = ['quickstep/src', 'quickstep/dagger', 'quickstep/recents_ui_overrides/src', 'quickstep/src_protolog']
+            kotlin.directories.addAll('quickstep/src', 'quickstep/dagger', 'quickstep/recents_ui_overrides/src', 'quickstep/src_protolog')
             manifest.srcFile "quickstep/AndroidManifest.xml"
         }
     }
+}
+
+baselineProfile {
+    saveInSrc = true
+    mergeIntoMain = true
+    automaticGenerationDuringBuild = false
 }
 
 composeCompiler {
@@ -392,13 +393,15 @@ dependencies {
     implementation projects.animationlib
     implementation projects.msdllib
     implementation projects.contextualeducationlib
+    implementation projects.viewcapturelib
+    implementation projects.displaylib
+    implementation projects.mechanics
 
     // Recents lib dependency
-    withQuickstepCompileOnly projects.hiddenApi
+    withQuickstepCompileOnly projects.hiddenapi
     withQuickstepImplementation projects.shared
-    withQuickstepImplementation projects.anim
+    withQuickstepImplementation projects.animation
     withQuickstepImplementation projects.unfold
-    withQuickstepImplementation projects.viewcapture
     withQuickstepImplementation projects.log
     withQuickstepCompileOnly projects.plugin
     withQuickstepImplementation projects.plugincore
@@ -416,6 +419,10 @@ dependencies {
     withQuickstepImplementation projects.compatLib.compatLibVBaklava
     withQuickstepImplementation projects.wmshell
     withQuickstepImplementation projects.flags
+    withQuickstepImplementation projects.dagger
+    withQuickstepImplementation projects.concurrent
+//    withQuickstepImplementation projects.compose
+    withQuickstepImplementation projects.modules.widgetpicker
     implementation libs.androidx.dynamicanimation
 
     implementation fileTree(dir: FRAMEWORK_PREBUILTS_DIR, include: 'SystemUI-statsd-16.jar')
@@ -447,6 +454,10 @@ dependencies {
     // TensorFlow Lite for on-device ML categorization
     implementation libs.tensorflow.lite
 
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.datastore.preferences
+
     implementation platform(libs.compose.bom)
     implementation libs.compose.ui
     implementation libs.compose.ui.util
@@ -457,7 +468,6 @@ dependencies {
     implementation libs.compose.ui.google.fonts
     implementation libs.compose.foundation
     implementation libs.compose.material.icons
-    implementation libs.compose.material
     implementation libs.compose.runtime.livedata
     implementation libs.compose.material3
     implementation libs.compose.material3.windowSizeClass
@@ -484,9 +494,6 @@ dependencies {
 
     implementation libs.libsu.service
 
-    // Persian Date
-    implementation libs.persian.date
-
     implementation libs.airbnb.lottie
 
     // Compose drag and drop library
@@ -505,6 +512,8 @@ dependencies {
     implementation libs.dagger.hilt.android
     ksp libs.dagger.hilt.compiler
 
+    implementation libs.google.guava
+
     debugImplementation libs.leakcanary.android
 }
 
@@ -522,8 +531,8 @@ spotless {
     }
     kotlin {
         target("lawnchair/src/**/*.kt")
-        ktlint("1.8.0").customRuleSets([
-            "io.nlopez.compose.rules:ktlint:0.4.28",
+        ktlint(libs.ktlint.get().version).customRuleSets([
+            libs.composeRules.get().toString()
         ]).editorConfigOverride([
             "ktlint_compose_compositionlocal-allowlist": "disabled",
             "ktlint_compose_lambda-param-event-trailing": "disabled",

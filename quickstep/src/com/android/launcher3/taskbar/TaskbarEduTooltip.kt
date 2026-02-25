@@ -87,8 +87,8 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         // constraint to reduce the number of lines of text and hopefully free up some height.
         activityContext.dragLayer.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
         if (
-            measuredHeight + activityContext.deviceProfile.taskbarHeight >=
-                activityContext.deviceProfile.availableHeightPx
+            measuredHeight + activityContext.deviceProfile.taskbarProfile.height >=
+                activityContext.deviceProfile.deviceProperties.availableHeightPx
         ) {
             updateLayoutParams { width = MATCH_PARENT }
         }
@@ -148,7 +148,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        // AutoCat-TODO-Merge: This was disabled but enabled in 16r2, this function likely disable the gesture system during edu
+        // Lawnchair-TODO-Merge: This was disabled but enabled in 16r2, this function likely disable the gesture system during edu
 //        findOnBackInvokedDispatcher()
 //            ?.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, this)
     }

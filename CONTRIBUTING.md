@@ -1,12 +1,12 @@
-# AutoCat contributing guidelines
+# Lawnchair contributing guidelines
 
 <picture>
     <!-- Avoid image being clickable with slight workaround --->
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/autocat-round.webp" width="100">
-    <img alt="" src="docs/assets/autocat-round.webp" width="100">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/lawnchair-round.webp" width="100">
+    <img alt="" src="docs/assets/lawnchair-round.webp" width="100">
 </picture>
 
-Welcome to the **AutoCat** project. We appreciate your interest in contributing. For questions,
+Welcome to the **Lawnchair** project. We appreciate your interest in contributing. For questions,
 feel free to reach out on [Telegram][telegram] or [Discord][discord].
 
 ## No-code contributions
@@ -14,7 +14,7 @@ feel free to reach out on [Telegram][telegram] or [Discord][discord].
 ### Bug reports and feature requests
 
 > [!TIP]
-> Use the [AutoCat Nightly builds][nightly] when reporting bugs, as your issue may have already
+> Use the [Lawnchair Nightly builds][nightly] when reporting bugs, as your issue may have already
 > been fixed.
 
 > [!WARNING]
@@ -30,7 +30,7 @@ Please be civil, as outlined in our [Code of Conduct][code-of-conduct].
 
 ### Translations
 
-For translations, please visit **[AutoCat on Crowdin][crowdin]**.
+For translations, please visit **[Lawnchair on Crowdin][crowdin]**.
 
 ## Contributing code
 
@@ -39,7 +39,7 @@ For translations, please visit **[AutoCat on Crowdin][crowdin]**.
 1. Clone the repository with the `--recursive` flag to include the project's
    submodules.
    ```bash
-   git clone --recursive https://github.com/AutoCatLauncher/autocat.git
+   git clone --recursive https://github.com/LawnchairLauncher/lawnchair.git
    ```
 2. Open the project in Android Studio.
 3. Select the `lawnWithQuickstepGithubDebug` build variant.
@@ -49,24 +49,24 @@ run `git submodule update --init --recursive`.
 
 Here are some contribution tips to help you get started:
 
-- Always make sure that you're up-to-date with **AutoCat** by setting your base branch to
+- Always make sure that you're up-to-date with **Lawnchair** by setting your base branch to
   `16-dev`.
 - Make sure your code is logical and well-formatted. If using Kotlin,
   see [“Coding conventions” in the Kotlin documentation][kotlin-coding-conventions];
-- [The `autocat` package][autocat-package]
-  houses AutoCat’s own code, whereas [the `src` package][src-package] includes a clone of
+- [The `lawnchair` package][lawnchair-package]
+  houses Lawnchair’s own code, whereas [the `src` package][src-package] includes a clone of
   the Launcher3 codebase with modifications. Generally, place new files in the former,
   keeping changes to the latter to a minimum.
 
 ### Additional documentation
 
-- [AutoCat roadmap](ROADMAP.md)
-- [AutoCat verification](VERIFICATION.md)
-- [The AutoCat Wiki](https://github.com/AutoCatLauncher/autocat/wiki)
-- [AutoCat Visual Guidelines](/docs/assets/README.md)
-- [AutoCat Quickstep Compat Library](compatLib/README.md)
-- [AutoCat Preferences Components](autocat/src/app/autocat/ui/preferences/components/README.md)
-- [AutoCat Platform Frameworks Library SystemUI](platform_frameworks_libs_systemui/README.md)
+- [Lawnchair roadmap](ROADMAP.md)
+- [Lawnchair verification](VERIFICATION.md)
+- [The Lawnchair Wiki](https://github.com/LawnchairLauncher/lawnchair/wiki)
+- [Lawnchair Visual Guidelines](/docs/assets/README.md)
+- [Lawnchair Quickstep Compat Library](compatLib/README.md)
+- [Lawnchair Preferences Components](lawnchair/src/app/lawnchair/ui/preferences/components/README.md)
+- [Lawnchair Platform Frameworks Library SystemUI](platform_frameworks_libs_systemui/README.md)
 - [SystemUI Module](systemUI/README.md)
     - [ViewCapture](systemUI/viewcapture/README.md)
     - [Common](systemUI/common/README.md)
@@ -94,7 +94,7 @@ We follow the **[Conventional Commits specification][conventional-commits]**.
 
 ### Versioning scheme
 
-AutoCat’s version code is composed of five parts, separated by underscores:
+Lawnchair’s version code is composed of five parts, separated by underscores:
 
 <p align="center">
     <picture>
@@ -106,13 +106,13 @@ AutoCat’s version code is composed of five parts, separated by underscores:
 
 1. Android major version
 2. Android minor version
-3. AutoCat development stage
-4. AutoCat development version
+3. Lawnchair development stage
+4. Lawnchair development version
 5. Revision/Release number
 
-#### AutoCat development stage
+#### Lawnchair development stage
 
-This table show list of development stages in use by AutoCat:
+This table show list of development stages in use by Lawnchair:
 
 | Stage             | Denote |
 |-------------------|--------|
@@ -138,36 +138,36 @@ Strings `names` in `strings.xml` should follow this format:
 
 ### Updating locally stored font listing
 
-AutoCat uses a locally stored JSON file (`google_fonts.json`) to list available fonts from Google
+Lawnchair uses a locally stored JSON file (`google_fonts.json`) to list available fonts from Google
 Fonts. This file should be updated periodically or before release to include the latest fonts.
 
-To update AutoCat’s font listing, follow these steps:
+To update Lawnchair’s font listing, follow these steps:
 
 1. Get
    a [Google Fonts Developer API key][google-fonts-api-key].
 2. Download the JSON file from `https://www.googleapis.com/webfonts/v1/webfonts?key=API_KEY`,
    replacing `API_KEY` with the API key from step 1.
-3. Replace the content of [`google_fonts.json`](autocat/assets/google_fonts.json) with the API
+3. Replace the content of [`google_fonts.json`](lawnchair/assets/google_fonts.json) with the API
    response.
 
-#### Writing or updating AutoCat documentation
+#### Writing or updating Lawnchair documentation
 
-AutoCat’s documentations are written in Markdown and follow a style guides from 
+Lawnchair’s documentations are written in Markdown and follow a style guides from 
 [Google developer documentation style guide](https://developers.google.com/style).
 
 <!-- Links -->
 [telegram]: https://t.me/lccommunity
 [discord]: https://discord.com/invite/3x8qNWxgGZ
-[nightly]: https://github.com/AutoCatLauncher/autocat/releases/tag/nightly
-[security-report]: https://github.com/AutoCatLauncher/autocat/security/advisories/new
-[security-policy]: https://github.com/AutoCatLauncher/autocat/security/policy
-[bug-reports]: https://github.com/AutoCatLauncher/autocat/issues/new?assignees=&labels=bug&projects=&template=bug_report.yaml&title=%5BBUG%5D+
-[feature-requests]: https://github.com/AutoCatLauncher/autocat/issues/new?assignees=&labels=feature%2Cenhancement&projects=&template=feature_request.yaml&title=%5BFEATURE%5D+
+[nightly]: https://github.com/LawnchairLauncher/lawnchair/releases/tag/nightly
+[security-report]: https://github.com/LawnchairLauncher/lawnchair/security/advisories/new
+[security-policy]: https://github.com/LawnchairLauncher/lawnchair/security/policy
+[bug-reports]: https://github.com/LawnchairLauncher/lawnchair/issues/new?assignees=&labels=bug&projects=&template=bug_report.yaml&title=%5BBUG%5D+
+[feature-requests]: https://github.com/LawnchairLauncher/lawnchair/issues/new?assignees=&labels=feature%2Cenhancement&projects=&template=feature_request.yaml&title=%5BFEATURE%5D+
 [code-of-conduct]: CODE_OF_CONDUCT.md
-[crowdin]: https://autocat.crowdin.com
+[crowdin]: https://lawnchair.crowdin.com
 [kotlin-coding-conventions]: https://kotlinlang.org/docs/coding-conventions.html
-[autocat-package]: https://github.com/AutoCatLauncher/autocat/tree/16-dev/autocat
-[src-package]: https://github.com/AutoCatLauncher/autocat/tree/16-dev/src
+[lawnchair-package]: https://github.com/LawnchairLauncher/lawnchair/tree/16-dev/lawnchair
+[src-package]: https://github.com/LawnchairLauncher/lawnchair/tree/16-dev/src
 [conventional-commits]: https://www.conventionalcommits.org/en/v1.0.0/
 [google-fonts-api-key]: https://developers.google.com/fonts/docs/developer_api#APIKey
 

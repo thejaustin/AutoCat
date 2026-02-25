@@ -41,9 +41,11 @@ fun WarningPreference(
 private fun WarningPreferencePreview() {
     AutoCatTheme {
         PreferenceGroupPreviewContainer {
-            WarningPreference(
-                text = "Text",
-            )
+            Item {
+                WarningPreference(
+                    text = "Text",
+                )
+            }
         }
     }
 }

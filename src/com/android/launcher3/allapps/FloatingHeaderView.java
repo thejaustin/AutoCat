@@ -38,6 +38,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.allapps.ActivityAllAppsContainerView.AdapterHolder;
 import com.android.launcher3.util.PluginManagerWrapper;
 import com.android.launcher3.views.ActivityContext;
+import com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip;
 import com.android.systemui.plugins.AllAppsRow;
 import com.android.systemui.plugins.AllAppsRow.OnHeightUpdatedListener;
 import com.android.systemui.plugins.PluginListener;
@@ -45,10 +46,8 @@ import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
-import app.lawnchair.allapps.AppTabsHeaderView;
 import app.lawnchair.preferences2.PreferenceManager2;
 
 public class FloatingHeaderView extends LinearLayout implements
@@ -92,8 +91,9 @@ public class FloatingHeaderView extends LinearLayout implements
     private final int mTabsAdditionalPaddingTop;
     private final int mTabsAdditionalPaddingBottom;
 
-    protected ViewGroup mTabLayout;
-    private List<AllAppsRecyclerView> mAllAppsRVs; // AutoCat: List of RVs for tabs
+    protected PersonalWorkSlidingTabStrip mTabLayout;
+    private AllAppsRecyclerView mMainRV;
+    private AllAppsRecyclerView mWorkRV;
     private SearchRecyclerView mSearchRV;
     private AllAppsRecyclerView mCurrentRV;
     protected int mSnappedScrolledY;
@@ -243,8 +243,7 @@ public class FloatingHeaderView extends LinearLayout implements
         return null;
     }
 
-    // AutoCat: Updated setup method to take a list of RVs
-    void setup(List<AllAppsRecyclerView> tabRVs, SearchRecyclerView searchRV,
+    void setup(AllAppsRecyclerView mainRV, AllAppsRecyclerView workRV, SearchRecyclerView searchRV,
             int activeRV, boolean tabsHidden) {
         for (FloatingHeaderRow row : mAllRows) {
             row.setup(this, mAllRows, tabsHidden);
@@ -253,7 +252,8 @@ public class FloatingHeaderView extends LinearLayout implements
         mTabsHidden = tabsHidden;
         maybeSetTabVisibility(VISIBLE);
         updateExpectedHeight();
-        mAllAppsRVs = tabRVs;
+        mMainRV = mainRV;
+        mWorkRV = workRV;
         mSearchRV = searchRV;
         setActiveRV(activeRV);
         reset(false);
@@ -261,57 +261,30 @@ public class FloatingHeaderView extends LinearLayout implements
 
     /** Whether this header has been set up previously. */
     boolean isSetUp() {
-        return mAllAppsRVs != null && !mAllAppsRVs.isEmpty();
+        return mMainRV != null;
     }
 
     /** Set the active AllApps RV which will adjust the alpha of the header when scrolled. */
-    void setActiveRV(int rvIndex) {
+    void setActiveRV(int rvType) {
         if (mCurrentRV != null) {
             mCurrentRV.removeOnScrollListener(mOnScrollListener);
         }
-        
-        // AutoCat: Handle dynamic tabs logic
-        // SEARCH is usually represented by a specific constant or the last index
-        // Here we assume if rvIndex matches the SEARCH holder ID (which is distinct)
-        // But ActivityAllAppsContainerView manages indices.
-        // If rvIndex is out of bounds of mAllAppsRVs, assume it is search or invalid.
-        
-        if (rvIndex == AdapterHolder.SEARCH) {
-             mCurrentRV = mSearchRV;
-             maybeSetTabVisibility(GONE);
-        } else {
-            if (mAllAppsRVs != null && rvIndex >= 0 && rvIndex < mAllAppsRVs.size()) {
-                mCurrentRV = mAllAppsRVs.get(rvIndex);
-            } else if (mAllAppsRVs != null && !mAllAppsRVs.isEmpty()) {
-                mCurrentRV = mAllAppsRVs.get(0); // Fallback
-            }
-            maybeSetTabVisibility(VISIBLE);
-        }
-
-        if (mCurrentRV != null) {
-            mCurrentRV.addOnScrollListener(mOnScrollListener);
-        }
-        
-        // Pass listener to Compose view
-        if (mTabLayout instanceof AppTabsHeaderView) {
-             ((AppTabsHeaderView) mTabLayout).setActiveMarker(rvIndex);
-        }
+        mCurrentRV =
+                rvType == AdapterHolder.MAIN ? mMainRV
+                : rvType == AdapterHolder.WORK ? mWorkRV : mSearchRV;
+        mCurrentRV.addOnScrollListener(mOnScrollListener);
+        maybeSetTabVisibility(rvType == AdapterHolder.SEARCH ? GONE : VISIBLE);
     }
 
-    /** Update tab visibility to the given state, only if tabs are active. */
+    /** Update tab visibility to the given state, only if tabs are active (work profile exists). */
     void maybeSetTabVisibility(int visibility) {
         mTabLayout.setVisibility(mTabsHidden ? GONE : visibility);
-    }
-
-    /** Returns whether search bar has multi-line support, and is currently in multi-line state. */
-    private boolean isSearchBarMultiline() {
-        return Flags.multilineSearchBar() && mSearchBarOffset > 0;
     }
 
     private void updateExpectedHeight() {
         updateFloatingRowsHeight();
         mMaxTranslation = 0;
-        boolean shouldAddSearchBarHeight = isSearchBarMultiline() && !Flags.floatingSearchBar();
+        boolean shouldAddSearchBarHeight = mSearchBarOffset > 0 && !Flags.floatingSearchBar();
         if (shouldAddSearchBarHeight) {
             mMaxTranslation += mSearchBarOffset;
         }
@@ -390,11 +363,11 @@ public class FloatingHeaderView extends LinearLayout implements
         mHeaderClip.top = clipTop;
         // clipping on a draw might cause additional redraw
         setClipBounds(mHeaderClip);
-        
-        if (mAllAppsRVs != null) {
-            for (AllAppsRecyclerView rv : mAllAppsRVs) {
-                if (rv != null) rv.setClipBounds(mRVClip);
-            }
+        if (mMainRV != null) {
+            mMainRV.setClipBounds(mRVClip);
+        }
+        if (mWorkRV != null) {
+            mWorkRV.setClipBounds(mRVClip);
         }
         if (mSearchRV != null) {
             mSearchRV.setClipBounds(mRVClip);
@@ -446,7 +419,7 @@ public class FloatingHeaderView extends LinearLayout implements
         return !mTabsHidden;
     }
 
-    ViewGroup getTabLayout() {
+    PersonalWorkSlidingTabStrip getTabLayout() {
         return mTabLayout;
     }
 

@@ -28,7 +28,6 @@ import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreference
 import app.lawnchair.ui.preferences.components.controls.SliderPreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
-import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import com.android.launcher3.R
@@ -45,37 +44,46 @@ fun FolderPreferences(
         val prefs = preferenceManager()
         val prefs2 = preferenceManager2()
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
-            ColorPreference(preference = prefs2.folderColor)
-            SliderPreference(
-                label = stringResource(id = R.string.folder_preview_bg_opacity_label),
-                adapter = prefs2.folderPreviewBackgroundOpacity.getAdapter(),
-                step = 0.1F,
-                valueRange = 0F..1F,
-                showAsPercentage = true,
-            )
-            SliderPreference(
-                label = stringResource(id = R.string.folder_bg_opacity_label),
-                adapter = prefs2.folderBackgroundOpacity.getAdapter(),
-                step = 0.1F,
-                valueRange = 0F..1F,
-                showAsPercentage = true,
-            )
+            Item { ColorPreference(preference = prefs2.folderColor) }
+            Item {
+                SliderPreference(
+                    label = stringResource(id = R.string.folder_preview_bg_opacity_label),
+                    adapter = prefs2.folderPreviewBackgroundOpacity.getAdapter(),
+                    step = 0.1F,
+                    valueRange = 0F..1F,
+                    showAsPercentage = true,
+                )
+            }
+            Item {
+                SliderPreference(
+                    label = stringResource(id = R.string.folder_bg_opacity_label),
+                    adapter = prefs2.folderBackgroundOpacity.getAdapter(),
+                    step = 0.1F,
+                    valueRange = 0F..1F,
+                    showAsPercentage = true,
+                )
+            }
         }
         PreferenceGroup(heading = stringResource(id = R.string.grid)) {
-            SliderPreference(
-                label = stringResource(id = R.string.max_folder_columns),
-                adapter = prefs2.folderColumns.getAdapter(),
-                step = 1,
-                valueRange = 2..5,
-            )
-            SliderPreference(
-                label = stringResource(id = R.string.max_folder_rows),
-                adapter = prefs.folderRows.getAdapter(),
-                step = 1,
-                valueRange = 2..5,
-            )
+            Item {
+                SliderPreference(
+                    label = stringResource(id = R.string.max_folder_columns),
+                    adapter = prefs2.folderColumns.getAdapter(),
+                    step = 1,
+                    valueRange = 2..5,
+                )
+            }
+            Item {
+                SliderPreference(
+                    label = stringResource(id = R.string.max_folder_rows),
+                    adapter = prefs.folderRows.getAdapter(),
+                    step = 1,
+                    valueRange = 2..5,
+                )
+            }
         }
 
+        val homeScreenLabelsAdapter = prefs2.showIconLabelsOnHomeScreenFolder.getAdapter()
         PreferenceGroup(heading = stringResource(id = R.string.icons)) {
             val homeScreenLabelsAdapter = prefs2.showIconLabelsOnHomeScreenFolder.getAdapter()
             SwitchPreference(

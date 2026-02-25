@@ -122,11 +122,13 @@ fun PreferenceClickConfirmation(
 private fun ClickablePreferencePreview() {
     AutoCatTheme {
         PreferenceGroupPreviewContainer {
-            ClickablePreference(
-                label = "Label",
-                subtitle = "Subtitle",
-                onClick = {},
-            )
+            Item {
+                ClickablePreference(
+                    label = "Label",
+                    subtitle = "Subtitle",
+                    onClick = {},
+                )
+            }
         }
     }
 }

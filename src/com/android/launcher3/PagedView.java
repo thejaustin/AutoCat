@@ -65,6 +65,7 @@ import com.android.launcher3.views.ActivityContext;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
+import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.ui.StretchEdgeEffect;
 
 /**
@@ -85,6 +86,8 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
     private static final float SIGNIFICANT_MOVE_THRESHOLD = 0.4f;
 
     private static final float MAX_SCROLL_PROGRESS = 1.0f;
+    
+    private PreferenceManager prefs = PreferenceManager.getInstance(getContext());
 
     private boolean mFreeScroll = false;
 
@@ -790,13 +793,6 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
         }
 
         if (mScroller.isFinished() && pageScrollChanged) {
-            // TODO(b/246283207): Remove logging once root cause of flake detected.
-            if (Utilities.isRunningInTestHarness() && !(this instanceof Workspace)) {
-                Log.d("b/246283207", TAG + "#onLayout() -> "
-                        + "if(mScroller.isFinished() && pageScrollChanged) -> getNextPage(): "
-                        + getNextPage() + ", getScrollForPage(getNextPage()): "
-                        + getScrollForPage(getNextPage()));
-            }
             setCurrentPage(getNextPage());
         }
         onPageScrollsInitialized();
@@ -1423,19 +1419,27 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
                     // test for a large move if a fling has been registered. That is, a large
                     // move to the left and fling to the right will register as a fling to the right.
 
+                    boolean infiniteScroll = prefs.getInstance(getContext()).getInfiniteScrolling().get();
+
                     if (((isSignificantMove && !isDeltaLeft && !isFling) ||
                             (isFling && !isVelocityLeft)) && mCurrentPage > 0) {
                         finalPage = returnToOriginalPage
                                 ? mCurrentPage : mCurrentPage - getPanelCount();
                         runOnPageScrollsInitialized(
-                                () -> snapToPageWithVelocity(finalPage, velocity));
-                    } else if (((isSignificantMove && isDeltaLeft && !isFling) ||
-                            (isFling && isVelocityLeft)) &&
-                            mCurrentPage < getChildCount() - 1) {
-                        finalPage = returnToOriginalPage
-                                ? mCurrentPage : mCurrentPage + getPanelCount();
-                        runOnPageScrollsInitialized(
-                                () -> snapToPageWithVelocity(finalPage, velocity));
+                                () -> snapToPageWithVelocity(finalPage, velocity));		
+                    } else if (((isSignificantMove && isDeltaLeft && !isFling) || (isFling && isVelocityLeft)) && mCurrentPage < getChildCount() - 1) {
+												
+                        finalPage = returnToOriginalPage ? mCurrentPage : mCurrentPage + getPanelCount();
+                        runOnPageScrollsInitialized(() -> snapToPageWithVelocity(finalPage, velocity));
+					} else if (mCurrentPage == getChildCount() - 1 && infiniteScroll) {
+                        finalPage = returnToOriginalPage ? mCurrentPage : 0;
+                        snapToPageWithVelocity(finalPage, velocity);
+						
+						
+                    } else if (mCurrentPage == 0 && infiniteScroll) {
+                        finalPage = returnToOriginalPage ? mCurrentPage : getChildCount() - 1;
+                        snapToPageWithVelocity(finalPage, velocity);						
+	
                     } else {
                         runOnPageScrollsInitialized(this::snapToDestination);
                     }
@@ -1470,10 +1474,12 @@ public abstract class PagedView<T extends View & PageIndicator> extends ViewGrou
 
             // Detect if user tries to swipe to -1 page but gets disallowed by checking if there was
             // left-over values in mEdgeGlowLeft (or mEdgeGlowRight in RLT).
-            final int layoutDir = getLayoutDirection();
-            if ((mEdgeGlowLeft.getDistance() > 0 && layoutDir == LAYOUT_DIRECTION_LTR)
-                    || (mEdgeGlowRight.getDistance() > 0 && layoutDir == LAYOUT_DIRECTION_RTL)) {
-                onDisallowSwipeToMinusOnePage();
+            if (Utilities.ATLEAST_S) {
+                final int layoutDir = getLayoutDirection();
+                if ((mEdgeGlowLeft.getDistance() > 0 && layoutDir == LAYOUT_DIRECTION_LTR)
+                        || (mEdgeGlowRight.getDistance() > 0 && layoutDir == LAYOUT_DIRECTION_RTL)) {
+                    onDisallowSwipeToMinusOnePage();
+                }
             }
 
             mEdgeGlowLeft.onRelease(ev);

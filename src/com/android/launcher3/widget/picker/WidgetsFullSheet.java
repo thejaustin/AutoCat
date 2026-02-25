@@ -72,7 +72,6 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.model.UserManagerState;
 import com.android.launcher3.model.WidgetItem;
-import com.android.launcher3.pageindicators.PageIndicator;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.views.RecyclerViewFastScroller;
 import com.android.launcher3.views.SpringRelativeLayout;
@@ -85,7 +84,6 @@ import com.android.launcher3.widget.picker.search.SearchModeListener;
 import com.android.launcher3.widget.picker.search.WidgetsSearchBar;
 import com.android.launcher3.widget.picker.search.WidgetsSearchBar.WidgetsSearchDataProvider;
 import com.android.launcher3.workprofile.PersonalWorkPagedView;
-import com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip;
 import com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip.OnActivePageChangedListener;
 
 import java.util.ArrayList;
@@ -266,9 +264,8 @@ public class WidgetsFullSheet extends BaseWidgetSheet
             mViewPager.setClipToOutline(true);
             mViewPager.setClipChildren(false);
             mViewPager.initParentViews(this);
-            ((PersonalWorkSlidingTabStrip) mViewPager.getPageIndicator())
-                    .setOnActivePageChangedListener(this);
-            ((PageIndicator) mViewPager.getPageIndicator()).setActiveMarker(AdapterHolder.PRIMARY);
+            mViewPager.getPageIndicator().setOnActivePageChangedListener(this);
+            mViewPager.getPageIndicator().setActiveMarker(AdapterHolder.PRIMARY);
             findViewById(R.id.tab_personal)
                     .setOnClickListener((View view) -> mViewPager.snapToPage(0));
             findViewById(R.id.tab_work)
@@ -681,11 +678,12 @@ public class WidgetsFullSheet extends BaseWidgetSheet
     protected float getMaxAvailableHeightForRecommendations() {
         // There isn't enough space to show recommendations in landscape orientation on phones with
         // a full sheet design. Tablets use a two pane picker.
-        if (mDeviceProfile.isLandscape) {
+        if (mDeviceProfile.getDeviceProperties().isLandscape()) {
             return 0f;
         }
 
-        return (mDeviceProfile.heightPx - mDeviceProfile.bottomSheetTopPadding)
+        return (mDeviceProfile.getDeviceProperties().getHeightPx()
+                - mDeviceProfile.getBottomSheetProfile().getBottomSheetTopPadding())
                 * RECOMMENDATION_TABLE_HEIGHT_RATIO;
     }
 
@@ -700,13 +698,22 @@ public class WidgetsFullSheet extends BaseWidgetSheet
             if (getPopupContainer().getInsets().bottom > 0) {
                 mContent.setAlpha(0);
             }
-            setUpOpenAnimation(mActivityContext.getDeviceProfile().bottomSheetOpenDuration);
+            setUpOpenAnimation(
+                    mActivityContext
+                            .getDeviceProfile()
+                            .getBottomSheetProfile()
+                            .getBottomSheetOpenDuration()
+            );
             Animator animator = mOpenCloseAnimation.getAnimationPlayer();
             animator.setInterpolator(AnimationUtils.loadInterpolator(
                     getContext(), android.R.interpolator.linear_out_slow_in));
             post(() -> {
-                animator.setDuration(mActivityContext.getDeviceProfile().bottomSheetOpenDuration)
-                        .start();
+                animator.setDuration(
+                                mActivityContext
+                                        .getDeviceProfile()
+                                        .getBottomSheetProfile()
+                                        .getBottomSheetOpenDuration()
+                        ).start();
                 mContent.animate().alpha(1).setDuration(FADE_IN_DURATION);
             });
         } else {
@@ -717,7 +724,13 @@ public class WidgetsFullSheet extends BaseWidgetSheet
 
     @Override
     protected void handleClose(boolean animate) {
-        handleClose(animate, mActivityContext.getDeviceProfile().bottomSheetCloseDuration);
+        handleClose(
+                animate,
+                mActivityContext
+                        .getDeviceProfile()
+                        .getBottomSheetProfile()
+                        .getBottomSheetCloseDuration()
+        );
     }
 
     @Override
@@ -803,7 +816,7 @@ public class WidgetsFullSheet extends BaseWidgetSheet
     }
 
     private static int getWidgetSheetId(BaseActivity activity) {
-        boolean isTwoPane = activity.getDeviceProfile().isTablet;
+        boolean isTwoPane = activity.getDeviceProfile().getDeviceProperties().isTablet();
 
         return isTwoPane ? R.layout.widgets_two_pane_sheet : R.layout.widgets_full_sheet;
     }
@@ -957,7 +970,7 @@ public class WidgetsFullSheet extends BaseWidgetSheet
     private static boolean shouldRecreateLayout(DeviceProfile oldDp, DeviceProfile newDp) {
         // When folding/unfolding the foldables, we need to switch between the regular widget picker
         // and the two pane picker, so we rebuild the picker with the correct layout.
-        return oldDp.isTwoPanels != newDp.isTwoPanels;
+        return oldDp.getDeviceProperties().isTwoPanels() != newDp.getDeviceProperties().isTwoPanels();
     }
 
     /**

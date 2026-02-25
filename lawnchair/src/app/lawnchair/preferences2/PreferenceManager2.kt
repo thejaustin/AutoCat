@@ -52,9 +52,12 @@ import app.lawnchair.ui.preferences.components.HiddenAppsInSearch
 import app.lawnchair.ui.preferences.data.liveinfo.LiveInformationManager
 import app.lawnchair.util.kotlinxJson
 import app.lawnchair.views.overlay.FullScreenOverlayMode
+import com.android.launcher3.BuildConfig
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT
 import com.android.launcher3.LauncherAppState
+import com.android.launcher3.LauncherPrefs
+import com.android.launcher3.LauncherPrefs.Companion.ENABLE_TWOLINE_ALLAPPS_TOGGLE
 import com.android.launcher3.R
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
@@ -127,6 +130,25 @@ class PreferenceManager2 @Inject constructor(
                 ?: IconShapeManager.getSystemIconShape(context)
         },
         save = { it.toString() },
+        onSet = {
+            reloadHelper.reloadIcons()
+        },
+    )
+
+    val folderShape = preference(
+        key = stringPreferencesKey(name = "folder_shape"),
+        defaultValue = IconShape.fromString(
+            value = context.getString(R.string.config_default_folder_shape),
+            context = context,
+        ) ?: IconShape.Circle,
+        parse = {
+            IconShape.fromString(value = it, context = context)
+                ?: IconShapeManager.getSystemIconShape(context)
+        },
+        save = { it.toString() },
+        onSet = {
+            reloadHelper.reloadIcons()
+        },
     )
 
     val customIconShape = preference(
@@ -180,6 +202,20 @@ class PreferenceManager2 @Inject constructor(
     val appDrawerSearchBarBackground = preference(
         key = booleanPreferencesKey(name = "all_apps_search_bar_background"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_search_bar_background),
+        onSet = { reloadHelper.recreate() },
+    )
+
+    val workProfileTabBackgroundColor = preference(
+        key = stringPreferencesKey(name = "work_profile_tab_background_color"),
+        parse = ColorOption::fromString,
+        save = ColorOption::toString,
+        onSet = { reloadHelper.recreate() },
+        defaultValue = ColorOption.SystemAccent,
+    )
+
+    val workProfileTabContainerBackground = preference(
+        key = booleanPreferencesKey(name = "work_profile_tab_container_background"),
+        defaultValue = true,
         onSet = { reloadHelper.recreate() },
     )
 
@@ -410,9 +446,10 @@ class PreferenceManager2 @Inject constructor(
         },
     )
 
-    val enableSmartspaceCalendarSelection = preference(
-        key = booleanPreferencesKey(name = "enable_smartspace_calendar_selection"),
-        defaultValue = context.resources.getBoolean(R.bool.config_default_enable_smartspace_calendar_selection),
+    val enableFolderIconShapeCustomization = preference(
+        key = booleanPreferencesKey(name = "enable_folder_icon_shape_customization"),
+        defaultValue = context.resources.getBoolean(R.bool.config_default_enable_folder_icon_shape_customization),
+        onSet = { reloadHelper.reloadIcons() },
     )
 
     val autoShowKeyboardInDrawer = preference(
@@ -601,7 +638,9 @@ class PreferenceManager2 @Inject constructor(
     val twoLineAllApps = preference(
         key = booleanPreferencesKey(name = "two_line_all_apps"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_enable_two_line_allapps),
-        onSet = { reloadHelper.recreate() },
+        onSet = { value ->
+            LauncherPrefs.get(context).put(ENABLE_TWOLINE_ALLAPPS_TOGGLE, value)
+        },
     )
 
     val enableFeed = preference(
@@ -661,6 +700,11 @@ class PreferenceManager2 @Inject constructor(
 
     val smartspaceNowPlaying = preference(
         key = booleanPreferencesKey("enable_smartspace_now_playing"),
+        defaultValue = true,
+    )
+
+    val smartspaceOnboarding = preference(
+        key = booleanPreferencesKey("enable_smartspace_onboarding"),
         defaultValue = true,
     )
 
@@ -745,6 +789,15 @@ class PreferenceManager2 @Inject constructor(
     val backPressGestureHandler = serializablePreference<GestureHandlerConfig>(
         key = stringPreferencesKey("back_press_gesture_handler"),
         defaultValue = GestureHandlerConfig.NoOp,
+    )
+
+    val autoUpdaterNightly = preference(
+        key = booleanPreferencesKey(name = "enable_nightly_auto_updater"),
+        defaultValue = if (BuildConfig.APPLICATION_ID.contains("nightly")) {
+            false
+        } else {
+            context.resources.getBoolean(R.bool.config_default_enable_nightly_auto_updater)
+        },
     )
 
     private inline fun <reified T> serializablePreference(

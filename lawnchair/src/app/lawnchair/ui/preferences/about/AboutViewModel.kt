@@ -3,8 +3,11 @@ package app.lawnchair.ui.preferences.about
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.lawnchair.preferences.PreferenceManager
+import app.lawnchair.preferences2.PreferenceManager2
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
+import com.patrykmichalik.opto.core.firstBlocking
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +21,8 @@ class AboutViewModel(
 ) : AndroidViewModel(application) {
 
     private val api: GitHubService = gitHubApiRetrofit.create()
+    private val prefs: PreferenceManager = PreferenceManager.getInstance(application)
+    private val prefs2: PreferenceManager2 = PreferenceManager2.getInstance(application)
 
     private val nightlyBuildsRepository = NightlyBuildsRepository(
         applicationContext = application,
@@ -31,7 +36,11 @@ class AboutViewModel(
     init {
         _uiState.update {
             it.copy(
-                versionName = BuildConfig.VERSION_NAME,
+                versionName = if (prefs.hideVersionInfo.get()) {
+                    prefs.pseudonymVersion.get() + " (pseudonym)"
+                } else {
+                    BuildConfig.VERSION_NAME
+                },
                 commitHash = BuildConfig.COMMIT_HASH,
                 coreTeam = team,
                 supportAndPr = supportAndPr,
@@ -60,8 +69,12 @@ class AboutViewModel(
         nightlyBuildsRepository.downloadUpdate()
     }
 
-    fun installUpdate(file: File) {
-        nightlyBuildsRepository.installUpdate(file)
+    fun installUpdate(file: File, forceInstall: Boolean = false) {
+        nightlyBuildsRepository.installUpdate(file, forceInstall)
+    }
+
+    fun resetToDownloaded(file: File) {
+        nightlyBuildsRepository.resetToDownloaded(file)
     }
 
     fun checkForUpdate() {

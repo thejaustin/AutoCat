@@ -1,4 +1,4 @@
-// AutoCat: Without this, IHomeTransitionListener.aidl would not compile
+// Lawnchair: Without this, IHomeTransitionListener.aidl would not compile
 
 /**
  * Copyright (c) 2017, The Android Open Source Project

@@ -1,17 +1,17 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
 }
 
 android {
     buildToolsVersion "36.1.0"
-    namespace = "com.android.systemui.log"
+    namespace "com.android.systemui.log"
     buildFeatures {
-        aidl = true
+        aidl true
     }
     sourceSets {
         main {
             java.srcDirs = ['src']
+            kotlin.directories.add('src')
             aidl.srcDirs = ['src']
             manifest.srcFile 'AndroidManifest.xml'
         }
@@ -22,7 +22,6 @@ addFrameworkJar('framework-16.jar')
 compileOnlyCommonJars()
 
 dependencies {
-    compileOnly projects.plugincore
     compileOnly projects.common
-    implementation libs.google.errorprone.annotations
+    implementation libs.errorprone.annotations
 }

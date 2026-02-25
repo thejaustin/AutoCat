@@ -33,11 +33,22 @@ class DisableSubpixelTextTransitionListener(private val rootView: ViewGroup?) :
 
     override fun onTransitionStarted() {
         isTransitionInProgress = true
+        getAllChildTextView(rootView, childrenTextViews)
+        childrenTextViews.forEach { child ->
+            val childTextView = child.get() ?: return@forEach
+            childTextView.paintFlags = childTextView.paintFlags or Paint.SUBPIXEL_TEXT_FLAG
+        }
     }
 
     override fun onTransitionFinished() {
         if (!isTransitionInProgress) return
         isTransitionInProgress = false
+        childrenTextViews.forEach { child ->
+            val childTextView = child.get() ?: return@forEach
+            childTextView.paintFlags =
+                childTextView.paintFlags and Paint.SUBPIXEL_TEXT_FLAG.inv()
+        }
+        childrenTextViews.clear()
     }
 
     /**

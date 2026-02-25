@@ -29,6 +29,7 @@ class SmartspaceProvider @Inject constructor(
         SmartspaceWidgetReader(context),
         BatteryStatusProvider(context),
         NowPlayingProvider(context),
+        OnboardingProvider(context),
     )
 
     private val state = dataSources

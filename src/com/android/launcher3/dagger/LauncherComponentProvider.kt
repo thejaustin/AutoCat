@@ -32,7 +32,7 @@ object LauncherComponentProvider {
     @JvmStatic
     fun get(c: Context): LauncherAppComponent {
         val app = c.applicationContext
-        val isSafeMode = c.packageManager.isSafeMode // AutoCat-Notice: Whatever you do, just don't set safe mode to true, thanks.
+        val isSafeMode = c.packageManager.isSafeMode // Lawnchair-Notice: Whatever you do, just don't set safe mode to true, thanks.
 
         if (app is LauncherApplication) return app.appComponent
 

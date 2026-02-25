@@ -28,12 +28,13 @@ import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
+import app.lawnchair.ui.util.addIf
 
 @Composable
 fun NavigationActionPreference(
     label: String,
-    destination: PreferenceRoute,
     modifier: Modifier = Modifier,
+    destination: PreferenceRoute? = null,
     subtitle: String? = null,
     icon: ImageVector? = null,
     endWidget: (@Composable () -> Unit)? = null,
@@ -41,7 +42,16 @@ fun NavigationActionPreference(
     val navController = LocalNavController.current
 
     PreferenceTemplate(
-        modifier = modifier.clickable { navController.navigate(route = destination) },
+        modifier = modifier.addIf(destination != null) {
+            clickable {
+                // LC-Note: We probably shouldn't do this, but IDE/Kotlin won't stop complaining even if there's addIf condition
+                destination?.let {
+                    navController.navigate(
+                        route = it,
+                    )
+                }
+            }
+        },
         title = { Text(text = label) },
         description = { subtitle?.let { Text(text = it) } },
         startWidget = icon?.let {

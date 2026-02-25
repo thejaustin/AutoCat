@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (C) 2021 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +14,41 @@
   ~ limitations under the License.
 -->
 
-<app.lawnchair.allapps.AppTabsHeaderView
+<com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:launcher="http://schemas.android.com/apk/res-auto"
     android:id="@+id/tabs"
     android:layout_width="match_parent"
     android:layout_height="@dimen/all_apps_header_pill_height"
     android:layout_gravity="center_horizontal"
-    android:layout_marginTop="@dimen/all_apps_tabs_margin_top" />
+    android:layout_marginTop="@dimen/all_apps_tabs_margin_top"
+    android:orientation="horizontal"
+    style="@style/TextHeadline"
+    launcher:alignOnIcon="true">
+
+    <Button
+        android:id="@+id/tab_personal"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="@dimen/all_apps_tabs_button_horizontal_padding"
+        android:layout_weight="1"
+        android:background="@drawable/all_apps_tabs_background"
+        android:text="@string/all_apps_personal_tab"
+        android:contentDescription="@string/all_apps_personal_tab_content_description"
+        android:textColor="@color/all_apps_tab_text"
+        android:textSize="14sp"
+        style="@style/AllAppsPersonalWorkTabStyle" />
+
+    <Button
+        android:id="@+id/tab_work"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/all_apps_tabs_button_horizontal_padding"
+        android:layout_weight="1"
+        android:background="@drawable/all_apps_tabs_background"
+        android:text="@string/all_apps_work_tab"
+        android:contentDescription="@string/all_apps_work_tab_content_description"
+        android:textColor="@color/all_apps_tab_text"
+        android:textSize="14sp"
+        style="@style/AllAppsPersonalWorkTabStyle" />
+</com.android.launcher3.workprofile.PersonalWorkSlidingTabStrip>

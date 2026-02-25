@@ -1,30 +1,18 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.ksp)
 }
 
-// LC-Build-TODO: addFrameworkJar() doesn't work, what???
-def frameworkJar = new File("$rootDir/prebuilts/libs", "framework-16.jar")
-tasks.withType(JavaCompile).configureEach {
-    classpath = files(frameworkJar)
-}
-tasks.withType(KotlinCompile).configureEach {
-    libraries.from(files(frameworkJar))
-}
-compileOnlyCommonJars()
-
 android {
     buildToolsVersion "36.1.0"
-    namespace = "com.android.wm.shell"
+    namespace "com.android.wm.shell"
     buildFeatures {
-        aidl = true
+        aidl true
     }
     sourceSets {
         main {
             java.srcDirs = ['shared/src']
+            kotlin.directories.add('shared/src')
             aidl.srcDirs = ['shared/src']
             manifest.srcFile 'AndroidManifest.xml'
             res.srcDirs = ['shared', 'shared/res']
@@ -40,9 +28,10 @@ dependencies {
     ksp libs.dagger.hilt.compiler
     implementation libs.androidx.core.animation
     implementation libs.androidx.dynamicanimation
-    implementation projects.iconloaderlib
-    implementation projects.flags
-    implementation projects.utils
+    compileOnly projects.iconloaderlib
+    compileOnly projects.msdllib
+    compileOnly projects.flags
+    compileOnly projects.utils
 }
 
 ksp {

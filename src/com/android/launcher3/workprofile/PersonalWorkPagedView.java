@@ -18,15 +18,13 @@ package com.android.launcher3.workprofile;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.View;
 
 import com.android.launcher3.PagedView;
-import com.android.launcher3.pageindicators.PageIndicator;
 
 /**
  *  A {@link PagedView} for showing different views for the personal and work profile respectively.
  */
-public class PersonalWorkPagedView<T extends View & PageIndicator> extends PagedView<T> {
+public class PersonalWorkPagedView extends PagedView<PersonalWorkSlidingTabStrip> {
 
     static final float START_DAMPING_TOUCH_SLOP_ANGLE = (float) Math.PI / 6;
     static final float MAX_SWIPE_ANGLE = (float) Math.PI / 3;

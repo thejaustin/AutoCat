@@ -28,7 +28,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
-import app.lawnchair.AutoCatProto;
+import app.lawnchair.LawnchairProto;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent;
@@ -70,9 +70,9 @@ public class DeviceGridState implements Comparable<DeviceGridState> {
         mGridType = idp.gridType;
     }
 
-    // AutoCat@2038c6722c1ebd977290492881023675e1cddecd: Backup creation
+    // Lawnchair@2038c6722c1ebd977290492881023675e1cddecd: Backup creation
     @SuppressLint("WrongConstant")
-    public DeviceGridState(AutoCatProto.GridState protoGridState) {
+    public DeviceGridState(LawnchairProto.GridState protoGridState) {
         mGridSizeString = protoGridState.getGridSize();
         mNumHotseat = protoGridState.getHotseatCount();
         mDeviceType = protoGridState.getDeviceType();
@@ -144,8 +144,8 @@ public class DeviceGridState implements Comparable<DeviceGridState> {
         }
     }
 
-    public AutoCatProto.GridState toProtoMessage() {
-        return AutoCatProto.GridState.newBuilder()
+    public LawnchairProto.GridState toProtoMessage() {
+        return LawnchairProto.GridState.newBuilder()
                 .setGridSize(mGridSizeString)
                 .setHotseatCount(mNumHotseat)
                 .setDeviceType(mDeviceType)
@@ -168,6 +168,8 @@ public class DeviceGridState implements Comparable<DeviceGridState> {
                     return LauncherEvent.LAUNCHER_GRID_SIZE_4_BY_5;
                 case "4,6":
                     return LauncherEvent.LAUNCHER_GRID_SIZE_4_BY_6;
+                case "4,7":
+                    return LauncherEvent.LAUNCHER_GRID_SIZE_4_BY_7;
                 case "5,5":
                     return LauncherEvent.LAUNCHER_GRID_SIZE_5_BY_5;
                 case "5,6":

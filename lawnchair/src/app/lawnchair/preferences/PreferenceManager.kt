@@ -21,12 +21,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import app.lawnchair.AutoCatLauncher
 import app.lawnchair.font.FontCache
+import app.lawnchair.util.getApkVersionComparison
+import app.lawnchair.util.isGestureNavContractCompatible
 import app.lawnchair.util.isOnePlusStock
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
+import com.android.launcher3.graphics.ThemeManager
 import com.android.launcher3.model.DeviceGridState
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.DaggerSingletonObject
@@ -41,6 +44,7 @@ class PreferenceManager @Inject constructor(
     SafeCloseable {
     private val idp get() = InvariantDeviceProfile.INSTANCE.get(context)
     private val mRecentsModel get() = RecentsModel.INSTANCE.get(context)
+    private val themeManager = ThemeManager.INSTANCE.get(context)
     private val reloadIcons: () -> Unit = { mRecentsModel.onThemeChanged() }
     private val reloadGrid: () -> Unit = { idp.onPreferencesChanged(context) }
 
@@ -52,7 +56,7 @@ class PreferenceManager @Inject constructor(
     val iconPackPackage = StringPref("pref_iconPackPackage", "", reloadIcons)
     val themedIconPackPackage = StringPref("pref_themedIconPackPackage", "", recreate)
     val allowRotation = BoolPref("pref_allowRotation", false)
-    val wrapAdaptiveIcons = BoolPref("prefs_wrapAdaptive", false, recreate)
+    val wrapAdaptiveIcons = BoolPref("prefs_wrapAdaptive", true, recreate)
     val transparentIconBackground = BoolPref("prefs_transparentIconBackground", false, recreate)
     val shadowBGIcons = BoolPref("pref_shadowBGIcons", true, recreate)
     val addIconToHome = BoolPref("pref_add_icon_to_home", true)
@@ -62,7 +66,7 @@ class PreferenceManager @Inject constructor(
     val workspaceIncreaseMaxGridSize = BoolPref("pref_workspace_increase_max_grid_size", false)
     val folderRows = IdpIntPref("pref_folderRows", { numFolderRows[INDEX_DEFAULT] }, reloadGrid)
 
-    val drawerOpacity = FloatPref("pref_drawerOpacity", 1F, recreate)
+    val drawerOpacity = FloatPref("pref_drawerOpacity", .4f, recreate)
     val coloredBackgroundLightness = FloatPref("pref_coloredBackgroundLightness", 1F, recreate)
     val feedProvider = StringPref("pref_feedProvider", "")
     val ignoreFeedWhitelist = BoolPref("pref_ignoreFeedWhitelist", false)
@@ -71,6 +75,7 @@ class PreferenceManager @Inject constructor(
     val windowCornerRadius = IntPref("pref_windowCornerRadius", 80, recreate)
     val autoLaunchRoot = BoolPref("pref_autoLaunchRoot", false)
     val wallpaperScrolling = BoolPref("pref_wallpaperScrolling", true)
+    val infiniteScrolling = BoolPref("pref_infiniteScrolling", false)
     val enableDebugMenu = BoolPref("pref_enableDebugMenu", false)
     val customAppName = object : MutableMapPref<ComponentKey, String>("pref_appNameMap", reloadGrid) {
         override fun flattenKey(key: ComponentKey) = key.toString()
@@ -105,8 +110,6 @@ class PreferenceManager @Inject constructor(
     val searchResultSettingsEntry = BoolPref("pref_searchResultSettingsEntry", false, recreate)
     val searchResulRecentSuggestion = BoolPref("pref_searchResultRecentSuggestion", false, recreate)
 
-    val allAppBulkIconLoading = BoolPref("pref_allapps_bulk_icon_loading", false, recreate)
-
     val themedIcons = BoolPref("themed_icons", false, recreate)
     val drawerThemedIcons = BoolPref("drawer_themed_icons", false, recreate)
     val tintIconPackBackgrounds = BoolPref("tint_icon_pack_backgrounds", false, recreate)
@@ -140,8 +143,15 @@ class PreferenceManager @Inject constructor(
 
     val hideVersionInfo = BoolPref("pref_hideVersionInfo", false)
     val pseudonymVersion = StringPref("pref_pseudonymVersion", "Bubble Tea")
+    val enableGnc = BoolPref("pref_enableGnc", isGestureNavContractCompatible, recreate)
+    val hasOpenedSettings = BoolPref("pref_hasOpenedSettings", false)
 
-    val enableGnc = BoolPref("pref_enableGnc", false, recreate)
+    val lawnchairMajorVersion = IntPref(
+        "pref_lawnchairMajorVersion",
+        context.getApkVersionComparison().first[0],
+    )
+
+    val forceIconMonochrome = BoolPref("pref_forceIconMonochrome", false, recreate)
 
     // AutoCat: Work apps settings
     val showWorkTab = BoolPref("pref_showWorkTab", false, recreate)

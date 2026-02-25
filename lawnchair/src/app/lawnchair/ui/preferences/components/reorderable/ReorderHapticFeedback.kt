@@ -1,9 +1,10 @@
 package app.lawnchair.ui.preferences.components.reorderable
 
-import android.view.HapticFeedbackConstants
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
+import androidx.core.view.HapticFeedbackConstantsCompat
+import androidx.core.view.ViewCompat
 import com.android.launcher3.Utilities
 
 enum class ReorderHapticFeedbackType {
@@ -12,32 +13,41 @@ enum class ReorderHapticFeedbackType {
     END,
 }
 
-class ReorderHapticFeedback(private val view: android.view.View) {
-    fun performHapticFeedback(type: ReorderHapticFeedbackType) {
-        when (type) {
-            ReorderHapticFeedbackType.START -> {
-                if (Utilities.ATLEAST_U) {
-                    view.performHapticFeedback(HapticFeedbackConstants.DRAG_START)
-                }
-            }
-
-            ReorderHapticFeedbackType.MOVE -> {
-                if (Utilities.ATLEAST_U) {
-                    view.performHapticFeedback(HapticFeedbackConstants.SEGMENT_FREQUENT_TICK)
-                }
-            }
-
-            ReorderHapticFeedbackType.END -> {
-                if (Utilities.ATLEAST_R) {
-                    view.performHapticFeedback(HapticFeedbackConstants.GESTURE_END)
-                }
-            }
-        }
-    }
+interface ReorderHapticFeedback {
+    fun performHapticFeedback(type: ReorderHapticFeedbackType) {}
 }
 
 @Composable
 fun rememberReorderHapticFeedback(): ReorderHapticFeedback {
     val view = LocalView.current
-    return remember(view) { ReorderHapticFeedback(view) }
+
+    val reorderHapticFeedback = remember {
+        object : ReorderHapticFeedback {
+            override fun performHapticFeedback(type: ReorderHapticFeedbackType) {
+                if (Utilities.ATLEAST_U) {
+                    when (type) {
+                        ReorderHapticFeedbackType.START ->
+                            ViewCompat.performHapticFeedback(
+                                view,
+                                HapticFeedbackConstantsCompat.GESTURE_START,
+                            )
+
+                        ReorderHapticFeedbackType.MOVE ->
+                            ViewCompat.performHapticFeedback(
+                                view,
+                                HapticFeedbackConstantsCompat.SEGMENT_FREQUENT_TICK,
+                            )
+
+                        ReorderHapticFeedbackType.END ->
+                            ViewCompat.performHapticFeedback(
+                                view,
+                                HapticFeedbackConstantsCompat.GESTURE_END,
+                            )
+                    }
+                }
+            }
+        }
+    }
+
+    return reorderHapticFeedback
 }

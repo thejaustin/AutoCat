@@ -1,18 +1,18 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.ksp)
 }
 
 android {
     buildToolsVersion "36.1.0"
-    namespace = "com.android.systemui.unfold"
+    namespace "com.android.systemui.unfold"
     buildFeatures {
-        aidl = true
+        aidl true
     }
     sourceSets {
         main {
             java.srcDirs = ['src']
+            kotlin.directories.add('src')
             aidl.srcDirs = ['src']
         }
     }

@@ -1,9 +1,7 @@
 package app.lawnchair.deck
 
-import android.content.Context
 import android.content.Intent
 import android.os.UserHandle
-import android.util.Pair
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherModel
@@ -12,7 +10,6 @@ import com.android.launcher3.model.AllAppsList
 import com.android.launcher3.model.BgDataModel
 import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.WorkspaceItemSpaceFinder
-import com.android.launcher3.model.data.CollectionInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
@@ -47,7 +44,7 @@ class AddFoldersWithItemsTask(
         val addedWorkspaceScreensFinal = IntArray()
 
         synchronized(dataModel) {
-            val workspaceScreens = dataModel.collectWorkspaceScreens()
+            val workspaceScreens = dataModel.itemsIdMap.collectWorkspaceScreens(context)
             val modelWriter = taskController.getModelWriter()
 
             folders.forEach { folderInfo ->
@@ -55,8 +52,10 @@ class AddFoldersWithItemsTask(
                 val coords = itemSpaceFinder.findSpaceForItem(
                     workspaceScreens,
                     addedWorkspaceScreensFinal,
+                    addedItemsFinal,
                     folderInfo.spanX,
                     folderInfo.spanY,
+                    context,
                 )
                 val screenId = coords[0]
                 val cellX = coords[1]
@@ -99,25 +98,8 @@ class AddFoldersWithItemsTask(
         // Schedule callback to bind items
         if (addedItemsFinal.isNotEmpty()) {
             taskController.scheduleCallbackTask { callbacks ->
-                val addAnimated = ArrayList<ItemInfo>()
-                val addNotAnimated = ArrayList<ItemInfo>()
 
-                if (addedItemsFinal.isNotEmpty()) {
-                    val lastScreenId = addedItemsFinal.last().screenId
-                    addedItemsFinal.forEach { item ->
-                        if (item.screenId == lastScreenId) {
-                            addAnimated.add(item)
-                        } else {
-                            addNotAnimated.add(item)
-                        }
-                    }
-                }
-
-                callbacks.bindAppsAdded(
-                    addedWorkspaceScreensFinal,
-                    ArrayList(addNotAnimated),
-                    ArrayList(addAnimated),
-                )
+                callbacks.bindItemsAdded(addedItemsFinal)
 
                 // Notify completion after items are bound
                 onComplete?.invoke()

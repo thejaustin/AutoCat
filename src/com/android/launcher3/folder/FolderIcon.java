@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Modifications copyright 2025 AutoCat
+ * Modifications copyright 2025 Lawnchair
  */
 
 package com.android.launcher3.folder;
 
 import static com.android.launcher3.Flags.enableCursorHoverStates;
+import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVERLAP_FACTOR;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.MAX_NUM_ITEMS_IN_PREVIEW;
 import static com.android.launcher3.folder.FolderGridOrganizer.createFolderGridOrganizer;
 import static com.android.launcher3.folder.PreviewItemManager.INITIAL_ITEM_ANIMATION_DURATION;
@@ -37,6 +38,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Property;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -80,7 +82,6 @@ import com.android.launcher3.model.data.FolderInfo.LabelState;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemFactory;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
-import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.MultiTranslateDelegate;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.views.ActivityContext;
@@ -210,7 +211,7 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
         icon.mFolderName.setCompoundDrawablePadding(0);
         FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) icon.mFolderName.getLayoutParams();
         if (folderInfo.container == ItemInfo.NO_ID) {
-            lp.topMargin = grid.allAppsIconSizePx + grid.allAppsIconDrawablePaddingPx;
+            lp.topMargin = grid.getAllAppsProfile().getIconSizePx() + grid.getAllAppsProfile().getIconDrawablePaddingPx();
             icon.mBackground = new PreviewBackground(activity.getDragLayer().getContext());
         } else {
             lp.topMargin = grid.iconSizePx + grid.iconDrawablePaddingPx;
@@ -247,8 +248,7 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
         mPreviewItemManager.recomputePreviewDrawingParams();
         mBackground.getBounds(outBounds);
         // The preview items go outside of the bounds of the background.
-        Utilities.scaleRectAboutCenter(outBounds,
-                ClippedFolderIconLayoutRule.getIconOverlapFactor());
+        Utilities.scaleRectAboutCenter(outBounds, ICON_OVERLAP_FACTOR);
     }
 
     public float getBackgroundStrokeWidth() {
@@ -383,43 +383,43 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
             center[0] = Math.round(scaleRelativeToDragLayer * center[0]);
             center[1] = Math.round(scaleRelativeToDragLayer * center[1]);
 
-            to.offset(center[0] - animateView.getMeasuredWidth() / 2,
-                    center[1] - animateView.getMeasuredHeight() / 2);
+            // Lawnchair-TODO: if to is null we skip immediately to place the item. destination can be null (or nowhere)
+            if (to != null) {
+                to.offset(center[0] - animateView.getMeasuredWidth() / 2,
+                        center[1] - animateView.getMeasuredHeight() / 2);
 
-            float finalAlpha = index < MAX_NUM_ITEMS_IN_PREVIEW ? 1f : 0f;
+                float finalAlpha = index < MAX_NUM_ITEMS_IN_PREVIEW ? 1f : 0f;
 
-            float finalScale = scale * scaleRelativeToDragLayer;
+                float finalScale = scale * scaleRelativeToDragLayer;
 
-            // Account for potentially different icon sizes with non-default grid settings
-            if (d.dragSource instanceof ActivityAllAppsContainerView) {
-                DeviceProfile grid = mActivity.getDeviceProfile();
-                float containerScale = (1f * grid.iconSizePx / grid.allAppsIconSizePx);
-                finalScale *= containerScale;
+                // Account for potentially different icon sizes with non-default grid settings
+                if (d.dragSource instanceof ActivityAllAppsContainerView) {
+                    DeviceProfile grid = mActivity.getDeviceProfile();
+                    float containerScale = (1f * grid.iconSizePx
+                            / grid.getAllAppsProfile().getIconSizePx());
+                    finalScale *= containerScale;
+                }
+
+                final int finalIndex = index;
+                dragLayer.animateView(animateView, to, finalAlpha,
+                        finalScale, finalScale, DROP_IN_ANIMATION_DURATION,
+                        Interpolators.DECELERATE_2,
+                        () -> {
+                            mPreviewItemManager.hidePreviewItem(finalIndex, false);
+                            mFolder.showItem(item);
+                        },
+                        DragLayer.ANIMATION_END_DISAPPEAR, null);
+
+                mFolder.hideItem(item);
+
+                if (!itemAdded) mPreviewItemManager.hidePreviewItem(index, true);
             }
+            d.folderNameSuggestionLoader.getSuggestedFolderName(mInfo.getAppContents(),
+                    folderNameInfos -> postDelayed(() -> {
+                        setLabelSuggestion(folderNameInfos, d.logInstanceId);
+                        invalidate();
+                    }, DROP_IN_ANIMATION_DURATION));
 
-            final int finalIndex = index;
-            dragLayer.animateView(animateView, to, finalAlpha,
-                    finalScale, finalScale, DROP_IN_ANIMATION_DURATION,
-                    Interpolators.DECELERATE_2,
-                    () -> {
-                        mPreviewItemManager.hidePreviewItem(finalIndex, false);
-                        mFolder.showItem(item);
-                    },
-                    DragLayer.ANIMATION_END_DISAPPEAR, null);
-
-            mFolder.hideItem(item);
-
-            if (!itemAdded) mPreviewItemManager.hidePreviewItem(index, true);
-
-            FolderNameInfos nameInfos = new FolderNameInfos();
-            Executors.MODEL_EXECUTOR.post(() -> {
-                d.folderNameProvider.getSuggestedFolderName(
-                        getContext(), mInfo.getAppContents(), nameInfos);
-                postDelayed(() -> {
-                    setLabelSuggestion(nameInfos, d.logInstanceId);
-                    invalidate();
-                }, DROP_IN_ANIMATION_DURATION);
-            });
         } else {
             getFolder().addFolderContent(item);
         }
@@ -453,7 +453,7 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
         CharSequence newTitle = nameInfos.getLabels()[0];
         FromState fromState = mInfo.getFromLabelState();
 
-        mInfo.setTitle(newTitle, mFolder.mLauncherDelegate.getModelWriter());
+        mInfo.setTitle(newTitle, mActivity.getModelWriter());
         onTitleChanged(mInfo.title);
         mFolder.getFolderName().setText(mInfo.title);
 

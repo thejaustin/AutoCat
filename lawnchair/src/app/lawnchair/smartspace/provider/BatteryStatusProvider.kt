@@ -17,6 +17,7 @@ import com.android.launcher3.Utilities
 import kotlin.math.abs
 import kotlinx.coroutines.flow.map
 
+// pE-TODO(JimfXJ91): Allow customising on/off behaviour for fast/slow charging
 class BatteryStatusProvider(context: Context) :
     SmartspaceDataSource(
         context,
