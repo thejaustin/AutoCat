@@ -454,10 +454,6 @@ dependencies {
     // TensorFlow Lite for on-device ML categorization
     implementation libs.tensorflow.lite
 
-    implementation libs.androidx.activity.compose
-    implementation libs.androidx.constraintlayout
-    implementation libs.androidx.datastore.preferences
-
     implementation platform(libs.compose.bom)
     implementation libs.compose.ui
     implementation libs.compose.ui.util

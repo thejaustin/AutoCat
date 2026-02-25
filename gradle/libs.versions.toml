@@ -13,6 +13,8 @@ dagger = "2.59.1"
 libsu = "6.0.0"
 refine = "4.4.0"
 sentry = "6.1.0"
+shizuku = "13.1.5"
+tensorflowLite = "2.14.0"
 
 guava = "33.5.0-android"
 junitVersion = "4.13.2"
@@ -139,7 +141,10 @@ reorderable = "sh.calvin.reorderable:reorderable:3.0.0"
 rikka-annotation = { module = "dev.rikka.tools.refine:annotation", version.ref = "refine" }
 rikka-annotation-processor = { module = "dev.rikka.tools.refine:annotation-processor", version.ref = "refine" }
 rikka-refine-runtime = { group = "dev.rikka.tools.refine", name = "runtime", version.ref = "refine" }
+rikka-shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
+rikka-shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 smartspacer-sdk = "com.kieronquinn.smartspacer:sdk-client:1.1.2"
+tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version.ref = "tensorflowLite" }
 xdrop-fuzzywuzzy = "me.xdrop:fuzzywuzzy:1.4.0"
 errorprone-annotations = "com.google.errorprone:error_prone_annotations:2.47.0"
 # Dummy to get renovate updates, the version is used in rootProject build.gradle with spotless.
