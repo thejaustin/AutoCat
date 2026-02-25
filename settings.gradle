@@ -72,7 +72,8 @@ project(':displaylib').projectDir = new File(rootDir, 'platform_frameworks_libs_
 include ':mechanics'
 project(':mechanics').projectDir = new File(rootDir, 'platform_frameworks_libs_systemui/mechanics')
 
-include ':hidden-api'
+include ':hiddenapi'
+project(':hiddenapi').projectDir = new File(rootDir, 'hidden-api')
 
 include ':shared'
 project(':shared').projectDir = new File(rootDir, 'systemUI/shared')
