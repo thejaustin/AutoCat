@@ -11,7 +11,7 @@ jobs:
       issues: write
     steps:
       - name: Create Issue from Crash Report
-        uses: actions/github-script@v7
+        uses: actions/github-script@d0bdaba9ed3af319f85d93bd99ee0a7e2ee288ad # v7
         with:
           script: |
             const payload = context.payload.client_payload;
