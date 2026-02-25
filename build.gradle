@@ -269,6 +269,10 @@ android {
             shrinkResources = true
             pseudoLocalesEnabled = false
             proguardFiles proguardFilesFromAosp + "proguard.pro"
+            
+            // Enable Profile Guided Optimization for better performance
+            // Uses baseline profiles to guide R8 optimization
+            enableProfileGuidedOptimization true
         }
     }
 
