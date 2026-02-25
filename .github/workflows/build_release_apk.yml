@@ -31,7 +31,7 @@ jobs:
       - name: Build release APK
         run: ./gradlew assembleLawnWithQuickstepGithubRelease bundleLawnWithQuickstepPlayRelease
       - name: Upload artifact
-        uses: actions/upload-artifact@b7c566a073f6528939c3588445031d8010d5ad11 # v6 (verified SHA b7c566a...)
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: Release APK
           path: build/outputs/*
