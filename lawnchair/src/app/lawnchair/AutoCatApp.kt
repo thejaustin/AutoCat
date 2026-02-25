@@ -167,6 +167,14 @@ class AutoCatApp : Application() {
                 Log.d(TAG, "Flowerpot Manager initialized")
             }
             
+            // Initialize App Drawer Cache for performance
+            try {
+                app.lawnchair.allapps.AppDrawerCache.initialize(this@AutoCatApp)
+                Log.d(TAG, "App Drawer Cache initialized")
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to initialize App Drawer Cache", e)
+            }
+
             // Check for crash reports (deferred from main thread)
             try {
                 val preferenceManager2 = PreferenceManager2.getInstance(this@AutoCatApp)
