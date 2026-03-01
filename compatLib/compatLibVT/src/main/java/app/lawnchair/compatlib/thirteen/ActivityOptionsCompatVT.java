@@ -5,31 +5,31 @@ import android.content.Context;
 import android.os.Handler;
 import android.view.RemoteAnimationAdapter;
 import android.window.RemoteTransition;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+
+
 import androidx.annotation.RequiresApi;
 import app.lawnchair.compatlib.twelve.ActivityOptionsCompatVS;
 
 @RequiresApi(33)
 public class ActivityOptionsCompatVT extends ActivityOptionsCompatVS {
 
-    @NonNull
+    androidx.annotation.NonNull
     @Override
     public ActivityOptions makeRemoteAnimation(
-            @Nullable RemoteAnimationAdapter remoteAnimationAdapter,
-            @Nullable Object remoteTransition,
-            @Nullable String debugName) {
+            androidx.annotation.Nullable RemoteAnimationAdapter remoteAnimationAdapter,
+            androidx.annotation.Nullable Object remoteTransition,
+            androidx.annotation.Nullable String debugName) {
         return ActivityOptions.makeRemoteAnimation(
                 remoteAnimationAdapter, (RemoteTransition) remoteTransition);
     }
 
-    @NonNull
+    androidx.annotation.NonNull
     @Override
     public ActivityOptions makeCustomAnimation(
-            @NonNull Context context,
+            androidx.annotation.NonNull Context context,
             int enterResId,
             int exitResId,
-            @NonNull Handler callbackHandler,
+            androidx.annotation.NonNull Handler callbackHandler,
             Runnable callback,
             Runnable finishedListener) {
         return ActivityOptions.makeCustomTaskAnimation(

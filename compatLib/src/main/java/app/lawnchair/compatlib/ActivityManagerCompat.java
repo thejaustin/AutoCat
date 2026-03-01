@@ -7,8 +7,8 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.view.IRecentsAnimationController;
 import android.window.TaskSnapshot;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+
+
 import androidx.annotation.RequiresApi;
 import java.util.List;
 
@@ -20,7 +20,7 @@ public interface ActivityManagerCompat {
     void startRecentsActivity(
             Intent intent, long eventTime, RecentsAnimationRunnerCompat runnerCompat);
 
-    @Nullable
+    androidx.annotation.Nullable
     @RequiresApi(31)
     default TaskSnapshot getTaskSnapshot(
             int taskId, boolean isLowResolution, boolean takeSnapshotIfNeeded) {
@@ -40,13 +40,13 @@ public interface ActivityManagerCompat {
         return null;
     }
 
-    @Nullable
+    androidx.annotation.Nullable
     ActivityManager.RunningTaskInfo getRunningTask(boolean filterOnlyVisibleRecents);
 
-    @NonNull
+    androidx.annotation.NonNull
     List<ActivityManager.RunningTaskInfo> getRunningTasks(boolean filterOnlyVisibleRecents);
 
-    @NonNull
+    androidx.annotation.NonNull
     List<ActivityManager.RecentTaskInfo> getRecentTasks(int numTasks, int userId);
 
     public static class ThumbnailData {

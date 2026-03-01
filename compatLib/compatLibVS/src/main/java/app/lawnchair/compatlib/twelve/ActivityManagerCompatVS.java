@@ -14,8 +14,8 @@ import android.view.IRecentsAnimationController;
 import android.view.IRecentsAnimationRunner;
 import android.view.RemoteAnimationTarget;
 import android.window.TaskSnapshot;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+
+
 import androidx.annotation.RequiresApi;
 import app.lawnchair.compatlib.RecentsAnimationRunnerCompat;
 import app.lawnchair.compatlib.eleven.ActivityManagerCompatVR;
@@ -35,7 +35,7 @@ public class ActivityManagerCompatVS extends ActivityManagerCompatVR {
         }
     }
 
-    @Nullable
+    androidx.annotation.Nullable
     @Override
     public TaskSnapshot getTaskSnapshot(
             int taskId, boolean isLowResolution, boolean takeSnapshotIfNeeded) {
@@ -91,7 +91,7 @@ public class ActivityManagerCompatVS extends ActivityManagerCompatVR {
         }
     }
 
-    @Nullable
+    androidx.annotation.Nullable
     @Override
     public ActivityManager.RunningTaskInfo getRunningTask(boolean filterOnlyVisibleRecents) {
         // Note: The set of running tasks from the system is ordered by recency
@@ -103,14 +103,14 @@ public class ActivityManagerCompatVS extends ActivityManagerCompatVR {
         return tasks.get(0);
     }
 
-    @NonNull
+    androidx.annotation.NonNull
     @Override
     public List<ActivityManager.RecentTaskInfo> getRecentTasks(int numTasks, int userId) {
         return ActivityTaskManager.getInstance()
                 .getRecentTasks(numTasks, RECENT_IGNORE_UNAVAILABLE, userId);
     }
 
-    @NonNull
+    androidx.annotation.NonNull
     @Override
     public List<ActivityManager.RunningTaskInfo> getRunningTasks(boolean filterOnlyVisibleRecents) {
         return ActivityTaskManager.getInstance()

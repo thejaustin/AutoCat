@@ -26,8 +26,8 @@ import static android.view.WindowInsets.Type.ime;
 
 import android.annotation.IntDef;
 import android.annotation.IntRange;
-import android.annotation.NonNull;
-import android.annotation.Nullable;
+
+
 import android.graphics.Insets;
 import android.graphics.Rect;
 import android.os.Parcel;
@@ -123,8 +123,8 @@ public class InsetsSource implements Parcelable {
     /** Frame of the source in screen coordinate space */
     private final Rect mFrame;
 
-    private @Nullable Rect mVisibleFrame;
-    private @Nullable Rect[] mBoundingRects;
+    private androidx.annotation.Nullable Rect mVisibleFrame;
+    private androidx.annotation.Nullable Rect[] mBoundingRects;
 
     private boolean mVisible;
 
@@ -174,7 +174,7 @@ public class InsetsSource implements Parcelable {
         return this;
     }
 
-    public InsetsSource setVisibleFrame(@Nullable Rect visibleFrame) {
+    public InsetsSource setVisibleFrame(androidx.annotation.Nullable Rect visibleFrame) {
         mVisibleFrame = visibleFrame != null ? new Rect(visibleFrame) : null;
         return this;
     }
@@ -209,7 +209,7 @@ public class InsetsSource implements Parcelable {
      * Set the bounding rectangles of this source. They are expected to be relative to the source
      * frame.
      */
-    public InsetsSource setBoundingRects(@Nullable Rect[] rects) {
+    public InsetsSource setBoundingRects(androidx.annotation.Nullable Rect[] rects) {
         mBoundingRects = rects != null ? rects.clone() : null;
         return this;
     }
@@ -226,7 +226,7 @@ public class InsetsSource implements Parcelable {
         return mFrame;
     }
 
-    public @Nullable Rect getVisibleFrame() {
+    public androidx.annotation.Nullable Rect getVisibleFrame() {
         return mVisibleFrame;
     }
 
@@ -243,7 +243,7 @@ public class InsetsSource implements Parcelable {
     }
 
     /** Returns the bounding rectangles of this source. */
-    public @Nullable Rect[] getBoundingRects() {
+    public androidx.annotation.Nullable Rect[] getBoundingRects() {
         return mBoundingRects;
     }
 
@@ -334,7 +334,7 @@ public class InsetsSource implements Parcelable {
     }
 
     /** Calculates the bounding rects the source will cause to a client window. */
-    public @NonNull Rect[] calculateBoundingRects(Rect relativeFrame, boolean ignoreVisibility) {
+    public androidx.annotation.NonNull Rect[] calculateBoundingRects(Rect relativeFrame, boolean ignoreVisibility) {
         if (!ignoreVisibility && !mVisible) {
             return NO_BOUNDING_RECTS;
         }
@@ -422,7 +422,7 @@ public class InsetsSource implements Parcelable {
      * @param out The rectangle which represents the intersection.
      * @return {@code true} if there is any intersection.
      */
-    private static boolean getIntersection(@NonNull Rect a, @NonNull Rect b, @NonNull Rect out) {
+    private static boolean getIntersection(androidx.annotation.NonNull Rect a, androidx.annotation.NonNull Rect b, androidx.annotation.NonNull Rect out) {
         if (a.left <= b.right && b.left <= a.right && a.top <= b.bottom && b.top <= a.bottom) {
             out.left = Math.max(a.left, b.left);
             out.top = Math.max(a.top, b.top);
@@ -584,7 +584,7 @@ public class InsetsSource implements Parcelable {
     }
 
     @Override
-    public boolean equals(@Nullable Object o) {
+    public boolean equals(androidx.annotation.Nullable Object o) {
         return equals(o, false);
     }
 
@@ -592,7 +592,7 @@ public class InsetsSource implements Parcelable {
      * @param excludeInvisibleImeFrames If {@link WindowInsets.Type#ime()} frames should be ignored
      *     when IME is not visible.
      */
-    public boolean equals(@Nullable Object o, boolean excludeInvisibleImeFrames) {
+    public boolean equals(androidx.annotation.Nullable Object o, boolean excludeInvisibleImeFrames) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
@@ -678,7 +678,7 @@ public class InsetsSource implements Parcelable {
                 + "}";
     }
 
-    public static final @NonNull Creator<InsetsSource> CREATOR =
+    public static final androidx.annotation.NonNull Creator<InsetsSource> CREATOR =
             new Creator<>() {
 
                 public InsetsSource createFromParcel(Parcel in) {

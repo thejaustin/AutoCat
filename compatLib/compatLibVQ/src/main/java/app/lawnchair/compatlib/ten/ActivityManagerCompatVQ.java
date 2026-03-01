@@ -14,8 +14,8 @@ import android.util.Log;
 import android.view.IRecentsAnimationController;
 import android.view.IRecentsAnimationRunner;
 import android.view.RemoteAnimationTarget;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+
+
 import androidx.annotation.RequiresApi;
 import app.lawnchair.compatlib.ActivityManagerCompat;
 import app.lawnchair.compatlib.RecentsAnimationRunnerCompat;
@@ -31,7 +31,7 @@ public class ActivityManagerCompatVQ implements ActivityManagerCompat {
         // Do nothing, Android Q doesn't support this.
     }
 
-    @NonNull
+    androidx.annotation.NonNull
     @Override
     public List<ActivityManager.RunningTaskInfo> getRunningTasks(boolean filterOnlyVisibleRecents) {
         int ignoreActivityType = WindowConfiguration.ACTIVITY_TYPE_UNDEFINED;
@@ -83,7 +83,7 @@ public class ActivityManagerCompatVQ implements ActivityManagerCompat {
         }
     }
 
-    @Nullable
+    androidx.annotation.Nullable
     @Override
     public ActivityManager.RunningTaskInfo getRunningTask(boolean filterOnlyVisibleRecents) {
         int ignoreActivityType = WindowConfiguration.ACTIVITY_TYPE_UNDEFINED;
@@ -106,7 +106,7 @@ public class ActivityManagerCompatVQ implements ActivityManagerCompat {
         }
     }
 
-    @NonNull
+    androidx.annotation.NonNull
     @Override
     public List<ActivityManager.RecentTaskInfo> getRecentTasks(int numTasks, int userId) {
         try {

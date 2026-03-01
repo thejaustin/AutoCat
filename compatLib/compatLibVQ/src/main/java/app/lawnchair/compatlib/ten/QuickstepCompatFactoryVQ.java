@@ -1,7 +1,7 @@
 package app.lawnchair.compatlib.ten;
 
 import android.window.RemoteTransition;
-import androidx.annotation.NonNull;
+
 import androidx.annotation.RequiresApi;
 import app.lawnchair.compatlib.ActivityManagerCompat;
 import app.lawnchair.compatlib.ActivityOptionsCompat;
@@ -12,19 +12,19 @@ import app.lawnchair.compatlib.RemoteTransitionCompat;
 public class QuickstepCompatFactoryVQ implements QuickstepCompatFactory {
     protected final String TAG = getClass().getCanonicalName();
 
-    @NonNull
+    androidx.annotation.NonNull
     @Override
     public ActivityManagerCompat getActivityManagerCompat() {
         return new ActivityManagerCompatVQ();
     }
 
-    @NonNull
+    androidx.annotation.NonNull
     @Override
     public ActivityOptionsCompat getActivityOptionsCompat() {
         return new ActivityOptionsCompatVQ();
     }
 
-    @NonNull
+    androidx.annotation.NonNull
     @Override
     public RemoteTransitionCompat getRemoteTransitionCompat() {
         return RemoteTransition::new;
