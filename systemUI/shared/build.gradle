@@ -28,7 +28,6 @@ addFrameworkJar('framework-16.jar')
 compileOnlyCommonJars()
 
 dependencies {
-    compileOnly files("${rootDir}/prebuilts/libs/framework-16.jar")
     compileOnly projects.hiddenApi
     compileOnly projects.unfold
     compileOnly projects.plugin
