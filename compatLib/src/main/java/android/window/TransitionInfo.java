@@ -16,14 +16,6 @@
 
 package android.window;
 
-import static android.app.ActivityOptions.ANIM_CLIP_REVEAL;
-import static android.app.ActivityOptions.ANIM_CUSTOM;
-import static android.app.ActivityOptions.ANIM_FROM_STYLE;
-import static android.app.ActivityOptions.ANIM_OPEN_CROSS_PROFILE_APPS;
-import static android.app.ActivityOptions.ANIM_SCALE_UP;
-import static android.app.ActivityOptions.ANIM_SCENE_TRANSITION;
-import static android.app.ActivityOptions.ANIM_THUMBNAIL_SCALE_DOWN;
-import static android.app.ActivityOptions.ANIM_THUMBNAIL_SCALE_UP;
 import static android.app.WindowConfiguration.ROTATION_UNDEFINED;
 import static android.view.Display.INVALID_DISPLAY;
 import static android.view.WindowManager.LayoutParams.ROTATION_ANIMATION_UNSPECIFIED;
@@ -1192,7 +1184,7 @@ public final class TransitionInfo implements Parcelable {
         /** Make basic customized animation for a package */
         @androidx.annotation.NonNull
         public static AnimationOptions makeCommonAnimOptions(@androidx.annotation.NonNull String packageName) {
-            AnimationOptions options = new AnimationOptions(ANIM_FROM_STYLE);
+            AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_FROM_STYLE);
             options.mPackageName = packageName;
             return options;
         }
@@ -1201,7 +1193,7 @@ public final class TransitionInfo implements Parcelable {
         @androidx.annotation.NonNull
         public static AnimationOptions makeAnimOptionsFromLayoutParameters(
                 @androidx.annotation.NonNull WindowManager.LayoutParams lp) {
-            AnimationOptions options = new AnimationOptions(ANIM_FROM_STYLE);
+            AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_FROM_STYLE);
             options.mPackageName = lp.packageName;
             options.mAnimations = lp.windowAnimations;
             return options;
@@ -1254,7 +1246,7 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /**
-         * Creates a {@link android.app.ActivityOptions#ANIM_CUSTOM} {@link AnimationOptions}.
+         * Creates a {@link android.app.ActivityOptions#android.app.ActivityOptions.ANIM_CUSTOM} {@link AnimationOptions}.
          *
          * @param packageName the package name that includes the animation resources.
          * @param enterResId the resources ID of open animation.
@@ -1270,7 +1262,7 @@ public final class TransitionInfo implements Parcelable {
                 @AnimRes int exitResId,
                 @ColorInt int backgroundColor,
                 boolean overrideTaskTransition) {
-            AnimationOptions options = new AnimationOptions(ANIM_CUSTOM);
+            AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_CUSTOM);
             options.mPackageName = packageName;
             options.mEnterResId = enterResId;
             options.mChangeResId = changeResId;
@@ -1284,7 +1276,7 @@ public final class TransitionInfo implements Parcelable {
         @androidx.annotation.NonNull
         public static AnimationOptions makeClipRevealAnimOptions(
                 int startX, int startY, int width, int height) {
-            AnimationOptions options = new AnimationOptions(ANIM_CLIP_REVEAL);
+            AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_CLIP_REVEAL);
             options.mTransitionBounds.set(startX, startY, startX + width, startY + height);
             return options;
         }
@@ -1293,7 +1285,7 @@ public final class TransitionInfo implements Parcelable {
         @androidx.annotation.NonNull
         public static AnimationOptions makeScaleUpAnimOptions(
                 int startX, int startY, int width, int height) {
-            AnimationOptions options = new AnimationOptions(ANIM_SCALE_UP);
+            AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_SCALE_UP);
             options.mTransitionBounds.set(startX, startY, startX + width, startY + height);
             return options;
         }
@@ -1304,7 +1296,7 @@ public final class TransitionInfo implements Parcelable {
                 @androidx.annotation.NonNull HardwareBuffer srcThumb, int startX, int startY, boolean scaleUp) {
             AnimationOptions options =
                     new AnimationOptions(
-                            scaleUp ? ANIM_THUMBNAIL_SCALE_UP : ANIM_THUMBNAIL_SCALE_DOWN);
+                            scaleUp ? android.app.ActivityOptions.ANIM_THUMBNAIL_SCALE_UP : android.app.ActivityOptions.ANIM_THUMBNAIL_SCALE_DOWN);
             options.mTransitionBounds.set(startX, startY, startX, startY);
             options.mThumbnail = srcThumb;
             return options;
@@ -1313,14 +1305,14 @@ public final class TransitionInfo implements Parcelable {
         /** Make options for an animation that spans activities of different profiles. */
         @androidx.annotation.NonNull
         public static AnimationOptions makeCrossProfileAnimOptions() {
-            AnimationOptions options = new AnimationOptions(ANIM_OPEN_CROSS_PROFILE_APPS);
+            AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_OPEN_CROSS_PROFILE_APPS);
             return options;
         }
 
         /** Make options designating this as a scene-transition animation. */
         @androidx.annotation.NonNull
         public static AnimationOptions makeSceneTransitionAnimOptions() {
-            AnimationOptions options = new AnimationOptions(ANIM_SCENE_TRANSITION);
+            AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_SCENE_TRANSITION);
             return options;
         }
 
@@ -1415,14 +1407,14 @@ public final class TransitionInfo implements Parcelable {
         @androidx.annotation.NonNull
         private static String typeToString(int mode) {
             return switch (mode) {
-                case ANIM_CUSTOM -> "CUSTOM";
-                case ANIM_SCALE_UP -> "SCALE_UP";
-                case ANIM_THUMBNAIL_SCALE_UP -> "THUMBNAIL_SCALE_UP";
-                case ANIM_THUMBNAIL_SCALE_DOWN -> "THUMBNAIL_SCALE_DOWN";
-                case ANIM_SCENE_TRANSITION -> "SCENE_TRANSITION";
-                case ANIM_CLIP_REVEAL -> "CLIP_REVEAL";
-                case ANIM_OPEN_CROSS_PROFILE_APPS -> "OPEN_CROSS_PROFILE_APPS";
-                case ANIM_FROM_STYLE -> "FROM_STYLE";
+                case android.app.ActivityOptions.ANIM_CUSTOM -> "CUSTOM";
+                case android.app.ActivityOptions.ANIM_SCALE_UP -> "SCALE_UP";
+                case android.app.ActivityOptions.ANIM_THUMBNAIL_SCALE_UP -> "THUMBNAIL_SCALE_UP";
+                case android.app.ActivityOptions.ANIM_THUMBNAIL_SCALE_DOWN -> "THUMBNAIL_SCALE_DOWN";
+                case android.app.ActivityOptions.ANIM_SCENE_TRANSITION -> "SCENE_TRANSITION";
+                case android.app.ActivityOptions.ANIM_CLIP_REVEAL -> "CLIP_REVEAL";
+                case android.app.ActivityOptions.ANIM_OPEN_CROSS_PROFILE_APPS -> "OPEN_CROSS_PROFILE_APPS";
+                case android.app.ActivityOptions.ANIM_FROM_STYLE -> "FROM_STYLE";
                 default -> "<" + mode + ">";
             };
         }
