@@ -4,12 +4,12 @@ package app.lawnchair.compatlib;
 
 public interface QuickstepCompatFactory {
 
-    @androidx.annotation.NonNull
+    @NonNull
     ActivityManagerCompat getActivityManagerCompat();
 
-    @androidx.annotation.NonNull
+    @NonNull
     ActivityOptionsCompat getActivityOptionsCompat();
 
-    @androidx.annotation.NonNull
+    @NonNull
     RemoteTransitionCompat getRemoteTransitionCompat();
 }

@@ -15,6 +15,8 @@ import app.lawnchair.compatlib.twelve.ActivityManagerCompatVS;
 
 @RequiresApi(33)
 public class ActivityManagerCompatVT extends ActivityManagerCompatVS {
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
     @Override
     public void startRecentsActivity(

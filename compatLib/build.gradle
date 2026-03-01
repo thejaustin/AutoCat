@@ -17,4 +17,8 @@ android {
     }
 }
 
+dependencies {
+    compileOnly libs.androidx.annotation
+}
+
 addFrameworkJar('framework-15.jar')

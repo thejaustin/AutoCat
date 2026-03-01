@@ -15,6 +15,8 @@ public class QuickstepCompatFactoryVBaklava extends QuickstepCompatFactoryVV {
     public ActivityManagerCompat getActivityManagerCompat() {
         return new ActivityManagerCompatVBaklava();
     }
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
     @Override
     public ActivityOptionsCompat getActivityOptionsCompat() {

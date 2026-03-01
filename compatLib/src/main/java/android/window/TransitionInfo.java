@@ -15,6 +15,8 @@
  */
 
 package android.window;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import static android.app.WindowConfiguration.ROTATION_UNDEFINED;
 import static android.view.Display.INVALID_DISPLAY;
@@ -235,7 +237,7 @@ public final class TransitionInfo implements Parcelable {
 
     @Override
     /** @hide */
-    public void writeToParcel(@androidx.annotation.NonNull Parcel dest, int flags) {
+    public void writeToParcel(@NonNull Parcel dest, int flags) {
         dest.writeInt(mType);
         dest.writeInt(mFlags);
         dest.writeTypedList(mChanges);
@@ -245,7 +247,7 @@ public final class TransitionInfo implements Parcelable {
         dest.writeInt(mTrack);
     }
 
-    @androidx.annotation.NonNull
+    @NonNull
     public static final Creator<TransitionInfo> CREATOR =
             new Creator<TransitionInfo>() {
                 @Override
@@ -269,14 +271,14 @@ public final class TransitionInfo implements Parcelable {
      * @see #getRoot
      */
     public void addRootLeash(
-            int displayId, @androidx.annotation.NonNull SurfaceControl leash, int offsetLeft, int offsetTop) {
+            int displayId, @NonNull SurfaceControl leash, int offsetLeft, int offsetTop) {
         mRoots.add(new Root(displayId, leash, offsetLeft, offsetTop));
     }
 
     /**
      * @see #getRoot
      */
-    public void addRoot(@androidx.annotation.NonNull Root other) {
+    public void addRoot(@NonNull Root other) {
         mRoots.add(other);
     }
 
@@ -285,7 +287,7 @@ public final class TransitionInfo implements Parcelable {
      *     Flags#FLAG_MOVE_ANIMATION_OPTIONS_TO_CHANGE} is disabled.
      */
     @Deprecated
-    public void setAnimationOptions(@androidx.annotation.Nullable AnimationOptions options) {
+    public void setAnimationOptions(@Nullable AnimationOptions options) {
         if (Flags.moveAnimationOptionsToChange()) {
             return;
         }
@@ -315,7 +317,7 @@ public final class TransitionInfo implements Parcelable {
     /**
      * @return the transition-root at a specific index.
      */
-    @androidx.annotation.NonNull
+    @NonNull
     public Root getRoot(int idx) {
         return mRoots.get(idx);
     }
@@ -340,7 +342,7 @@ public final class TransitionInfo implements Parcelable {
      * @deprecated Use {@link #getRoot} instead. This call assumes there is only one root.
      */
     @Deprecated
-    @androidx.annotation.NonNull
+    @NonNull
     public SurfaceControl getRootLeash() {
         if (mRoots.isEmpty()) {
             throw new IllegalStateException("Trying to get a root leash from a no-op transition.");
@@ -357,7 +359,7 @@ public final class TransitionInfo implements Parcelable {
      *     {@link Flags#FLAG_MOVE_ANIMATION_OPTIONS_TO_CHANGE} is disabled.
      */
     @Deprecated
-    @androidx.annotation.Nullable
+    @Nullable
     public AnimationOptions getAnimationOptions() {
         return mOptions;
     }
@@ -366,7 +368,7 @@ public final class TransitionInfo implements Parcelable {
      * @return the list of {@link Change}s in this transition. The list is sorted top-to-bottom in Z
      *     (meaning index 0 is the top-most container).
      */
-    @androidx.annotation.NonNull
+    @NonNull
     public List<Change> getChanges() {
         return mChanges;
     }
@@ -374,8 +376,8 @@ public final class TransitionInfo implements Parcelable {
     /**
      * @return the Change that a window is undergoing or {@code null} if not directly represented.
      */
-    @androidx.annotation.Nullable
-    public Change getChange(@androidx.annotation.NonNull WindowContainerToken token) {
+    @Nullable
+    public Change getChange(@NonNull WindowContainerToken token) {
         for (int i = mChanges.size() - 1; i >= 0; --i) {
             if (token.equals(mChanges.get(i).mContainer)) {
                 return mChanges.get(i);
@@ -385,7 +387,7 @@ public final class TransitionInfo implements Parcelable {
     }
 
     /** Add a {@link Change} to this transition. */
-    public void addChange(@androidx.annotation.NonNull Change change) {
+    public void addChange(@NonNull Change change) {
         mChanges.add(change);
     }
 
@@ -437,7 +439,7 @@ public final class TransitionInfo implements Parcelable {
      *
      * @hide
      */
-    public String toString(@androidx.annotation.NonNull String prefix) {
+    public String toString(@NonNull String prefix) {
         final boolean shouldPrettyPrint = !prefix.isEmpty() && !mChanges.isEmpty();
         final String innerPrefix = shouldPrettyPrint ? prefix + "    " : "";
         final String changesLineStart = shouldPrettyPrint ? "\n" + prefix : "";
@@ -476,7 +478,7 @@ public final class TransitionInfo implements Parcelable {
     }
 
     /** Converts a transition mode/action to its string representation. */
-    @androidx.annotation.NonNull
+    @NonNull
     public static String modeToString(@TransitionMode int mode) {
         switch (mode) {
             case TRANSIT_NONE:
@@ -497,7 +499,7 @@ public final class TransitionInfo implements Parcelable {
     }
 
     /** Converts change flags into a string representation. */
-    @androidx.annotation.NonNull
+    @NonNull
     public static String flagsToString(@ChangeFlags int flags) {
         if (flags == 0) return "NONE";
         final StringBuilder sb = new StringBuilder();
@@ -569,7 +571,7 @@ public final class TransitionInfo implements Parcelable {
      * vs. "going along for the ride")
      */
     public static boolean isIndependent(
-            @androidx.annotation.NonNull TransitionInfo.Change change, @androidx.annotation.NonNull TransitionInfo info) {
+            @NonNull TransitionInfo.Change change, @NonNull TransitionInfo info) {
         // If the change has no parent (it is root), then it is independent
         if (change.getParent() == null) return true;
 
@@ -633,7 +635,7 @@ public final class TransitionInfo implements Parcelable {
      * Updates the callsites of all the surfaces in this transition, which aids in the debugging of
      * lingering surfaces.
      */
-    public void setUnreleasedWarningCallSiteForAllSurfaces(@androidx.annotation.Nullable String callsite) {
+    public void setUnreleasedWarningCallSiteForAllSurfaces(@Nullable String callsite) {
         for (int i = mChanges.size() - 1; i >= 0; --i) {
             mChanges.get(i).getLeash().setUnreleasedWarningCallSite(callsite);
         }
@@ -645,7 +647,7 @@ public final class TransitionInfo implements Parcelable {
      * the caller's references. Use this only if you need to "send" this to a local function which
      * assumes it is being called from a remote caller.
      */
-    @androidx.annotation.NonNull
+    @NonNull
     public TransitionInfo localRemoteCopy() {
         final TransitionInfo out = new TransitionInfo(mType, mFlags);
         out.mTrack = mTrack;
@@ -692,7 +694,7 @@ public final class TransitionInfo implements Parcelable {
         private ComponentName mActivityComponent = null;
         private AnimationOptions mAnimationOptions = null;
 
-        public Change(@androidx.annotation.Nullable WindowContainerToken container, @androidx.annotation.NonNull SurfaceControl leash) {
+        public Change(@Nullable WindowContainerToken container, @NonNull SurfaceControl leash) {
             mContainer = container;
             mLeash = leash;
         }
@@ -749,7 +751,7 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Sets the parent of this change's container. The parent must be a participant or null. */
-        public void setParent(@androidx.annotation.Nullable WindowContainerToken parent) {
+        public void setParent(@Nullable WindowContainerToken parent) {
             mParent = parent;
         }
 
@@ -757,12 +759,12 @@ public final class TransitionInfo implements Parcelable {
          * Sets the parent of this change's container before the transition if this change's
          * container is reparented in the transition.
          */
-        public void setLastParent(@androidx.annotation.Nullable WindowContainerToken lastParent) {
+        public void setLastParent(@Nullable WindowContainerToken lastParent) {
             mLastParent = lastParent;
         }
 
         /** Sets the animation leash for controlling this change's container */
-        public void setLeash(@androidx.annotation.NonNull SurfaceControl leash) {
+        public void setLeash(@NonNull SurfaceControl leash) {
             mLeash = Objects.requireNonNull(leash);
         }
 
@@ -777,12 +779,12 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Sets the bounds this container occupied before the change in screen space */
-        public void setStartAbsBounds(@androidx.annotation.Nullable Rect rect) {
+        public void setStartAbsBounds(@Nullable Rect rect) {
             mStartAbsBounds.set(rect);
         }
 
         /** Sets the bounds this container will occupy after the change in screen space */
-        public void setEndAbsBounds(@androidx.annotation.Nullable Rect rect) {
+        public void setEndAbsBounds(@Nullable Rect rect) {
             mEndAbsBounds.set(rect);
         }
 
@@ -795,7 +797,7 @@ public final class TransitionInfo implements Parcelable {
          * Sets the taskinfo of this container if this is a task. WARNING: this takes the reference,
          * so don't modify it afterwards.
          */
-        public void setTaskInfo(@androidx.annotation.Nullable ActivityManager.RunningTaskInfo taskInfo) {
+        public void setTaskInfo(@Nullable ActivityManager.RunningTaskInfo taskInfo) {
             mTaskInfo = taskInfo;
         }
 
@@ -835,18 +837,18 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Sets a snapshot surface for the "start" state of the container. */
-        public void setSnapshot(@androidx.annotation.Nullable SurfaceControl snapshot, float luma) {
+        public void setSnapshot(@Nullable SurfaceControl snapshot, float luma) {
             mSnapshot = snapshot;
             mSnapshotLuma = luma;
         }
 
         /** Sets the component-name of the container. Container must be an Activity. */
-        public void setActivityComponent(@androidx.annotation.Nullable ComponentName component) {
+        public void setActivityComponent(@Nullable ComponentName component) {
             mActivityComponent = component;
         }
 
         /** Sets {@link AnimationOptions} to override animation. */
-        public void setAnimationOptions(@androidx.annotation.Nullable AnimationOptions options) {
+        public void setAnimationOptions(@Nullable AnimationOptions options) {
             if (!Flags.moveAnimationOptionsToChange()) {
                 return;
             }
@@ -856,7 +858,7 @@ public final class TransitionInfo implements Parcelable {
         /**
          * @return the container that is changing. May be null if non-remotable (eg. activity)
          */
-        @androidx.annotation.Nullable
+        @Nullable
         public WindowContainerToken getContainer() {
             return mContainer;
         }
@@ -865,7 +867,7 @@ public final class TransitionInfo implements Parcelable {
          * @return the parent of the changing container. This is the parent within the participants,
          *     not necessarily the actual parent.
          */
-        @androidx.annotation.Nullable
+        @Nullable
         public WindowContainerToken getParent() {
             return mParent;
         }
@@ -877,7 +879,7 @@ public final class TransitionInfo implements Parcelable {
          *     changing container has not been reparented in the transition, or if the parent is not
          *     organizable.
          */
-        @androidx.annotation.Nullable
+        @Nullable
         public WindowContainerToken getLastParent() {
             return mLastParent;
         }
@@ -910,7 +912,7 @@ public final class TransitionInfo implements Parcelable {
          * @return the bounds of the container before the change. It may be empty if the container
          *     is coming into existence.
          */
-        @androidx.annotation.NonNull
+        @NonNull
         public Rect getStartAbsBounds() {
             return mStartAbsBounds;
         }
@@ -919,7 +921,7 @@ public final class TransitionInfo implements Parcelable {
          * @return the bounds of the container after the change. It may be empty if the container is
          *     disappearing.
          */
-        @androidx.annotation.NonNull
+        @NonNull
         public Rect getEndAbsBounds() {
             return mEndAbsBounds;
         }
@@ -927,7 +929,7 @@ public final class TransitionInfo implements Parcelable {
         /**
          * @return the offset of the container's surface from its parent surface after the change.
          */
-        @androidx.annotation.NonNull
+        @NonNull
         public Point getEndRelOffset() {
             return mEndRelOffset;
         }
@@ -935,7 +937,7 @@ public final class TransitionInfo implements Parcelable {
         /**
          * @return the leash or surface to animate for this container
          */
-        @androidx.annotation.NonNull
+        @NonNull
         public SurfaceControl getLeash() {
             return mLeash;
         }
@@ -943,7 +945,7 @@ public final class TransitionInfo implements Parcelable {
         /**
          * @return the task info or null if this isn't a task
          */
-        @androidx.annotation.Nullable
+        @Nullable
         public ActivityManager.RunningTaskInfo getTaskInfo() {
             return mTaskInfo;
         }
@@ -993,7 +995,7 @@ public final class TransitionInfo implements Parcelable {
         /**
          * @return a snapshot surface (if applicable).
          */
-        @androidx.annotation.Nullable
+        @Nullable
         public SurfaceControl getSnapshot() {
             return mSnapshot;
         }
@@ -1008,20 +1010,20 @@ public final class TransitionInfo implements Parcelable {
         /**
          * @return the component-name of this container (if it is an activity).
          */
-        @androidx.annotation.Nullable
+        @Nullable
         public ComponentName getActivityComponent() {
             return mActivityComponent;
         }
 
         /** Returns the {@link AnimationOptions}. */
-        @androidx.annotation.Nullable
+        @Nullable
         public AnimationOptions getAnimationOptions() {
             return mAnimationOptions;
         }
 
         /** @hide */
         @Override
-        public void writeToParcel(@androidx.annotation.NonNull Parcel dest, int flags) {
+        public void writeToParcel(@NonNull Parcel dest, int flags) {
             dest.writeTypedObject(mContainer, flags);
             dest.writeTypedObject(mParent, flags);
             dest.writeTypedObject(mLastParent, flags);
@@ -1046,7 +1048,7 @@ public final class TransitionInfo implements Parcelable {
             dest.writeTypedObject(mAnimationOptions, flags);
         }
 
-        @androidx.annotation.NonNull
+        @NonNull
         public static final Creator<Change> CREATOR =
                 new Creator<Change>() {
                     @Override
@@ -1182,17 +1184,17 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Make basic customized animation for a package */
-        @androidx.annotation.NonNull
-        public static AnimationOptions makeCommonAnimOptions(@androidx.annotation.NonNull String packageName) {
+        @NonNull
+        public static AnimationOptions makeCommonAnimOptions(@NonNull String packageName) {
             AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_FROM_STYLE);
             options.mPackageName = packageName;
             return options;
         }
 
         /** Make custom animation from the content of LayoutParams */
-        @androidx.annotation.NonNull
+        @NonNull
         public static AnimationOptions makeAnimOptionsFromLayoutParameters(
-                @androidx.annotation.NonNull WindowManager.LayoutParams lp) {
+                @NonNull WindowManager.LayoutParams lp) {
             AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_FROM_STYLE);
             options.mPackageName = lp.packageName;
             options.mAnimations = lp.windowAnimations;
@@ -1200,7 +1202,7 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Add customized window animations */
-        public void addOptionsFromLayoutParameters(@androidx.annotation.NonNull WindowManager.LayoutParams lp) {
+        public void addOptionsFromLayoutParameters(@NonNull WindowManager.LayoutParams lp) {
             mAnimations = lp.windowAnimations;
         }
 
@@ -1229,9 +1231,9 @@ public final class TransitionInfo implements Parcelable {
          * @param backgroundColor the background color
          * @param overrideTaskTransition whether to override the task transition
          */
-        @androidx.annotation.NonNull
+        @NonNull
         public static AnimationOptions makeCustomAnimOptions(
-                @androidx.annotation.NonNull String packageName,
+                @NonNull String packageName,
                 @AnimRes int enterResId,
                 @AnimRes int exitResId,
                 @ColorInt int backgroundColor,
@@ -1254,9 +1256,9 @@ public final class TransitionInfo implements Parcelable {
          * @param exitResId the resources ID of close animation.
          * @param overrideTaskTransition indicates whether to override task transition.
          */
-        @androidx.annotation.NonNull
+        @NonNull
         public static AnimationOptions makeCustomAnimOptions(
-                @androidx.annotation.NonNull String packageName,
+                @NonNull String packageName,
                 @AnimRes int enterResId,
                 @AnimRes int changeResId,
                 @AnimRes int exitResId,
@@ -1273,7 +1275,7 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Make options for a clip-reveal animation. */
-        @androidx.annotation.NonNull
+        @NonNull
         public static AnimationOptions makeClipRevealAnimOptions(
                 int startX, int startY, int width, int height) {
             AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_CLIP_REVEAL);
@@ -1282,7 +1284,7 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Make options for a scale-up animation. */
-        @androidx.annotation.NonNull
+        @NonNull
         public static AnimationOptions makeScaleUpAnimOptions(
                 int startX, int startY, int width, int height) {
             AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_SCALE_UP);
@@ -1291,9 +1293,9 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Make options for a thumbnail-scaling animation. */
-        @androidx.annotation.NonNull
+        @NonNull
         public static AnimationOptions makeThumbnailAnimOptions(
-                @androidx.annotation.NonNull HardwareBuffer srcThumb, int startX, int startY, boolean scaleUp) {
+                @NonNull HardwareBuffer srcThumb, int startX, int startY, boolean scaleUp) {
             AnimationOptions options =
                     new AnimationOptions(
                             scaleUp ? android.app.ActivityOptions.ANIM_THUMBNAIL_SCALE_UP : android.app.ActivityOptions.ANIM_THUMBNAIL_SCALE_DOWN);
@@ -1303,14 +1305,14 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Make options for an animation that spans activities of different profiles. */
-        @androidx.annotation.NonNull
+        @NonNull
         public static AnimationOptions makeCrossProfileAnimOptions() {
             AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_OPEN_CROSS_PROFILE_APPS);
             return options;
         }
 
         /** Make options designating this as a scene-transition animation. */
-        @androidx.annotation.NonNull
+        @NonNull
         public static AnimationOptions makeSceneTransitionAnimOptions() {
             AnimationOptions options = new AnimationOptions(android.app.ActivityOptions.ANIM_SCENE_TRANSITION);
             return options;
@@ -1343,17 +1345,17 @@ public final class TransitionInfo implements Parcelable {
             return mOverrideTaskTransition;
         }
 
-        @androidx.annotation.Nullable
+        @Nullable
         public String getPackageName() {
             return mPackageName;
         }
 
-        @androidx.annotation.NonNull
+        @NonNull
         public Rect getTransitionBounds() {
             return mTransitionBounds;
         }
 
-        @androidx.annotation.Nullable
+        @Nullable
         public HardwareBuffer getThumbnail() {
             return mThumbnail;
         }
@@ -1363,13 +1365,13 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Return customized activity transition if existed. */
-        @androidx.annotation.Nullable
+        @Nullable
         public CustomActivityTransition getCustomActivityTransition(boolean open) {
             return open ? mCustomActivityOpenTransition : mCustomActivityCloseTransition;
         }
 
         @Override
-        public void writeToParcel(@androidx.annotation.NonNull Parcel dest, int flags) {
+        public void writeToParcel(@NonNull Parcel dest, int flags) {
             dest.writeInt(mType);
             dest.writeInt(mEnterResId);
             dest.writeInt(mChangeResId);
@@ -1384,7 +1386,7 @@ public final class TransitionInfo implements Parcelable {
             dest.writeTypedObject(mCustomActivityCloseTransition, flags);
         }
 
-        @androidx.annotation.NonNull
+        @NonNull
         public static final Creator<AnimationOptions> CREATOR =
                 new Creator<AnimationOptions>() {
                     @Override
@@ -1404,7 +1406,7 @@ public final class TransitionInfo implements Parcelable {
             return 0;
         }
 
-        @androidx.annotation.NonNull
+        @NonNull
         private static String typeToString(int mode) {
             return switch (mode) {
                 case android.app.ActivityOptions.ANIM_CUSTOM -> "CUSTOM";
@@ -1420,7 +1422,7 @@ public final class TransitionInfo implements Parcelable {
         }
 
         @Override
-        @androidx.annotation.NonNull
+        @NonNull
         public String toString() {
             final StringBuilder sb = new StringBuilder(32);
             sb.append("{t=").append(typeToString(mType));
@@ -1486,13 +1488,13 @@ public final class TransitionInfo implements Parcelable {
             }
 
             @Override
-            public void writeToParcel(@androidx.annotation.NonNull Parcel dest, int flags) {
+            public void writeToParcel(@NonNull Parcel dest, int flags) {
                 dest.writeInt(mCustomEnterResId);
                 dest.writeInt(mCustomExitResId);
                 dest.writeInt(mCustomBackgroundColor);
             }
 
-            @androidx.annotation.NonNull
+            @NonNull
             public static final Creator<CustomActivityTransition> CREATOR =
                     new Creator<CustomActivityTransition>() {
                         @Override
@@ -1520,7 +1522,7 @@ public final class TransitionInfo implements Parcelable {
         private final SurfaceControl mLeash;
         private final Point mOffset = new Point();
 
-        public Root(int displayId, @androidx.annotation.NonNull SurfaceControl leash, int offsetLeft, int offsetTop) {
+        public Root(int displayId, @NonNull SurfaceControl leash, int offsetLeft, int offsetTop) {
             mDisplayId = displayId;
             mLeash = leash;
             mOffset.set(offsetLeft, offsetTop);
@@ -1549,7 +1551,7 @@ public final class TransitionInfo implements Parcelable {
         /**
          * @return the root's leash. Surfaces should be parented to this while animating.
          */
-        @androidx.annotation.NonNull
+        @NonNull
         public SurfaceControl getLeash() {
             return mLeash;
         }
@@ -1557,20 +1559,20 @@ public final class TransitionInfo implements Parcelable {
         /**
          * @return the offset (relative to its screen) of the root leash.
          */
-        @androidx.annotation.NonNull
+        @NonNull
         public Point getOffset() {
             return mOffset;
         }
 
         /** @hide */
         @Override
-        public void writeToParcel(@androidx.annotation.NonNull Parcel dest, int flags) {
+        public void writeToParcel(@NonNull Parcel dest, int flags) {
             dest.writeInt(mDisplayId);
             mLeash.writeToParcel(dest, flags);
             mOffset.writeToParcel(dest, flags);
         }
 
-        @androidx.annotation.NonNull
+        @NonNull
         public static final Creator<Root> CREATOR =
                 new Creator<Root>() {
                     @Override

@@ -15,12 +15,14 @@ import java.util.List;
 public interface ActivityManagerCompat {
     int NUM_RECENT_ACTIVITIES_REQUEST = 3;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
     void invalidateHomeTaskSnapshot(final Activity homeActivity);
 
     void startRecentsActivity(
             Intent intent, long eventTime, RecentsAnimationRunnerCompat runnerCompat);
 
-    @androidx.annotation.Nullable
+    @Nullable
     @RequiresApi(31)
     default TaskSnapshot getTaskSnapshot(
             int taskId, boolean isLowResolution, boolean takeSnapshotIfNeeded) {
@@ -40,13 +42,13 @@ public interface ActivityManagerCompat {
         return null;
     }
 
-    @androidx.annotation.Nullable
+    @Nullable
     ActivityManager.RunningTaskInfo getRunningTask(boolean filterOnlyVisibleRecents);
 
-    @androidx.annotation.NonNull
+    @NonNull
     List<ActivityManager.RunningTaskInfo> getRunningTasks(boolean filterOnlyVisibleRecents);
 
-    @androidx.annotation.NonNull
+    @NonNull
     List<ActivityManager.RecentTaskInfo> getRecentTasks(int numTasks, int userId);
 
     public static class ThumbnailData {

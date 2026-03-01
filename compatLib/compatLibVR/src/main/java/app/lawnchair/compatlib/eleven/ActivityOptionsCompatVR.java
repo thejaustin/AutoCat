@@ -13,12 +13,14 @@ public class ActivityOptionsCompatVR extends ActivityOptionsCompatVQ {
 
     @Override
     public ActivityOptions makeCustomAnimation(
-            @androidx.annotation.NonNull Context context,
+            @NonNull Context context,
             int enterResId,
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
             int exitResId,
-            @androidx.annotation.NonNull final Handler callbackHandler,
-            @androidx.annotation.Nullable final Runnable startedListener,
-            @androidx.annotation.Nullable final Runnable finishedListener) {
+            @NonNull final Handler callbackHandler,
+            @Nullable final Runnable startedListener,
+            @Nullable final Runnable finishedListener) {
         return ActivityOptions.makeCustomAnimation(
                 context,
                 enterResId,

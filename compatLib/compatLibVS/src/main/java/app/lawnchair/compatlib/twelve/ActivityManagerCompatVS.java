@@ -15,6 +15,8 @@ import android.view.IRecentsAnimationRunner;
 import android.view.RemoteAnimationTarget;
 import android.window.TaskSnapshot;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import androidx.annotation.RequiresApi;
 import app.lawnchair.compatlib.RecentsAnimationRunnerCompat;

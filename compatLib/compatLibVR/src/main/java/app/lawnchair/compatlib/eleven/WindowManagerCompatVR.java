@@ -15,6 +15,8 @@ import androidx.annotation.RequiresApi;
 public class WindowManagerCompatVR {
     public static final int NAV_BAR_POS_INVALID = NAV_BAR_INVALID;
     public static final int NAV_BAR_POS_LEFT = NAV_BAR_LEFT;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
     public static final int NAV_BAR_POS_RIGHT = NAV_BAR_RIGHT;
     public static final int NAV_BAR_POS_BOTTOM = NAV_BAR_BOTTOM;
 

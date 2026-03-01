@@ -15,6 +15,8 @@ public class QuickstepCompatFactoryVQ implements QuickstepCompatFactory {
     @Override
     public ActivityManagerCompat getActivityManagerCompat() {
         return new ActivityManagerCompatVQ();
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
     }
 
     @Override

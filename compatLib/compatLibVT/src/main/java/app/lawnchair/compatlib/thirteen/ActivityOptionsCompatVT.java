@@ -15,19 +15,21 @@ public class ActivityOptionsCompatVT extends ActivityOptionsCompatVS {
 
     @Override
     public ActivityOptions makeRemoteAnimation(
-            @androidx.annotation.Nullable RemoteAnimationAdapter remoteAnimationAdapter,
-            @androidx.annotation.Nullable Object remoteTransition,
-            @androidx.annotation.Nullable String debugName) {
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+            @Nullable RemoteAnimationAdapter remoteAnimationAdapter,
+            @Nullable Object remoteTransition,
+            @Nullable String debugName) {
         return ActivityOptions.makeRemoteAnimation(
                 remoteAnimationAdapter, (RemoteTransition) remoteTransition);
     }
 
     @Override
     public ActivityOptions makeCustomAnimation(
-            @androidx.annotation.NonNull Context context,
+            @NonNull Context context,
             int enterResId,
             int exitResId,
-            @androidx.annotation.NonNull Handler callbackHandler,
+            @NonNull Handler callbackHandler,
             Runnable callback,
             Runnable finishedListener) {
         return ActivityOptions.makeCustomTaskAnimation(

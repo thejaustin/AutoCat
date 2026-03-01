@@ -15,12 +15,14 @@ public class ActivityOptionsCompatVQ implements ActivityOptionsCompat {
 
     @Override
     public ActivityOptions makeCustomAnimation(
-            @androidx.annotation.NonNull Context context,
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+            @NonNull Context context,
             int enterResId,
             int exitResId,
-            @androidx.annotation.NonNull final Handler callbackHandler,
-            @androidx.annotation.Nullable final Runnable startedListener,
-            @androidx.annotation.Nullable final Runnable finishedListener) {
+            @NonNull final Handler callbackHandler,
+            @Nullable final Runnable startedListener,
+            @Nullable final Runnable finishedListener) {
         return ActivityOptions.makeCustomAnimation(
                 context,
                 enterResId,
@@ -38,9 +40,9 @@ public class ActivityOptionsCompatVQ implements ActivityOptionsCompat {
 
     @Override
     public ActivityOptions makeRemoteAnimation(
-            @androidx.annotation.Nullable RemoteAnimationAdapter remoteAnimationAdapter,
-            @androidx.annotation.Nullable Object remoteTransition,
-            @androidx.annotation.Nullable String debugName) {
+            @Nullable RemoteAnimationAdapter remoteAnimationAdapter,
+            @Nullable Object remoteTransition,
+            @Nullable String debugName) {
         return ActivityOptions.makeRemoteAnimation(remoteAnimationAdapter);
     }
 }

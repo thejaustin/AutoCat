@@ -15,6 +15,8 @@ public class QuickstepCompatFactoryVR extends QuickstepCompatFactoryVQ {
     }
 
     @Override
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
     public ActivityOptionsCompat getActivityOptionsCompat() {
         return new ActivityOptionsCompatVR();
     }

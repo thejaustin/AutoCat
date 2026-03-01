@@ -15,6 +15,8 @@ public class QuickstepCompatFactoryVU extends QuickstepCompatFactoryVT {
     public ActivityManagerCompat getActivityManagerCompat() {
         return new ActivityManagerCompatVU();
     }
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
     @Override
     public ActivityOptionsCompat getActivityOptionsCompat() {

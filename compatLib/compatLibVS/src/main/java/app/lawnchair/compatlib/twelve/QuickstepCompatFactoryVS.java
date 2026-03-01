@@ -15,6 +15,8 @@ import java.lang.reflect.InvocationTargetException;
 @RequiresApi(31)
 public class QuickstepCompatFactoryVS extends QuickstepCompatFactoryVR {
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
     @Override
     public ActivityManagerCompat getActivityManagerCompat() {
         return new ActivityManagerCompatVS();
