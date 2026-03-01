@@ -106,14 +106,7 @@ allprojects {
             dependencies {
                 compileOnly files(frameworkJar)
             }
-            tasks.withType(JavaCompile).configureEach { task ->
-                def cp = task.options.bootstrapClasspath
-                if (cp != null) {
-                    task.options.bootstrapClasspath = project.files(frameworkJar) + cp
-                } else {
-                    task.options.bootstrapClasspath = project.files(frameworkJar)
-                }
-            }
+            android.bootClasspath = [frameworkJar] + android.bootClasspath
             tasks.withType(KotlinCompile).configureEach { task ->
                 task.libraries.setFrom(project.files(frameworkJar, task.libraries ?: []))
             }
