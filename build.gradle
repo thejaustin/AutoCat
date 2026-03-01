@@ -32,14 +32,6 @@ sentry {
 // LC-Build-TODO: addFrameworkJar() now managed globally in allprojects
 
 allprojects {
-    gradle.projectsEvaluated {
-        tasks.withType(JavaCompile).configureEach { task ->
-            task.options.bootstrapClasspath = project.files(new File(FRAMEWORK_PREBUILTS_DIR, "framework-16.jar")).plus(task.options.bootstrapClasspath ?: project.files())
-        }
-        tasks.withType(KotlinCompile).configureEach { task ->
-            task.libraries.setFrom(project.files(new File(FRAMEWORK_PREBUILTS_DIR, "framework-16.jar"), task.libraries ?: project.files()))
-        }
-    }
     plugins.withType(AndroidBasePlugin).configureEach {
         android {
             buildToolsVersion "36.1.0"
@@ -113,6 +105,12 @@ allprojects {
             }
             dependencies {
                 compileOnly files(frameworkJar)
+            }
+            tasks.withType(JavaCompile).configureEach { task ->
+                task.options.bootstrapClasspath = project.files(frameworkJar, task.options.bootstrapClasspath ?: [])
+            }
+            tasks.withType(KotlinCompile).configureEach { task ->
+                task.libraries.setFrom(project.files(frameworkJar, task.libraries ?: []))
             }
         }
 
