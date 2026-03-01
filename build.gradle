@@ -113,13 +113,11 @@ allprojects {
             dependencies {
                 compileOnly files(frameworkJar)
             }
-            afterEvaluate {
-                tasks.withType(JavaCompile) {
-                    classpath = project.files(frameworkJar, classpath)
-                }
-                tasks.withType(KotlinCompile) {
-                    libraries.setFrom(project.files(frameworkJar, libraries))
-                }
+            tasks.withType(JavaCompile).configureEach { task ->
+                task.classpath = project.files(frameworkJar, task.classpath ?: [])
+            }
+            tasks.withType(KotlinCompile).configureEach { task ->
+                task.libraries.setFrom(project.files(frameworkJar, task.libraries ?: []))
             }
         }
 
