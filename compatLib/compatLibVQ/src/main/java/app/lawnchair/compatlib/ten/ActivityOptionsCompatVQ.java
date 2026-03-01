@@ -13,15 +13,14 @@ import app.lawnchair.compatlib.ActivityOptionsCompat;
 public class ActivityOptionsCompatVQ implements ActivityOptionsCompat {
     protected final String TAG = getClass().getCanonicalName();
 
-    androidx.annotation.NonNull
     @Override
     public ActivityOptions makeCustomAnimation(
-            androidx.annotation.NonNull Context context,
+            @androidx.annotation.NonNull Context context,
             int enterResId,
             int exitResId,
-            androidx.annotation.NonNull final Handler callbackHandler,
-            androidx.annotation.Nullable final Runnable startedListener,
-            androidx.annotation.Nullable final Runnable finishedListener) {
+            @androidx.annotation.NonNull final Handler callbackHandler,
+            @androidx.annotation.Nullable final Runnable startedListener,
+            @androidx.annotation.Nullable final Runnable finishedListener) {
         return ActivityOptions.makeCustomAnimation(
                 context,
                 enterResId,
@@ -37,12 +36,11 @@ public class ActivityOptionsCompatVQ implements ActivityOptionsCompat {
                 });
     }
 
-    androidx.annotation.NonNull
     @Override
     public ActivityOptions makeRemoteAnimation(
-            androidx.annotation.Nullable RemoteAnimationAdapter remoteAnimationAdapter,
-            androidx.annotation.Nullable Object remoteTransition,
-            androidx.annotation.Nullable String debugName) {
+            @androidx.annotation.Nullable RemoteAnimationAdapter remoteAnimationAdapter,
+            @androidx.annotation.Nullable Object remoteTransition,
+            @androidx.annotation.Nullable String debugName) {
         return ActivityOptions.makeRemoteAnimation(remoteAnimationAdapter);
     }
 }

@@ -15,19 +15,16 @@ import java.lang.reflect.InvocationTargetException;
 @RequiresApi(31)
 public class QuickstepCompatFactoryVS extends QuickstepCompatFactoryVR {
 
-    androidx.annotation.NonNull
     @Override
     public ActivityManagerCompat getActivityManagerCompat() {
         return new ActivityManagerCompatVS();
     }
 
-    androidx.annotation.NonNull
     @Override
     public ActivityOptionsCompat getActivityOptionsCompat() {
         return new ActivityOptionsCompatVS();
     }
 
-    androidx.annotation.NonNull
     @Override
     public RemoteTransitionCompat getRemoteTransitionCompat() {
         return this::createRemoteTransition;

@@ -48,7 +48,7 @@ public interface OnBackAnimationCallback extends OnBackInvokedCallback {
      *     press.
      * @see BackEvent
      */
-    default void onBackStarted(androidx.annotation.NonNull BackEvent backEvent) {}
+    default void onBackStarted(@androidx.annotation.NonNull BackEvent backEvent) {}
 
     /**
      * Called when a back gesture progresses.
@@ -56,7 +56,7 @@ public interface OnBackAnimationCallback extends OnBackInvokedCallback {
      * @param backEvent An {@link BackEvent} object describing the progress event.
      * @see BackEvent
      */
-    default void onBackProgressed(androidx.annotation.NonNull BackEvent backEvent) {}
+    default void onBackProgressed(@androidx.annotation.NonNull BackEvent backEvent) {}
 
     /** Called when a back gesture or back button press has been cancelled. */
     default void onBackCancelled() {}

@@ -31,7 +31,6 @@ public class ActivityManagerCompatVQ implements ActivityManagerCompat {
         // Do nothing, Android Q doesn't support this.
     }
 
-    androidx.annotation.NonNull
     @Override
     public List<ActivityManager.RunningTaskInfo> getRunningTasks(boolean filterOnlyVisibleRecents) {
         int ignoreActivityType = WindowConfiguration.ACTIVITY_TYPE_UNDEFINED;
@@ -83,7 +82,6 @@ public class ActivityManagerCompatVQ implements ActivityManagerCompat {
         }
     }
 
-    androidx.annotation.Nullable
     @Override
     public ActivityManager.RunningTaskInfo getRunningTask(boolean filterOnlyVisibleRecents) {
         int ignoreActivityType = WindowConfiguration.ACTIVITY_TYPE_UNDEFINED;
@@ -106,7 +104,6 @@ public class ActivityManagerCompatVQ implements ActivityManagerCompat {
         }
     }
 
-    androidx.annotation.NonNull
     @Override
     public List<ActivityManager.RecentTaskInfo> getRecentTasks(int numTasks, int userId) {
         try {

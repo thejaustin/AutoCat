@@ -80,7 +80,6 @@ public class ActivityManagerCompatVR extends ActivityManagerCompatVQ {
         }
     }
 
-    androidx.annotation.Nullable
     @Override
     public ActivityManager.RunningTaskInfo getRunningTask(boolean filterOnlyVisibleRecents) {
         // Note: The set of running tasks from the system is ordered by recency
@@ -96,7 +95,6 @@ public class ActivityManagerCompatVR extends ActivityManagerCompatVQ {
         }
     }
 
-    androidx.annotation.NonNull
     @Override
     public List<ActivityManager.RunningTaskInfo> getRunningTasks(boolean filterOnlyVisibleRecents) {
         try {

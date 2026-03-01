@@ -197,13 +197,13 @@ public class InsetsFrameProvider implements Parcelable {
     }
 
     /** Sets the bounding rectangles within and relative to the source frame. */
-    public InsetsFrameProvider setBoundingRects(androidx.annotation.Nullable Rect[] boundingRects) {
+    public InsetsFrameProvider setBoundingRects(@androidx.annotation.Nullable Rect[] boundingRects) {
         mBoundingRects = boundingRects == null ? null : boundingRects.clone();
         return this;
     }
 
     /** Returns the arbitrary bounding rects, or null if none were set. */
-    androidx.annotation.Nullable
+    @androidx.annotation.Nullable
     public Rect[] getBoundingRects() {
         return mBoundingRects;
     }
@@ -316,7 +316,7 @@ public class InsetsFrameProvider implements Parcelable {
                 Arrays.hashCode(mBoundingRects));
     }
 
-    public static final androidx.annotation.NonNull Parcelable.Creator<InsetsFrameProvider> CREATOR =
+    public static final @androidx.annotation.NonNull Parcelable.Creator<InsetsFrameProvider> CREATOR =
             new Parcelable.Creator<>() {
                 @Override
                 public InsetsFrameProvider createFromParcel(Parcel in) {

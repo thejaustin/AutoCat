@@ -35,7 +35,6 @@ public class ActivityManagerCompatVS extends ActivityManagerCompatVR {
         }
     }
 
-    androidx.annotation.Nullable
     @Override
     public TaskSnapshot getTaskSnapshot(
             int taskId, boolean isLowResolution, boolean takeSnapshotIfNeeded) {
@@ -91,7 +90,6 @@ public class ActivityManagerCompatVS extends ActivityManagerCompatVR {
         }
     }
 
-    androidx.annotation.Nullable
     @Override
     public ActivityManager.RunningTaskInfo getRunningTask(boolean filterOnlyVisibleRecents) {
         // Note: The set of running tasks from the system is ordered by recency
@@ -103,14 +101,12 @@ public class ActivityManagerCompatVS extends ActivityManagerCompatVR {
         return tasks.get(0);
     }
 
-    androidx.annotation.NonNull
     @Override
     public List<ActivityManager.RecentTaskInfo> getRecentTasks(int numTasks, int userId) {
         return ActivityTaskManager.getInstance()
                 .getRecentTasks(numTasks, RECENT_IGNORE_UNAVAILABLE, userId);
     }
 
-    androidx.annotation.NonNull
     @Override
     public List<ActivityManager.RunningTaskInfo> getRunningTasks(boolean filterOnlyVisibleRecents) {
         return ActivityTaskManager.getInstance()

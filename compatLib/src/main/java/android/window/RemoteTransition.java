@@ -31,20 +31,20 @@ import android.os.Parcelable;
 public final class RemoteTransition implements Parcelable {
 
     /** The actual remote-transition interface used to run the transition animation. */
-    private androidx.annotation.NonNull IRemoteTransition mRemoteTransition;
+    private @androidx.annotation.NonNull IRemoteTransition mRemoteTransition;
 
     /** The application thread that will be running the remote transition. */
-    private androidx.annotation.Nullable IApplicationThread mAppThread;
+    private @androidx.annotation.Nullable IApplicationThread mAppThread;
 
     /** A name for this that can be used for debugging. */
-    private androidx.annotation.Nullable String mDebugName;
+    private @androidx.annotation.Nullable String mDebugName;
 
     /**
      * Constructs with no app thread (animation runs in shell).
      *
      * @hide
      */
-    public RemoteTransition(androidx.annotation.NonNull IRemoteTransition remoteTransition) {
+    public RemoteTransition(@androidx.annotation.NonNull IRemoteTransition remoteTransition) {
         this(remoteTransition, null /* appThread */, null /* debugName */);
     }
 
@@ -54,12 +54,12 @@ public final class RemoteTransition implements Parcelable {
      * @hide
      */
     public RemoteTransition(
-            androidx.annotation.NonNull IRemoteTransition remoteTransition, androidx.annotation.Nullable String debugName) {
+            @androidx.annotation.NonNull IRemoteTransition remoteTransition, @androidx.annotation.Nullable String debugName) {
         this(remoteTransition, null /* appThread */, debugName);
     }
 
     /** Get the IBinder associated with the underlying IRemoteTransition. */
-    public androidx.annotation.Nullable IBinder asBinder() {
+    public @androidx.annotation.Nullable IBinder asBinder() {
         return mRemoteTransition.asBinder();
     }
 
@@ -73,9 +73,9 @@ public final class RemoteTransition implements Parcelable {
      * @hide
      */
     public RemoteTransition(
-            androidx.annotation.NonNull IRemoteTransition remoteTransition,
-            androidx.annotation.Nullable IApplicationThread appThread,
-            androidx.annotation.Nullable String debugName) {
+            @androidx.annotation.NonNull IRemoteTransition remoteTransition,
+            @androidx.annotation.Nullable IApplicationThread appThread,
+            @androidx.annotation.Nullable String debugName) {
         this.mRemoteTransition = remoteTransition;
         com.android.internal.util.AnnotationValidations.validate(
                 NonNull.class, null, mRemoteTransition);
@@ -90,7 +90,7 @@ public final class RemoteTransition implements Parcelable {
      *
      * @hide
      */
-    public androidx.annotation.NonNull IRemoteTransition getRemoteTransition() {
+    public @androidx.annotation.NonNull IRemoteTransition getRemoteTransition() {
         return mRemoteTransition;
     }
 
@@ -99,12 +99,12 @@ public final class RemoteTransition implements Parcelable {
      *
      * @hide
      */
-    public androidx.annotation.Nullable IApplicationThread getAppThread() {
+    public @androidx.annotation.Nullable IApplicationThread getAppThread() {
         return mAppThread;
     }
 
     /** A name for this that can be used for debugging. */
-    public androidx.annotation.Nullable String getDebugName() {
+    public @androidx.annotation.Nullable String getDebugName() {
         return mDebugName;
     }
 
@@ -113,7 +113,7 @@ public final class RemoteTransition implements Parcelable {
      *
      * @hide
      */
-    public androidx.annotation.NonNull RemoteTransition setRemoteTransition(androidx.annotation.NonNull IRemoteTransition value) {
+    public @androidx.annotation.NonNull RemoteTransition setRemoteTransition(@androidx.annotation.NonNull IRemoteTransition value) {
         mRemoteTransition = value;
         com.android.internal.util.AnnotationValidations.validate(
                 NonNull.class, null, mRemoteTransition);
@@ -125,13 +125,13 @@ public final class RemoteTransition implements Parcelable {
      *
      * @hide
      */
-    public androidx.annotation.NonNull RemoteTransition setAppThread(androidx.annotation.NonNull IApplicationThread value) {
+    public @androidx.annotation.NonNull RemoteTransition setAppThread(@androidx.annotation.NonNull IApplicationThread value) {
         mAppThread = value;
         return this;
     }
 
     /** A name for this that can be used for debugging. */
-    public androidx.annotation.NonNull RemoteTransition setDebugName(androidx.annotation.NonNull String value) {
+    public @androidx.annotation.NonNull RemoteTransition setDebugName(@androidx.annotation.NonNull String value) {
         mDebugName = value;
         return this;
     }
@@ -154,7 +154,7 @@ public final class RemoteTransition implements Parcelable {
     }
 
     @Override
-    public void writeToParcel(androidx.annotation.NonNull android.os.Parcel dest, int flags) {
+    public void writeToParcel(@androidx.annotation.NonNull android.os.Parcel dest, int flags) {
         // You can override field parcelling by defining methods like:
         // void parcelFieldName(Parcel dest, int flags) { ... }
 
@@ -174,7 +174,7 @@ public final class RemoteTransition implements Parcelable {
 
     /** @hide */
     @SuppressWarnings({"unchecked", "RedundantCast"})
-    protected RemoteTransition(androidx.annotation.NonNull android.os.Parcel in) {
+    protected RemoteTransition(@androidx.annotation.NonNull android.os.Parcel in) {
         // You can override field unparcelling by defining methods like:
         // static FieldType unparcelFieldName(Parcel in) { ... }
 
@@ -194,7 +194,7 @@ public final class RemoteTransition implements Parcelable {
         this.mDebugName = debugName;
     }
 
-    public static final androidx.annotation.NonNull Parcelable.Creator<RemoteTransition> CREATOR =
+    public static final @androidx.annotation.NonNull Parcelable.Creator<RemoteTransition> CREATOR =
             new Parcelable.Creator<RemoteTransition>() {
                 @Override
                 public RemoteTransition[] newArray(int size) {
@@ -202,7 +202,7 @@ public final class RemoteTransition implements Parcelable {
                 }
 
                 @Override
-                public RemoteTransition createFromParcel(androidx.annotation.NonNull android.os.Parcel in) {
+                public RemoteTransition createFromParcel(@androidx.annotation.NonNull android.os.Parcel in) {
                     return new RemoteTransition(in);
                 }
             };

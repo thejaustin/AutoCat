@@ -11,19 +11,16 @@ import app.lawnchair.compatlib.twelve.QuickstepCompatFactoryVS;
 @RequiresApi(33)
 public class QuickstepCompatFactoryVT extends QuickstepCompatFactoryVS {
 
-    androidx.annotation.NonNull
     @Override
     public ActivityManagerCompat getActivityManagerCompat() {
         return new ActivityManagerCompatVT();
     }
 
-    androidx.annotation.NonNull
     @Override
     public ActivityOptionsCompat getActivityOptionsCompat() {
         return new ActivityOptionsCompatVT();
     }
 
-    androidx.annotation.NonNull
     @Override
     public RemoteTransitionCompat getRemoteTransitionCompat() {
         return (remoteTransition, appThread, debugName) ->

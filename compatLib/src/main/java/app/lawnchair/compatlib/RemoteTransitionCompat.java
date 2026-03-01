@@ -9,7 +9,7 @@ import android.window.RemoteTransition;
 public interface RemoteTransitionCompat {
 
     RemoteTransition getRemoteTransition(
-            androidx.annotation.NonNull IRemoteTransition remoteTransition,
-            androidx.annotation.Nullable IApplicationThread appThread,
-            androidx.annotation.Nullable String debugName);
+            @androidx.annotation.NonNull IRemoteTransition remoteTransition,
+            @androidx.annotation.Nullable IApplicationThread appThread,
+            @androidx.annotation.Nullable String debugName);
 }

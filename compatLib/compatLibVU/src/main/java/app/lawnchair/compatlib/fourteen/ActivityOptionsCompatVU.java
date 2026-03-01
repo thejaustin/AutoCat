@@ -10,15 +10,14 @@ import app.lawnchair.compatlib.thirteen.ActivityOptionsCompatVT;
 
 @RequiresApi(34)
 public class ActivityOptionsCompatVU extends ActivityOptionsCompatVT {
-    androidx.annotation.NonNull
     @Override
     public ActivityOptions makeCustomAnimation(
-            androidx.annotation.NonNull Context context,
+            @androidx.annotation.NonNull Context context,
             int enterResId,
             int exitResId,
-            androidx.annotation.NonNull final Handler callbackHandler,
-            androidx.annotation.Nullable final Runnable startedListener,
-            androidx.annotation.Nullable final Runnable finishedListener) {
+            @androidx.annotation.NonNull final Handler callbackHandler,
+            @androidx.annotation.Nullable final Runnable startedListener,
+            @androidx.annotation.Nullable final Runnable finishedListener) {
         return ActivityOptions.makeCustomAnimation(
                 context,
                 enterResId,

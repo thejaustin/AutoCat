@@ -57,7 +57,7 @@ public final class TransitionFilter implements Parcelable {
      * When non-null: this is a list of transition types that this filter applies to. This filter
      * will fail for transitions that aren't one of these types.
      */
-    androidx.annotation.Nullable public @TransitionType int[] mTypeSet = null;
+    @androidx.annotation.Nullable public @TransitionType int[] mTypeSet = null;
 
     /** All flags must be set on a transition. */
     public @WindowManager.TransitionFlags int mFlags = 0;
@@ -66,7 +66,7 @@ public final class TransitionFilter implements Parcelable {
     public @WindowManager.TransitionFlags int mNotFlags = 0;
 
     /** A list of required changes. To pass, a transition must meet all requirements. */
-    androidx.annotation.Nullable public Requirement[] mRequirements = null;
+    @androidx.annotation.Nullable public Requirement[] mRequirements = null;
 
     public TransitionFilter() {}
 
@@ -80,7 +80,7 @@ public final class TransitionFilter implements Parcelable {
     /**
      * @return true if `info` meets all the requirements to pass this filter.
      */
-    public boolean matches(androidx.annotation.NonNull TransitionInfo info) {
+    public boolean matches(@androidx.annotation.NonNull TransitionInfo info) {
         if (mTypeSet != null) {
             // non-null typeset, so make sure info is one of the types.
             boolean typePass = false;
@@ -112,14 +112,14 @@ public final class TransitionFilter implements Parcelable {
 
     @Override
     /** @hide */
-    public void writeToParcel(androidx.annotation.NonNull Parcel dest, int flags) {
+    public void writeToParcel(@androidx.annotation.NonNull Parcel dest, int flags) {
         dest.writeIntArray(mTypeSet);
         dest.writeInt(mFlags);
         dest.writeInt(mNotFlags);
         dest.writeTypedArray(mRequirements, flags);
     }
 
-    androidx.annotation.NonNull
+    @androidx.annotation.NonNull
     public static final Creator<TransitionFilter> CREATOR =
             new Creator<TransitionFilter>() {
                 @Override
@@ -199,7 +199,7 @@ public final class TransitionFilter implements Parcelable {
         }
 
         /** Go through changes and find if at-least one change matches this filter */
-        boolean matches(androidx.annotation.NonNull TransitionInfo info) {
+        boolean matches(@androidx.annotation.NonNull TransitionInfo info) {
             for (int i = info.getChanges().size() - 1; i >= 0; --i) {
                 final TransitionInfo.Change change = info.getChanges().get(i);
                 if (mMustBeIndependent && !TransitionInfo.isIndependent(change, info)) {
@@ -244,7 +244,7 @@ public final class TransitionFilter implements Parcelable {
 
         private boolean matchesTopActivity(
                 ActivityManager.RunningTaskInfo taskInfo,
-                androidx.annotation.Nullable ComponentName activityComponent) {
+                @androidx.annotation.Nullable ComponentName activityComponent) {
             if (mTopActivity == null) return true;
             if (activityComponent != null) {
                 return mTopActivity.equals(activityComponent);
@@ -266,7 +266,7 @@ public final class TransitionFilter implements Parcelable {
         }
 
         /** Check if the request matches this filter. It may generate false positives */
-        boolean matches(androidx.annotation.NonNull TransitionRequestInfo request) {
+        boolean matches(@androidx.annotation.NonNull TransitionRequestInfo request) {
             // Can't check modes/order since the transition hasn't been built at this point.
             if (mActivityType == ACTIVITY_TYPE_UNDEFINED) return true;
             return request.getTriggerTask() != null
@@ -277,7 +277,7 @@ public final class TransitionFilter implements Parcelable {
 
         @Override
         /** @hide */
-        public void writeToParcel(androidx.annotation.NonNull Parcel dest, int flags) {
+        public void writeToParcel(@androidx.annotation.NonNull Parcel dest, int flags) {
             dest.writeInt(mActivityType);
             dest.writeBoolean(mMustBeIndependent);
             dest.writeBoolean(mNot);
@@ -289,7 +289,7 @@ public final class TransitionFilter implements Parcelable {
             dest.writeStrongBinder(mLaunchCookie);
         }
 
-        androidx.annotation.NonNull
+        @androidx.annotation.NonNull
         public static final Creator<Requirement> CREATOR =
                 new Creator<Requirement>() {
                     @Override

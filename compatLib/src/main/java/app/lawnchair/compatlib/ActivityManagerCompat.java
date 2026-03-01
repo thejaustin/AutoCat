@@ -20,7 +20,7 @@ public interface ActivityManagerCompat {
     void startRecentsActivity(
             Intent intent, long eventTime, RecentsAnimationRunnerCompat runnerCompat);
 
-    androidx.annotation.Nullable
+    @androidx.annotation.Nullable
     @RequiresApi(31)
     default TaskSnapshot getTaskSnapshot(
             int taskId, boolean isLowResolution, boolean takeSnapshotIfNeeded) {
@@ -40,13 +40,13 @@ public interface ActivityManagerCompat {
         return null;
     }
 
-    androidx.annotation.Nullable
+    @androidx.annotation.Nullable
     ActivityManager.RunningTaskInfo getRunningTask(boolean filterOnlyVisibleRecents);
 
-    androidx.annotation.NonNull
+    @androidx.annotation.NonNull
     List<ActivityManager.RunningTaskInfo> getRunningTasks(boolean filterOnlyVisibleRecents);
 
-    androidx.annotation.NonNull
+    @androidx.annotation.NonNull
     List<ActivityManager.RecentTaskInfo> getRecentTasks(int numTasks, int userId);
 
     public static class ThumbnailData {

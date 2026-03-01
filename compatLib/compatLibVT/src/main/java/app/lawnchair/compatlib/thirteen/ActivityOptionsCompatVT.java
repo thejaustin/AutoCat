@@ -13,23 +13,21 @@ import app.lawnchair.compatlib.twelve.ActivityOptionsCompatVS;
 @RequiresApi(33)
 public class ActivityOptionsCompatVT extends ActivityOptionsCompatVS {
 
-    androidx.annotation.NonNull
     @Override
     public ActivityOptions makeRemoteAnimation(
-            androidx.annotation.Nullable RemoteAnimationAdapter remoteAnimationAdapter,
-            androidx.annotation.Nullable Object remoteTransition,
-            androidx.annotation.Nullable String debugName) {
+            @androidx.annotation.Nullable RemoteAnimationAdapter remoteAnimationAdapter,
+            @androidx.annotation.Nullable Object remoteTransition,
+            @androidx.annotation.Nullable String debugName) {
         return ActivityOptions.makeRemoteAnimation(
                 remoteAnimationAdapter, (RemoteTransition) remoteTransition);
     }
 
-    androidx.annotation.NonNull
     @Override
     public ActivityOptions makeCustomAnimation(
-            androidx.annotation.NonNull Context context,
+            @androidx.annotation.NonNull Context context,
             int enterResId,
             int exitResId,
-            androidx.annotation.NonNull Handler callbackHandler,
+            @androidx.annotation.NonNull Handler callbackHandler,
             Runnable callback,
             Runnable finishedListener) {
         return ActivityOptions.makeCustomTaskAnimation(
