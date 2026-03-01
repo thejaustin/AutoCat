@@ -127,6 +127,7 @@ fun CategorizationSettingsPreferences(
         label = stringResource(R.string.smart_categories_label),
         modifier = modifier,
         isExpandedScreen = LocalIsExpandedScreen.current,
+        id = "autocat",
     ) {
         PreferenceLazyColumn(it) {
             // ===== SETUP NUDGE (when AI not configured) =====

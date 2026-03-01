@@ -85,41 +85,76 @@ import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
 import kotlinx.coroutines.launch
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.shape.CircleShape
+...
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SettingsSearchBar(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 8.dp)
-            .height(52.dp)
-            .clip(CircleShape)
-            .clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-    ) {
-        androidx.compose.foundation.layout.Row(
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp),
+fun SettingsSearchBar(
+    onClick: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    modifier: Modifier = Modifier,
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "SearchThrob")
+    val weight by infiniteTransition.animateFloat(
+        initialValue = 400f,
+        targetValue = 550f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2000),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "weight",
+    )
+
+    with(sharedTransitionScope) {
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp)
+                .height(52.dp)
+                .sharedElement(
+                    rememberSharedContentState(key = "category_search"),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                )
+                .clip(CircleShape)
+                .clickable(onClick = onClick),
+            color = MaterialTheme.colorScheme.surfaceVariant,
         ) {
-            Icon(
-                imageVector = Icons.Rounded.Search,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = stringResource(id = R.string.search_settings),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            androidx.compose.foundation.layout.Row(
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 16.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Search,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = stringResource(id = R.string.search_settings),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontVariationSettings = "'wght' $weight",
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PreferencesDashboard(
     currentRoute: PreferenceRootRoute,
     onNavigate: (PreferenceRootRoute) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -134,6 +169,15 @@ fun PreferencesDashboard(
     val categories by categoryManager.categories.collectAsState()
     var isEditMode by remember { mutableStateOf(false) }
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+...
     PreferenceLayout(
         label = stringResource(id = R.string.settings),
         modifier = modifier,
@@ -149,36 +193,60 @@ fun PreferencesDashboard(
             }
         },
     ) {
-        SettingsSearchBar(onClick = { onNavigate(Search()) })
-
-        AnnouncementPreference()
-
-        val hideSettingsWarnings by prefs.hideSettingsWarnings.observeAsState()
-
-        if ((BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) && !hideSettingsWarnings) {
-            PreferencesDebugWarning()
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        var defaultLauncherTipDismissed by remember { mutableStateOf(false) }
-        if (!context.isDefaultLauncher() && !defaultLauncherTipDismissed) {
-            PreferencesSetDefaultLauncherWarning(
-                onDismiss = { defaultLauncherTipDismissed = true },
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        DraggableSettingsCategoryGroup(
-            categories = categories,
-            currentRoute = currentRoute,
-            isEditMode = isEditMode,
-            onNavigate = onNavigate,
-            onToggleEditMode = { isEditMode = !isEditMode },
-            onReorder = { from, to -> categoryManager.reorderCategories(from, to) },
-            onToggleVisibility = { categoryId -> categoryManager.toggleCategoryVisibility(categoryId) },
-            deckLayoutEnabled = pref2.deckLayout.getAdapter().state.value,
-            quickstepEnabled = AutoCatApp.isRecentsEnabled || BuildConfig.DEBUG && !prefs.hideQuickstepSettings.get(),
+        val emphasizedSpring = spring<androidx.compose.ui.unit.IntOffset>(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessLow,
         )
+
+        var showDashboardContent by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            showDashboardContent = true
+        }
+
+        AnimatedVisibility(
+            visible = showDashboardContent,
+            enter = fadeIn(spring(stiffness = Spring.StiffnessVeryLow)) +
+                slideInVertically(emphasizedSpring) { it / 8 },
+        ) {
+            Column {
+                SettingsSearchBar(
+                    onClick = { onNavigate(Search()) },
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                )
+
+                AnnouncementPreference()
+
+                val hideSettingsWarnings by prefs.hideSettingsWarnings.observeAsState()
+
+                if ((BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) && !hideSettingsWarnings) {
+                    PreferencesDebugWarning()
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                var defaultLauncherTipDismissed by remember { mutableStateOf(false) }
+                if (!context.isDefaultLauncher() && !defaultLauncherTipDismissed) {
+                    PreferencesSetDefaultLauncherWarning(
+                        onDismiss = { defaultLauncherTipDismissed = true },
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                DraggableSettingsCategoryGroup(
+                    categories = categories,
+                    currentRoute = currentRoute,
+                    isEditMode = isEditMode,
+                    onNavigate = onNavigate,
+                    onToggleEditMode = { isEditMode = !isEditMode },
+                    onReorder = { from, to -> categoryManager.reorderCategories(from, to) },
+                    onToggleVisibility = { categoryId -> categoryManager.toggleCategoryVisibility(categoryId) },
+                    deckLayoutEnabled = pref2.deckLayout.getAdapter().state.value,
+                    quickstepEnabled = AutoCatApp.isRecentsEnabled || BuildConfig.DEBUG && !prefs.hideQuickstepSettings.get(),
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                )
+            }
+        }
     }
 }
 

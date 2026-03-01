@@ -174,6 +174,8 @@ public class LauncherAnimUtils {
                         }
                     };
 
+import com.android.launcher3.views.BaseDragLayer;
+...
     public static final FloatProperty<View> VIEW_ALPHA =
             View.ALPHA instanceof FloatProperty ? (FloatProperty) View.ALPHA
                     : new FloatProperty<View>("alpha") {
@@ -187,6 +189,19 @@ public class LauncherAnimUtils {
                             return view.getAlpha();
                         }
                     };
+
+    public static final FloatProperty<BaseDragLayer<?>> DRAG_LAYER_BLUR =
+            new FloatProperty<BaseDragLayer<?>>("blur") {
+                @Override
+                public Float get(BaseDragLayer<?> layer) {
+                    return layer.getBlurRadius();
+                }
+
+                @Override
+                public void setValue(BaseDragLayer<?> layer, float radius) {
+                    layer.setBlur(radius);
+                }
+            };
 
     public static final IntProperty<View> VIEW_BACKGROUND_COLOR =
             new IntProperty<View>("backgroundColor") {

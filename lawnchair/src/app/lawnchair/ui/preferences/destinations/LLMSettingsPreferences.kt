@@ -133,6 +133,12 @@ fun LLMSettingsPreferences(
             item {
                 PreferenceGroup(heading = "Engine Configuration") {
                     SwitchPreference(
+                        adapter = prefs.llmUseLocalModel.getAdapter(),
+                        label = "Local AI Engine (Offline)",
+                        description = "Use a fast, on-device model for initial organization. Saves battery and data.",
+                    )
+
+                    SwitchPreference(
                         adapter = prefs.llmAutoSelectBestModel.getAdapter(),
                         label = "Auto-Pilot Mode",
                         description = if (isAutoSelect && autoSelectedProvider != null) {
@@ -145,7 +151,7 @@ fun LLMSettingsPreferences(
                     AnimatedVisibility(visible = !isAutoSelect) {
                         ListPreference(
                             adapter = prefs.llmProviderPreference.getAdapter(),
-                            label = "Preferred AI Engine",
+                            label = "Preferred Cloud Engine",
                             entries = listOf(
                                 ListPreferenceEntry("google_ai") { "Google AI (Gemini)" },
                                 ListPreferenceEntry("claude") { "Anthropic Claude" },
@@ -171,6 +177,18 @@ fun LLMSettingsPreferences(
                             ListPreferenceEntry("Portuguese") { "Portuguese" },
                             ListPreferenceEntry("Russian") { "Russian" },
                         ),
+                    )
+
+                    SwitchPreference(
+                        adapter = prefs.llmOnlyOnWifi.getAdapter(),
+                        label = "Only on Wi-Fi",
+                        description = "Postpone large cloud-based re-categorizations until connected to Wi-Fi.",
+                    )
+
+                    SwitchPreference(
+                        adapter = prefs.llmOnlyWhileCharging.getAdapter(),
+                        label = "Only while Charging",
+                        description = "Perform heavy AI analysis only when the device is plugged in.",
                     )
                 }
             }

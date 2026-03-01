@@ -197,6 +197,34 @@ Allow the launcher theme to adapt dynamically to the current context, such as al
 - [ ] Use `WallpaperColors` API for color extraction
 - [ ] Implement logic to switch between light/dark/grayscale themes based on rules
 
+### Issue #84: Glassmorphism & Depth Blur
+**Description:**
+Implement real-time background blurs behind the App Drawer, expanded folders, and the Taskbar to create a physical sense of depth.
+- [ ] Apply `RenderEffect.createBlurEffect()` to the `DragLayer` on Android 12+
+- [ ] Use Compose `Modifier.blur()` for settings and bottom sheets
+- [ ] Link blur radius to scroll/drag progress
+
+### Issue #85: Variable Typography Animations
+**Description:**
+Animate the weight (`wght`) and width (`wdth`) axes of variable fonts (like Google Sans Flex) during UI interactions.
+- [ ] Animate app label weight from Regular (400) to Bold (700) on long-press
+- [ ] Add "throb" weight animation to focused text fields in Settings
+- [ ] Synchronize typography morphing with overall transition timing
+
+### Issue #86: Fluid Shape Morphing (Shared Element Transitions)
+**Description:**
+Use `SharedTransitionLayout` for seamless transitions between dashboard cards and their detail screens.
+- [ ] Implement `SharedTransitionLayout` wrapper for Preferences
+- [ ] Morph category cards into full-screen layouts during navigation
+- [ ] Ensure smooth icon and title continuity across screens
+
+### Issue #87: Reactive App Icons (Squishy Physics)
+**Description:**
+Implement a "squish" effect on app icons using ScaleX/ScaleY springs to provide playful, physical feedback on touch.
+- [ ] Create `SquishyScale` spring animator
+- [ ] Apply inverse scaling (squash down, bulge out) on touch down
+- [ ] Add bouncy recovery on touch up/launch
+
 ### Issue #64: Final Package Migration (High Risk)
 **Description:**
 Migrate `app.lawnchair` package to `app.autocat`.

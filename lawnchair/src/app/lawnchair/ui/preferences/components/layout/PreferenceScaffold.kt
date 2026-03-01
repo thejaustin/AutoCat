@@ -25,21 +25,40 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import app.lawnchair.ui.preferences.LocalAnimatedVisibilityScope
+import app.lawnchair.ui.preferences.LocalSharedTransitionScope
+...
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun PreferenceScaffold(
     label: String,
     isExpandedScreen: Boolean,
     modifier: Modifier = Modifier,
+    id: String? = null,
     backArrowVisible: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
     bottomBar: @Composable () -> Unit = { BottomSpacer() },
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val scrollBehavior = if (isExpandedScreen) TopAppBarDefaults.pinnedScrollBehavior() else TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val sharedTransitionScope = LocalSharedTransitionScope.current
+    val animatedVisibilityScope = LocalAnimatedVisibilityScope.current
+
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier
+            .then(
+                if (sharedTransitionScope != null && animatedVisibilityScope != null && id != null) {
+                    with(sharedTransitionScope) {
+                        Modifier.sharedElement(
+                            rememberSharedContentState(key = "category_$id"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                        )
+                    }
+                } else Modifier
+            )
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+...
         topBar = {
             TopBar(
                 backArrowVisible = backArrowVisible,

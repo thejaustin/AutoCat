@@ -16,20 +16,28 @@
 
 package app.lawnchair.ui.preferences.components.layout
 
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
- * Creates a simple loading animation with [Crossfade] and [ContainedLoadingIndicator].
+ * Creates an expressive loading animation with M3E Emphasized motion.
  * @param isLoading Defines whether the content is still loading or not
  * @param content Content to appear or disappear based on the value of [isLoading]
  */
@@ -40,19 +48,35 @@ fun LoadingScreen(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    Crossfade(
+    val emphasizedSpring = spring<Float>(
+        dampingRatio = Spring.DampingRatioLowBouncy,
+        stiffness = Spring.StiffnessLow,
+    )
+
+    AnimatedContent(
         targetState = isLoading,
-        label = "",
+        label = "LoadingScreenTransition",
         modifier = modifier,
-    ) {
-        if (it) {
+        transitionSpec = {
+            if (targetState) {
+                // Content -> Loading: Scale down and fade
+                (fadeIn(emphasizedSpring) + scaleIn(emphasizedSpring, initialScale = 0.92f))
+                    .togetherWith(fadeOut(emphasizedSpring) + scaleOut(emphasizedSpring, targetScale = 0.92f))
+            } else {
+                // Loading -> Content: Scale up and fade (Emphasized)
+                (fadeIn(emphasizedSpring) + scaleIn(emphasizedSpring, initialScale = 1.08f))
+                    .togetherWith(fadeOut(emphasizedSpring) + scaleOut(emphasizedSpring, targetScale = 1.08f))
+            }.using(SizeTransform(clip = false))
+        },
+    ) { loading ->
+        if (loading) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                ContainedLoadingIndicator(
-                    modifier = Modifier.size(128.dp),
+                LoadingIndicator(
+                    modifier = Modifier.size(48.dp),
                 )
             }
         } else {

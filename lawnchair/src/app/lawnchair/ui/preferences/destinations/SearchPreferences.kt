@@ -62,6 +62,7 @@ fun SearchPreferences(
     TwoTabPreferenceLayout(
         label = stringResource(id = R.string.search_bar_label),
         backArrowVisible = !LocalIsExpandedScreen.current,
+        id = "search",
         defaultPage = currentTab.ordinal,
         firstPageLabel = stringResource(id = R.string.dock_label),
         firstPageContent = {

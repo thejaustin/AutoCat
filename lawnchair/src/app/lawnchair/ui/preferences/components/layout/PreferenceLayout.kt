@@ -16,6 +16,7 @@
 
 package app.lawnchair.ui.preferences.components.layout
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
@@ -35,6 +36,7 @@ import app.lawnchair.ui.preferences.LocalIsExpandedScreen
  * Uses a combination of [PreferenceScaffold] and [PreferenceColumn] to represent the layout.
  *
  * @param label the text to be displayed at the top of the screen
+ * @param id an optional ID to use for shared element transitions
  * @param backArrowVisible whether to show the back arrow or not
  * @param verticalArrangement the vertical arrangement of the layout's children
  * @param horizontalAlignment the horizontal alignment of the layout's children
@@ -46,10 +48,12 @@ import app.lawnchair.ui.preferences.LocalIsExpandedScreen
  *
  * TODO: use DSL to represent all preferences
  */
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PreferenceLayout(
     label: String,
     modifier: Modifier = Modifier,
+    id: String? = null,
     backArrowVisible: Boolean = true,
     isExpandedScreen: Boolean = LocalIsExpandedScreen.current,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(8.dp),
@@ -61,6 +65,7 @@ fun PreferenceLayout(
 ) {
     PreferenceScaffold(
         modifier = modifier,
+        id = id,
         backArrowVisible = backArrowVisible,
         label = label,
         isExpandedScreen = isExpandedScreen,
@@ -83,6 +88,7 @@ fun PreferenceLayout(
  * Uses a combination of [PreferenceScaffold] and [PreferenceLazyColumn] to represent the layout.
  *
  * @param label the text to be displayed at the top of the screen
+ * @param id an optional ID to use for shared element transitions
  * @param modifier the [Modifier] to apply at [PreferenceLazyColumn]
  * @param enabled whether the layout allows user input or not
  * @param backArrowVisible whether to show the back arrow or not
@@ -93,10 +99,12 @@ fun PreferenceLayout(
  *
  * TODO: use DSL to represent all preferences
  */
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PreferenceLayoutLazyColumn(
     label: String,
     modifier: Modifier = Modifier,
+    id: String? = null,
     isExpandedScreen: Boolean = LocalIsExpandedScreen.current,
     enabled: Boolean = true,
     backArrowVisible: Boolean = true,
@@ -106,6 +114,7 @@ fun PreferenceLayoutLazyColumn(
 ) {
     PreferenceScaffold(
         backArrowVisible = backArrowVisible,
+        id = id,
         label = label,
         isExpandedScreen = isExpandedScreen,
         actions = actions,

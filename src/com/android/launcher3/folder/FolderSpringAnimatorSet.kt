@@ -372,6 +372,19 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                 property = SCALE_PROPERTY,
                 view = hotseat,
             )
+            playSpringAnimation(
+                context = context,
+                animatorSet = animatorSet,
+                isOpening = isOpening,
+                startDelay = 0,
+                stiffness = STIFFNESS_LAUNCHER_SCRIM,
+                damping = DAMPING_LAUNCHER_SCRIM,
+                startValue = 0f,
+                endValue = 25f, // Max blur radius for folders
+                minVisibleChange = MIN_VISIBLE_CHANGE_PIXELS,
+                property = LauncherAnimUtils.DRAG_LAYER_BLUR as Property<View, Float>,
+                view = launcher.dragLayer as View,
+            )
             animatorSet.addListener(FolderScrimAnimationListener(scrimView, isOpening))
         }
 

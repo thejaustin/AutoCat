@@ -1,5 +1,8 @@
 package app.lawnchair.ui.preferences.components
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -39,7 +42,7 @@ import app.lawnchair.ui.preferences.components.controls.PreferenceCategory
 /**
  * A draggable settings category card with edit mode support
  */
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun DraggableSettingsCategory(
     category: SettingsCategory,
@@ -49,6 +52,8 @@ fun DraggableSettingsCategory(
     onNavigate: () -> Unit,
     onToggleVisibility: () -> Unit,
     onLongPress: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
 ) {
     val scale by animateFloatAsState(
@@ -79,17 +84,24 @@ fun DraggableSettingsCategory(
         Box(
             modifier = Modifier.weight(1f),
         ) {
-            PreferenceCategory(
-                label = stringResource(id = category.labelResId),
-                description = description,
-                iconResource = category.iconResId,
-                onNavigate = { if (!isEditMode) onNavigate() },
-                isSelected = isSelected && !isEditMode,
-                modifier = Modifier.combinedClickable(
-                    onClick = { if (!isEditMode) onNavigate() },
-                    onLongClick = { if (!isEditMode) onLongPress() },
-                ),
-            )
+            with(sharedTransitionScope) {
+                PreferenceCategory(
+                    label = stringResource(id = category.labelResId),
+                    description = description,
+                    iconResource = category.iconResId,
+                    onNavigate = { if (!isEditMode) onNavigate() },
+                    isSelected = isSelected && !isEditMode,
+                    modifier = Modifier
+                        .sharedElement(
+                            rememberSharedContentState(key = "category_${category.id}"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                        )
+                        .combinedClickable(
+                            onClick = { if (!isEditMode) onNavigate() },
+                            onLongClick = { if (!isEditMode) onLongPress() },
+                        ),
+                )
+            }
         }
 
         // Visibility toggle (only visible in edit mode)
@@ -119,7 +131,7 @@ fun DraggableSettingsCategory(
 /**
  * Group composable that manages all settings categories with drag-and-drop support
  */
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun DraggableSettingsCategoryGroup(
     categories: List<app.lawnchair.ui.preferences.SettingsCategory>,
@@ -131,6 +143,8 @@ fun DraggableSettingsCategoryGroup(
     onToggleVisibility: (String) -> Unit,
     deckLayoutEnabled: Boolean,
     quickstepEnabled: Boolean,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -218,6 +232,8 @@ fun DraggableSettingsCategoryGroup(
                             onNavigate = { onNavigate(category.route) },
                             onToggleVisibility = { onToggleVisibility(category.id) },
                             onLongPress = onToggleEditMode,
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
                         )
                     }
                 }

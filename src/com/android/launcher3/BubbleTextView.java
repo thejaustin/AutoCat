@@ -79,6 +79,8 @@ import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 
+import com.android.launcher3.anim.TypographyAnimation;
+import com.android.launcher3.anim.SquishAnimation;
 import com.android.launcher3.accessibility.BaseAccessibilityDelegate;
 import com.android.launcher3.dot.DotInfo;
 import com.android.launcher3.dragndrop.DragOptions.PreDragCondition;
@@ -254,6 +256,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     private final PreferenceManager2 pref2;
     private IconGestureListener mGestureListener;
+    private final SquishAnimation mSquishAnimation;
+    private final TypographyAnimation mTypographyAnimation;
 
     public BubbleTextView(Context context) {
         this(context, null, 0);
@@ -267,6 +271,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         super(context, attrs, defStyle);
         mActivity = ActivityContext.lookupContext(context);
         pref2 = PreferenceManager2.getInstance(context);
+        mSquishAnimation = new SquishAnimation(this);
+        mTypographyAnimation = new TypographyAnimation(this);
         mMinimizedStateDescription = getContext().getString(
                 R.string.app_minimized_state_description);
         mRunningStateDescription = getContext().getString(R.string.app_running_state_description);
@@ -334,6 +340,14 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     }
 
     @Override
+    public void setPressed(boolean pressed) {
+        super.setPressed(pressed);
+        if (mSquishAnimation != null) {
+            mSquishAnimation.animatePressed(pressed);
+        }
+    }
+
+    @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         // Disable marques when not focused to that, so that updating text does not cause relayout.
         setEllipsize(focused ? TruncateAt.MARQUEE : TruncateAt.END);
@@ -359,6 +373,14 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         mDotParams.scale = 0f;
         mForceHideDot = false;
         setBackground(null);
+
+        if (mSquishAnimation != null) {
+            mSquishAnimation.reset();
+        }
+
+        if (mTypographyAnimation != null) {
+            mTypographyAnimation.reset();
+        }
 
         mLineIndicatorColor = Color.TRANSPARENT;
         mLineIndicatorWidth = 0;
@@ -674,6 +696,14 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     /** Returns the icon for this view. */
     public FastBitmapDrawable getIcon() {
         return mIcon;
+    }
+
+    @Override
+    public boolean performLongClick() {
+        if (mTypographyAnimation != null) {
+            mTypographyAnimation.animateWeight(700f);
+        }
+        return super.performLongClick();
     }
 
     @Override

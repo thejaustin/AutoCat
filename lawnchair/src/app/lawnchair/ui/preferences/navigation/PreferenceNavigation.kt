@@ -62,6 +62,15 @@ import soup.compose.material.motion.animation.materialSharedAxisXIn
 import soup.compose.material.motion.animation.materialSharedAxisXOut
 import soup.compose.material.motion.animation.rememberSlideDistance
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
+...
+import androidx.compose.runtime.CompositionLocalProvider
+import app.lawnchair.ui.preferences.LocalAnimatedVisibilityScope
+import app.lawnchair.ui.preferences.LocalSharedTransitionScope
+...
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PreferenceNavigation(
     navController: NavHostController,
@@ -70,25 +79,32 @@ fun PreferenceNavigation(
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val slideDistance = rememberSlideDistance()
 
-    // TODO: navigate to nav3: https://developer.android.com/guide/navigation/navigation-3
-    NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        enterTransition = { materialSharedAxisXIn(!isRtl, slideDistance) },
-        exitTransition = { materialSharedAxisXOut(!isRtl, slideDistance) },
-        popEnterTransition = { materialSharedAxisXIn(isRtl, slideDistance) },
-        popExitTransition = { materialSharedAxisXOut(isRtl, slideDistance) },
-    ) {
-        composable<Root> {
-            val isExpandedScreen = LocalIsExpandedScreen.current
+    SharedTransitionLayout {
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            enterTransition = { materialSharedAxisXIn(!isRtl, slideDistance) },
+            exitTransition = { materialSharedAxisXOut(!isRtl, slideDistance) },
+            popEnterTransition = { materialSharedAxisXIn(isRtl, slideDistance) },
+            popExitTransition = { materialSharedAxisXOut(isRtl, slideDistance) },
+        ) {
+            composable<Root> {
+                val isExpandedScreen = LocalIsExpandedScreen.current
 
-            PreferencesDashboard(
-                currentRoute = Root,
-                onNavigate = {
-                    navController.navigate(it)
-                },
-            )
-
+                CompositionLocalProvider(
+                    LocalSharedTransitionScope provides this@SharedTransitionLayout,
+                    LocalAnimatedVisibilityScope provides this@composable,
+                ) {
+                    PreferencesDashboard(
+                        currentRoute = Root,
+                        onNavigate = {
+                            navController.navigate(it)
+                        },
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedVisibilityScope = this@composable,
+                    )
+                }
+...
             LaunchedEffect(isExpandedScreen) {
                 if (isExpandedScreen) {
                     navController.navigate(General) {

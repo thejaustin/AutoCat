@@ -175,6 +175,14 @@ class PreferenceManager @Inject constructor(
     val llmPerplexityModel = StringPref("pref_llmPerplexityModel", "llama-3.1-sonar-small-128k-online", {})
     val llmPromptLanguage = StringPref("pref_llmPromptLanguage", "System Default", {})
 
+    // AutoCat: LLM device state constraints
+    val llmOnlyOnWifi = BoolPref("pref_llmOnlyOnWifi", false, {})
+    val llmOnlyWhileCharging = BoolPref("pref_llmOnlyWhileCharging", false, {})
+
+    // AutoCat: Local ML Model
+    val llmUseLocalModel = BoolPref("pref_llmUseLocalModel", true, {}) // Default on for S22+
+    val llmLocalModelPath = StringPref("pref_llmLocalModelPath", "ml/autocat_categorizer.tflite", {})
+
     // AutoCat: Batch processing settings
     val llmEnableBatching = BoolPref("pref_llmEnableBatching", true, {})
     val llmBatchSize = IntPref("pref_llmBatchSize", 0, {}) // 0 = auto-calculate

@@ -1,5 +1,11 @@
 package app.lawnchair.categorization.llm
 
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.BatteryManager
 import android.util.Log
 import kotlin.math.pow
 import kotlinx.coroutines.delay
@@ -9,6 +15,26 @@ import kotlinx.coroutines.delay
  */
 object LLMUtils {
     private const val TAG = "LLMUtils"
+
+    /**
+     * Checks if the device is currently connected to Wi-Fi.
+     */
+    fun isConnectedToWifi(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+    }
+
+    /**
+     * Checks if the device is currently charging.
+     */
+    fun isCharging(context: Context): Boolean {
+        val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+        return status == BatteryManager.BATTERY_STATUS_CHARGING ||
+            status == BatteryManager.BATTERY_STATUS_FULL
+    }
 
     /**
      * Retries an operation with exponential backoff.

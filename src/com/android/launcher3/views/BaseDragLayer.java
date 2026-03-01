@@ -27,6 +27,8 @@ import android.content.Context;
 import android.graphics.Insets;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Property;
@@ -108,6 +110,30 @@ public abstract class BaseDragLayer<T extends Context & ActivityContext>
     @ViewDebug.ExportedProperty(category = "launcher")
     protected final RectF mSystemGestureRegion = new RectF();
     private int mTouchDispatchState = 0;
+
+    private float mBlurRadius = 0f;
+
+    public void setBlur(float radius) {
+        if (Utilities.ATLEAST_S) {
+            if (Float.compare(mBlurRadius, radius) == 0) {
+                return;
+            }
+            mBlurRadius = radius;
+            try {
+                if (radius > 0) {
+                    setRenderEffect(RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP));
+                } else {
+                    setRenderEffect(null);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to apply blur effect", e);
+            }
+        }
+    }
+
+    public float getBlurRadius() {
+        return mBlurRadius;
+    }
 
     protected final T mContainer;
     private final MultiValueAlpha mMultiValueAlpha;

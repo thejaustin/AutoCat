@@ -98,6 +98,7 @@ fun GeneralPreferences() {
     PreferenceLayout(
         backArrowVisible = !LocalIsExpandedScreen.current,
         label = stringResource(id = R.string.general_label),
+        id = "general",
     ) {
         PreferenceGroup {
             SwitchPreference(

@@ -37,6 +37,7 @@ fun TwoTabPreferenceLayout(
     secondPageLabel: String,
     secondPageContent: @Composable ColumnScope.() -> Unit,
     modifier: Modifier = Modifier,
+    id: String? = null,
     backArrowVisible: Boolean = true,
     isExpandedScreen: Boolean = LocalIsExpandedScreen.current,
     defaultPage: Int = 0,
@@ -44,6 +45,7 @@ fun TwoTabPreferenceLayout(
     PreferenceLayout(
         label = label,
         modifier = modifier,
+        id = id,
         backArrowVisible = backArrowVisible,
         isExpandedScreen = isExpandedScreen,
     ) {
