@@ -110,15 +110,11 @@ allprojects {
             if (!frameworkJar.exists()) {
                 throw new IllegalArgumentException("Framework jar path ${frameworkJar.path} doesn't exist")
             }
-            gradle.projectsEvaluated {
-                tasks.withType(JavaCompile).configureEach {
-                    // Make sure the frameworkJar is always first in the classpath.
-                    classpath = files(frameworkJar, classpath)
-                }
-                tasks.withType(KotlinCompile).configureEach {
-                    // Make sure the frameworkJar is always first in the classpath.
-                    libraries.setFrom files(frameworkJar, libraries)
-                }
+            tasks.withType(JavaCompile).configureEach { task ->
+                task.classpath = project.files(frameworkJar).plus(task.classpath)
+            }
+            tasks.withType(KotlinCompile).configureEach { task ->
+                task.libraries.from(frameworkJar)
             }
             dependencies {
                 compileOnly files(frameworkJar)
