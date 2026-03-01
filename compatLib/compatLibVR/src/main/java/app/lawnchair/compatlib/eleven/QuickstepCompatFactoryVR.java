@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib.eleven;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 
 import androidx.annotation.RequiresApi;
@@ -15,8 +17,6 @@ public class QuickstepCompatFactoryVR extends QuickstepCompatFactoryVQ {
     }
 
     @Override
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
     public ActivityOptionsCompat getActivityOptionsCompat() {
         return new ActivityOptionsCompatVR();
     }

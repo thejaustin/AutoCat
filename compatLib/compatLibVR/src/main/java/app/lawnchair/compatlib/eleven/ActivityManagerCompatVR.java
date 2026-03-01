@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib.eleven;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import static android.app.ActivityTaskManager.getService;
 import static android.graphics.Bitmap.Config.ARGB_8888;
@@ -15,8 +17,6 @@ import android.graphics.Rect;
 import android.hardware.HardwareBuffer;
 import android.os.RemoteException;
 import android.util.Log;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.view.IRecentsAnimationController;
 import android.view.IRecentsAnimationRunner;
 import android.view.RemoteAnimationTarget;

@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib.twelve;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.app.IApplicationThread;
 import android.window.IRemoteTransition;
@@ -15,8 +17,6 @@ import java.lang.reflect.InvocationTargetException;
 @RequiresApi(31)
 public class QuickstepCompatFactoryVS extends QuickstepCompatFactoryVR {
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
     @Override
     public ActivityManagerCompat getActivityManagerCompat() {
         return new ActivityManagerCompatVS();

@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib.ten;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.app.ActivityOptions;
 import android.content.Context;
@@ -15,8 +17,6 @@ public class ActivityOptionsCompatVQ implements ActivityOptionsCompat {
 
     @Override
     public ActivityOptions makeCustomAnimation(
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
             @NonNull Context context,
             int enterResId,
             int exitResId,

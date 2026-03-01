@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib.thirteen;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.app.ActivityOptions;
 import android.content.Context;
@@ -15,8 +17,6 @@ public class ActivityOptionsCompatVT extends ActivityOptionsCompatVS {
 
     @Override
     public ActivityOptions makeRemoteAnimation(
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
             @Nullable RemoteAnimationAdapter remoteAnimationAdapter,
             @Nullable Object remoteTransition,
             @Nullable String debugName) {

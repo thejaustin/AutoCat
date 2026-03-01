@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -15,8 +17,6 @@ import java.util.List;
 public interface ActivityManagerCompat {
     int NUM_RECENT_ACTIVITIES_REQUEST = 3;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
     void invalidateHomeTaskSnapshot(final Activity homeActivity);
 
     void startRecentsActivity(

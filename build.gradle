@@ -108,6 +108,7 @@ allprojects {
             }
             tasks.withType(JavaCompile).configureEach { task ->
                 task.classpath = project.files(frameworkJar, task.classpath ?: project.files())
+                task.options.bootstrapClasspath = project.files(frameworkJar, task.options.bootstrapClasspath ?: project.files())
             }
             tasks.withType(KotlinCompile).configureEach { task ->
                 task.libraries.setFrom(project.files(frameworkJar, task.libraries ?: project.files()))

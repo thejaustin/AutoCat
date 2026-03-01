@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.graphics.Rect;
 import android.view.IRecentsAnimationController;
@@ -15,8 +17,6 @@ public interface RecentsAnimationRunnerCompat {
             Rect minimizedHomeBounds);
 
     /** Called only in T platform */
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
     void onAnimationCanceled(int[] taskIds, TaskSnapshot[] taskSnapshots);
 
     /** Called only in Q/R/S platform */

@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib.thirteen;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.window.RemoteTransition;
 
@@ -15,8 +17,6 @@ public class QuickstepCompatFactoryVT extends QuickstepCompatFactoryVS {
     public ActivityManagerCompat getActivityManagerCompat() {
         return new ActivityManagerCompatVT();
     }
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
     @Override
     public ActivityOptionsCompat getActivityOptionsCompat() {

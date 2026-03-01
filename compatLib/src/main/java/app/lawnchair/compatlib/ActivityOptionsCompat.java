@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.app.ActivityOptions;
 import android.content.Context;
@@ -15,8 +17,6 @@ public interface ActivityOptionsCompat {
             int enterResId,
             int exitResId,
             @NonNull final Handler callbackHandler,
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
             @Nullable final Runnable startedListener,
             @Nullable final Runnable finishedListener);
 

@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib.fourteen;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.app.ActivityOptions;
 import android.content.Context;
@@ -15,8 +17,6 @@ public class ActivityOptionsCompatVU extends ActivityOptionsCompatVT {
             @NonNull Context context,
             int enterResId,
             int exitResId,
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
             @NonNull final Handler callbackHandler,
             @Nullable final Runnable startedListener,
             @Nullable final Runnable finishedListener) {

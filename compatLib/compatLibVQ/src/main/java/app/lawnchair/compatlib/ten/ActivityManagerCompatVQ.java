@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib.ten;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import static android.app.ActivityManager.RECENT_IGNORE_UNAVAILABLE;
 
@@ -15,8 +17,6 @@ import android.view.IRecentsAnimationController;
 import android.view.IRecentsAnimationRunner;
 import android.view.RemoteAnimationTarget;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import androidx.annotation.RequiresApi;
 import app.lawnchair.compatlib.ActivityManagerCompat;

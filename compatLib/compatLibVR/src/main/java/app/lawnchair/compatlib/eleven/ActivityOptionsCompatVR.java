@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib.eleven;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.app.ActivityOptions;
 import android.content.Context;
@@ -15,8 +17,6 @@ public class ActivityOptionsCompatVR extends ActivityOptionsCompatVQ {
     public ActivityOptions makeCustomAnimation(
             @NonNull Context context,
             int enterResId,
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
             int exitResId,
             @NonNull final Handler callbackHandler,
             @Nullable final Runnable startedListener,
