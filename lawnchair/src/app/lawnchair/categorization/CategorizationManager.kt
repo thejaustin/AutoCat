@@ -8,6 +8,7 @@ import app.lawnchair.categorization.llm.LLMUtils
 import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.preferences.PreferenceManager
+import io.sentry.Sentry
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -211,6 +212,9 @@ class CategorizationManager(private val context: Context) {
             }
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Error during categorization", e)
+            if (Sentry.isEnabled()) {
+                Sentry.captureException(e)
+            }
         }
     }
 
@@ -383,6 +387,9 @@ class CategorizationManager(private val context: Context) {
                 true
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "Error during re-categorization", e)
+                if (Sentry.isEnabled()) {
+                    Sentry.captureException(e)
+                }
                 _progress.update {
                     CategorizationProgress(
                         isRunning = false,
@@ -432,6 +439,9 @@ class CategorizationManager(private val context: Context) {
             }
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Error categorizing app: $packageName", e)
+            if (Sentry.isEnabled()) {
+                Sentry.captureException(e)
+            }
         }
     }
 

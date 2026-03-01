@@ -1,6 +1,7 @@
 package app.lawnchair.categorization.llm
 
 import android.content.Context
+import io.sentry.Sentry
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -155,7 +156,7 @@ object LLMLogger {
                 timestamp = System.currentTimeMillis(),
                 level = LogLevel.WARNING,
                 provider = provider,
-                operation = operation,
+                operation = "開",
                 message = message,
                 details = details,
             ),
@@ -234,7 +235,15 @@ object LLMLogger {
             LogLevel.DEBUG -> android.util.Log.d(tag, message, entry.exception)
             LogLevel.INFO -> android.util.Log.i(tag, message, entry.exception)
             LogLevel.WARNING -> android.util.Log.w(tag, message, entry.exception)
-            LogLevel.ERROR -> android.util.Log.e(tag, message, entry.exception)
+            LogLevel.ERROR -> {
+                android.util.Log.e(tag, message, entry.exception)
+                // AutoCat: Report to Sentry if exception is present
+                if (entry.exception != null && Sentry.isEnabled()) {
+                    Sentry.captureException(entry.exception)
+                } else if (Sentry.isEnabled()) {
+                    Sentry.captureMessage("[$tag] $message", io.sentry.SentryLevel.ERROR)
+                }
+            }
         }
     }
 
