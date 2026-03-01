@@ -118,7 +118,7 @@ allprojects {
                     classpath = project.files(frameworkJar, classpath)
                 }
                 tasks.withType(KotlinCompile) {
-                    libraries.from(frameworkJar)
+                    libraries.setFrom(project.files(frameworkJar, libraries))
                 }
             }
         }
