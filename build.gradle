@@ -452,7 +452,9 @@ dependencies {
     implementation libs.sentry.android
 
     // TensorFlow Lite for on-device ML categorization
-    implementation libs.tensorflow.lite
+    implementation(libs.tensorflow.lite) {
+        exclude group: "org.tensorflow", module: "tensorflow-lite-api"
+    }
 
     implementation platform(libs.compose.bom)
     implementation libs.compose.ui

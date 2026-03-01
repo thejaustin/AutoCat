@@ -233,8 +233,11 @@ object LLMLogger {
         val message = "${entry.operation}: ${entry.message}"
         when (entry.level) {
             LogLevel.DEBUG -> android.util.Log.d(tag, message, entry.exception)
+
             LogLevel.INFO -> android.util.Log.i(tag, message, entry.exception)
+
             LogLevel.WARNING -> android.util.Log.w(tag, message, entry.exception)
+
             LogLevel.ERROR -> {
                 android.util.Log.e(tag, message, entry.exception)
                 // AutoCat: Report to Sentry if exception is present

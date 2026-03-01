@@ -17,6 +17,7 @@
 
 package app.lawnchair.ui.preferences.components.layout
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,10 +26,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import app.lawnchair.ui.preferences.LocalAnimatedVisibilityScope
 import app.lawnchair.ui.preferences.LocalSharedTransitionScope
-...
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun PreferenceScaffold(
@@ -55,10 +55,12 @@ fun PreferenceScaffold(
                             animatedVisibilityScope = animatedVisibilityScope,
                         )
                     }
-                } else Modifier
+                } else {
+                    Modifier
+                },
             )
             .nestedScroll(scrollBehavior.nestedScrollConnection),
-...
+
         topBar = {
             TopBar(
                 backArrowVisible = backArrowVisible,

@@ -1,10 +1,10 @@
 package app.lawnchair.categorization
 
 import android.content.Context
+import app.lawnchair.categorization.llm.LLMUtils
 import app.lawnchair.categorization.stages.BuiltInCategorizer
 import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.categorization.stages.MLCategorizer
-import app.lawnchair.categorization.llm.LLMUtils
 import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.preferences.PreferenceManager

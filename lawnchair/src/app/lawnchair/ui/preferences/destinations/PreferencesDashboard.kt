@@ -11,16 +11,31 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -85,13 +100,6 @@ import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
 import kotlinx.coroutines.launch
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.shape.CircleShape
-...
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SettingsSearchBar(
@@ -126,8 +134,8 @@ fun SettingsSearchBar(
                 .clickable(onClick = onClick),
             color = MaterialTheme.colorScheme.surfaceVariant,
         ) {
-            androidx.compose.foundation.layout.Row(
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 16.dp),
             ) {
                 Icon(
@@ -169,15 +177,6 @@ fun PreferencesDashboard(
     val categories by categoryManager.categories.collectAsState()
     var isEditMode by remember { mutableStateOf(false) }
 
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
-...
     PreferenceLayout(
         label = stringResource(id = R.string.settings),
         modifier = modifier,
@@ -252,74 +251,29 @@ import androidx.compose.animation.slideInVertically
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PreferencesDebugWarning(
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.padding(horizontal = 16.dp),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.errorContainer,
-    ) {
-        WarningPreference(
-            // Don't move to strings.xml, no need to translate this warning
-            text = "You are using a development build, which may contain bugs and broken features. Use at your own risk!",
-        )
-    }
+private fun PreferencesDebugWarning() {
+    WarningPreference(
+        text = stringResource(id = R.string.settings_debug_warning),
+    )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PreferencesSetDefaultLauncherWarning(
-    modifier: Modifier = Modifier,
-    onDismiss: () -> Unit = {},
+private fun PreferencesSetDefaultLauncherWarning(
+    onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
-    androidx.compose.material3.SwipeToDismissBox(
-        state = androidx.compose.material3.rememberSwipeToDismissBoxState(
-            confirmValueChange = { dismissValue ->
-                if (dismissValue == androidx.compose.material3.SwipeToDismissBoxValue.EndToStart ||
-                    dismissValue == androidx.compose.material3.SwipeToDismissBoxValue.StartToEnd
-                ) {
-                    onDismiss()
-                    true
-                } else {
-                    false
-                }
-            },
-        ),
-        backgroundContent = {},
-        modifier = modifier.padding(horizontal = 16.dp),
-    ) {
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceVariant,
-        ) {
-            PreferenceTemplate(
-                modifier = Modifier.clickable {
-                    Intent(Settings.ACTION_HOME_SETTINGS)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        .let { context.startActivity(it) }
-                    (context as? Activity)?.finish()
-                },
-                title = {},
-                description = {
-                    Text(
-                        text = stringResource(id = R.string.set_default_launcher_tip),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                },
-                startWidget = {
-                    Icon(
-                        imageVector = Icons.Rounded.TipsAndUpdates,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        contentDescription = null,
-                    )
-                },
-            )
-        }
-    }
+    WarningPreference(
+        text = stringResource(id = R.string.set_default_launcher_tip),
+        onClick = {
+            val intent = Intent(Settings.ACTION_HOME_SETTINGS)
+            context.startActivity(intent)
+        },
+        onDismiss = onDismiss,
+    )
 }
 
-fun openAppInfo(context: Context) {
+private fun openAppInfo(context: Context) {
     val launcherApps = context.getSystemService<LauncherApps>()
     val componentName = ComponentName(context, AutoCatLauncher::class.java)
     launcherApps?.startAppDetailsActivity(componentName, Process.myUserHandle(), null, null)

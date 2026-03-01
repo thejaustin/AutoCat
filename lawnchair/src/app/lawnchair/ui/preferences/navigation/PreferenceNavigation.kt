@@ -1,6 +1,25 @@
+/*
+ * Copyright 2021, AutoCat
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package app.lawnchair.ui.preferences.navigation
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -15,7 +34,9 @@ import app.lawnchair.backup.ui.CreateBackupScreen
 import app.lawnchair.backup.ui.restoreBackupGraph
 import app.lawnchair.preferences.BasePreferenceManager
 import app.lawnchair.preferences.preferenceManager
+import app.lawnchair.ui.preferences.LocalAnimatedVisibilityScope
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import app.lawnchair.ui.preferences.LocalSharedTransitionScope
 import app.lawnchair.ui.preferences.about.About
 import app.lawnchair.ui.preferences.about.acknowledgements.Acknowledgements
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreferenceModelList
@@ -62,14 +83,6 @@ import soup.compose.material.motion.animation.materialSharedAxisXIn
 import soup.compose.material.motion.animation.materialSharedAxisXOut
 import soup.compose.material.motion.animation.rememberSlideDistance
 
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SharedTransitionScope
-...
-import androidx.compose.runtime.CompositionLocalProvider
-import app.lawnchair.ui.preferences.LocalAnimatedVisibilityScope
-import app.lawnchair.ui.preferences.LocalSharedTransitionScope
-...
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PreferenceNavigation(
@@ -104,117 +117,118 @@ fun PreferenceNavigation(
                         animatedVisibilityScope = this@composable,
                     )
                 }
-...
-            LaunchedEffect(isExpandedScreen) {
-                if (isExpandedScreen) {
-                    navController.navigate(General) {
-                        launchSingleTop = true
-                        popUpTo(navController.graph.id)
+
+                LaunchedEffect(isExpandedScreen) {
+                    if (isExpandedScreen) {
+                        navController.navigate(General) {
+                            launchSingleTop = true
+                            popUpTo(navController.graph.id)
+                        }
                     }
                 }
             }
+            composable<Dummy> {
+                DummyPreference()
+            }
+
+            composable<General> { GeneralPreferences() }
+            composable<GeneralFontSelection> { backStackEntry ->
+                val route: GeneralFontSelection = backStackEntry.toRoute()
+                val pref = preferenceManager().prefsMap[route.prefKey]
+                    as? BasePreferenceManager.FontPref ?: return@composable
+                FontSelection(pref)
+            }
+            composable<GeneralIconPack> { IconPackPreferences() }
+            composable<GeneralIconShape> { backStackEntry ->
+                val route: GeneralIconShape = backStackEntry.toRoute()
+                ShapePreference(currentTab = route.selectedId)
+            }
+            composable<GeneralCustomIconShapeCreator> { CustomIconShapePreference() }
+
+            composable<HomeScreen> { HomeScreenPreferences() }
+            composable<HomeScreenGrid> { HomeScreenGridPreferences() }
+            composable<HomeScreenPopupEditor> { LauncherPopupPreference() }
+
+            composable<Dock> { DockPreferences() }
+            composable<DockSearchProvider> { SearchProviderPreferences() }
+
+            composable<Smartspace> { SmartspacePreferences(fromWidget = false) }
+            composable<SmartspaceWidget> { SmartspacePreferences(fromWidget = true) }
+
+            composable<AppDrawer> { AppDrawerPreferences() }
+            composable<AppDrawerHiddenApps> { HiddenAppsPreferences() }
+            composable<AppDrawerCategorizationSettings> {
+                CategorizationSettingsPreferences(
+                    onNavigate = { route: PreferenceRoute -> navController.navigate(route) },
+                )
+            }
+            composable<AppDrawerTabManagement> { TabManagementPreferences() }
+            composable<AppDrawerAppListToFolder> { backStackEntry ->
+                val args = backStackEntry.arguments!!
+                val folderInfoId = args.getInt("id")
+                SelectAppsForDrawerFolder(folderInfoId)
+            }
+            composable<AppDrawerFolder> { AppDrawerFoldersPreference() }
+            composable<AppDrawerAppCategorizations> { AppCategorizationListPreferences() }
+            composable<AppDrawerLLMSettings> { LLMSettingsPreferences() }
+            composable<AppDrawerDiagnostics> { DiagnosticsPreferences() }
+            composable<SmartCategoriesOnboarding> {
+                SmartCategoriesOnboardingPreferences(
+                    onFinish = { navController.popBackStack() },
+                )
+            }
+
+            composable<Search> { backStackEntry ->
+                val route: Search = backStackEntry.toRoute()
+                SearchPreferences(currentTab = route.selectedId)
+            }
+            composable<SearchProviderPreference> { backStackEntry ->
+                val route: SearchProviderPreference = backStackEntry.toRoute()
+                SearchProviderPreferenceScreen(route.id)
+            }
+
+            composable<Folders> { FolderPreferences() }
+
+            composable<Gestures> { GesturePreferences() }
+            composable<GesturesPickApp> { PickAppForGesture() }
+
+            composable<Quickstep> { QuickstepPreferences() }
+
+            composable<About> { About() }
+            composable<AboutLicenses> { Acknowledgements() }
+
+            composable<DebugMenu> { DebugMenuPreferences() }
+            composable<FeatureFlags> { FeatureFlagsPreference() }
+
+            composable<BackupAndRestore> { BackupPreferences() }
+            composable<Developer> { DeveloperPreferences() }
+
+            composable<SelectIcon> { backStackEntry ->
+                val args: SelectIcon = backStackEntry.toRoute()
+                val componentKey = args.componentKey
+                val key = ComponentKey.fromString(componentKey)!!
+                SelectIconPreference(key)
+            }
+            composable<IconPicker> { backStackEntry ->
+                val args: IconPicker = backStackEntry.toRoute()
+                IconPickerPreference(packageName = args.packageName)
+            }
+
+            composable<ExperimentalFeatures> { ExperimentalFeaturesPreferences() }
+            composable<ColorSelection> { backStackEntry ->
+                val screen: ColorSelection = backStackEntry.toRoute()
+                val modelList = ColorPreferenceModelList.INSTANCE.get(LocalContext.current)
+                val model = modelList[screen.prefKey]
+                ColorSelection(
+                    label = stringResource(id = model.labelRes),
+                    preference = model.prefObject,
+                    dynamicEntries = model.dynamicEntries,
+                )
+            }
+
+            composable<CreateBackup> { CreateBackupScreen(viewModel()) }
+
+            restoreBackupGraph()
         }
-        composable<Dummy> {
-            DummyPreference()
-        }
-
-        composable<General> { GeneralPreferences() }
-        composable<GeneralFontSelection> { backStackEntry ->
-            val route: GeneralFontSelection = backStackEntry.toRoute()
-            val pref = preferenceManager().prefsMap[route.prefKey]
-                as? BasePreferenceManager.FontPref ?: return@composable
-            FontSelection(pref)
-        }
-        composable<GeneralIconPack> { IconPackPreferences() }
-        composable<GeneralIconShape> { backStackEntry ->
-            val route: GeneralIconShape = backStackEntry.toRoute()
-            ShapePreference(currentTab = route.selectedId)
-        }
-        composable<GeneralCustomIconShapeCreator> { CustomIconShapePreference() }
-
-        composable<HomeScreen> { HomeScreenPreferences() }
-        composable<HomeScreenGrid> { HomeScreenGridPreferences() }
-        composable<HomeScreenPopupEditor> { LauncherPopupPreference() }
-
-        composable<Dock> { DockPreferences() }
-        composable<DockSearchProvider> { SearchProviderPreferences() }
-
-        composable<Smartspace> { SmartspacePreferences(fromWidget = false) }
-        composable<SmartspaceWidget> { SmartspacePreferences(fromWidget = true) }
-
-        composable<AppDrawer> { AppDrawerPreferences() }
-        composable<AppDrawerHiddenApps> { HiddenAppsPreferences() }
-        composable<AppDrawerCategorizationSettings> {
-            CategorizationSettingsPreferences(
-                onNavigate = { route: PreferenceRoute -> navController.navigate(route) },
-            )
-        }
-        composable<AppDrawerTabManagement> { TabManagementPreferences() }
-        composable<AppDrawerAppListToFolder> { backStackEntry ->
-            val args = backStackEntry.arguments!!
-            val folderInfoId = args.getInt("id")
-            SelectAppsForDrawerFolder(folderInfoId)
-        }
-        composable<AppDrawerFolder> { AppDrawerFoldersPreference() }
-        composable<AppDrawerAppCategorizations> { AppCategorizationListPreferences() }
-        composable<AppDrawerLLMSettings> { LLMSettingsPreferences() }
-        composable<AppDrawerDiagnostics> { DiagnosticsPreferences() }
-        composable<SmartCategoriesOnboarding> {
-            SmartCategoriesOnboardingPreferences(
-                onFinish = { navController.popBackStack() },
-            )
-        }
-
-        composable<Search> { backStackEntry ->
-            val route: Search = backStackEntry.toRoute()
-            SearchPreferences(currentTab = route.selectedId)
-        }
-        composable<SearchProviderPreference> { backStackEntry ->
-            val route: SearchProviderPreference = backStackEntry.toRoute()
-            SearchProviderPreferenceScreen(route.id)
-        }
-
-        composable<Folders> { FolderPreferences() }
-
-        composable<Gestures> { GesturePreferences() }
-        composable<GesturesPickApp> { PickAppForGesture() }
-
-        composable<Quickstep> { QuickstepPreferences() }
-
-        composable<About> { About() }
-        composable<AboutLicenses> { Acknowledgements() }
-
-        composable<DebugMenu> { DebugMenuPreferences() }
-        composable<FeatureFlags> { FeatureFlagsPreference() }
-
-        composable<BackupAndRestore> { BackupPreferences() }
-        composable<Developer> { DeveloperPreferences() }
-
-        composable<SelectIcon> { backStackEntry ->
-            val args: SelectIcon = backStackEntry.toRoute()
-            val componentKey = args.componentKey
-            val key = ComponentKey.fromString(componentKey)!!
-            SelectIconPreference(key)
-        }
-        composable<IconPicker> { backStackEntry ->
-            val args: IconPicker = backStackEntry.toRoute()
-            IconPickerPreference(packageName = args.packageName)
-        }
-
-        composable<ExperimentalFeatures> { ExperimentalFeaturesPreferences() }
-        composable<ColorSelection> { backStackEntry ->
-            val screen: ColorSelection = backStackEntry.toRoute()
-            val modelList = ColorPreferenceModelList.INSTANCE.get(LocalContext.current)
-            val model = modelList[screen.prefKey]
-            ColorSelection(
-                label = stringResource(id = model.labelRes),
-                preference = model.prefObject,
-                dynamicEntries = model.dynamicEntries,
-            )
-        }
-
-        composable<CreateBackup> { CreateBackupScreen(viewModel()) }
-
-        restoreBackupGraph()
     }
 }
