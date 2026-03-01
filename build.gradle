@@ -110,14 +110,16 @@ allprojects {
             if (!frameworkJar.exists()) {
                 throw new IllegalArgumentException("Framework jar path ${frameworkJar.path} doesn't exist")
             }
-            tasks.withType(JavaCompile).configureEach { task ->
-                task.classpath = project.files(frameworkJar, task.classpath)
-            }
-            tasks.withType(KotlinCompile).configureEach { task ->
-                task.libraries.from(frameworkJar)
-            }
             dependencies {
                 compileOnly files(frameworkJar)
+            }
+            afterEvaluate {
+                tasks.withType(JavaCompile) {
+                    classpath = project.files(frameworkJar, classpath)
+                }
+                tasks.withType(KotlinCompile) {
+                    libraries.from(frameworkJar)
+                }
             }
         }
 
