@@ -1,6 +1,7 @@
 package app.lawnchair.categorization.llm
 
 import android.util.Log
+import io.sentry.Sentry
 import java.util.concurrent.ConcurrentHashMap
 
 enum class CircuitState {
@@ -72,6 +73,12 @@ class ProviderCircuitBreaker {
         if (circuit.state == CircuitState.HALF_OPEN || circuit.failureCount >= failureThreshold) {
             circuit.state = CircuitState.OPEN
             Log.e(TAG, "Circuit breaker OPEN for $providerName after ${circuit.failureCount} failures (last error: ${error.message})")
+            if (Sentry.isEnabled()) {
+                Sentry.captureMessage(
+                    "LLM provider circuit OPEN: $providerName after ${circuit.failureCount} failures",
+                    io.sentry.SentryLevel.WARNING,
+                )
+            }
         }
     }
 

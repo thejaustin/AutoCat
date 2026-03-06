@@ -23,4 +23,49 @@
     <string name="tab_management_description">Custom tabs allow you to organize your app drawer. Apps are automatically sorted into these categories.</string>
     <string name="customize_settings">Customize Settings</string>
     <string name="done">Done</string>
+
+    <!-- Per-app archive/unarchive shortcuts (long-press popup) -->
+    <string name="archive_app_label">Archive</string>
+    <string name="archive_app_dialog_title">Archive %1$s?</string>
+    <string name="archive_app_dialog_message">The app will be removed but its data will be kept. You can restore it later.</string>
+    <string name="archive_app_success">%1$s archived</string>
+    <string name="archive_app_failed">Failed to archive %1$s</string>
+    <string name="archive_app_system_error">Cannot archive system apps</string>
+
+    <!-- Store page / App info shortcuts -->
+    <string name="app_info_label">App info</string>
+    <string name="store_page_label">Store page</string>
+    <string name="store_not_found">Store app not found</string>
+
+    <!-- Category (tab) archive/restore actions -->
+    <string name="archive_category_label">Archive category</string>
+    <string name="archive_category_dialog_title">Archive "%1$s"?</string>
+    <string name="archive_category_dialog_message">All apps in "%1$s" will be archived. Their data will be kept and they can be restored later.</string>
+    <string name="restore_category_label">Restore category</string>
+    <string name="restore_category_dialog_title">Restore "%1$s"?</string>
+    <string name="restore_category_dialog_message">All previously archived apps in "%1$s" will be restored.</string>
+
+    <!-- Folder (workspace) archive/restore actions -->
+    <string name="archive_folder_label">Archive all apps</string>
+    <string name="archive_folder_dialog_title">Archive folder "%1$s"?</string>
+    <string name="archive_folder_dialog_message">All %1$d apps in this folder will be archived. Their data will be kept and they can be restored later.</string>
+    <string name="archive_folder_count">Archive %1$d active apps</string>
+    <string name="archive_folder_none">All apps already archived</string>
+    <string name="restore_folder_label">Restore all apps</string>
+    <string name="restore_folder_dialog_title">Restore folder "%1$s"?</string>
+    <string name="restore_folder_dialog_message">All archived apps in this folder will be restored.</string>
+    <string name="restore_folder_count">Restore %1$d archived apps</string>
+    <string name="restore_folder_none">No archived apps in this folder</string>
+    <string name="move_folder_label">Move folder</string>
+    <string name="folder_archived_success">Archiving %1$d apps…</string>
+    <string name="folder_restored_success">Restoring apps in "%1$s"…</string>
+    <string name="folder_system_note">%1$d system app(s) will be skipped</string>
+    <string name="folder_progress_archiving">Archiving %1$d of %2$d…</string>
+    <string name="folder_progress_restoring">Restoring %1$d of %2$d…</string>
+    <string name="folder_result_archived">%1$d archived</string>
+    <string name="folder_result_restored">%1$d restored</string>
+    <string name="folder_result_skipped">%1$d skipped</string>
+    <string name="folder_result_failed">%1$d failed</string>
+    <string name="folder_result_pending">%1$d pending</string>
+    <string name="folder_result_nothing">Nothing changed</string>
 </resources>

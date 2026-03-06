@@ -1,7 +1,14 @@
 package app.lawnchair.categorization
 
 import android.content.Context
+import app.lawnchair.categorization.llm.AppBatchInfo
+import app.lawnchair.categorization.llm.LLMProvider
 import app.lawnchair.categorization.llm.LLMUtils
+import app.lawnchair.categorization.local.DeviceCapabilityChecker
+import app.lawnchair.categorization.local.LocalEndpointProvider
+import app.lawnchair.categorization.local.LocalModelRegistry
+import app.lawnchair.categorization.local.LocalModelType
+import app.lawnchair.categorization.local.MediaPipeLLMProvider
 import app.lawnchair.categorization.stages.BuiltInCategorizer
 import app.lawnchair.categorization.stages.LLMCategorizer
 import app.lawnchair.categorization.stages.MLCategorizer
@@ -9,6 +16,7 @@ import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.preferences.PreferenceManager
 import io.sentry.Sentry
+import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -127,6 +135,22 @@ class CategorizationManager(private val context: Context) {
             if (useLocalModel) {
                 android.util.Log.d(TAG, "Starting Stage 0 (Local ML)")
                 mlCategorizer.categorizeBatch(uncategorizedApps)
+            }
+
+            // Stage 0.5: Local LLM providers (on-device inference / local server)
+            if (useLocalModel) {
+                val categoriesAfterML = categoryDao.getAllAppTabs().associateBy { it.packageName }
+                val uncategorizedForLocal = uncategorizedApps.filter { !categoriesAfterML.containsKey(it.packageName) }
+                if (uncategorizedForLocal.isNotEmpty()) {
+                    android.util.Log.d(TAG, "Starting Stage 0.5 (Local LLM) for ${uncategorizedForLocal.size} apps")
+                    buildLocalProviders(prefManager).forEach { provider ->
+                        val nowCategorized = categoryDao.getAllAppTabs().associateBy { it.packageName }
+                        val stillUncategorized = uncategorizedForLocal.filter { !nowCategorized.containsKey(it.packageName) }
+                        if (stillUncategorized.isNotEmpty()) {
+                            runLocalProviderStage(provider, stillUncategorized)
+                        }
+                    }
+                }
             }
 
             // Stage 1: LLM categorizer for custom categories (PRIORITY)
@@ -268,6 +292,25 @@ class CategorizationManager(private val context: Context) {
                     }
                     android.util.Log.d(TAG, "Starting Stage 0 (Local ML)")
                     mlCategorizer.categorizeBatch(apps)
+                }
+
+                // Stage 0.5: Local LLM providers (on-device inference / local server)
+                if (useLocalModel) {
+                    val categoriesAfterML = categoryDao.getAllAppTabs().associateBy { it.packageName }
+                    val uncategorizedForLocal = apps.filter { !categoriesAfterML.containsKey(it.packageName) }
+                    if (uncategorizedForLocal.isNotEmpty()) {
+                        _progress.update {
+                            it.copy(currentStage = "Local LLM", totalCount = apps.size, processedCount = apps.size - uncategorizedForLocal.size)
+                        }
+                        android.util.Log.d(TAG, "Starting Stage 0.5 (Local LLM) for ${uncategorizedForLocal.size} apps")
+                        buildLocalProviders(prefManager).forEach { provider ->
+                            val nowCategorized = categoryDao.getAllAppTabs().associateBy { it.packageName }
+                            val stillUncategorized = uncategorizedForLocal.filter { !nowCategorized.containsKey(it.packageName) }
+                            if (stillUncategorized.isNotEmpty()) {
+                                runLocalProviderStage(provider, stillUncategorized)
+                            }
+                        }
+                    }
                 }
 
                 // Stage 1: LLM categorizer for custom categories (PRIORITY)
@@ -467,6 +510,109 @@ class CategorizationManager(private val context: Context) {
                 .filter { it !in categorizedPackages }
         } else {
             categoryDao.getAppsByTab(tabName).map { it.packageName }
+        }
+    }
+
+    /**
+     * Builds the ordered list of local LLM providers based on current preferences.
+     *
+     * Priority: local endpoint (if enabled + reachable) → MediaPipe/AICore model
+     */
+    private suspend fun buildLocalProviders(prefs: PreferenceManager): List<LLMProvider> {
+        val providers = mutableListOf<LLMProvider>()
+
+        val endpointUrl = prefs.localEndpointUrl.get()
+        if (prefs.localEndpointEnabled.get() && endpointUrl.isNotBlank()) {
+            providers += LocalEndpointProvider(context, endpointUrl)
+        }
+
+        val modelPath = resolveLocalModelPath(prefs)
+        if (modelPath != null) {
+            val requiresAiCore = modelPath.isEmpty()
+            providers += MediaPipeLLMProvider(context, modelPath, requiresAiCore)
+        }
+
+        return providers
+    }
+
+    /**
+     * Resolves the path to the local MediaPipe model, or empty string for AICore.
+     * Returns null if no usable model is configured.
+     */
+    private fun resolveLocalModelPath(prefs: PreferenceManager): String? {
+        // 1. User-provided custom path
+        val customPath = prefs.localCustomModelPath.get()
+        if (customPath.isNotBlank() && File(customPath).exists()) return customPath
+
+        // 2. Downloaded model matching the selected model id
+        val selectedId = prefs.selectedLocalModelId.get()
+        if (selectedId.isNotBlank()) {
+            val model = LocalModelRegistry.ALL_MODELS.firstOrNull { it.id == selectedId }
+            if (model != null) {
+                when (model.type) {
+                    LocalModelType.AICORE -> return ""
+
+                    // empty path = AICore
+                    LocalModelType.MEDIAPIPE -> {
+                        val downloaded = File(context.filesDir, "local_models/${model.id}.bin")
+                        if (downloaded.exists()) return downloaded.absolutePath
+                    }
+
+                    else -> Unit
+                }
+            }
+        }
+
+        // 3. Auto-select best compatible downloaded model
+        val caps = DeviceCapabilityChecker.getCapabilities(context)
+        val recommended = LocalModelRegistry.getRecommendedModel(caps) ?: return null
+        return when (recommended.type) {
+            LocalModelType.AICORE -> ""
+
+            LocalModelType.MEDIAPIPE -> {
+                val f = File(context.filesDir, "local_models/${recommended.id}.bin")
+                if (f.exists()) f.absolutePath else null
+            }
+
+            else -> null
+        }
+    }
+
+    /**
+     * Runs a local LLM provider against a list of uncategorized apps.
+     * Returns the number of apps successfully categorized.
+     */
+    private suspend fun runLocalProviderStage(
+        provider: LLMProvider,
+        apps: List<app.lawnchair.data.apps.AppInfo>,
+    ): Int {
+        return try {
+            if (!provider.isAvailable()) return 0
+            val tabs = categoryDao.getVisibleCustomTabs().map { it.name }
+            if (tabs.isEmpty()) return 0
+            val batchInfos = apps.map { AppBatchInfo(it.packageName, it.appName, null) }
+            val results = provider.categorizeAppBatch(batchInfos, tabs)
+            var count = 0
+            results.forEach { (pkg, result) ->
+                try {
+                    categoryDao.insertAppTab(
+                        app.lawnchair.data.tab.entities.AppTab(
+                            packageName = pkg,
+                            tabName = result.tabName,
+                            source = app.lawnchair.data.tab.entities.AppTab.SOURCE_LLM,
+                            confidence = result.confidence,
+                        ),
+                    )
+                    count++
+                } catch (e: Exception) {
+                    android.util.Log.w(TAG, "Failed to insert local LLM result for $pkg", e)
+                }
+            }
+            count
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Local LLM stage failed for provider ${provider.name}", e)
+            if (Sentry.isEnabled()) Sentry.captureException(e)
+            0
         }
     }
 

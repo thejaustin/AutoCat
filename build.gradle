@@ -446,6 +446,11 @@ dependencies {
         exclude group: "org.tensorflow", module: "tensorflow-lite-api"
     }
 
+    // MediaPipe Tasks GenAI — on-device LLM (Gemma via AICore or downloaded .bin)
+    implementation(libs.mediapipe.tasks.genai) {
+        exclude group: "org.tensorflow", module: "tensorflow-lite-api"
+    }
+
     implementation platform(libs.compose.bom)
     implementation libs.compose.ui
     implementation libs.compose.ui.util

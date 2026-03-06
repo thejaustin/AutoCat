@@ -15,6 +15,7 @@ refine = "4.4.0"
 sentry = "6.1.0"
 shizuku = "13.1.5"
 tensorflowLite = "2.14.0"
+mediapipeTasksGenai = "0.10.14"
 
 guava = "33.5.0-android"
 junitVersion = "4.13.2"
@@ -148,6 +149,7 @@ rikka-shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "
 rikka-shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 smartspacer-sdk = "com.kieronquinn.smartspacer:sdk-client:1.1.2"
 tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version.ref = "tensorflowLite" }
+mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipeTasksGenai" }
 xdrop-fuzzywuzzy = "me.xdrop:fuzzywuzzy:1.4.0"
 errorprone-annotations = "com.google.errorprone:error_prone_annotations:2.47.0"
 # Dummy to get renovate updates, the version is used in rootProject build.gradle with spotless.

@@ -38,6 +38,7 @@ import com.android.launcher3.dragndrop.DragController;
 import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.folder.Folder;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
+import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.PrivateSpaceInstallAppButtonInfo;
 import com.android.launcher3.testing.TestLogging;
@@ -75,8 +76,19 @@ public class ItemLongClickListener {
         }
         if (!(v.getTag() instanceof ItemInfo)) return false;
 
+        ItemInfo info = (ItemInfo) v.getTag();
+
+        // Route folder long-presses to a context menu (Archive / Restore / Move).
+        // Only in NORMAL state; in EDIT_MODE the user intends to drag-rearrange.
+        if (info instanceof FolderInfo
+                && launcher.isInState(NORMAL)
+                && launcher instanceof FolderLongClickHandler) {
+            ((FolderLongClickHandler) launcher).onFolderLongClick((FolderInfo) info, v);
+            return true;
+        }
+
         launcher.setWaitingForResult(null);
-        beginDrag(v, launcher, (ItemInfo) v.getTag(), new DragOptions());
+        beginDrag(v, launcher, info, new DragOptions());
         return true;
     }
 

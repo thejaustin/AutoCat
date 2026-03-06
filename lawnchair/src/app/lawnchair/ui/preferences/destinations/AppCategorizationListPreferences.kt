@@ -1,6 +1,7 @@
 package app.lawnchair.ui.preferences.destinations
 
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -56,6 +57,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -109,6 +111,7 @@ fun AppCategorizationListPreferences(
     var expandedTabs by remember { mutableStateOf(setOf<String>()) }
     var filterMode by remember { mutableStateOf(FilterMode.ALL) }
     var searchQuery by remember { mutableStateOf("") }
+    var appLabels by remember { mutableStateOf(emptyMap<String, String>()) }
 
     // Initialize services safely
     LaunchedEffect(Unit) {
@@ -143,7 +146,23 @@ fun AppCategorizationListPreferences(
         }
     }
 
-    val filteredAppTabs = remember(appTabs, filterMode, searchQuery) {
+    // Pre-load all app labels on IO so search and list items never block the main thread.
+    LaunchedEffect(appTabs) {
+        if (appTabs.isEmpty()) return@LaunchedEffect
+        val labels = withContext(Dispatchers.IO) {
+            appTabs.associate { appTab ->
+                appTab.packageName to try {
+                    packageManager.getApplicationInfo(appTab.packageName, 0)
+                        .loadLabel(packageManager).toString()
+                } catch (e: Exception) {
+                    appTab.packageName
+                }
+            }
+        }
+        appLabels = labels
+    }
+
+    val filteredAppTabs = remember(appTabs, filterMode, searchQuery, appLabels) {
         try {
             var filtered = when (filterMode) {
                 FilterMode.ALL -> appTabs
@@ -168,14 +187,7 @@ fun AppCategorizationListPreferences(
             if (searchQuery.isNotBlank()) {
                 filtered = filtered.filter {
                     it.packageName.contains(searchQuery, ignoreCase = true) ||
-                        (
-                            try {
-                                val label = packageManager.getApplicationLabel(packageManager.getApplicationInfo(it.packageName, 0)).toString()
-                                label.contains(searchQuery, ignoreCase = true)
-                            } catch (e: Exception) {
-                                false
-                            }
-                            )
+                        appLabels[it.packageName]?.contains(searchQuery, ignoreCase = true) == true
                 }
             }
 
@@ -190,8 +202,8 @@ fun AppCategorizationListPreferences(
     val groupedApps = remember(filteredAppTabs) {
         try {
             filteredAppTabs
-                .filter { !it.tabName.isNullOrBlank() } // Filter out any apps with empty or null tab names
-                .groupBy { it.tabName!! } // Use !! since we filtered out nulls above
+                .filter { !it.tabName.isNullOrBlank() }
+                .groupBy { it.tabName!! }
                 .toSortedMap()
         } catch (e: Exception) {
             Log.e("AppCategorization", "Error grouping apps: ${e.message}", e)
@@ -380,6 +392,7 @@ fun AppCategorizationListPreferences(
                         ) {
                             AppTabItem(
                                 appTab = appTab,
+                                appName = appLabels[appTab.packageName] ?: appTab.packageName,
                                 packageManager = packageManager,
                                 onEditClick = { editingApp = appTab },
                             )
@@ -580,23 +593,17 @@ private fun TabHeader(
 @Composable
 private fun AppTabItem(
     appTab: AppTab,
+    appName: String,
     packageManager: PackageManager,
     onEditClick: () -> Unit,
 ) {
-    val appName = remember(appTab.packageName) {
-        try {
-            val appInfo = packageManager.getApplicationInfo(appTab.packageName, 0)
-            appInfo.loadLabel(packageManager).toString()
-        } catch (e: Exception) {
-            appTab.packageName
-        }
-    }
-
-    val appIcon = remember(appTab.packageName) {
-        try {
-            packageManager.getApplicationIcon(appTab.packageName)
-        } catch (e: Exception) {
-            null
+    val appIcon by produceState<Drawable?>(initialValue = null, appTab.packageName) {
+        value = withContext(Dispatchers.IO) {
+            try {
+                packageManager.getApplicationIcon(appTab.packageName)
+            } catch (e: Exception) {
+                null
+            }
         }
     }
 
@@ -789,14 +796,6 @@ private fun TabOverrideDialog(
     var subCategory by remember { mutableStateOf(appTab.subCategory ?: "") }
     var expanded by remember { mutableStateOf(false) }
 
-    // Ensure dropdown is properly initialized
-    LaunchedEffect(availableCustomTabs) {
-        // If the current tab name is not in available tabs, add it to the list
-        if (!availableCustomTabs.any { it.name == selectedTabName }) {
-            // Keep the current selection if it's valid
-        }
-    }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -814,9 +813,7 @@ private fun TabOverrideDialog(
                 // Tab dropdown - improved for better UX
                 ExposedDropdownMenuBox(
                     expanded = expanded,
-                    onExpandedChange = {
-                        expanded = !expanded
-                    },
+                    onExpandedChange = { expanded = it },
                 ) {
                     OutlinedTextField(
                         value = selectedTabName,

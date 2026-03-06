@@ -156,7 +156,7 @@ object LLMLogger {
                 timestamp = System.currentTimeMillis(),
                 level = LogLevel.WARNING,
                 provider = provider,
-                operation = "開",
+                operation = operation,
                 message = message,
                 details = details,
             ),
@@ -223,8 +223,8 @@ object LLMLogger {
             try {
                 _logFlow.emit(entry)
             } catch (e: Exception) {
-                // Ignore errors during logging to prevent crashes
                 android.util.Log.e("LLMLogger", "Failed to emit log", e)
+                if (Sentry.isEnabled()) Sentry.captureException(e)
             }
         }
 
@@ -236,11 +236,21 @@ object LLMLogger {
 
             LogLevel.INFO -> android.util.Log.i(tag, message, entry.exception)
 
-            LogLevel.WARNING -> android.util.Log.w(tag, message, entry.exception)
+            LogLevel.WARNING -> {
+                android.util.Log.w(tag, message, entry.exception)
+                if (Sentry.isEnabled()) {
+                    val breadcrumb = io.sentry.Breadcrumb("[$tag] $message").apply {
+                        level = io.sentry.SentryLevel.WARNING
+                        setData("operation", entry.operation)
+                        setData("provider", entry.provider)
+                        entry.details?.forEach { (k, v) -> setData(k, v.toString()) }
+                    }
+                    Sentry.addBreadcrumb(breadcrumb)
+                }
+            }
 
             LogLevel.ERROR -> {
                 android.util.Log.e(tag, message, entry.exception)
-                // AutoCat: Report to Sentry if exception is present
                 if (entry.exception != null && Sentry.isEnabled()) {
                     Sentry.captureException(entry.exception)
                 } else if (Sentry.isEnabled()) {

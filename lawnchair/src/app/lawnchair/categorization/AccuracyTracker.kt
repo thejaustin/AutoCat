@@ -2,8 +2,10 @@ package app.lawnchair.categorization
 
 import android.content.Context
 import android.util.Log
+import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.ModelAccuracy
+import io.sentry.Sentry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,6 +37,7 @@ class AccuracyTracker(private val context: Context) {
          * categorization as "accepted" by the user.
          */
         private const val ACCEPTANCE_GRACE_PERIOD_DAYS = 7L
+        private const val MAX_ACCEPTANCE_RECORDS_PER_SCAN = 500
     }
 
     /**
@@ -87,6 +90,7 @@ class AccuracyTracker(private val context: Context) {
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to record user correction", e)
+                LLMLogger.logError("AccuracyTracker", "RECORD_USER_CORRECTION", e)
             }
         }
     }
@@ -145,6 +149,7 @@ class AccuracyTracker(private val context: Context) {
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to record accepted categorization", e)
+                LLMLogger.logError("AccuracyTracker", "RECORD_ACCEPTED_CATEGORIZATION", e)
             }
         }
     }
@@ -174,12 +179,11 @@ class AccuracyTracker(private val context: Context) {
                     // Skip if not past grace period
                     if (now - app.lastUpdated < gracePeriodMillis) continue
 
-                    // Check if we've already recorded this acceptance
-                    // (by checking if a record exists for this package that was correct)
+                    // Skip if we've recorded too many acceptances for this package recently
+                    // (prevents duplicate inflation from repeated scans)
                     val existingCount = accuracyDao.getRecordCount(app.provider, app.model)
+                    if (existingCount >= MAX_ACCEPTANCE_RECORDS_PER_SCAN) continue
 
-                    // Simple check: just record it (duplicates are expected since users
-                    // might keep the same category for a long time)
                     val accuracy = ModelAccuracy(
                         provider = app.provider,
                         model = app.model,
@@ -199,6 +203,7 @@ class AccuracyTracker(private val context: Context) {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to scan and record acceptances", e)
+                LLMLogger.logError("AccuracyTracker", "SCAN_ACCEPTANCES", e)
             }
         }
     }
@@ -235,6 +240,7 @@ class AccuracyTracker(private val context: Context) {
                 Log.i(TAG, "Cleared all accuracy statistics")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to clear accuracy statistics", e)
+                if (Sentry.isEnabled()) Sentry.captureException(e)
             }
         }
     }

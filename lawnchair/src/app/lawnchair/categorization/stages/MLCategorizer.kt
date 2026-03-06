@@ -2,6 +2,7 @@ package app.lawnchair.categorization.stages
 
 import android.content.Context
 import android.util.Log
+import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.tab.TabDao
 import app.lawnchair.data.tab.entities.AppTab
@@ -54,16 +55,17 @@ class MLCategorizer(
 
     private fun loadModelFromAssets(): MappedByteBuffer? {
         return try {
-            val assetFd = context.assets.openFd(MODEL_ASSET_PATH)
-            val inputStream = assetFd.createInputStream()
             val file = File(context.cacheDir, "autocat_model_tmp.tflite")
-            file.outputStream().use { out -> inputStream.copyTo(out) }
-            file.inputStream().channel.map(
-                FileChannel.MapMode.READ_ONLY,
-                0,
-                file.length(),
-            )
+            context.assets.openFd(MODEL_ASSET_PATH).use { assetFd ->
+                assetFd.createInputStream().use { inputStream ->
+                    file.outputStream().use { out -> inputStream.copyTo(out) }
+                }
+            }
+            val buffer = file.inputStream().channel.map(FileChannel.MapMode.READ_ONLY, 0, file.length())
+            file.delete()
+            buffer
         } catch (e: Exception) {
+            LLMLogger.logWarning("MLCategorizer", "MODEL_LOAD", "TFLite model not found in assets, using keyword classifier", mapOf("error" to (e.message ?: "unknown")))
             null
         }
     }
@@ -149,6 +151,7 @@ class MLCategorizer(
             findBestMatchingTab(predictedCategory, availableTabs)
         } catch (e: Exception) {
             Log.w(TAG, "TFLite inference failed for ${appInfo.packageName}: ${e.message}")
+            LLMLogger.logWarning("MLCategorizer", "TFLITE_INFERENCE", "TFLite inference failed, falling back to keyword classifier", mapOf("package" to appInfo.packageName, "error" to (e.message ?: "unknown")))
             null
         }
     }

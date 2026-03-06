@@ -183,6 +183,12 @@ class PreferenceManager @Inject constructor(
     val llmUseLocalModel = BoolPref("pref_llmUseLocalModel", true, {}) // Default on for S22+
     val llmLocalModelPath = StringPref("pref_llmLocalModelPath", "ml/autocat_categorizer.tflite", {})
 
+    // AutoCat: Local AI (on-device LLM / local server)
+    val localEndpointEnabled = BoolPref("pref_localEndpointEnabled", false, {})
+    val localEndpointUrl = StringPref("pref_localEndpointUrl", "http://localhost:11434", {})
+    val localCustomModelPath = StringPref("pref_localCustomModelPath", "", {})
+    val selectedLocalModelId = StringPref("pref_selectedLocalModelId", "", {})
+
     // AutoCat: Batch processing settings
     val llmEnableBatching = BoolPref("pref_llmEnableBatching", true, {})
     val llmBatchSize = IntPref("pref_llmBatchSize", 0, {}) // 0 = auto-calculate

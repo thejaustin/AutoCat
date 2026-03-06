@@ -9,6 +9,7 @@ import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.ConfidenceCalibrator
 import app.lawnchair.categorization.llm.GoogleAIProvider
 import app.lawnchair.categorization.llm.LLMException
+import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.categorization.llm.LLMProvider
 import app.lawnchair.categorization.llm.LLMUtils
 import app.lawnchair.categorization.llm.OpenAIProvider
@@ -18,6 +19,8 @@ import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.tab.TabDao
 import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.preferences.PreferenceManager
+import io.sentry.Sentry
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
 import kotlin.math.pow
 import kotlinx.coroutines.async
@@ -195,6 +198,18 @@ class LLMCategorizer(
         }
 
         android.util.Log.w(TAG, "All LLM providers failed for ${appInfo.packageName}")
+        LLMLogger.logWarning(
+            "LLMCategorizer",
+            "ALL_PROVIDERS_FAILED",
+            "All LLM providers exhausted for ${appInfo.packageName}",
+            mapOf("package" to appInfo.packageName),
+        )
+        if (Sentry.isEnabled()) {
+            Sentry.captureMessage(
+                "All LLM providers failed for ${appInfo.packageName}",
+                io.sentry.SentryLevel.WARNING,
+            )
+        }
         return false
     }
 
@@ -270,7 +285,7 @@ class LLMCategorizer(
         // Calculate total batches for progress tracking
         val batches = apps.chunked(batchSize)
         val totalBatches = batches.size
-        var currentBatchIndex = 0
+        val currentBatchIndex = AtomicInteger(0)
         val startTime = System.currentTimeMillis()
 
         android.util.Log.d(
@@ -288,7 +303,7 @@ class LLMCategorizer(
             val results = coroutineScope {
                 batchChunk.map { batch ->
                     async {
-                        val batchIndex = ++currentBatchIndex
+                        val batchIndex = currentBatchIndex.incrementAndGet()
 
                         // Update progress at start of batch
                         onProgress?.invoke(
@@ -378,6 +393,12 @@ class LLMCategorizer(
                             android.util.Log.e(
                                 TAG,
                                 "Batch $batchIndex: FAILED - All providers exhausted. Last error: $lastError",
+                            )
+                            LLMLogger.logWarning(
+                                "LLMCategorizer",
+                                "BATCH_ALL_PROVIDERS_FAILED",
+                                "Batch $batchIndex exhausted all providers",
+                                mapOf("batchIndex" to batchIndex, "lastError" to (lastError ?: "unknown")),
                             )
                         }
 

@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.rounded.Analytics
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -67,6 +69,10 @@ import app.lawnchair.categorization.llm.ModelRegistry
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.categorization.llm.TestResult
+import app.lawnchair.categorization.local.DeviceCapabilityChecker
+import app.lawnchair.categorization.local.LocalEndpointProvider
+import app.lawnchair.categorization.local.LocalModelRegistry
+import app.lawnchair.categorization.local.MediaPipeLLMProvider
 import app.lawnchair.data.tab.entities.ModelAccuracyStats
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
@@ -134,9 +140,20 @@ fun LLMSettingsPreferences(
                 PreferenceGroup(heading = "Engine Configuration") {
                     SwitchPreference(
                         adapter = prefs.llmUseLocalModel.getAdapter(),
-                        label = "Local AI Engine (Offline)",
-                        description = "Use a fast, on-device model for initial organization. Saves battery and data.",
+                        label = "Local AI Engine",
+                        description = "Use on-device or local-server AI before cloud providers. Saves battery and data.",
                     )
+
+                    val localEnabled by prefs.llmUseLocalModel.getAdapter().state
+                    AnimatedVisibility(
+                        visible = localEnabled,
+                        enter = androidx.compose.animation.expandVertically(
+                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                        ) + androidx.compose.animation.fadeIn(),
+                        exit = androidx.compose.animation.shrinkVertically() + androidx.compose.animation.fadeOut(),
+                    ) {
+                        LocalAiSection(prefs = prefs, scope = scope)
+                    }
 
                     SwitchPreference(
                         adapter = prefs.llmAutoSelectBestModel.getAdapter(),
@@ -549,6 +566,256 @@ fun CategorizationStatus(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun LocalAiSection(
+    prefs: app.lawnchair.preferences.PreferenceManager,
+    scope: kotlinx.coroutines.CoroutineScope,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+
+    // Device analysis state
+    var capsLoading by remember { mutableStateOf(true) }
+    var ramText by remember { mutableStateOf("") }
+    var gpuText by remember { mutableStateOf("") }
+    var androidText by remember { mutableStateOf("") }
+    var recommendedBadge by remember { mutableStateOf<String?>(null) }
+    var recommendedName by remember { mutableStateOf("") }
+    var aiCoreAvailable by remember { mutableStateOf(false) }
+
+    // Connection test state
+    var endpointTestStatus by remember { mutableStateOf<String?>(null) }
+    var endpointTesting by remember { mutableStateOf(false) }
+    var modelTestStatus by remember { mutableStateOf<String?>(null) }
+    var modelTesting by remember { mutableStateOf(false) }
+
+    val endpointEnabled by prefs.localEndpointEnabled.getAdapter().state
+    val endpointUrl by prefs.localEndpointUrl.getAdapter().state
+    val customModelPath by prefs.localCustomModelPath.getAdapter().state
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            val caps = DeviceCapabilityChecker.getCapabilities(context)
+            val recommended = LocalModelRegistry.getRecommendedModel(caps)
+            val totalGb = caps.totalRamMb / 1024.0
+            ramText = "%.1f GB RAM".format(totalGb)
+            gpuText = caps.gpuFamily.name.lowercase().replaceFirstChar { it.uppercase() }
+            androidText = "Android ${caps.androidVersion}"
+            aiCoreAvailable = caps.isAiCoreAvailable
+            recommendedName = recommended?.displayName ?: "None available"
+            recommendedBadge = recommended?.recommendationBadge
+            capsLoading = false
+        }
+    }
+
+    Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+        // ── Device Analysis Card ────────────────────────────────────────────
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+            colors = CardDefaults.elevatedCardColors(),
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "Device Analysis",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                if (capsLoading) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Text(ramText, style = MaterialTheme.typography.bodySmall)
+                        Text("·", style = MaterialTheme.typography.bodySmall)
+                        Text(gpuText, style = MaterialTheme.typography.bodySmall)
+                        Text("·", style = MaterialTheme.typography.bodySmall)
+                        Text(androidText, style = MaterialTheme.typography.bodySmall)
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.Memory,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp).padding(end = 4.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            text = "Recommended: $recommendedName",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                    recommendedBadge?.let { badge ->
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                        ) {
+                            Text(
+                                text = badge,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            )
+                        }
+                    }
+                    if (aiCoreAvailable) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "✓ AICore available on this device",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+        }
+
+        // ── Local Server Section ────────────────────────────────────────────
+        Text(
+            text = "Local Server (Ollama / LM Studio)",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 4.dp),
+        )
+
+        SwitchPreference(
+            adapter = prefs.localEndpointEnabled.getAdapter(),
+            label = "Enable local server",
+            description = "Connect to an OpenAI-compatible server on your network.",
+        )
+
+        AnimatedVisibility(visible = endpointEnabled) {
+            Column {
+                TextPreference(
+                    adapter = prefs.localEndpointUrl.getAdapter(),
+                    label = "Server URL",
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    FilledTonalButton(
+                        onClick = {
+                            scope.launch {
+                                endpointTesting = true
+                                endpointTestStatus = null
+                                val result = LocalEndpointProvider(context, endpointUrl).testConnection()
+                                endpointTestStatus = if (result.success) {
+                                    "✅ ${result.modelVersion ?: "Connected"} · ${result.latencyMs}ms"
+                                } else {
+                                    "❌ ${result.message}"
+                                }
+                                endpointTesting = false
+                            }
+                        },
+                        enabled = !endpointTesting && endpointUrl.isNotBlank(),
+                        modifier = Modifier.animateContentSize(),
+                    ) {
+                        Icon(Icons.Rounded.WifiTethering, null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(if (endpointTesting) "Testing…" else "Test connection")
+                    }
+
+                    endpointTestStatus?.let { status ->
+                        Text(
+                            text = status,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (status.startsWith("✅")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // ── Custom Model File Section ────────────────────────────────────────
+        Text(
+            text = "Custom Model File",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 4.dp),
+        )
+
+        TextPreference(
+            adapter = prefs.localCustomModelPath.getAdapter(),
+            label = "Model file path (.bin for MediaPipe)",
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            FilledTonalButton(
+                onClick = {
+                    scope.launch {
+                        modelTesting = true
+                        modelTestStatus = null
+                        val result = MediaPipeLLMProvider(context, customModelPath).testConnection()
+                        modelTestStatus = if (result.success) {
+                            "✅ Loaded · ${result.latencyMs}ms"
+                        } else {
+                            "❌ ${result.message}"
+                        }
+                        modelTesting = false
+                    }
+                },
+                enabled = !modelTesting && customModelPath.isNotBlank(),
+                modifier = Modifier.animateContentSize(),
+            ) {
+                Icon(Icons.Outlined.Memory, null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(if (modelTesting) "Loading…" else "Test model")
+            }
+
+            modelTestStatus?.let { status ->
+                Text(
+                    text = status,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (status.startsWith("✅")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // ── Model Browser (Phase 2 placeholder) ─────────────────────────────
+        Text(
+            text = "Model Browser",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 4.dp),
+        )
+
+        var showComingSoon by remember { mutableStateOf(false) }
+        OutlinedButton(
+            onClick = { showComingSoon = true },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Icon(Icons.Rounded.ExpandMore, null, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("Browse compatible models")
+        }
+
+        AnimatedVisibility(visible = showComingSoon) {
+            Text(
+                text = "Model browser coming soon. Downloaded models will appear here.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
         }
     }
 }

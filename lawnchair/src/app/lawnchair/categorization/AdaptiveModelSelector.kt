@@ -2,6 +2,7 @@ package app.lawnchair.categorization
 
 import android.content.Context
 import android.util.Log
+import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.ModelAccuracyStats
 import app.lawnchair.preferences.PreferenceManager
@@ -97,6 +98,7 @@ class AdaptiveModelSelector(private val context: Context) {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error selecting best provider", e)
+            LLMLogger.logError("AdaptiveModelSelector", "GET_BEST_PROVIDER", e)
             return null
         }
     }
@@ -113,6 +115,7 @@ class AdaptiveModelSelector(private val context: Context) {
             accuracyDao.getAccuracyByModel(since)
         } catch (e: Exception) {
             Log.e(TAG, "Error getting accuracy stats", e)
+            LLMLogger.logError("AdaptiveModelSelector", "GET_ACCURACY_STATS", e)
             emptyList()
         }
     }
@@ -150,6 +153,7 @@ class AdaptiveModelSelector(private val context: Context) {
             return null
         } catch (e: Exception) {
             Log.e(TAG, "Error getting best model for provider $provider", e)
+            LLMLogger.logError("AdaptiveModelSelector", "GET_BEST_MODEL", e, mapOf("provider" to provider))
             return null
         }
     }

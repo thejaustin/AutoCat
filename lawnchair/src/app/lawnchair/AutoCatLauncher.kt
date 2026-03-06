@@ -46,10 +46,12 @@ import app.lawnchair.root.RootNotAvailableException
 import app.lawnchair.theme.DynamicThemeContextWrapper
 import app.lawnchair.theme.ThemeProvider
 import app.lawnchair.ui.popup.AutoCatShortcut
+import app.lawnchair.ui.popup.FolderContextMenuContent
 import app.lawnchair.ui.popup.LauncherOptionsPopup
 import app.lawnchair.util.getThemedIconPacksInstalled
 import app.lawnchair.util.unsafeLazy
 import app.lawnchair.views.AutoCatFloatingSurfaceView
+import app.lawnchair.views.ComposeBottomSheet
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.BaseActivity
 import com.android.launcher3.BubbleTextView
@@ -58,11 +60,15 @@ import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherState
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
+import com.android.launcher3.dragndrop.DragOptions
+import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.shortcuts.DeepShortcutView
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StateManager.StateHandler
+import com.android.launcher3.touch.FolderLongClickHandler
+import com.android.launcher3.touch.ItemLongClickListener
 import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.uioverrides.states.AllAppsState
 import com.android.launcher3.uioverrides.states.BackgroundAppState
@@ -92,7 +98,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class AutoCatLauncher : QuickstepLauncher() {
+class AutoCatLauncher :
+    QuickstepLauncher(),
+    FolderLongClickHandler {
     private val defaultOverlay by unsafeLazy { OverlayCallbackImpl(this) }
     private val prefs by unsafeLazy { PreferenceManager.getInstance(this) }
     private val preferenceManager2 by unsafeLazy { PreferenceManager2.getInstance(this) }
@@ -278,6 +286,32 @@ class AutoCatLauncher : QuickstepLauncher() {
             if (AutoCatApp.isRecentsEnabled) Stream.of(AutoCatShortcut.PAUSE_APPS) else Stream.empty(),
         ),
     )
+
+    /**
+     * Shows a bottom sheet context menu when the user long-presses a folder icon on the workspace.
+     * Offers "Archive All Apps", "Restore All Apps", and "Move Folder" options.
+     */
+    override fun onFolderLongClick(folderInfo: FolderInfo, view: View) {
+        val packages = folderInfo.appContents
+            .mapNotNull { it.targetComponent?.packageName }
+            .distinct()
+        val folderName = folderInfo.title?.toString()
+            ?: getString(R.string.folder_hint_text)
+
+        ComposeBottomSheet.show(context = this) {
+            FolderContextMenuContent(
+                folderName = folderName,
+                packages = packages,
+                onMove = {
+                    // Post to next frame so the sheet close animation starts first
+                    view.post {
+                        ItemLongClickListener.beginDrag(view, this@AutoCatLauncher, folderInfo, DragOptions())
+                    }
+                },
+                onDismiss = { close(false) },
+            )
+        }
+    }
 
     fun updateTheme() {
         if (themeProvider.colorScheme != colorScheme) {
