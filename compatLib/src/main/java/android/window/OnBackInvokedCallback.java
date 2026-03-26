@@ -15,6 +15,8 @@
  */
 
 package android.window;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.app.Activity;
 import android.app.Dialog;

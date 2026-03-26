@@ -1,4 +1,6 @@
 package app.lawnchair.compatlib;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -7,8 +9,8 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.view.IRecentsAnimationController;
 import android.window.TaskSnapshot;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+
+
 import androidx.annotation.RequiresApi;
 import java.util.List;
 

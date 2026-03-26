@@ -15,11 +15,15 @@
  */
 
 package android.window;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_UNDEFINED;
 import static android.view.WindowManager.TransitionType;
 
 import android.annotation.IntDef;
+
+
 import android.app.ActivityManager;
 import android.app.WindowConfiguration;
 import android.content.ComponentName;
@@ -27,8 +31,6 @@ import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.view.WindowManager;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 /**
  * A parcelable filter that can be used for rerouting transitions to a remote. This is a local

@@ -1,10 +1,12 @@
 package app.lawnchair.compatlib;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.app.IApplicationThread;
 import android.window.IRemoteTransition;
 import android.window.RemoteTransition;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+
+
 
 public interface RemoteTransitionCompat {
 

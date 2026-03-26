@@ -15,6 +15,8 @@
  */
 
 package app.lawnchair.compatlib.utils;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.graphics.Bitmap;
 import android.graphics.ColorSpace;

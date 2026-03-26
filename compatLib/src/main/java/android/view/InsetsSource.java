@@ -15,6 +15,8 @@
  */
 
 package android.view;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import static android.view.InsetsSourceProto.FRAME;
 import static android.view.InsetsSourceProto.TYPE;
@@ -26,14 +28,14 @@ import static android.view.WindowInsets.Type.ime;
 
 import android.annotation.IntDef;
 import android.annotation.IntRange;
+
+
 import android.graphics.Insets;
 import android.graphics.Rect;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.proto.ProtoOutputStream;
 import android.view.WindowInsets.Type.InsetsType;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

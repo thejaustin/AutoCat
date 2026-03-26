@@ -15,8 +15,12 @@
  */
 
 package android.view;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import android.annotation.IntRange;
+
+
 import android.graphics.Insets;
 import android.graphics.Rect;
 import android.os.IBinder;
@@ -24,8 +28,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.view.InsetsSource.Flags;
 import android.view.WindowInsets.Type.InsetsType;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Objects;
 
