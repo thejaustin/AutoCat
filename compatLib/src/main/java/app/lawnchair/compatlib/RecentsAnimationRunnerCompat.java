@@ -1,6 +1,4 @@
 package app.lawnchair.compatlib;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import android.graphics.Rect;
 import android.view.IRecentsAnimationController;

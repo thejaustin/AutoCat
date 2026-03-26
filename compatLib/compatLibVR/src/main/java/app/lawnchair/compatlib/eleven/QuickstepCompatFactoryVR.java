@@ -1,7 +1,4 @@
 package app.lawnchair.compatlib.eleven;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 
 import androidx.annotation.RequiresApi;
 import app.lawnchair.compatlib.ActivityManagerCompat;

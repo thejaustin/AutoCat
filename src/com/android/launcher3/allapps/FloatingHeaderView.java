@@ -91,7 +91,7 @@ public class FloatingHeaderView extends LinearLayout implements
     private final int mTabsAdditionalPaddingTop;
     private final int mTabsAdditionalPaddingBottom;
 
-    protected PersonalWorkSlidingTabStrip mTabLayout;
+    protected PageIndicator mTabLayout;
     private AllAppsRecyclerView mMainRV;
     private AllAppsRecyclerView mWorkRV;
     private SearchRecyclerView mSearchRV;
@@ -194,7 +194,7 @@ public class FloatingHeaderView extends LinearLayout implements
             return;
         }
         PluginHeaderRow headerRow = new PluginHeaderRow(allAppsRowPlugin, this);
-        addView(headerRow.mView, indexOfChild(mTabLayout));
+        addView(headerRow.mView, indexOfChild((View) mTabLayout));
         mPluginRows.put(allAppsRowPlugin, headerRow);
         recreateAllRowsArray();
         allAppsRowPlugin.setOnHeightUpdatedListener(this);
@@ -278,7 +278,7 @@ public class FloatingHeaderView extends LinearLayout implements
 
     /** Update tab visibility to the given state, only if tabs are active (work profile exists). */
     void maybeSetTabVisibility(int visibility) {
-        mTabLayout.setVisibility(mTabsHidden ? GONE : visibility);
+        ((View) mTabLayout).setVisibility(mTabsHidden ? GONE : visibility);
     }
 
     private void updateExpectedHeight() {
@@ -352,7 +352,7 @@ public class FloatingHeaderView extends LinearLayout implements
             }
         }
 
-        mTabLayout.setTranslationY(mTranslationY);
+        ((View) mTabLayout).setTranslationY(mTranslationY);
 
         int clipTop = getPaddingTop() - mTabsAdditionalPaddingTop;
         if (mTabsHidden) {
@@ -419,7 +419,7 @@ public class FloatingHeaderView extends LinearLayout implements
         return !mTabsHidden;
     }
 
-    PersonalWorkSlidingTabStrip getTabLayout() {
+    PageIndicator getTabLayout() {
         return mTabLayout;
     }
 

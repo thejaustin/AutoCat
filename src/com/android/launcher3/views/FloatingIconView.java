@@ -332,12 +332,24 @@ public class FloatingIconView extends FrameLayout implements
             }
         }
 
-        drawable = drawable == null ? null : Objects.requireNonNull(drawable.getConstantState()).newDrawable();
+        if (drawable != null) {
+            Drawable.ConstantState cs = drawable.getConstantState();
+            if (cs != null) {
+                drawable = cs.newDrawable();
+            }
+        }
         int iconOffset = getOffsetForIconBounds(l, drawable, pos);
         // Clone right away as we are on the background thread instead of blocking the
         // main thread later
-        Drawable btvClone = btvIcon == null ? null : Objects.requireNonNull(
-            btvIcon.getConstantState()).newDrawable();
+        Drawable btvClone = null;
+        if (btvIcon != null) {
+            Drawable.ConstantState btvCs = btvIcon.getConstantState();
+            if (btvCs != null) {
+                btvClone = btvCs.newDrawable();
+            } else {
+                btvClone = btvIcon;
+            }
+        }
         synchronized (outIconLoadResult) {
             outIconLoadResult.btvDrawable = () -> btvClone;
             outIconLoadResult.drawable = drawable;

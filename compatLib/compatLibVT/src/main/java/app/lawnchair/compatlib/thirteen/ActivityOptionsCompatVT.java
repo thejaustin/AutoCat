@@ -1,14 +1,12 @@
 package app.lawnchair.compatlib.thirteen;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import android.app.ActivityOptions;
 import android.content.Context;
 import android.os.Handler;
 import android.view.RemoteAnimationAdapter;
 import android.window.RemoteTransition;
-
-
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import app.lawnchair.compatlib.twelve.ActivityOptionsCompatVS;
 

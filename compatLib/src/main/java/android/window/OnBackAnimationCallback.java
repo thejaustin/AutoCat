@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 package android.window;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.view.View;
 import android.view.Window;
+import androidx.annotation.NonNull;
 
 /**
  * Interface for applications to register back animation callbacks along their custom back handling.

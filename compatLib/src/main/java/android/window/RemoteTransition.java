@@ -15,14 +15,12 @@
  */
 
 package android.window;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-
 
 import android.app.IApplicationThread;
 import android.os.IBinder;
 import android.os.Parcelable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * Represents a remote transition animation and information required to run it (eg. the app thread
