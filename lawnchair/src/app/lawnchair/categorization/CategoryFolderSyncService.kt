@@ -319,6 +319,9 @@ class CategoryFolderSyncService(
 
     /**
      * Syncs apps to home screen folders.
+     *
+     * Uses AddFoldersWithItemsTask which automatically finds optimal placement
+     * for folders on the workspace, avoiding hardcoded coordinates.
      */
     private suspend fun syncToHomeScreen(
         appsByTab: Map<String, List<String>>,
@@ -350,17 +353,20 @@ class CategoryFolderSyncService(
                     title = folderName
                 }
 
+                var appsAddedToFolder = 0
                 apps.forEach { app ->
                     val workspaceItem = app.makeWorkspaceItem(context)
                     if (workspaceItem != null) {
                         folderInfo.add(workspaceItem)
                         appsMovedToFolders++
+                        appsAddedToFolder++
                     }
                 }
 
                 if (folderInfo.getContents().isNotEmpty()) {
                     foldersToAdd.add(folderInfo)
                     foldersCreated++
+                    android.util.Log.d(TAG, "Prepared home screen folder '$folderName' with $appsAddedToFolder apps")
                 }
             } else if (apps.size == 1) {
                 // Single app - add directly to workspace via ItemInstallQueue
@@ -368,13 +374,21 @@ class CategoryFolderSyncService(
                 com.android.launcher3.model.ItemInstallQueue.INSTANCE.get(context)
                     .queueItem(app.targetPackage, app.user)
                 appsMovedToFolders++
+                android.util.Log.d(TAG, "Queued single app '${app.targetPackage}' for workspace")
             }
         }
 
         if (foldersToAdd.isNotEmpty()) {
+            android.util.Log.i(TAG, "Adding ${foldersToAdd.size} folders to home screen with $appsMovedToFolders apps")
+
+            // Add folders with automatic placement (no hardcoded coordinates)
             launcher.model.enqueueModelUpdateTask(
-                app.lawnchair.deck.AddFoldersWithItemsTask(foldersToAdd),
+                app.lawnchair.deck.AddFoldersWithItemsTask(foldersToAdd) {
+                    android.util.Log.i(TAG, "Home screen folder sync completed successfully")
+                },
             )
+        } else {
+            android.util.Log.d(TAG, "No folders to add to home screen")
         }
 
         return Pair(foldersCreated, appsMovedToFolders)

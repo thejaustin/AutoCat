@@ -100,23 +100,91 @@ object LLMUtils {
 
             message.contains("network", ignoreCase = true) -> true
 
-            message.contains("connectivity", ignoreCase = true) -> true
+            message.contains("connection", ignoreCase = true) -> true
+
+            message.contains("SSL", ignoreCase = true) -> true
 
             // Server errors (5xx)
-            message.contains("500") || message.contains("502") || message.contains("503") || message.contains("504") -> true
+            message.contains("500", ignoreCase = true) -> true
 
-            // Gemini-specific overloaded error
-            message.contains("overloaded", ignoreCase = true) -> true
+            message.contains("502", ignoreCase = true) -> true
+
+            message.contains("503", ignoreCase = true) -> true
+
+            message.contains("504", ignoreCase = true) -> true
+
+            // Transient errors
+            message.contains("temporarily", ignoreCase = true) -> true
+
+            message.contains("try again", ignoreCase = true) -> true
 
             else -> false
         }
     }
 
     /**
-     * Checks if an exception is a rate limit (429) error.
+     * Checks if an exception is a rate limit (HTTP 429).
      */
-    private fun isRateLimitException(e: Exception): Boolean {
+    fun isRateLimitException(e: Exception): Boolean {
         val message = e.message ?: ""
-        return message.contains("429") || message.contains("quota", ignoreCase = true)
+        return message.contains("429", ignoreCase = true) ||
+            message.contains("rate limit", ignoreCase = true) ||
+            message.contains("too many requests", ignoreCase = true)
+    }
+
+    /**
+     * Generates a user-friendly error message for LLM failures.
+     */
+    fun getUserFriendlyErrorMessage(e: Exception, provider: String): String {
+        return when {
+            isRateLimitException(e) ->
+                "Rate limit reached. Please wait a moment and try again, or reduce batch size."
+
+            e.message?.contains("timeout", ignoreCase = true) == true ->
+                "Connection timed out. Please check your internet connection and try again."
+
+            e.message?.contains("401", ignoreCase = true) == true ||
+                e.message?.contains("unauthorized", ignoreCase = true) == true ->
+                "Invalid API key. Please check your $provider API key in settings."
+
+            e.message?.contains("403", ignoreCase = true) == true ->
+                "Access denied. Please verify your API key has the correct permissions."
+
+            e.message?.contains("404", ignoreCase = true) == true ->
+                "Model not found. Please check the model selection in settings."
+
+            e.message?.contains("500", ignoreCase = true) == true ||
+                e.message?.contains("502", ignoreCase = true) == true ||
+                e.message?.contains("503", ignoreCase = true) == true ->
+                "$provider service is temporarily unavailable. Please try again later."
+
+            e.message?.contains("network", ignoreCase = true) == true ||
+                e.message?.contains("connection", ignoreCase = true) == true ->
+                "Network error. Please check your internet connection."
+
+            else -> "An error occurred with $provider. Please try again or switch to a different provider."
+        }
+    }
+
+    /**
+     * Suggests next steps based on the error type.
+     */
+    fun getSuggestedAction(e: Exception, provider: String): String {
+        return when {
+            isRateLimitException(e) ->
+                "Wait 30 seconds, then retry with a smaller batch size"
+
+            e.message?.contains("401", ignoreCase = true) == true ||
+                e.message?.contains("403", ignoreCase = true) == true ->
+                "Go to Settings > AI Engine and verify your API key"
+
+            e.message?.contains("network", ignoreCase = true) == true ->
+                "Check Wi-Fi/mobile data connection"
+
+            e.message?.contains("timeout", ignoreCase = true) == true ->
+                "Try again - the service may be slow"
+
+            else -> "Try switching to a different provider or contact support"
+        }
     }
 }

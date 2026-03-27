@@ -2,6 +2,7 @@ package app.lawnchair.deck
 
 import android.content.Intent
 import android.os.UserHandle
+import android.util.Log
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherModel
@@ -19,11 +20,18 @@ import com.android.launcher3.util.PackageManagerHelper
 /**
  * Custom model task to add folders with their items to the workspace.
  * This properly handles adding folders and then adding items to those folders.
+ *
+ * Uses WorkspaceItemSpaceFinder to automatically find optimal placement,
+ * avoiding hardcoded coordinates and ensuring folders don't overlap.
  */
 class AddFoldersWithItemsTask(
     private val folders: List<FolderInfo>,
     private val onComplete: (() -> Unit)? = null,
 ) : LauncherModel.ModelUpdateTask {
+
+    companion object {
+        private const val TAG = "AddFoldersWithItems"
+    }
 
     override fun execute(
         taskController: ModelTaskController,
@@ -37,63 +45,79 @@ class AddFoldersWithItemsTask(
         val itemSpaceFinder = WorkspaceItemSpaceFinder(dataModel, idp, model)
 
         if (folders.isEmpty()) {
+            Log.w(TAG, "No folders to add")
             return
         }
 
         val addedItemsFinal = ArrayList<ItemInfo>()
         val addedWorkspaceScreensFinal = IntArray()
+        var foldersAdded = 0
+        var itemsAdded = 0
 
         synchronized(dataModel) {
             val workspaceScreens = dataModel.itemsIdMap.collectWorkspaceScreens(context)
             val modelWriter = taskController.getModelWriter()
 
             folders.forEach { folderInfo ->
-                // Find space for the folder
-                val coords = itemSpaceFinder.findSpaceForItem(
-                    workspaceScreens,
-                    addedWorkspaceScreensFinal,
-                    addedItemsFinal,
-                    folderInfo.spanX,
-                    folderInfo.spanY,
-                    context,
-                )
-                val screenId = coords[0]
-                val cellX = coords[1]
-                val cellY = coords[2]
+                try {
+                    // Find space for the folder using automatic placement
+                    val coords = itemSpaceFinder.findSpaceForItem(
+                        workspaceScreens,
+                        addedWorkspaceScreensFinal,
+                        addedItemsFinal,
+                        folderInfo.spanX,
+                        folderInfo.spanY,
+                        context,
+                    )
+                    val screenId = coords[0]
+                    val cellX = coords[1]
+                    val cellY = coords[2]
 
-                // Add folder to database
-                modelWriter.addItemToDatabase(
-                    folderInfo,
-                    LauncherSettings.Favorites.CONTAINER_DESKTOP,
-                    screenId,
-                    cellX,
-                    cellY,
-                )
+                    Log.d(TAG, "Placing folder '${folderInfo.title}' at screen=$screenId, cell=($cellX,$cellY)")
 
-                // Now add items to the folder
-                // Items need to be added with proper rank/position
-                folderInfo.getContents().forEachIndexed { index, item ->
-                    if (item is WorkspaceItemInfo) {
-                        // Check if item already exists on workspace
-                        if (shortcutExists(dataModel, item.intent, item.user)) {
-                            return@forEachIndexed
+                    // Add folder to database
+                    modelWriter.addItemToDatabase(
+                        folderInfo,
+                        LauncherSettings.Favorites.CONTAINER_DESKTOP,
+                        screenId,
+                        cellX,
+                        cellY,
+                    )
+
+                    // Now add items to the folder
+                    // Items need to be added with proper rank/position
+                    val folderContents = folderInfo.getContents()
+                    folderContents.forEachIndexed { index, item ->
+                        if (item is WorkspaceItemInfo) {
+                            // Check if item already exists on workspace
+                            if (shortcutExists(dataModel, item.intent, item.user)) {
+                                Log.d(TAG, "Skipping duplicate item: ${item.title}")
+                                return@forEachIndexed
+                            }
+
+                            // Add item to folder using folder's ID as container
+                            // Use rank as position - folder will arrange items
+                            modelWriter.addOrMoveItemInDatabase(
+                                item,
+                                folderInfo.id,
+                                0, // screenId is 0 for items in folders
+                                index % 4, // cellX - approximate grid position
+                                index / 4, // cellY - approximate grid position
+                            )
+                            itemsAdded++
+                            Log.d(TAG, "Added '${item.title}' to folder at rank $index")
                         }
-
-                        // Add item to folder using folder's ID as container
-                        // Use rank as position - folder will arrange items
-                        modelWriter.addOrMoveItemInDatabase(
-                            item,
-                            folderInfo.id,
-                            0, // screenId is 0 for items in folders
-                            index % 4, // cellX - approximate grid position
-                            index / 4, // cellY - approximate grid position
-                        )
                     }
-                }
 
-                addedItemsFinal.add(folderInfo)
+                    addedItemsFinal.add(folderInfo)
+                    foldersAdded++
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to add folder '${folderInfo.title}': ${e.message}", e)
+                }
             }
         }
+
+        Log.i(TAG, "Successfully added $foldersAdded folders with $itemsAdded items")
 
         // Schedule callback to bind items
         if (addedItemsFinal.isNotEmpty()) {
@@ -105,6 +129,7 @@ class AddFoldersWithItemsTask(
                 onComplete?.invoke()
             }
         } else {
+            Log.w(TAG, "No items were added to the workspace")
             // No items to add, notify completion immediately
             onComplete?.invoke()
         }
