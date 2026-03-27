@@ -1,10 +1,6 @@
 package app.lawnchair.ui.preferences.components
 
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.preferences.SettingsCategory
@@ -42,7 +37,7 @@ import app.lawnchair.ui.preferences.components.controls.PreferenceCategory
 /**
  * A draggable settings category card with edit mode support
  */
-@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DraggableSettingsCategory(
     category: SettingsCategory,
@@ -52,19 +47,16 @@ fun DraggableSettingsCategory(
     onNavigate: () -> Unit,
     onToggleVisibility: () -> Unit,
     onLongPress: () -> Unit,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
 ) {
-    val scale by animateFloatAsState(
-        targetValue = if (isEditMode) 0.95f else 1f,
-        label = "scale",
+    val elevation by animateDpAsState(
+        targetValue = if (isEditMode) 4.dp else 0.dp,
+        label = "elevation",
     )
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .scale(scale)
             .alpha(if (!category.isVisible && !isEditMode) 0.5f else 1f),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -74,7 +66,7 @@ fun DraggableSettingsCategory(
                 imageVector = Icons.Rounded.DragHandle,
                 contentDescription = "Drag to reorder",
                 modifier = Modifier
-                    .padding(start = 16.dp)
+                    .padding(start = 8.dp)
                     .size(24.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -84,24 +76,20 @@ fun DraggableSettingsCategory(
         Box(
             modifier = Modifier.weight(1f),
         ) {
-            with(sharedTransitionScope) {
-                PreferenceCategory(
-                    label = stringResource(id = category.labelResId),
-                    description = description,
-                    iconResource = category.iconResId,
-                    onNavigate = { if (!isEditMode) onNavigate() },
-                    isSelected = isSelected && !isEditMode,
-                    modifier = Modifier
-                        .sharedElement(
-                            rememberSharedContentState(key = "category_${category.id}"),
-                            animatedVisibilityScope = animatedVisibilityScope,
-                        )
-                        .combinedClickable(
-                            onClick = { if (!isEditMode) onNavigate() },
-                            onLongClick = { if (!isEditMode) onLongPress() },
-                        ),
-                )
-            }
+            PreferenceCategory(
+                label = stringResource(id = category.labelResId),
+                description = description,
+                iconResource = category.iconResId,
+                onNavigate = run {
+                    val emptyAction: () -> Unit = {}
+                    if (!isEditMode) onNavigate else emptyAction
+                },
+                isSelected = isSelected && !isEditMode,
+                modifier = Modifier.combinedClickable(
+                    onClick = { if (!isEditMode) onNavigate() },
+                    onLongClick = { if (!isEditMode) onLongPress() },
+                ),
+            )
         }
 
         // Visibility toggle (only visible in edit mode)

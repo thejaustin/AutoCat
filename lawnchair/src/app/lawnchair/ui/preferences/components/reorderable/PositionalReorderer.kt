@@ -197,13 +197,13 @@ fun <T> PositionalReorderer(
     }
 
     val lazyListState = rememberLazyListState()
-    val haptic = rememberReorderHapticFeedback()
+    val view = androidx.compose.ui.platform.LocalView.current
 
     val updateState: (List<PositionalListItem<T>>, Int) -> Unit = { list, count ->
         localItems = list
         localActiveCount = count
         onOrderChange(list, count)
-        haptic.performHapticFeedback(ReorderHapticFeedbackType.MOVE)
+        view.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
     }
 
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
