@@ -45,7 +45,7 @@ import java.io.PrintWriter;
 import java.util.function.Consumer;
 
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.compat.AutoCatQuickstepCompat;
 import app.lawnchair.preferences2.PreferenceManager2;
 
 /**
@@ -201,7 +201,7 @@ public class DepthController extends BaseDepthController implements StateHandler
     @Override
     protected void applyDepthAndBlur() {
         try {
-            if (LawnchairQuickstepCompat.ATLEAST_R && mEnableDepth) {
+            if (AutoCatQuickstepCompat.ATLEAST_R && mEnableDepth) {
                 ensureDependencies();
                 super.applyDepthAndBlur();
             }

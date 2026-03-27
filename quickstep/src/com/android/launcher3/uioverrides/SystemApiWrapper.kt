@@ -57,7 +57,7 @@ import com.android.quickstep.util.FadeOutRemoteTransition
 import java.util.function.Supplier
 import javax.inject.Inject
 
-import app.lawnchair.LawnchairApp
+import app.lawnchair.AutoCatApp
 
 /** A wrapper for the hidden API calls */
 @LauncherAppSingleton
@@ -86,7 +86,7 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun queryAllUsers(): Map<UserHandle, UserIconInfo> {
-        if (!enablePrivateSpace() || !LawnchairApp.isRecentsEnabled) {
+        if (!enablePrivateSpace() || !AutoCatApp.isRecentsEnabled) {
             return super.queryAllUsers()
         }
         return try {

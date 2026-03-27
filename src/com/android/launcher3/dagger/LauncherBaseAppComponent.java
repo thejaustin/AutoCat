@@ -75,25 +75,6 @@ import com.android.launcher3.widget.custom.CustomWidgetManager;
 import com.android.launcher3.widget.util.WidgetSizeHandler;
 
 import javax.inject.Named;
-
-import app.lawnchair.DeviceProfileOverrides;
-import app.lawnchair.HeadlessWidgetsManager;
-import app.lawnchair.NotificationManager;
-import app.lawnchair.data.folder.service.FolderService;
-import app.lawnchair.data.iconoverride.IconOverrideRepository;
-import app.lawnchair.data.wallpaper.service.WallpaperService;
-import app.lawnchair.font.FontCache;
-import app.lawnchair.font.FontManager;
-import app.lawnchair.font.googlefonts.GoogleFontsListing;
-import app.lawnchair.icons.iconpack.IconPackProvider;
-import app.lawnchair.icons.shape.IconShapeManager;
-import app.lawnchair.preferences.PreferenceManager;
-import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.smartspace.provider.SmartspaceProvider;
-import app.lawnchair.theme.ThemeProvider;
-import app.lawnchair.ui.preferences.components.colorpreference.ColorPreferenceModelList;
-import app.lawnchair.ui.preferences.data.liveinfo.LiveInformationManager;
-import app.lawnchair.util.LawnchairWindowManagerProxy;
 import dagger.BindsInstance;
 
 /**
@@ -142,31 +123,8 @@ public interface LauncherBaseAppComponent {
     ActivityContextComponent.Builder getActivityContextComponentBuilder();
     WidgetPickerComposeWrapper getWidgetPickerComposeWrapper();
     WidgetSizeHandler getWidgetSizeHandler();
-
-
-    // Lawnchair-specific
-    
-    LawnchairWindowManagerProxy getLWMP();
-    DeviceProfileOverrides getDPO();
-    ThemeProvider getThemeProvider();
-    SmartspaceProvider getSmartspaceProvider();
-    HeadlessWidgetsManager getHeadlessWidgetsManager();
-    NotificationManager getNotificationManager();
-    ColorPreferenceModelList getColorPreferenceModelList();
-    LiveInformationManager getLiveInformationManager();
-    PreferenceManager2 getPreferenceManager2();
-    PreferenceManager getPreferenceManager();
-    FontCache getFontCache();
-    FontManager getFontManager();
-    IconShapeManager getIconShapeManager();
-    IconPackProvider getIconPackProvider();
-    GoogleFontsListing getGoogleFontsListing();
-    WallpaperService getWallpaperService();
-    IconOverrideRepository getIconOverrideRepository();
-    FolderService getFolderService();
-
     // AutoCat-specific
-    
+
     AutoCatWindowManagerProxy getLWMP();
     DeviceProfileOverrides getDPO();
     ThemeProvider getThemeProvider();

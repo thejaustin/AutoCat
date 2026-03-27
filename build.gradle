@@ -103,12 +103,21 @@ allprojects {
             if (!frameworkJar.exists()) {
                 throw new IllegalArgumentException("Framework jar path ${frameworkJar.path} doesn't exist")
             }
+            def frameworkFiles = project.files(frameworkJar)
+            def emptyFiles = project.files()
             dependencies {
                 compileOnly files(frameworkJar)
             }
             tasks.withType(JavaCompile).configureEach { task ->
-                task.classpath = project.files(frameworkJar, task.classpath ?: project.files())
-                task.options.bootstrapClasspath = project.files(frameworkJar, task.options.bootstrapClasspath ?: project.files())
+                // AGP may append android.jar after this closure runs, so re-apply the ordering
+                // at execution time to ensure framework stubs win during symbol resolution.
+                task.doFirst {
+                    def remainingClasspath = (task.classpath ?: emptyFiles).files.findAll { it != frameworkJar }
+                    task.classpath = frameworkFiles.plus(project.files(remainingClasspath))
+
+                    def remainingBootstrap = (task.options.bootstrapClasspath ?: emptyFiles).files.findAll { it != frameworkJar }
+                    task.options.bootstrapClasspath = frameworkFiles.plus(project.files(remainingBootstrap))
+                }
             }
             tasks.withType(KotlinCompile).configureEach { task ->
                 task.libraries.setFrom(project.files(frameworkJar, task.libraries ?: project.files()))
@@ -518,7 +527,8 @@ ksp {
 
 spotless {
     java {
-        target("compatLib/**/src/**/*.java")
+        // Keep vendored AOSP compat sources out of Spotless to reduce upstream port churn.
+        // target("compatLib/**/src/**/*.java")
         googleJavaFormat().aosp()
         removeUnusedImports()
     }

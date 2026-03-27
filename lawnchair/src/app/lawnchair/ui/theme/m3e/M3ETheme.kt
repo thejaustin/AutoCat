@@ -4,23 +4,15 @@ import android.content.Context
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.accessibility.AccessibilityManager
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButtonDefaults
-import androidx.compose.material3.MaterialExpressiveTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProvideExpressiveShapes
-import androidx.compose.material3.ProvideExpressiveTypography
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.theme.AutoCatTheme
 
@@ -47,29 +39,12 @@ import app.lawnchair.ui.theme.AutoCatTheme
  * }
  * ```
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun M3ETheme(
     content: @Composable () -> Unit,
 ) {
     AutoCatTheme {
-        ProvideExpressiveShapes(
-            extraSmall = MaterialExpressiveTheme.shapes.extraSmall,
-            small = MaterialExpressiveTheme.shapes.small,
-            medium = MaterialExpressiveTheme.shapes.medium,
-            large = MaterialExpressiveTheme.shapes.large,
-            extraLarge = MaterialExpressiveTheme.shapes.extraLarge,
-        ) {
-            ProvideExpressiveTypography(
-                display = MaterialExpressiveTheme.typography.displayLarge,
-                headline = MaterialExpressiveTheme.typography.headlineLarge,
-                title = MaterialExpressiveTheme.typography.titleLarge,
-                body = MaterialExpressiveTheme.typography.bodyLarge,
-                label = MaterialExpressiveTheme.typography.labelLarge,
-            ) {
-                content()
-            }
-        }
+        content()
     }
 }
 
@@ -178,7 +153,6 @@ fun rememberExpressiveHaptics(): ExpressiveHaptics {
  * }
  * ```
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun M3EClickable(
     onClick: () -> Unit,
@@ -197,11 +171,13 @@ fun M3EClickable(
         }
     }
 
-    androidx.compose.foundation.clickable(
-        interactionSource = interactionSource,
-        indication = LocalIndication.current,
-        enabled = enabled,
-        onClick = onClick,
+    androidx.compose.foundation.layout.Box(
+        modifier = modifier.clickable(
+            interactionSource = interactionSource,
+            indication = LocalIndication.current,
+            enabled = enabled,
+            onClick = onClick,
+        ),
     ) {
         content()
     }

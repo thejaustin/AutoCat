@@ -138,42 +138,25 @@ fun SelectAppsForDrawerFolder(
                     }
                 }
             } else {
-                PreferenceLazyColumn(it, state = rememberLazyListState()) {
-                    preferenceGroupItems(
-                        filteredApps,
-                        isFirstChild = true,
-                    ) { _, app ->
-                        key(app.toString()) {
-                            AppItem(
-                                app,
-                                onClick = {
-                                    updateFolderItems(
-                                        app = it,
-                                        items = selectedAppsInFolder,
-                                        context = context,
-                                        onSetChange = { newSet ->
-                                            selectedAppsInFolder = newSet
-
-                                            viewModel.updateFolderItems(
-                                                folderInfoId,
-                                                folderInfo?.title.toString(),
-                                                newSet.filterIsInstance<AppInfo>().toList(),
-                                            )
-                                        },
-                                    )
-                                },
-                            ) {
-                                Checkbox(
-                                    checked = selectedAppsInFolder.any {
-                                        val appInfo = it as? AppInfo
-                                        appInfo?.targetPackage == app.key.componentName.packageName && appInfo.user == app.key.user
-                                    },
-                                    onCheckedChange = null,
-                                )
-                            }
+                PositionalAppListPreference(
+                    items = positionalItems,
+                    activeCount = activeCount,
+                    onOrderChange = { newList, newCount ->
+                        val sorted = PositionalMapper.sortInactiveItems(newList, newCount) { item ->
+                            item.label
                         }
-                    }
-                }
+                        updateViewModel(
+                            sorted,
+                            newCount,
+                            apps,
+                            context,
+                            viewModel,
+                            folderInfoId,
+                            folderInfo?.title.toString(),
+                        )
+                    },
+                    contentPadding = it,
+                )
             }
         }
     }

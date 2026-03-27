@@ -77,7 +77,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.compat.AutoCatQuickstepCompat;
 
 /**
  * This class tracked the top-most task and  some 'approximate' task history to allow faster
@@ -545,7 +545,7 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
                 return null;
             }
             List<TaskInfo> visibleNonExcludedTasks = mAllCachedTasks.stream()
-                    .filter(t -> LawnchairQuickstepCompat.ATLEAST_S && t.isVisible
+                    .filter(t -> AutoCatQuickstepCompat.ATLEAST_S && t.isVisible
                             && (t.baseIntent.getFlags() & FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS) == 0
                             && t.getActivityType() != ACTIVITY_TYPE_HOME
                             && t.getActivityType() != ACTIVITY_TYPE_RECENTS)

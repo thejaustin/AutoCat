@@ -40,13 +40,13 @@ import dagger.Module
 import dagger.Provides
 
 import app.lawnchair.factory.LawnchairWidgetHolder
-import app.lawnchair.util.LawnchairWindowManagerProxy
+import app.lawnchair.util.AutoCatWindowManagerProxy
 
 private object Modules {}
 
 @Module
 abstract class WindowManagerProxyModule {
-    @Binds abstract fun bindWindowManagerProxy(proxy: LawnchairWindowManagerProxy): WindowManagerProxy
+    @Binds abstract fun bindWindowManagerProxy(proxy: AutoCatWindowManagerProxy): WindowManagerProxy
 }
 
 @Module

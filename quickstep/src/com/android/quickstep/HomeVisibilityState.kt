@@ -56,14 +56,33 @@ class HomeVisibilityState {
                     override fun onDisplayInsetsChanged(insetsState: InsetsState) {
                         val displayFrame = insetsState.displayFrame
                         val bottomInset =
-                            insetsState
-                                .calculateInsets(
-                                    displayFrame,
-                                    displayFrame,
-                                    WindowInsets.Type.navigationBars(),
-                                    false,
-                                )
-                                .bottom
+                            if (Utilities.ATLEAST_BAKLAVA_1) {
+                                insetsState
+                                    .calculateInsets(
+                                        displayFrame,
+                                        displayFrame,
+                                        WindowInsets.Type.navigationBars(),
+                                        false,
+                                    )
+                                    .bottom
+                            } else {
+                                // Older/newer platform stubs disagree on the InsetsState signature.
+                                val method =
+                                    InsetsState::class.java.getMethod(
+                                        "calculateInsets",
+                                        android.graphics.Rect::class.java,
+                                        Integer.TYPE,
+                                        java.lang.Boolean.TYPE,
+                                    )
+                                val insets =
+                                    method.invoke(
+                                        insetsState,
+                                        displayFrame,
+                                        WindowInsets.Type.navigationBars(),
+                                        false,
+                                    ) as android.graphics.Insets
+                                insets.bottom
+                            }
                         navbarInsetPosition = displayFrame.bottom - bottomInset
                     }
                 }

@@ -38,6 +38,7 @@ import com.android.launcher3.anim.SpringAnimationBuilder
 import com.android.launcher3.apppairs.AppPairIcon
 import com.android.launcher3.folder.ClippedFolderIconLayoutRule.MAX_NUM_ITEMS_IN_PREVIEW
 import com.android.launcher3.util.Themes
+import com.android.launcher3.views.BaseDragLayer
 
 /** Holder for Animators created from [FolderAnimationSpringBuilderManager] */
 class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
@@ -383,7 +384,7 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                 endValue = 25f, // Max blur radius for folders
                 minVisibleChange = MIN_VISIBLE_CHANGE_PIXELS,
                 property = LauncherAnimUtils.DRAG_LAYER_BLUR as Property<View, Float>,
-                view = launcher.dragLayer as View,
+                view = launcher.dragLayer as BaseDragLayer<*>,
             )
             animatorSet.addListener(FolderScrimAnimationListener(scrimView, isOpening))
         }

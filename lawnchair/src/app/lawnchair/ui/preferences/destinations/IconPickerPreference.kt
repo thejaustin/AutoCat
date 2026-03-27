@@ -59,10 +59,11 @@ fun IconPickerPreference(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val iconPack = remember {
+    val iconPack: IconPack? = remember(packageName) {
         IconPackProvider.INSTANCE.get(context).getIconPackOrSystem(packageName)
     }
-    if (iconPack == null) {
+    val resolvedIconPack = iconPack
+    if (resolvedIconPack == null) {
         val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
         SideEffect {
             backDispatcher?.onBackPressed()
@@ -76,13 +77,14 @@ fun IconPickerPreference(
     val pickerComponent = remember {
         val launcherApps: LauncherApps = context.requireSystemService()
         launcherApps
-            .getActivityList(iconPack.packPackageName, Process.myUserHandle()).firstOrNull()?.componentName
+            .getActivityList(resolvedIconPack.packPackageName, Process.myUserHandle()).firstOrNull()?.componentName
     }
     val pickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         val icon = it.data?.getParcelableExtra<Intent.ShortcutIconResource>(
             Intent.EXTRA_SHORTCUT_ICON_RESOURCE,
         ) ?: return@rememberLauncherForActivityResult
-        val entry = (iconPack as CustomIconPack).createFromExternalPicker(icon) ?: return@rememberLauncherForActivityResult
+        val entry = (resolvedIconPack as? CustomIconPack)?.createFromExternalPicker(icon)
+            ?: return@rememberLauncherForActivityResult
         onClickItem(entry)
     }
 
@@ -92,7 +94,7 @@ fun IconPickerPreference(
         onValueChange = { searchQuery = it },
         placeholder = {
             Text(
-                text = iconPack.label,
+                text = resolvedIconPack.label,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         },
@@ -116,7 +118,7 @@ fun IconPickerPreference(
 
         IconPickerGrid(
             scaffoldPadding = scaffoldPadding,
-            iconPack = iconPack,
+            iconPack = resolvedIconPack,
             searchQuery = searchQuery,
             onClickItem = onClickItem,
         )

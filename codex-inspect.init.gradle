@@ -1,0 +1,14 @@
+gradle.projectsEvaluated {
+    def task = rootProject.project(':compatLib').tasks.findByName('compileDebugJavaWithJavac')
+    if (task != null) {
+        task.doFirst {
+            println '=== CODEx compatLib compileDebugJavaWithJavac ==='
+            println "classpath=${task.classpath?.files?.collect { it.absolutePath }?.join(File.pathSeparator)}"
+            println "bootstrapClasspath=${task.options?.bootstrapClasspath?.files?.collect { it.absolutePath }?.join(File.pathSeparator)}"
+            println "sourceCompatibility=${task.sourceCompatibility}"
+            println "targetCompatibility=${task.targetCompatibility}"
+        }
+    } else {
+        println '=== CODEx compatLib compileDebugJavaWithJavac missing ==='
+    }
+}

@@ -145,10 +145,8 @@ fun SettingsSearchBar(
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    text = stringResource(id = R.string.search_settings),
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontVariationSettings = "'wght' $weight",
-                    ),
+                    text = "Search settings",
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -253,7 +251,7 @@ fun PreferencesDashboard(
 @Composable
 private fun PreferencesDebugWarning() {
     WarningPreference(
-        text = stringResource(id = R.string.settings_debug_warning),
+        text = "You are using a development build, which may contain bugs and broken features. Use at your own risk!",
     )
 }
 
@@ -263,14 +261,17 @@ private fun PreferencesSetDefaultLauncherWarning(
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
-    WarningPreference(
-        text = stringResource(id = R.string.set_default_launcher_tip),
-        onClick = {
+    Surface(
+        modifier = Modifier.clickable {
             val intent = Intent(Settings.ACTION_HOME_SETTINGS)
             context.startActivity(intent)
+            onDismiss()
         },
-        onDismiss = onDismiss,
-    )
+    ) {
+        WarningPreference(
+            text = stringResource(id = R.string.set_default_launcher_tip),
+        )
+    }
 }
 
 private fun openAppInfo(context: Context) {

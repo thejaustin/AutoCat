@@ -24,13 +24,13 @@ import android.view.Display.DEFAULT_DISPLAY
 import android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
 import android.view.WindowManagerGlobal
 import com.android.app.displaylib.DefaultDisplayOnlyInstanceRepositoryImpl
-import com.android.app.displaylib.DisplayLibBackground
 import com.android.app.displaylib.DisplayLibComponent
 import com.android.app.displaylib.DisplayRepository
 import com.android.app.displaylib.DisplaysWithDecorationsRepository
 import com.android.app.displaylib.DisplaysWithDecorationsRepositoryCompat
 import com.android.app.displaylib.PerDisplayInstanceRepositoryImpl
 import com.android.app.displaylib.PerDisplayRepository
+import com.android.app.displaylib.PerDisplayRepositoryInitCallback
 import com.android.app.displaylib.SingleInstanceRepositoryImpl
 import com.android.app.displaylib.createDisplayLibComponent
 import com.android.launcher3.Utilities
@@ -54,7 +54,6 @@ interface PerDisplayModule
 @Module(includes = [DisplayLibModule::class])
 interface BasePerDisplayModule {
     @Binds
-    @DisplayLibBackground
     abstract fun bindDisplayLibBackground(@Background bgScope: CoroutineScope): CoroutineScope
 }
 
@@ -75,6 +74,7 @@ object PerDisplayRepositoriesModule {
                         instanceFactory.create(displayId, it)
                     }
                 },
+                null,
             )
         } else {
             SingleInstanceRepositoryImpl(
@@ -93,7 +93,7 @@ object PerDisplayRepositoriesModule {
         instanceFactory: TaskAnimationManager.Factory,
     ): PerDisplayRepository<TaskAnimationManager> {
         return if (enableOverviewOnConnectedDisplays()) {
-            repositoryFactory.create("TaskAnimationManagerRepo", instanceFactory::create)
+            repositoryFactory.create("TaskAnimationManagerRepo", instanceFactory::create, null)
         } else {
             SingleInstanceRepositoryImpl(
                 "TaskAnimationManager",
@@ -115,6 +115,7 @@ object PerDisplayRepositoriesModule {
                 { displayId ->
                     windowContextRepository[displayId]?.let { instanceFactory.create(it) }
                 },
+                null,
             )
         } else {
             SingleInstanceRepositoryImpl(
@@ -133,6 +134,7 @@ object PerDisplayRepositoriesModule {
             repositoryFactory.create(
                 "FallbackWindowInterfaceRepo",
                 { _ -> FallbackWindowInterface() },
+                null,
             )
         } else {
             SingleInstanceRepositoryImpl("FallbackWindowInterfaceRepo", FallbackWindowInterface())
@@ -146,7 +148,7 @@ object PerDisplayRepositoriesModule {
         instanceProvider: RecentsWindowManagerInstanceProvider,
     ): PerDisplayRepository<RecentsWindowManager> {
         return if (enableOverviewOnConnectedDisplays()) {
-            repositoryFactory.create("RecentsWindowManagerRepo", instanceProvider)
+            repositoryFactory.create("RecentsWindowManagerRepo", instanceProvider, null)
         } else {
             DefaultDisplayOnlyInstanceRepositoryImpl("RecentsWindowManagerRepo", instanceProvider)
         }
@@ -168,6 +170,7 @@ object PerDisplayRepositoriesModule {
                         context.createDisplayContext(it)
                     }
                 },
+                null,
             )
         } else {
             SingleInstanceRepositoryImpl(
@@ -201,6 +204,7 @@ object PerDisplayRepositoriesModule {
                         }
                     }
                 },
+                null,
             )
         } else {
             SingleInstanceRepositoryImpl(
@@ -224,6 +228,22 @@ object PerDisplayRepositoriesModule {
  */
 @Module
 object DisplayLibModule {
+    private fun <T> repositoryFactory(
+        bgApplicationScope: CoroutineScope,
+        displayRepository: DisplayRepository,
+        initCallback: PerDisplayRepositoryInitCallback,
+    ): PerDisplayInstanceRepositoryImpl.Factory<T> =
+        PerDisplayInstanceRepositoryImpl.Factory { debugName, instanceProvider, overrideLifecycleManager ->
+            PerDisplayInstanceRepositoryImpl(
+                debugName,
+                instanceProvider,
+                bgApplicationScope,
+                displayRepository,
+                initCallback,
+                overrideLifecycleManager,
+            )
+        }
+
     @Provides
     @LauncherAppSingleton
     fun displayLibComponent(
@@ -268,8 +288,56 @@ object DisplayLibModule {
     }
 
     @Provides
-    fun dumpRegistrationLambda(): PerDisplayRepository.InitCallback =
-        PerDisplayRepository.InitCallback { debugName, _ ->
+    fun provideRecentsAnimationDeviceStateRepositoryFactory(
+        @Background bgApplicationScope: CoroutineScope,
+        displayRepository: DisplayRepository,
+        initCallback: PerDisplayRepositoryInitCallback,
+    ): PerDisplayInstanceRepositoryImpl.Factory<RecentsAnimationDeviceState> =
+        repositoryFactory(bgApplicationScope, displayRepository, initCallback)
+
+    @Provides
+    fun provideTaskAnimationManagerRepositoryFactory(
+        @Background bgApplicationScope: CoroutineScope,
+        displayRepository: DisplayRepository,
+        initCallback: PerDisplayRepositoryInitCallback,
+    ): PerDisplayInstanceRepositoryImpl.Factory<TaskAnimationManager> =
+        repositoryFactory(bgApplicationScope, displayRepository, initCallback)
+
+    @Provides
+    fun provideRotationTouchHelperRepositoryFactory(
+        @Background bgApplicationScope: CoroutineScope,
+        displayRepository: DisplayRepository,
+        initCallback: PerDisplayRepositoryInitCallback,
+    ): PerDisplayInstanceRepositoryImpl.Factory<RotationTouchHelper> =
+        repositoryFactory(bgApplicationScope, displayRepository, initCallback)
+
+    @Provides
+    fun provideFallbackWindowInterfaceRepositoryFactory(
+        @Background bgApplicationScope: CoroutineScope,
+        displayRepository: DisplayRepository,
+        initCallback: PerDisplayRepositoryInitCallback,
+    ): PerDisplayInstanceRepositoryImpl.Factory<FallbackWindowInterface> =
+        repositoryFactory(bgApplicationScope, displayRepository, initCallback)
+
+    @Provides
+    fun provideRecentsWindowManagerRepositoryFactory(
+        @Background bgApplicationScope: CoroutineScope,
+        displayRepository: DisplayRepository,
+        initCallback: PerDisplayRepositoryInitCallback,
+    ): PerDisplayInstanceRepositoryImpl.Factory<RecentsWindowManager> =
+        repositoryFactory(bgApplicationScope, displayRepository, initCallback)
+
+    @Provides
+    fun provideContextRepositoryFactory(
+        @Background bgApplicationScope: CoroutineScope,
+        displayRepository: DisplayRepository,
+        initCallback: PerDisplayRepositoryInitCallback,
+    ): PerDisplayInstanceRepositoryImpl.Factory<Context> =
+        repositoryFactory(bgApplicationScope, displayRepository, initCallback)
+
+    @Provides
+    fun dumpRegistrationLambda(): PerDisplayRepositoryInitCallback =
+        PerDisplayRepositoryInitCallback { debugName, _ ->
             Log.d("PerDisplayInitCallback", debugName)
         }
 }

@@ -36,7 +36,7 @@ import com.android.systemui.shared.recents.model.ThumbnailData;
 import java.util.ArrayList;
 import java.util.List;
 
-import app.lawnchair.compat.LawnchairQuickstepCompat;
+import app.lawnchair.compat.AutoCatQuickstepCompat;
 
 /**
  * Tracks all the task stack listeners
@@ -169,7 +169,7 @@ public class TaskStackChangeListeners {
             if (!mRegistered) {
                 // Register mTaskStackListener to IActivityManager only once if needed.
                 try {
-                    if (!LawnchairQuickstepCompat.ATLEAST_V) return;
+                    if (!AutoCatQuickstepCompat.ATLEAST_V) return;
                     ActivityTaskManager.getService().registerTaskStackListener(this);
                     mRegistered = true;
                 } catch (NoClassDefFoundError | ExceptionInInitializerError | Exception e) {
@@ -188,7 +188,7 @@ public class TaskStackChangeListeners {
             if (isEmpty && mRegistered) {
                 // Unregister mTaskStackListener once we have no more listeners
                 try {
-                    if (!LawnchairQuickstepCompat.ATLEAST_V) return;
+                    if (!AutoCatQuickstepCompat.ATLEAST_V) return;
                     ActivityTaskManager.getService().unregisterTaskStackListener(this);
                     mRegistered = false;
                 } catch (NoClassDefFoundError | ExceptionInInitializerError | Exception e) {
