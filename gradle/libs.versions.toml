@@ -12,6 +12,10 @@ retrofit = "3.0.0"
 dagger = "2.59.2"
 libsu = "6.0.0"
 refine = "4.4.0"
+sentry = "6.1.0"
+shizuku = "13.1.5"
+tensorflowLite = "2.14.0"
+mediapipeTasksGenai = "0.10.14"
 
 guava = "33.5.0-android"
 junitVersion = "4.13.2"
@@ -35,6 +39,7 @@ google-protobuf = "com.google.protobuf:0.9.6"
 cash-licensee = "app.cash.licensee:1.14.1"
 rikka-refine = { id = "dev.rikka.tools.refine", version.ref = "refine" }
 diffplug-spotless = "com.diffplug.spotless:8.4.0"
+sentry = { id = "io.sentry.android.gradle", version.ref = "sentry" }
 
 [libraries]
 # AndroidX
@@ -45,6 +50,7 @@ androidx-constraintlayout = "androidx.constraintlayout:constraintlayout:2.2.1"
 androidx-core-animation = "androidx.core:core-animation:1.0.0"
 androidx-core-ktx = "androidx.core:core-ktx:1.18.0"
 androidx-datastore-preferences = "androidx.datastore:datastore-preferences:1.2.1"
+sentry-android = "io.sentry:sentry-android:8.33.0"
 androidx-dynamicanimation = "androidx.dynamicanimation:dynamicanimation:1.1.0"
 androidx-espresso-core = "androidx.test.espresso:espresso-core:3.7.0"
 androidx-graphics-core = "androidx.graphics:graphics-core:1.0.4"
@@ -63,6 +69,15 @@ androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
 androidx-uiautomator = "androidx.test.uiautomator:uiautomator:2.3.0"
 androidx-window = "androidx.window:window:1.5.1"
+
+# Shizuku
+rikka-shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
+rikka-shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
+
+# Smartspacer & AI
+smartspacer-sdk = "com.kieronquinn.smartspacer:sdk-client:1.1.2"
+tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version.ref = "tensorflowLite" }
+mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipeTasksGenai" }
 
 # Compose
 compose-bom = "androidx.compose:compose-bom:2026.03.01"
@@ -136,8 +151,8 @@ reorderable = "sh.calvin.reorderable:reorderable:3.0.0"
 rikka-annotation = { module = "dev.rikka.tools.refine:annotation", version.ref = "refine" }
 rikka-annotation-processor = { module = "dev.rikka.tools.refine:annotation-processor", version.ref = "refine" }
 rikka-refine-runtime = { group = "dev.rikka.tools.refine", name = "runtime", version.ref = "refine" }
-smartspacer-sdk = "com.kieronquinn.smartspacer:sdk-client:1.1.2"
 xdrop-fuzzywuzzy = "me.xdrop:fuzzywuzzy:1.4.0"
+kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
 errorprone-annotations = "com.google.errorprone:error_prone_annotations:2.48.0"
 # Dummy to get renovate updates, the version is used in rootProject build.gradle with spotless.
 ktlint = "com.pinterest.ktlint:ktlint-cli:1.8.0"
