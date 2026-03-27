@@ -1,0 +1,52 @@
+{
+  "project": "AutoCat",
+  "type": "android",
+  "language": ["kotlin", "java"],
+  "buildSystem": "gradle",
+  "framework": "android",
+  "workspace": {
+    "root": ".",
+    "sources": [
+      "lawnchair/src",
+      "quickstep/src", 
+      "src",
+      "systemUI"
+    ],
+    "tests": [
+      "*/test",
+      "*/androidTest"
+    ],
+    "resources": [
+      "*/res",
+      "*/assets"
+    ],
+    "docs": [
+      "docs",
+      "README.md",
+      "CLAUDE.md"
+    ]
+  },
+  "buildCommands": {
+    "debug": "./gradlew assembleDebug",
+    "release": "./gradlew assembleRelease",
+    "test": "./gradlew test",
+    "lint": "./gradlew lint",
+    "clean": "./gradlew clean",
+    "install": "./gradlew installDebug"
+  },
+  "preferences": {
+    "codeStyle": "android",
+    "indentation": "spaces",
+    "lineLength": 120,
+    "autoFormat": true,
+    "imports": "organize"
+  },
+  "mcp": {
+    "enabled": true,
+    "tools": [
+      "android-tools",
+      "git-tools",
+      "gradle-tools"
+    ]
+  }
+}
