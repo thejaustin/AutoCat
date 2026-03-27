@@ -27,7 +27,6 @@ import android.os.Parcelable;
 /**
  * Represents a remote transition animation and information required to run it (eg. the app thread
  * that needs to be boosted).
- *
  * @hide
  */
 public final class RemoteTransition implements Parcelable {
@@ -43,7 +42,6 @@ public final class RemoteTransition implements Parcelable {
 
     /**
      * Constructs with no app thread (animation runs in shell).
-     *
      * @hide
      */
     public RemoteTransition(@NonNull IRemoteTransition remoteTransition) {
@@ -52,11 +50,10 @@ public final class RemoteTransition implements Parcelable {
 
     /**
      * Constructs with no app thread (animation runs in shell).
-     *
      * @hide
      */
-    public RemoteTransition(
-            @NonNull IRemoteTransition remoteTransition, @Nullable String debugName) {
+    public RemoteTransition(@NonNull IRemoteTransition remoteTransition,
+            @Nullable String debugName) {
         this(remoteTransition, null /* appThread */, debugName);
     }
 
@@ -68,10 +65,12 @@ public final class RemoteTransition implements Parcelable {
     /**
      * Creates a new RemoteTransition.
      *
-     * @param remoteTransition The actual remote-transition interface used to run the transition
-     *     animation.
-     * @param appThread The application thread that will be running the remote transition.
-     * @param debugName A name for this that can be used for debugging.
+     * @param remoteTransition
+     *   The actual remote-transition interface used to run the transition animation.
+     * @param appThread
+     *   The application thread that will be running the remote transition.
+     * @param debugName
+     *   A name for this that can be used for debugging.
      * @hide
      */
     public RemoteTransition(
@@ -89,7 +88,6 @@ public final class RemoteTransition implements Parcelable {
 
     /**
      * The actual remote-transition interface used to run the transition animation.
-     *
      * @hide
      */
     public @NonNull IRemoteTransition getRemoteTransition() {
@@ -98,21 +96,21 @@ public final class RemoteTransition implements Parcelable {
 
     /**
      * The application thread that will be running the remote transition.
-     *
      * @hide
      */
     public @Nullable IApplicationThread getAppThread() {
         return mAppThread;
     }
 
-    /** A name for this that can be used for debugging. */
+    /**
+     * A name for this that can be used for debugging.
+     */
     public @Nullable String getDebugName() {
         return mDebugName;
     }
 
     /**
      * The actual remote-transition interface used to run the transition animation.
-     *
      * @hide
      */
     public @NonNull RemoteTransition setRemoteTransition(@NonNull IRemoteTransition value) {
@@ -124,7 +122,6 @@ public final class RemoteTransition implements Parcelable {
 
     /**
      * The application thread that will be running the remote transition.
-     *
      * @hide
      */
     public @NonNull RemoteTransition setAppThread(@NonNull IApplicationThread value) {
@@ -132,7 +129,9 @@ public final class RemoteTransition implements Parcelable {
         return this;
     }
 
-    /** A name for this that can be used for debugging. */
+    /**
+     * A name for this that can be used for debugging.
+     */
     public @NonNull RemoteTransition setDebugName(@NonNull String value) {
         mDebugName = value;
         return this;
@@ -143,16 +142,11 @@ public final class RemoteTransition implements Parcelable {
         // You can override field toString logic by defining methods like:
         // String fieldNameToString() { ... }
 
-        return "RemoteTransition { "
-                + "remoteTransition = "
-                + mRemoteTransition
-                + ", "
-                + "appThread = "
-                + mAppThread
-                + ", "
-                + "debugName = "
-                + mDebugName
-                + " }";
+        return "RemoteTransition { " +
+                "remoteTransition = " + mRemoteTransition + ", " +
+                "appThread = " + mAppThread + ", " +
+                "debugName = " + mDebugName +
+        " }";
     }
 
     @Override
@@ -170,9 +164,7 @@ public final class RemoteTransition implements Parcelable {
     }
 
     @Override
-    public int describeContents() {
-        return 0;
-    }
+    public int describeContents() { return 0; }
 
     /** @hide */
     @SuppressWarnings({"unchecked", "RedundantCast"})
@@ -181,12 +173,8 @@ public final class RemoteTransition implements Parcelable {
         // static FieldType unparcelFieldName(Parcel in) { ... }
 
         byte flg = in.readByte();
-        IRemoteTransition remoteTransition =
-                IRemoteTransition.Stub.asInterface(in.readStrongBinder());
-        IApplicationThread appThread =
-                (flg & 0x2) == 0
-                        ? null
-                        : IApplicationThread.Stub.asInterface(in.readStrongBinder());
+        IRemoteTransition remoteTransition = IRemoteTransition.Stub.asInterface(in.readStrongBinder());
+        IApplicationThread appThread = (flg & 0x2) == 0 ? null : IApplicationThread.Stub.asInterface(in.readStrongBinder());
         String debugName = (flg & 0x4) == 0 ? null : in.readString();
 
         this.mRemoteTransition = remoteTransition;
@@ -196,16 +184,16 @@ public final class RemoteTransition implements Parcelable {
         this.mDebugName = debugName;
     }
 
-    public static final @NonNull Parcelable.Creator<RemoteTransition> CREATOR =
-            new Parcelable.Creator<RemoteTransition>() {
-                @Override
-                public RemoteTransition[] newArray(int size) {
-                    return new RemoteTransition[size];
-                }
+    public static final @NonNull Parcelable.Creator<RemoteTransition> CREATOR
+            = new Parcelable.Creator<RemoteTransition>() {
+        @Override
+        public RemoteTransition[] newArray(int size) {
+            return new RemoteTransition[size];
+        }
 
-                @Override
-                public RemoteTransition createFromParcel(@NonNull android.os.Parcel in) {
-                    return new RemoteTransition(in);
-                }
-            };
+        @Override
+        public RemoteTransition createFromParcel(@NonNull android.os.Parcel in) {
+            return new RemoteTransition(in);
+        }
+    };
 }

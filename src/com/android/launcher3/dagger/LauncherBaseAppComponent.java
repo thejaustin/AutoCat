@@ -78,6 +78,7 @@ import javax.inject.Named;
 
 import app.lawnchair.DeviceProfileOverrides;
 import app.lawnchair.HeadlessWidgetsManager;
+import app.lawnchair.LawnchairActivityCachingLogic;
 import app.lawnchair.NotificationManager;
 import app.lawnchair.data.folder.service.FolderService;
 import app.lawnchair.data.iconoverride.IconOverrideRepository;
@@ -163,6 +164,8 @@ public interface LauncherBaseAppComponent {
     GoogleFontsListing getGoogleFontsListing();
     WallpaperService getWallpaperService();
     IconOverrideRepository getIconOverrideRepository();
+
+    LawnchairActivityCachingLogic getLawnchairActivityCachingLogic();
     FolderService getFolderService();
 
     // AutoCat-specific

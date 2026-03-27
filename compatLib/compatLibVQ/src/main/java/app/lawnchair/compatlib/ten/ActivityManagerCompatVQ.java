@@ -133,7 +133,8 @@ public class ActivityManagerCompatVQ implements ActivityManagerCompat {
         }
     }
 
-    @Override
+//    @Override
+    // pE-TODO(QuickSwitch): Investigate
     public ThumbnailData takeScreenshot(
             IRecentsAnimationController animationController, int taskId) {
         try {

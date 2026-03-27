@@ -518,7 +518,8 @@ ksp {
 
 spotless {
     java {
-        target("compatLib/**/src/**/*.java")
+        // LC-Note: Don't spotless AOSP code in compatlib
+        // target("compatLib/**/src/**/*.java")
         googleJavaFormat().aosp()
         removeUnusedImports()
     }
@@ -530,6 +531,7 @@ spotless {
             "ktlint_compose_compositionlocal-allowlist": "disabled",
             "ktlint_compose_lambda-param-event-trailing": "disabled",
             "ktlint_compose_content-slot-reused": "disabled",
+            "ktlint_compose_state-param-check": "disabled",
         ])
     }
 }

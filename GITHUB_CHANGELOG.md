@@ -1,79 +1,275 @@
-Lawnchair 16 pE Development 2 is here! Contributors are encouraged to target this branch instead of
-older (i.e., Lawnchair `15-dev`).
+# Bubble Tea
 
-### ✅ Development 5
+## Bubble Tea [QPR1]
 
-A milestone focused entirely on **UI/UX polish** — making AutoCat's Smart Categories feature intuitive for first-time users while giving power users better controls and feedback.
+### 🏗️ Development 5 Release 1
 
-#### ✨ Highlights
-- **Onboarding Wizard**: First-launch setup flow for the AI engine ([#75](https://github.com/thejaustin/AutoCat/issues/75))
-- **Richer Categorization Feedback**: See exactly which app is being processed, with ETA ([#77](https://github.com/thejaustin/AutoCat/issues/77))
-- **Simplified AI Engine Screen**: Technical options collapsed behind Advanced section ([#76](https://github.com/thejaustin/AutoCat/issues/76))
-- **Empty States**: Helpful guidance when no categories or tabs exist yet ([#78](https://github.com/thejaustin/AutoCat/issues/78))
-
-#### Features
-- [UX] First-launch onboarding wizard for Smart Categories setup ([#75](https://github.com/thejaustin/AutoCat/issues/75))
-- [UX] Simplified AI Engine settings screen with collapsible Advanced section ([#76](https://github.com/thejaustin/AutoCat/issues/76))
-- [UX] Richer categorization progress: current app, count, ETA, and Cancel button ([#77](https://github.com/thejaustin/AutoCat/issues/77))
-- [UX] Empty states for unconfigured/uncategorized screens with actionable CTAs ([#78](https://github.com/thejaustin/AutoCat/issues/78))
-- [UX] Improved Test Connection: shows confirmed model name and sample categorization ([#80](https://github.com/thejaustin/AutoCat/issues/80))
-- [UX] Selective override reset per app (Reset to AI suggestion in edit dialog) ([#81](https://github.com/thejaustin/AutoCat/issues/81))
-- [UX] Custom color picker for drawer tabs, beyond 10 preset swatches ([#82](https://github.com/thejaustin/AutoCat/issues/82))
-- [UX] Smart Categories dashboard card adapts to configured/unconfigured state ([#83](https://github.com/thejaustin/AutoCat/issues/83))
-
-#### Fixes
-- [UX] Diagnostics screen moved to Developer Options (not user-facing) ([#79](https://github.com/thejaustin/AutoCat/issues/79))
-- [Stability] Sentry double-initialization fixed; crash reporting now active ([#4c6942f](https://github.com/thejaustin/AutoCat/commit/4c6942fdc7))
-- [Crash] App drawer crash on launch: `AppTabsHeaderView` cast fix in tab strip (#42)
-- [Crash] Custom tabs now use correct per-tab filter instead of work profile matcher (#42)
-
----
-
-### 🥞 Development 4
-
-Build: BD4.1202
-
-A major milestone focused on final branding, stability, and AI-powered intelligence.
-
-#### ✨ Highlights
-- **Full AutoCat Branding**: The transition is complete. All internal classes, utilities, and log tags have been migrated to the AutoCat namespace.
-- **Semantic Search**: Stop searching for names, start searching for intent. Find apps by their category or purpose (e.g., search "Finance" to find all banking apps).
-- **Multi-Language AI**: Categorization now speaks your language. Prompts are automatically localized to your system language for better context and accuracy.
-- **Performance Overhaul**: Fixed startup hangs and settings lag with non-blocking initialization and a new font inflation cache.
+> [!WARNING]
+> This branch has diverged timeline from the original `16-dev`, meaning you will have to rebase your
+> commit back to this branch if you wish to contribute to this branch.
 
 Compatibility list:
 
-| 🏗️ Crash   | 💫 Limited features | 🥞 Fully supported |
-|-------------|---------------------|--------------------|
-| Android 8.1 |                     | Android 12.0       |
-| Android 9   |                     | Android 12.1       |
-| Android 10  |                     | Android 13         |
-| Android 11  |                     | Android 14         |
-|             |                     | Android 15         |
-|             |                     | Android 16         |
+| 📱 Android version                        | 🥞 Recommended? | 💥 Crash? | 🧑‍💻 QuickSwitch Ready? |
+|-------------------------------------------|-----------------|-----------|--------------------------|
+| Android 8.0                               | ❌               | ❌         | Not supported            |
+| Android 8.1                               | ❌               | ❌         | Not supported            |
+| Android 9                                 | ❌               | ❌         | Not supported            |
+| Android 10                                | ❌               | ❌         | ❌                        |
+| Android 11                                | ✅               | ❌         | ❌                        |
+| Android 12.0                              | ✅               | ❌         | ❌                        |
+| Android 12.1                              | ✅               | ❌         | ❌                        |
+| Android 13                                | ✅               | ❌         | ❌                        |
+| Android 14                                | ✅               | ❌         | ❌                        |
+| Android 15                                | ✅               | ❌         | ❌                        |
+| Android 16.0 (Android 16 initial release) | ✅               | ❌         | 💥 Not recommended       |
+| Android 16.1 (Android 16 QPR2)            | ✅               | ❌         | ❌                        |
+| Android 17.0                              | ✅               | ❌         | ❌                        |
 
 #### Features
-- [AutoCat] New "Discovery" tab in app drawer for recently installed apps
-- [Search] Implemented `AutoCatSemanticSearchAlgorithm` for intent-based results
-- [Settings] Global Search Bar added to Settings Dashboard
-- [Settings] New "Customize" mode to reorder/hide settings categories
-- [LLM] Support for localized prompts in 10+ languages
-- [LLM] Parallel batch processing (up to 8x faster initial categorization)
-- [Integrations] Shizuku support for advanced app management (disabling/archiving)
-- [Settings] User controls for LLM Batch Size and Accuracy-based Auto-Provider selection
-- [Logic] Support for Dual Folder Sync (Drawer + Home Screen synchronization)
+* [Lawnchair] Allow user to disable the auto-updater (for Nightly build only)
+* [Lawnchair/PathShapeDelegate] Implement custom path revealing animations for folder transitions with complex shapes
+* [Lawnchair/Folder] Allow user to set custom folder shapes (experimental settings exclusive!)
+* [Launcher] Reintroduce folder expressive animations from Bubble Tea QPR1 Development 1 Release 1
+* [Lawnchair/Smartspace] Onboarding provider (Full-parity with Lawnchair Legacy)
+* [Launcher] Theme page indicator dots
+* [Lawnchair] Add work profile customization and fix issues (https://github.com/LawnchairLauncher/lawnchair/pull/6167)
+* [Lawnchair] Update Google Fonts listing to 03022026 (https://github.com/LawnchairLauncher/lawnchair/pull/6193)
+* [Lawnchair] Compare GitHub digest with actual downloaded file in Nightly updater
+* [Lawnchair] Enable wrap adaptive icons by default (only on by default)
+* [Lawnchair] Enable bulk icon loading by default (toggle removed, on by default)
+* [Lawnchair] Allow customising force monochrome option
+* [Lawnchair] Update Google Fonts listing to 20022026
+* [Lawnchair/Workspace] Add "Set as default page" option (https://github.com/LawnchairLauncher/lawnchair/pull/6395)
+* [Lawnchair] Improve GestureNavContract device detection
+* [Lawnchair] App drawer haptic feedback toggle (https://github.com/LawnchairLauncher/lawnchair/pull/6436)
+* [Lawnchair] Move backup and restore to separate screen (237a0beb)
+* [Lawnchair/Search] Make blurred app search look nicer
+* [Lawnchair/Search] Load image preview faster at less memory usage
 
 #### Fixes
-- [Stability] Fixed infinite loading hang during Home layout setup
-- [Stability] Implemented non-blocking preference and database initialization
-- [Performance] Added font inflation cache to reduce UI lag in Settings
-- [Icons] Fixed icon pack resolution for Work Profiles using app UIDs
-- [Icons] Enforced adaptive wrapping for all icons (if enabled) for a consistent look
-- [Bug] Fixed crash on saving settings due to missing `MutableMapPref.set` implementation
-- [Branding] Systematic rename of all `Lawnchair*` classes and files to `AutoCat*`
-- [Cleanup] Removed stale TODOs and updated outdated log TAGs
+* [Launcher] Limited Android 11 support
+* [Launcher] Limited Android 10 support
+* [Launcher] Icon pack support (by SuperDragonXD @ https://github.com/LawnchairLauncher/lawnchair/pull/6066)
+* [Launcher] Crash when trying to grab display context from public reference in Android 12.0 and above
+* [Launcher] Don't run predictiveBackTimestamp in less than Baklava device
+* [Launcher] Reimplement Pull to trigger notifications
+* [Lawnchair/Preference] Broken ASI/Global preference items for allapps search
+* [Lawnchair] Stop Nightly auto updater from showing outdated result when app major version is newer than what available to source
+* [Launcher] Crash with `NameNotFoundException` when app is archived in Android 15/16.0
+* [Launcher] Null crash when trying to drop an icon on the home screen for some devices (fix: LawnchairLauncher/Lawnchair#6237)
+* [Launcher] Crash due to incorrect thread looper for accessing cache
+* [Launcher] Make icon shapes change instantaneous
+* [Build] Update dependency to fully support 16-kb page size in Android (x86_64 architecture)
+* [Lawnchair] Crash due to unable to access Window/Display context on Android 8.0 and above
+* [Lawnchair] Reimplement Backup & Restore
+* [Launcher] Fix or **_tried_** to make the app drawer listing listed in alphabetical order when loading icon in bulk
+* [Lawnchair] Incorrect expressive lists behaviour
+* [Lawnchair] Disable blur effect on bottom sheet on L3 incompatible devices for consistency
+* [Lawnchair] Reimplement clear home screen action
+* [Lawnchair] Crash when tapping on launcher preview
+* [Launcher] Actually fix app drawer alphabetical listing when loading icon in bulk
+* [Launcher] Mark home bounce as seen when user actually opens All Apps
+* [Lawnchair] Reimplement app drawer suggested app toggle
+* [Lawnchair] Disable all Android Desktop components
+* [Lawnchair] Reimplement app drawer multiple lines logic (https://github.com/LawnchairLauncher/lawnchair/pull/6324)
+* [Launcher] Skip initialising QuickstepProtoLog for Android 11
+* [Lawnchair] Reimplement Lawnchair 13 migration
+* [Launcher] Launcher render At a Glance widget as search widget in preview
+* [Lawnchair/Iconloaderlib] Use correct default percentage for icon adaptive lightness
+* [Lawnchair/Iconloaderlib] Correct wrap adaptive drawable behaviour
+* [Launcher] Null exception in FloatingIconView
+* [Lawnchair/Search] Add timeout for web suggestions (https://github.com/LawnchairLauncher/lawnchair/pull/6338)
+* [Lawnchair] Restore custom app labels (https://github.com/LawnchairLauncher/lawnchair/pull/6364)
+* [Lawnchair/Preference] Fix layout change animation of paddings on AppDrawerPreferences
+* [Lawnchair/Preference] Resolve unnecessary launcherPopupOrder write (https://github.com/LawnchairLauncher/lawnchair/pull/6419)
+* [Launcher] Resolve unnecessary model reload (https://github.com/LawnchairLauncher/lawnchair/pull/6420)
+* [Launcher/Widget] Widget configuration activity fail to open due to BAL hardening on Android 14
+* [Lawnchair/Iconloaderlib] Icon shadow can't be disabled by user preference
+* [Lawnchair/Workspace] Disallow infinite scroll to the left when feed is enabled
+* [Launcher] Crash when trying to use back gesture on below Android 16
+* [Lawnchair] Limited Android 9, 8.1, 8.0 support
+* [Lawnchair/Search] Launch app on enter for local search algorithm (https://github.com/LawnchairLauncher/lawnchair/pull/6477)
+* [Lawnchair/Search] Stale search result (https://github.com/LawnchairLauncher/lawnchair/pull/6472)
+* [Launcher] Don't run app archive on under Android 15
+* [Launcher] Fix inconsistent haptic across all Android version
+* [Lawnchair/Search] Fix accessibility issues with allapps blurred style
+* [Lawnchair/Search] Fix search result and focus decorator
+* [Launcher] Fix 5th folder preview item appearing out of bounds
+* [Launcher] Fully reimplement IDP/DP customisation
+* [Lawnchair/Settings] Pass preview IDP to preview renderer
+* [Launcher] Move from 7x7 grid to 4x7
+* [Lawnchair] Temporarily fix reloadIcons
+* [Launcher/AllApps] Don't use workspace scale on allapps
+* [Lawnchair/Settings] Leave Lawnchair settings lifecycle alone
+* [Lawnchair/Settings] Correct dropdown menu count
+* [Lawnchair] Register LawnchairApp activity handler
+* [Launcher] Don't call IProtoLog in launcher-level
+* [Launcher] Don't override device rotation prefs on phone form factor
+* [Launcher] Reimplement icon gesture customisation
+* [QuickSwitch] Reimplement ActivityTaskManager
+* [QuickSwitch] Remove DesktopExperienceFlags
+* [QuickSwitch] Implement Baklava compat
+* [QuickSwitch] Initial QuickSwitch testing with Baklava
 
-### 🥞 Development 3 Release 2
+### 🥞 Development 4 Release 1 (Snapshot 10)
+
+~~Bug fixes only~~ You may see duplicated changelogs in this release because of merged diverged timeline.
+
+In this release, the initial 16-dev branch has now merged to QPR1 branch, 
+meaning you'll have tons of improvements from upstream Launcher3 source.
+
+Build: BD4.2412 (latest), BD4.2112, BD4.2012, BD4.2311, BS10.2111, BS10.2011
+
+Compatibility list:
+
+| 🏗️ Crash   | 🥞 Fully supported |
+|-------------|--------------------|
+| Android 8.1 | Android 12.0       |
+| Android 9   | Android 12.1       |
+| Android 10  | Android 13         |
+| Android 11  | Android 14         |
+|             | Android 15         |
+|             | Android 16         |
+
+
+#### Features
+
+* [Launcher] Move to Google Sans Flex font (TODO)*
+* [Lawnchair] Material 3 Expressive Settings (Phase 2, TODO)*
+* ~~[Lawnchair] Better At-a-Glance perceptive wallpaper colour luminance detection*~~
+    * ~~Big word that means Lawnchair will take system default hint bright/dark theme and fallback to luminosity detection for bright/dark mode detection in At a Glance.*~~
+* ~~[Launcher] Enable Material Expressive Folder Expansion animation flag~~*
+    * Disabled due to rendering bugs*
+* [Launcher/Font] Variable font for Launcher3 (????????)*
+* [Launcher/Popup] Dynamically get app widget popup icon*
+* [Launcher] Foldable support (actually real)*
+* [Launcher] Google Sans Flex font uses almost the exact same configuration as Pixel*
+* [Launcher] Enable bulk loading by default*
+* [Launcher] Tablet support (ish)*
+
+#### Fixes
+* [Launcher] Fix a lot of internal basic functionality*
+* [Lawnchair] Re-added some Lawnchair-specific code*
+* [Launcher] Fix workspace navigation*
+* [Launcher] Fix allapps navigation*
+* [Launcher] Fix folder navigation*
+* [Launcher] Support Android 12.0/12.1/13/14/15*
+* [Lawnchair/Smartspace] At-a-Glance can't launch activity due to background startup restrictions on Android 14 and above*
+* [Launcher] Use Lawnchair theming colour for allapps*
+* [WM-Shell] Fix conflict with prebuilts aidl, make Release build work again*
+* [Launcher/Desktop] Correct deviceHasLargeScreen check for Baklava*
+* [Lawnchair/Search] Make search layout changes work*
+* [Lawnchair/Smartspace] Allow disabling the smartspace feature*
+* [Launcher3] Widget preview crash for no reason at all on compatible Android version*
+* [Launcher3] Correct fallback (blur unsupported) allapps colour
+
+### Snapshot 9 (Development 4 Release 1)
+
+This snapshot marks the first time Bubble Tea QPR1 is able to assemble the APK without errors, 
+all that's left is bug bash testing. Limited visibility closed testing is available.
+
+Build: BS9.2011
+
+This is a developer-focused change log:
+* Re-added searchuilib
+* SearchUiLib updated to latest commits before being private
+* Exclude disabled variant of Compose launcher3 features
+* Fix all errors in Lawnchair side
+
+### Snapshot 8 (Development 4 Release 1)
+
+Build: BS8.1811
+
+This snapshot marks the first time Bubble Tea QPR1 is able to compile ALL of the Launcher3 code 
+without errors, that leaves Lawnchair code as the remaining task before successfully compiling 
+Bubble Tea QPR1
+
+This is a developer-focused change log:
+* Migrate some functions to new changes
+* WM-Shell (and WM-Shell Shared) updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
+* Add Mechanics (SystemUI Platform Library)
+* Some unresolved reference in Lawnchair code
+
+### Snapshot 7 (Development 4 Release 1)
+
+Build: BS7.1711
+
+This snapshot marks the first time Bubble Tea QPR1 is able to pass KSP build stage without any 
+hiccups, the next 1 or 2 snapshots will be focusing on compilation stage, which should be the last 
+stage before we can get started on pE Development 4. 
+
+This is a developer-focused change log:
+* Codebase updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
+* Prebuilt updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
+* Platform libs updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
+  * Move ViewCapture to platform lib
+  * Add Displaylib
+* Flags updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
+* Pull concurrent, dagger (the launcher3) as module
+  * TODO? We might need to migrate it to build source like compose instead
+* Lots of prebuilt documentations update
+* Add compose as part of launcher3 build source
+  * Removed test because I hate configuration gradle
+  * cc: @validcube fix me, cc: too bad
+
+## Bubble Tea [r2]
+
+Lawnchair 16 pE Development 3 is here! Contributors are encouraged to target this branch instead of 
+older (i.e., Lawnchair `15-dev`).
+
+### Development 3 Release 3
+
+Build: BD3.2012 (latest), BD3.1312, BD3.0812, BD3.0712
+
+Compatibility list:
+
+| 🏗️ Crash   | 🥞 Fully supported |
+|-------------|--------------------|
+| Android 8.0 | Android 12.0       |
+| Android 8.1 | Android 12.1       |
+| Android 9   | Android 13         |
+| Android 10  | Android 14         |
+|             | Android 15         |
+|             | Android 16         |
+
+#### Features
+* [Lawnchair] Features from Lawnchair 15-dev 07122025
+* [Launcher] Google Sans Flex font uses almost the exact same configuration as Pixel
+* [Launcher] Enable bulk loading by default
+* [Launcher] Tablet support (ish)
+* [Launcher] Refreshed Material 3 Expressive
+* [Lawnchair] Refreshed Material 3 Expressive
+* [Launcher] Foldable support (ish)
+* [Lawnchair] Warn when nightly updater is updating to next major version
+* [Lawnchair/Smartspace] Add Lunar calendar option
+* [Lawnchair/Smartspace] Promote smartspace calendar to stable
+* [Lawnchair] Expressive redesign Phase 2
+* [Lawnchair] GestureNavContract toggle in experimental features
+* [Lawnchair] Set GestureNavContract on by default on Google device
+* [Lawnchair] Set GestureNavContract on by default on Nothing device
+* [Lawnchair] Don't show warning on known compatible device
+* [Lawnchair] Swipe to dismiss announcement perform haptic on successful dismiss
+* [Lawnchair] Remove Inter v3 fonts from Lawnchair entirely (to reduce apk size)
+* [Lawnchair] Add Google Sans variable font as fallback to Google Sans Flex (to support the most of the world languages, yes that increases sizes)
+* [Launcher] Google Sans variable normal style
+* [Lawnchair] Improve Google device compatibility check
+* [Lawnchair] Improve Samsung device compatibility check
+
+#### Fixes
+* [Launcher3] Widget preview crash for no reason at all on compatible Android version
+* [Launcher] Hotseat Google provider failed to open due to Android pending intent restrictions on Android 14/15/16/16.1
+* [Launcher3/DeviceProfile] Positioning of first folder during Lawnchair setup
+* [Lawnchair/AllApps] Reimplement app drawer opacity
+* [Lawnchair/Recents] Reimplement recents overview opacity
+* [Lawnchair/Preference] Misaligned slider and text preference
+* [Lawnchair/Smartspace] Allow disabling the smartspace feature
+* [Lawnchair] Settings now correctly animate expand/shrink items
+* [Lawnchair] Correctly display warning in experimental features (race conditions)
+* [Project] Support for Android Studio 2025.2.3 Canary 5 (Bump to AGP 9.0.0-beta05)
+* [Lawnchair] Offer a toggle to disable/enable suggestions instead of linking it to ASI if the device is not Google Pixel
+
+### Development 3 Release 2
 
 Build: BD3.2211
 
@@ -91,6 +287,7 @@ Compatibility list:
 #### Features
 * [Lawnchair] Updated screenshots compressions and fastlane screenshot
 * [Lawnchair] Features from Lawnchair 15-dev
+* [Launcher3] Widget preview crash for no reason at all on compatible Android version
 
 #### Fixes
 * [Lawnchair] Conflict from Lawnchair 15-dev
@@ -171,7 +368,7 @@ Compatibility list:
 * [Launcher3] Crash due to missing resources for Android 8.0
 * [Lawnchair/Docs] Update screenshot to 16-dev
 
-### 🥞 Development 2
+### Development 2
 
 Originally going to launch D2 if most of the comestic bug fixes have been resolved, but hit a 
 stability milestone instead.
@@ -249,7 +446,7 @@ Compatibility list:
 * Rare NoSuchMethodError crash on SurfaceControl setEarlyWakeupStart and setEarlyWakeupEnd
 * Properly align built-in smartspace in workspace
 * Use WM Proxy from Lawnchair instead of System, fix Android 8.1/9/10/11/12.0/12.1 regarding SE, NSME like SystemBarUtils -> (dWkyIGw9), (reworked CllOXHJv)
-  * AutoCatWindowManagerProxy have been migrated to Dagger
+  * LawnchairWindowManagerProxy have been migrated to Dagger
   * SystemWindowManagerProxy have been left unused
 * [Lawnchair/Iconloaderlib] Update CustomAdaptiveIconDrawable to latest AOSP 13
 * [Iconloaderlib] Reset most of the changes to favour more AOSP 16_r02 code then Lawnchair (need rewrite)
@@ -305,7 +502,7 @@ This is a developer-focused change log:
 This snapshot now able to compile all sources (Kotlin files only)
 
 * Fix MORE MORE MORE `lawn` issues
-* Use Gradle Version Catalog for consistent dependency version across all modules (Full implementation @ AutoCatLauncher/Lawnchair#5753)
+* Use Gradle Version Catalog for consistent dependency version across all modules (Full implementation @ LawnchairLauncher/Lawnchair#5753)
 * Magically fix ASM Instrumentation issues (I didn't do anything, it just works now)
 * Fix ALL the issues in kotlin stage (`compileLawnWithQuickstepNightlyDebugKotlin`)
 * Reintroduce some features from Lawnchair

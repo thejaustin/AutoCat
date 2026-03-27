@@ -3,14 +3,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import android.graphics.Rect;
-import android.view.IRecentsAnimationController;
+import com.android.wm.shell.recents.IRecentsAnimationController;
 import android.view.RemoteAnimationTarget;
 import android.window.TaskSnapshot;
 
 public interface RecentsAnimationRunnerCompat {
 
     void onAnimationStart(
-            IRecentsAnimationController controller,
+            Object controller,
             RemoteAnimationTarget[] apps,
             RemoteAnimationTarget[] wallpapers,
             Rect homeContentInsets,
