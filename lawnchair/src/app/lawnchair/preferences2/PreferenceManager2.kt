@@ -25,6 +25,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -370,6 +371,21 @@ class PreferenceManager2 @Inject constructor(
     val sentryDsn = preference(
         key = stringPreferencesKey(name = "sentry_dsn"),
         defaultValue = "",
+    )
+
+    val autoUpdateEnabled = preference(
+        key = booleanPreferencesKey(name = "auto_update_enabled"),
+        defaultValue = true,
+    )
+
+    val updateChannel = preference(
+        key = stringPreferencesKey(name = "update_channel"),
+        defaultValue = "stable",
+    )
+
+    val lastUpdateCheckTime = preference(
+        key = longPreferencesKey(name = "last_update_check_time"),
+        defaultValue = 0L,
     )
 
     val legacyPopupOptionsMigrated = preference(

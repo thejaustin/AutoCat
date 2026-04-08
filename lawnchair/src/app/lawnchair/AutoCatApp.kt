@@ -23,6 +23,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import androidx.core.app.NotificationCompat
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -45,6 +49,8 @@ import app.lawnchair.bugreport.BugReportActivity
 import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
+import app.lawnchair.update.UpdateChannel
+import app.lawnchair.update.UpdateChecker
 import app.lawnchair.ui.ModalBottomSheetContent
 import app.lawnchair.ui.preferences.destinations.openAppInfo
 import app.lawnchair.util.restartLauncher
@@ -188,9 +194,80 @@ class AutoCatApp : Application() {
             } catch (e: Exception) {
                 Log.w(TAG, "Error checking crash reports", e)
             }
+
+            // Check for app updates
+            try {
+                checkForUpdates()
+            } catch (e: Exception) {
+                Log.w(TAG, "Error during update check", e)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Error in background initialization", e)
         }
+    }
+
+    private suspend fun checkForUpdates() {
+        val prefs = PreferenceManager2.getInstance(this@AutoCatApp)
+        val autoUpdateEnabled = prefs.autoUpdateEnabled.get().first()
+        if (!autoUpdateEnabled) return
+
+        val lastCheck = prefs.lastUpdateCheckTime.get().first()
+        val now = System.currentTimeMillis()
+        val twentyFourHours = 24 * 60 * 60 * 1000L
+        if (now - lastCheck < twentyFourHours) {
+            Log.d(TAG, "Skipping update check — last check was <24h ago")
+            return
+        }
+
+        val channelStr = prefs.updateChannel.get().first()
+        val channel = if (channelStr == "dev") UpdateChannel.DEV else UpdateChannel.STABLE
+        val update = UpdateChecker.checkForUpdate(channel)
+
+        // Record check time regardless of result
+        CoroutineScope(Dispatchers.IO).launch {
+            prefs.lastUpdateCheckTime.set(now)
+        }
+
+        if (update != null) {
+            Log.i(TAG, "Update available: ${update.versionName}")
+            showUpdateNotification(update.versionName, update.downloadUrl)
+        } else {
+            Log.d(TAG, "No update available")
+        }
+    }
+
+    private fun showUpdateNotification(versionName: String, downloadUrl: String) {
+        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        val channelId = "autocat_updates"
+        nm.createNotificationChannel(
+            NotificationChannel(
+                channelId,
+                "AutoCat Updates",
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply {
+                description = "Notifications about new AutoCat releases"
+            }
+        )
+
+        val openIntent = PendingIntent.getActivity(
+            this@AutoCatApp,
+            0,
+            Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            },
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+
+        val notification = NotificationCompat.Builder(this@AutoCatApp, channelId)
+            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+            .setContentTitle("AutoCat update available")
+            .setContentText("$versionName is ready to download")
+            .setContentIntent(openIntent)
+            .setAutoCancel(true)
+            .build()
+
+        nm.notify(UPDATE_NOTIFICATION_ID, notification)
     }
 
     /**
@@ -367,6 +444,7 @@ class AutoCatApp : Application() {
 
     companion object {
         private const val TAG = "AutoCatApp"
+        private const val UPDATE_NOTIFICATION_ID = 7001
 
         @JvmStatic
         lateinit var instance: AutoCatApp
