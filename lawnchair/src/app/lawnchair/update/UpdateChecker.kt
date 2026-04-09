@@ -99,9 +99,9 @@ object UpdateChecker {
                         UpdateChannel.DEV -> tag.contains("dev-autocat.")
                     }
                 } ?: run {
-                    Log.d(TAG, "No matching release found for channel $channel")
-                    return@withContext null
-                }
+                Log.d(TAG, "No matching release found for channel $channel")
+                return@withContext null
+            }
 
             val tag = release.getString("tag_name")
             val remoteBuild = parseBuildNum(tag)
