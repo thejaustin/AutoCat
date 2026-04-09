@@ -633,6 +633,15 @@
     <string name="auto_updater_label">Auto updater</string>
     <string name="auto_updater_description">Automatically check for Nightly update when going to About section</string>
 
+    <string name="update_channel_label">Update channel</string>
+    <string name="update_channel_stable">Stable</string>
+    <string name="update_channel_dev">Dev (unstable)</string>
+    <string name="update_channel_dev_warning_title">Switch to dev channel?</string>
+    <string name="update_channel_dev_warning_message">Dev builds may contain bugs and breaking changes. Use at your own risk.</string>
+    <string name="update_channel_dev_warning_confirm">Enable</string>
+    <string name="auto_update_label">Check for updates automatically</string>
+    <string name="auto_update_description">Check for new AutoCat updates in the background</string>
+
     <string name="wallpaper_blur">Blur wallpaper (experimental)</string>
     <string name="wallpaper_background_blur">Blur intensity</string>
     <string name="wallpaper_background_blur_factor">Factor threshold</string>

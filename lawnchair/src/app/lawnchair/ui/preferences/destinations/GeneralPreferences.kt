@@ -18,6 +18,7 @@ package app.lawnchair.ui.preferences.destinations
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Archive
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.AutoFixHigh
 import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.FilterBAndW
@@ -25,14 +26,21 @@ import androidx.compose.material.icons.rounded.FormatColorReset
 import androidx.compose.material.icons.rounded.Numbers
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.ScreenRotation
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.lawnchair.preferences.PreferenceAdapter
+import app.lawnchair.preferences.customPreferenceAdapter
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.asState
@@ -273,6 +281,60 @@ fun GeneralPreferences() {
                 label = stringResource(id = R.string.autocat_archival_method_label),
                 description = stringResource(id = R.string.autocat_archival_method_description),
                 icon = Icons.Rounded.Archive,
+            )
+        }
+
+        val channelAdapter = prefs2.updateChannel.getAdapter()
+        val currentChannel by channelAdapter.state
+        var pendingDevChannel by rememberSaveable { mutableStateOf(false) }
+
+        if (pendingDevChannel) {
+            AlertDialog(
+                onDismissRequest = { pendingDevChannel = false },
+                title = { Text(stringResource(id = R.string.update_channel_dev_warning_title)) },
+                text = { Text(stringResource(id = R.string.update_channel_dev_warning_message)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        channelAdapter.onChange("dev")
+                        pendingDevChannel = false
+                    }) { Text(stringResource(id = R.string.update_channel_dev_warning_confirm)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingDevChannel = false }) {
+                        Text(stringResource(id = android.R.string.cancel))
+                    }
+                },
+            )
+        }
+
+        PreferenceGroup(heading = stringResource(id = R.string.updater)) {
+            SwitchPreference(
+                adapter = prefs2.autoUpdateEnabled.getAdapter(),
+                label = stringResource(id = R.string.auto_update_label),
+                description = stringResource(id = R.string.auto_update_description),
+                icon = Icons.Rounded.SystemUpdate,
+            )
+            val channelEntries = remember {
+                listOf(
+                    ListPreferenceEntry("stable") { stringResource(id = R.string.update_channel_stable) },
+                    ListPreferenceEntry("dev") { stringResource(id = R.string.update_channel_dev) },
+                )
+            }
+            val guardedChannelAdapter = customPreferenceAdapter(
+                value = currentChannel,
+                onValueChange = { newValue ->
+                    if (newValue == "dev" && currentChannel != "dev") {
+                        pendingDevChannel = true
+                    } else {
+                        channelAdapter.onChange(newValue)
+                    }
+                },
+            )
+            ListPreference(
+                adapter = guardedChannelAdapter,
+                entries = channelEntries,
+                label = stringResource(id = R.string.update_channel_label),
+                icon = Icons.Rounded.SystemUpdate,
             )
         }
     }
