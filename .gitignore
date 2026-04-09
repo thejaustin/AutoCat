@@ -21,3 +21,7 @@ __pycache__
 .fleet
 lawnWithQuickstep/release
 sentry.properties
+
+CLAUDE.md
+GEMINI.md
+QWEN.md
