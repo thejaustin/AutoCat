@@ -6,7 +6,9 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
+import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.util.getApkVersionComparison
+import com.patrykmichalik.opto.core.firstBlocking
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.Utilities
 import java.io.File
@@ -26,6 +28,7 @@ class NightlyBuildsRepository(
     val applicationContext: Context,
     val api: GitHubService,
 ) {
+    private val prefs2 = PreferenceManager2.getInstance(applicationContext)
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _updateState = MutableStateFlow<UpdateState>(UpdateState.UpToDate)
@@ -39,19 +42,20 @@ class NightlyBuildsRepository(
         coroutineScope.launch(Dispatchers.Default) {
             _updateState.update { UpdateState.Checking }
             try {
+                val channel = prefs2.updateChannel.firstBlocking()
                 val releases = api.getReleases("thejaustin", "AutoCat")
-                // Look for any release that has an APK asset
-                val latestRelease = releases.firstOrNull { it.assets.any { asset -> asset.name.endsWith(".apk") } }
-                val asset = latestRelease?.assets?.firstOrNull { it.name.endsWith(".apk") }
 
-                val majorVersion = applicationContext.getApkVersionComparison().first[0]
-                val expectedBranch = "$majorVersion-dev"
-
-                if (nightly != null && nightly.targetCommitish != expectedBranch) {
-                    Log.d(TAG, "Skipping update from branch ${nightly.targetCommitish}, expected $expectedBranch")
-                    _updateState.update { UpdateState.Disabled(UpdateDisabledReason.MAJOR_IS_NEWER) }
-                    return@launch
+                // Filter releases by channel based on tag name pattern
+                val latestRelease = releases.firstOrNull { release ->
+                    val tag = release.tagName
+                    val hasApk = release.assets.any { it.name.endsWith(".apk") }
+                    hasApk && when (channel) {
+                        "dev" -> tag.contains("dev-autocat.")
+                        else -> tag.contains("b1-autocat.") || tag.contains("b2-autocat.") ||
+                            (!tag.contains("dev") && tag.contains("autocat."))
+                    }
                 }
+                val asset = latestRelease?.assets?.firstOrNull { it.name.endsWith(".apk") }
 
                 // As of now the version string looks like this (CI builds only):
                 // <major>.<branch>.(#<CI build number>)
