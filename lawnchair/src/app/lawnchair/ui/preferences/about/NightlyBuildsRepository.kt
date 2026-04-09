@@ -8,9 +8,9 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.util.getApkVersionComparison
-import com.patrykmichalik.opto.core.firstBlocking
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.Utilities
+import com.patrykmichalik.opto.core.firstBlocking
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.createDirectories
@@ -51,6 +51,7 @@ class NightlyBuildsRepository(
                     val hasApk = release.assets.any { it.name.endsWith(".apk") }
                     hasApk && when (channel) {
                         "dev" -> tag.contains("dev-autocat.")
+
                         else -> tag.contains("b1-autocat.") || tag.contains("b2-autocat.") ||
                             (!tag.contains("dev") && tag.contains("autocat."))
                     }

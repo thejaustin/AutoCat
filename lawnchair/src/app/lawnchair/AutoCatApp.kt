@@ -247,7 +247,7 @@ class AutoCatApp : Application() {
                 NotificationManager.IMPORTANCE_DEFAULT,
             ).apply {
                 description = "Notifications about new AutoCat releases"
-            }
+            },
         )
 
         val openIntent = PendingIntent.getActivity(

@@ -18,11 +18,11 @@ package app.lawnchair.update
 
 import android.util.Log
 import com.android.launcher3.BuildConfig
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
-import java.net.HttpURLConnection
-import java.net.URL
 
 enum class UpdateChannel { STABLE, DEV }
 

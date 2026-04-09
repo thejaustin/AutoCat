@@ -18,7 +18,6 @@ package app.lawnchair.ui.preferences.destinations
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Archive
-import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.AutoFixHigh
 import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.FilterBAndW
@@ -26,6 +25,7 @@ import androidx.compose.material.icons.rounded.FormatColorReset
 import androidx.compose.material.icons.rounded.Numbers
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.ScreenRotation
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
