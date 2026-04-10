@@ -16,29 +16,9 @@
 
 package android.window;
 
-import static android.app.ActivityOptions.ANIM_CLIP_REVEAL;
-import static android.app.ActivityOptions.ANIM_CUSTOM;
-import static android.app.ActivityOptions.ANIM_FROM_STYLE;
-import static android.app.ActivityOptions.ANIM_OPEN_CROSS_PROFILE_APPS;
-import static android.app.ActivityOptions.ANIM_SCALE_UP;
-import static android.app.ActivityOptions.ANIM_SCENE_TRANSITION;
-import static android.app.ActivityOptions.ANIM_THUMBNAIL_SCALE_DOWN;
-import static android.app.ActivityOptions.ANIM_THUMBNAIL_SCALE_UP;
 import static android.app.WindowConfiguration.ROTATION_UNDEFINED;
 import static android.view.Display.INVALID_DISPLAY;
 import static android.view.WindowManager.LayoutParams.ROTATION_ANIMATION_UNSPECIFIED;
-import static android.view.WindowManager.TRANSIT_CHANGE;
-import static android.view.WindowManager.TRANSIT_CLOSE;
-import static android.view.WindowManager.TRANSIT_FLAG_AOD_APPEARING;
-import static android.view.WindowManager.TRANSIT_FLAG_KEYGUARD_APPEARING;
-import static android.view.WindowManager.TRANSIT_FLAG_KEYGUARD_GOING_AWAY;
-import static android.view.WindowManager.TRANSIT_NONE;
-import static android.view.WindowManager.TRANSIT_OPEN;
-import static android.view.WindowManager.TRANSIT_TO_BACK;
-import static android.view.WindowManager.TRANSIT_TO_FRONT;
-import static android.view.WindowManager.TransitionFlags;
-import static android.view.WindowManager.TransitionType;
-import static android.view.WindowManager.transitTypeToString;
 
 import android.annotation.AnimRes;
 import android.annotation.ColorInt;
@@ -68,6 +48,37 @@ import java.util.Objects;
  */
 public final class TransitionInfo implements Parcelable {
     private static final String TAG = "TransitionInfo";
+
+    private static final int TRANSIT_NONE = 0;
+    private static final int TRANSIT_OPEN = 1;
+    private static final int TRANSIT_CLOSE = 2;
+    private static final int TRANSIT_TO_FRONT = 3;
+    private static final int TRANSIT_TO_BACK = 4;
+    private static final int TRANSIT_CHANGE = 6;
+    private static final int TRANSIT_FLAG_KEYGUARD_APPEARING = 0x20;
+    private static final int TRANSIT_FLAG_KEYGUARD_GOING_AWAY = 0x100;
+    private static final int TRANSIT_FLAG_AOD_APPEARING = 0x1000;
+
+    private static final int ANIM_CUSTOM = 1;
+    private static final int ANIM_SCALE_UP = 2;
+    private static final int ANIM_THUMBNAIL_SCALE_UP = 3;
+    private static final int ANIM_THUMBNAIL_SCALE_DOWN = 4;
+    private static final int ANIM_SCENE_TRANSITION = 5;
+    private static final int ANIM_CLIP_REVEAL = 11;
+    private static final int ANIM_OPEN_CROSS_PROFILE_APPS = 12;
+    private static final int ANIM_FROM_STYLE = 14;
+
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface TransitionType {}
+
+    /** @hide */
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface TransitionFlags {}
+
+    private static String transitTypeToString(@TransitionType int type) {
+        return modeToString(type);
+    }
 
     /**
      * Modes are only a sub-set of all the transit-types since they are per-container
