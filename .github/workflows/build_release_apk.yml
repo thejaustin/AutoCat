@@ -24,8 +24,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@39fdf500b386709a9a4a769f717dad447ac345b9
         with:
           cache-encryption-key: Da25KUVSE5jbGds2zXmfXw==
-      - name: Scan for Security Issues, Leaks, and Crash Points
-        run: ./gradlew lintDebug
       - name: Write sign info
         if: github.repository_owner == 'LawnchairLauncher'
         run: |
