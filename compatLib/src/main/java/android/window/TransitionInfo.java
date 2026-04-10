@@ -43,8 +43,6 @@ import static android.view.WindowManager.transitTypeToString;
 import android.annotation.AnimRes;
 import android.annotation.ColorInt;
 import android.annotation.IntDef;
-import android.annotation.NonNull;
-import android.annotation.Nullable;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.graphics.Point;
@@ -239,7 +237,7 @@ public final class TransitionInfo implements Parcelable {
 
     @Override
     /** @hide */
-    public void writeToParcel(@NonNull Parcel dest, int flags) {
+    public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(mType);
         dest.writeInt(mFlags);
         dest.writeTypedList(mChanges);
@@ -248,7 +246,6 @@ public final class TransitionInfo implements Parcelable {
         dest.writeInt(mTrack);
     }
 
-    @NonNull
     public static final Creator<TransitionInfo> CREATOR =
             new Creator<TransitionInfo>() {
                 @Override
@@ -269,13 +266,13 @@ public final class TransitionInfo implements Parcelable {
     }
 
     /** @see #getRoot */
-    public void addRootLeash(int displayId, @NonNull SurfaceControl leash,
+    public void addRootLeash(int displayId, SurfaceControl leash,
             int offsetLeft, int offsetTop) {
         mRoots.add(new Root(displayId, leash, offsetLeft, offsetTop));
     }
 
     /** @see #getRoot */
-    public void addRoot(@NonNull Root other) {
+    public void addRoot(Root other) {
         mRoots.add(other);
     }
 
@@ -302,7 +299,6 @@ public final class TransitionInfo implements Parcelable {
     /**
      * @return the transition-root at a specific index.
      */
-    @NonNull
     public Root getRoot(int idx) {
         return mRoots.get(idx);
     }
@@ -328,7 +324,6 @@ public final class TransitionInfo implements Parcelable {
      * @deprecated Use {@link #getRoot} instead. This call assumes there is only one root.
      */
     @Deprecated
-    @NonNull
     public SurfaceControl getRootLeash() {
         if (mRoots.isEmpty()) {
             throw new IllegalStateException("Trying to get a root leash from a no-op transition.");
@@ -344,7 +339,6 @@ public final class TransitionInfo implements Parcelable {
      * @return the list of {@link Change}s in this transition. The list is sorted top-to-bottom
      *         in Z (meaning index 0 is the top-most container).
      */
-    @NonNull
     public List<Change> getChanges() {
         return mChanges;
     }
@@ -353,8 +347,7 @@ public final class TransitionInfo implements Parcelable {
      * @return the Change that a window is undergoing or {@code null} if not directly
      * represented.
      */
-    @Nullable
-    public Change getChange(@NonNull WindowContainerToken token) {
+    public Change getChange(WindowContainerToken token) {
         for (int i = mChanges.size() - 1; i >= 0; --i) {
             if (token.equals(mChanges.get(i).mContainer)) {
                 return mChanges.get(i);
@@ -366,7 +359,7 @@ public final class TransitionInfo implements Parcelable {
     /**
      * Add a {@link Change} to this transition.
      */
-    public void addChange(@NonNull Change change) {
+    public void addChange(Change change) {
         mChanges.add(change);
     }
 
@@ -419,7 +412,7 @@ public final class TransitionInfo implements Parcelable {
      * Returns a string representation of this transition info.
      * @hide
      */
-    public String toString(@NonNull String prefix) {
+    public String toString(String prefix) {
         final boolean shouldPrettyPrint = !prefix.isEmpty() && !mChanges.isEmpty();
         final String innerPrefix = shouldPrettyPrint ? prefix + "    " : "";
         final String changesLineStart = shouldPrettyPrint ? "\n" + prefix : "";
@@ -449,7 +442,6 @@ public final class TransitionInfo implements Parcelable {
     }
 
     /** Converts a transition mode/action to its string representation. */
-    @NonNull
     public static String modeToString(@TransitionMode int mode) {
         switch(mode) {
             case TRANSIT_NONE: return "NONE";
@@ -463,7 +455,6 @@ public final class TransitionInfo implements Parcelable {
     }
 
     /** Converts change flags into a string representation. */
-    @NonNull
     public static String flagsToString(@ChangeFlags int flags) {
         if (flags == 0) return "NONE";
         final StringBuilder sb = new StringBuilder();
@@ -537,8 +528,8 @@ public final class TransitionInfo implements Parcelable {
      * Indication that `change` is independent of parents (ie. it has a different type of
      * transition vs. "going along for the ride")
      */
-    public static boolean isIndependent(@NonNull TransitionInfo.Change change,
-            @NonNull TransitionInfo info) {
+    public static boolean isIndependent(TransitionInfo.Change change,
+            TransitionInfo info) {
         // If the change has no parent (it is root), then it is independent
         if (change.getParent() == null) return true;
 
@@ -602,7 +593,7 @@ public final class TransitionInfo implements Parcelable {
      * Updates the callsites of all the surfaces in this transition, which aids in the debugging of
      * lingering surfaces.
      */
-    public void setUnreleasedWarningCallSiteForAllSurfaces(@Nullable String callsite) {
+    public void setUnreleasedWarningCallSiteForAllSurfaces(String callsite) {
         for (int i = mChanges.size() - 1; i >= 0; --i) {
             mChanges.get(i).getLeash().setUnreleasedWarningCallSite(callsite);
         }
@@ -614,7 +605,6 @@ public final class TransitionInfo implements Parcelable {
      * the caller's references. Use this only if you need to "send" this to a local function which
      * assumes it is being called from a remote caller.
      */
-    @NonNull
     public TransitionInfo localRemoteCopy() {
         final TransitionInfo out = new TransitionInfo(mType, mFlags);
         out.mTrack = mTrack;
@@ -659,12 +649,12 @@ public final class TransitionInfo implements Parcelable {
         private AnimationOptions mAnimationOptions = null;
         private IBinder mTaskFragmentToken = null;
 
-        public Change(@Nullable WindowContainerToken container, @NonNull SurfaceControl leash) {
+        public Change(WindowContainerToken container, SurfaceControl leash) {
             mContainer = container;
             mLeash = leash;
         }
 
-        private Change(@NonNull Parcel in) {
+        private Change(Parcel in) {
             mContainer = in.readTypedObject(WindowContainerToken.CREATOR);
             mParent = in.readTypedObject(WindowContainerToken.CREATOR);
             mLastParent = in.readTypedObject(WindowContainerToken.CREATOR);
@@ -722,7 +712,7 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Sets the parent of this change's container. The parent must be a participant or null. */
-        public void setParent(@Nullable WindowContainerToken parent) {
+        public void setParent(WindowContainerToken parent) {
             mParent = parent;
         }
 
@@ -730,12 +720,12 @@ public final class TransitionInfo implements Parcelable {
          * Sets the parent of this change's container before the transition if this change's
          * container is reparented in the transition.
          */
-        public void setLastParent(@Nullable WindowContainerToken lastParent) {
+        public void setLastParent(WindowContainerToken lastParent) {
             mLastParent = lastParent;
         }
 
         /** Sets the animation leash for controlling this change's container */
-        public void setLeash(@NonNull SurfaceControl leash) {
+        public void setLeash(SurfaceControl leash) {
             mLeash = Objects.requireNonNull(leash);
         }
 
@@ -750,12 +740,12 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Sets the bounds this container occupied before the change in screen space */
-        public void setStartAbsBounds(@Nullable Rect rect) {
+        public void setStartAbsBounds(Rect rect) {
             mStartAbsBounds.set(rect);
         }
 
         /** Sets the bounds this container will occupy after the change in screen space */
-        public void setEndAbsBounds(@Nullable Rect rect) {
+        public void setEndAbsBounds(Rect rect) {
             mEndAbsBounds.set(rect);
         }
 
@@ -775,7 +765,7 @@ public final class TransitionInfo implements Parcelable {
          * Sets the taskinfo of this container if this is a task. WARNING: this takes the
          * reference, so don't modify it afterwards.
          */
-        public void setTaskInfo(@Nullable ActivityManager.RunningTaskInfo taskInfo) {
+        public void setTaskInfo(ActivityManager.RunningTaskInfo taskInfo) {
             mTaskInfo = taskInfo;
         }
 
@@ -815,20 +805,20 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Sets a snapshot surface for the "start" state of the container. */
-        public void setSnapshot(@Nullable SurfaceControl snapshot, float luma) {
+        public void setSnapshot(SurfaceControl snapshot, float luma) {
             mSnapshot = snapshot;
             mSnapshotLuma = luma;
         }
 
         /** Sets the activity-specific transition information. Container must be an Activity. */
-        public void setActivityTransitionInfo(@Nullable ActivityTransitionInfo info) {
+        public void setActivityTransitionInfo(ActivityTransitionInfo info) {
             mActivityTransitionInfo = info;
         }
 
         /**
          * Sets {@link AnimationOptions} to override animation.
          */
-        public void setAnimationOptions(@Nullable AnimationOptions options) {
+        public void setAnimationOptions(AnimationOptions options) {
             mAnimationOptions = options;
         }
 
@@ -836,12 +826,11 @@ public final class TransitionInfo implements Parcelable {
          * Sets the client-defined TaskFragment token. Only set this if the window is a
          * client-organized TaskFragment.
          */
-        public void setTaskFragmentToken(@Nullable IBinder token) {
+        public void setTaskFragmentToken(IBinder token) {
             mTaskFragmentToken = token;
         }
 
         /** @return the container that is changing. May be null if non-remotable (eg. activity) */
-        @Nullable
         public WindowContainerToken getContainer() {
             return mContainer;
         }
@@ -850,7 +839,6 @@ public final class TransitionInfo implements Parcelable {
          * @return the parent of the changing container. This is the parent within the participants,
          * not necessarily the actual parent.
          */
-        @Nullable
         public WindowContainerToken getParent() {
             return mParent;
         }
@@ -861,7 +849,6 @@ public final class TransitionInfo implements Parcelable {
          * participant, and it may have been detached from the display. {@code null} if the changing
          * container has not been reparented in the transition, or if the parent is not organizable.
          */
-        @Nullable
         public WindowContainerToken getLastParent() {
             return mLastParent;
         }
@@ -890,7 +877,6 @@ public final class TransitionInfo implements Parcelable {
          * @return the bounds of the container before the change. It may be empty if the container
          * is coming into existence.
          */
-        @NonNull
         public Rect getStartAbsBounds() {
             return mStartAbsBounds;
         }
@@ -899,7 +885,6 @@ public final class TransitionInfo implements Parcelable {
          * @return the bounds of the container after the change. It may be empty if the container
          * is disappearing.
          */
-        @NonNull
         public Rect getEndAbsBounds() {
             return mEndAbsBounds;
         }
@@ -907,7 +892,6 @@ public final class TransitionInfo implements Parcelable {
         /**
          * @return the offset of the container's surface from its parent surface after the change.
          */
-        @NonNull
         public Point getEndRelOffset() {
             return mEndRelOffset;
         }
@@ -915,19 +899,16 @@ public final class TransitionInfo implements Parcelable {
         /**
          * Returns the size of parent container after the change.
          */
-        @NonNull
         public Point getEndParentSize() {
             return mEndParentSize;
         }
 
         /** @return the leash or surface to animate for this container */
-        @NonNull
         public SurfaceControl getLeash() {
             return mLeash;
         }
 
         /** @return the task info or null if this isn't a task */
-        @Nullable
         public ActivityManager.RunningTaskInfo getTaskInfo() {
             return mTaskInfo;
         }
@@ -971,7 +952,6 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** @return a snapshot surface (if applicable). */
-        @Nullable
         public SurfaceControl getSnapshot() {
             return mSnapshot;
         }
@@ -982,7 +962,6 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** @return the component-name of this container (if it is an activity). */
-        @Nullable
         public ComponentName getActivityComponent() {
             return mActivityTransitionInfo != null ? mActivityTransitionInfo.getComponent() : null;
         }
@@ -991,7 +970,6 @@ public final class TransitionInfo implements Parcelable {
          * @return the activity-specific transition information, or {@code null} if this container
          * is not an activity.
          */
-        @Nullable
         public ActivityTransitionInfo getActivityTransitionInfo() {
             return mActivityTransitionInfo;
         }
@@ -999,7 +977,6 @@ public final class TransitionInfo implements Parcelable {
         /**
          * Returns the {@link AnimationOptions}.
          */
-        @Nullable
         public AnimationOptions getAnimationOptions() {
             return mAnimationOptions;
         }
@@ -1008,14 +985,13 @@ public final class TransitionInfo implements Parcelable {
          * Returns the client-defined TaskFragment token. {@code null} if this window is not a
          * client-organized TaskFragment.
          */
-        @Nullable
         public IBinder getTaskFragmentToken() {
             return mTaskFragmentToken;
         }
 
         /** @hide */
         @Override
-        public void writeToParcel(@NonNull Parcel dest, int flags) {
+        public void writeToParcel(Parcel dest, int flags) {
             dest.writeTypedObject(mContainer, flags);
             dest.writeTypedObject(mParent, flags);
             dest.writeTypedObject(mLastParent, flags);
@@ -1042,7 +1018,6 @@ public final class TransitionInfo implements Parcelable {
             dest.writeStrongBinder(mTaskFragmentToken);
         }
 
-        @NonNull
         public static final Creator<Change> CREATOR =
                 new Creator<Change>() {
                     @Override
@@ -1177,17 +1152,15 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Make basic customized animation for a package */
-        @NonNull
-        public static AnimationOptions makeCommonAnimOptions(@NonNull String packageName) {
+        public static AnimationOptions makeCommonAnimOptions(String packageName) {
             AnimationOptions options = new AnimationOptions(ANIM_FROM_STYLE);
             options.mPackageName = packageName;
             return options;
         }
 
         /** Make custom animation from the content of LayoutParams */
-        @NonNull
         public static AnimationOptions makeAnimOptionsFromLayoutParameters(
-                @NonNull WindowManager.LayoutParams lp) {
+                WindowManager.LayoutParams lp) {
             AnimationOptions options = new AnimationOptions(ANIM_FROM_STYLE);
             options.mPackageName = lp.packageName;
             options.mAnimations = lp.windowAnimations;
@@ -1195,7 +1168,7 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Add customized window animations */
-        public void addOptionsFromLayoutParameters(@NonNull WindowManager.LayoutParams lp) {
+        public void addOptionsFromLayoutParameters(WindowManager.LayoutParams lp) {
             mAnimations = lp.windowAnimations;
         }
 
@@ -1224,8 +1197,7 @@ public final class TransitionInfo implements Parcelable {
          * @param exitResId the resources ID of close animation.
          * @param overrideTaskTransition indicates whether to override task transition.
          */
-        @NonNull
-        public static AnimationOptions makeCustomAnimOptions(@NonNull String packageName,
+        public static AnimationOptions makeCustomAnimOptions(String packageName,
                 @AnimRes int enterResId, @AnimRes int changeResId, @AnimRes int exitResId,
                 boolean overrideTaskTransition) {
             AnimationOptions options = new AnimationOptions(ANIM_CUSTOM);
@@ -1238,7 +1210,6 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Make options for a clip-reveal animation. */
-        @NonNull
         public static AnimationOptions makeClipRevealAnimOptions(int startX, int startY, int width,
                 int height) {
             AnimationOptions options = new AnimationOptions(ANIM_CLIP_REVEAL);
@@ -1247,7 +1218,6 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Make options for a scale-up animation with task override option */
-        @NonNull
         public static AnimationOptions makeScaleUpAnimOptions(int startX, int startY, int width,
                 int height, boolean overrideTaskTransition) {
             AnimationOptions options = new AnimationOptions(ANIM_SCALE_UP);
@@ -1257,8 +1227,7 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Make options for a thumbnail-scaling animation. */
-        @NonNull
-        public static AnimationOptions makeThumbnailAnimOptions(@NonNull HardwareBuffer srcThumb,
+        public static AnimationOptions makeThumbnailAnimOptions(HardwareBuffer srcThumb,
                 int startX, int startY, boolean scaleUp) {
             AnimationOptions options = new AnimationOptions(
                     scaleUp ? ANIM_THUMBNAIL_SCALE_UP : ANIM_THUMBNAIL_SCALE_DOWN);
@@ -1268,14 +1237,12 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Make options for an animation that spans activities of different profiles. */
-        @NonNull
         public static AnimationOptions makeCrossProfileAnimOptions() {
             AnimationOptions options = new AnimationOptions(ANIM_OPEN_CROSS_PROFILE_APPS);
             return options;
         }
 
         /** Make options designating this as a scene-transition animation. */
-        @NonNull
         public static AnimationOptions makeSceneTransitionAnimOptions() {
             AnimationOptions options = new AnimationOptions(ANIM_SCENE_TRANSITION);
             return options;
@@ -1312,17 +1279,14 @@ public final class TransitionInfo implements Parcelable {
             return mOverrideTaskTransition;
         }
 
-        @Nullable
         public String getPackageName() {
             return mPackageName;
         }
 
-        @NonNull
         public Rect getTransitionBounds() {
             return mTransitionBounds;
         }
 
-        @Nullable
         public HardwareBuffer getThumbnail() {
             return mThumbnail;
         }
@@ -1332,13 +1296,12 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Return customized activity transition if existed. */
-        @Nullable
         public CustomActivityTransition getCustomActivityTransition(boolean open) {
             return open ? mCustomActivityOpenTransition : mCustomActivityCloseTransition;
         }
 
         @Override
-        public void writeToParcel(@NonNull Parcel dest, int flags) {
+        public void writeToParcel(Parcel dest, int flags) {
             dest.writeInt(mType);
             dest.writeInt(mEnterResId);
             dest.writeInt(mChangeResId);
@@ -1353,7 +1316,6 @@ public final class TransitionInfo implements Parcelable {
             dest.writeInt(mUserId);
         }
 
-        @NonNull
         public static final Creator<AnimationOptions> CREATOR =
                 new Creator<AnimationOptions>() {
                     @Override
@@ -1373,7 +1335,6 @@ public final class TransitionInfo implements Parcelable {
             return 0;
         }
 
-        @NonNull
         private static String typeToString(int mode) {
             return switch (mode) {
                 case ANIM_CUSTOM -> "CUSTOM";
@@ -1389,7 +1350,6 @@ public final class TransitionInfo implements Parcelable {
         }
 
         @Override
-        @NonNull
         public String toString() {
             final StringBuilder sb = new StringBuilder(32);
             sb.append("{t=").append(typeToString(mType));
@@ -1455,13 +1415,12 @@ public final class TransitionInfo implements Parcelable {
             }
 
             @Override
-            public void writeToParcel(@NonNull Parcel dest, int flags) {
+            public void writeToParcel(Parcel dest, int flags) {
                 dest.writeInt(mCustomEnterResId);
                 dest.writeInt(mCustomExitResId);
                 dest.writeInt(mCustomBackgroundColor);
             }
 
-            @NonNull
             public static final Creator<CustomActivityTransition> CREATOR =
                     new Creator<CustomActivityTransition>() {
                         @Override
@@ -1489,7 +1448,7 @@ public final class TransitionInfo implements Parcelable {
         private final SurfaceControl mLeash;
         private final Point mOffset = new Point();
 
-        public Root(int displayId, @NonNull SurfaceControl leash, int offsetLeft, int offsetTop) {
+        public Root(int displayId, SurfaceControl leash, int offsetLeft, int offsetTop) {
             mDisplayId = displayId;
             mLeash = leash;
             mOffset.set(offsetLeft, offsetTop);
@@ -1514,26 +1473,23 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** @return the root's leash. Surfaces should be parented to this while animating. */
-        @NonNull
         public SurfaceControl getLeash() {
             return mLeash;
         }
 
         /** @return the offset (relative to its screen) of the root leash. */
-        @NonNull
         public Point getOffset() {
             return mOffset;
         }
 
         /** @hide */
         @Override
-        public void writeToParcel(@NonNull Parcel dest, int flags) {
+        public void writeToParcel(Parcel dest, int flags) {
             dest.writeInt(mDisplayId);
             mLeash.writeToParcel(dest, flags);
             mOffset.writeToParcel(dest, flags);
         }
 
-        @NonNull
         public static final Creator<Root> CREATOR =
                 new Creator<Root>() {
                     @Override

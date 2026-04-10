@@ -48,32 +48,33 @@ import kotlinx.coroutines.launch
 
 /**
  * Zen Mode (Focus Mode) preferences screen.
- * 
+ *
  * Allows users to configure which categories are hidden/shown during Focus Mode.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ZenModePreferences(
     onNavigateBack: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    
+
     val zenModeManager = remember { ZenModeManager.getInstance(context) }
-    
+
     var focusRules by remember { mutableStateOf<List<FocusRule>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var recommendedToHide by remember { mutableStateOf<List<String>>(emptyList()) }
     var recommendedToShow by remember { mutableStateOf<List<String>>(emptyList()) }
-    
+
     LaunchedEffect(Unit) {
         focusRules = zenModeManager.getFocusRules()
         recommendedToHide = zenModeManager.getRecommendedCategoriesToHide()
         recommendedToShow = zenModeManager.getRecommendedCategoriesToShow()
         isLoading = false
     }
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -82,14 +83,14 @@ fun ZenModePreferences(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface,
-                )
+                ),
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -134,7 +135,7 @@ fun ZenModePreferences(
                     )
                 }
             }
-            
+
             if (isLoading) {
                 Text(
                     text = "Loading categories...",
@@ -150,11 +151,11 @@ fun ZenModePreferences(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 8.dp),
                     )
-                    
+
                     recommendedToHide.forEach { categoryName ->
                         val rule = focusRules.find { it.categoryName == categoryName }
                         val currentRule = rule ?: FocusRule(categoryName, hideDuringFocus = true)
-                        
+
                         ZenModeRuleItem(
                             categoryName = categoryName,
                             rule = currentRule,
@@ -168,7 +169,7 @@ fun ZenModePreferences(
                         )
                     }
                 }
-                
+
                 // Recommended to Show
                 if (recommendedToShow.isNotEmpty()) {
                     Text(
@@ -177,11 +178,11 @@ fun ZenModePreferences(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 8.dp),
                     )
-                    
+
                     recommendedToShow.forEach { categoryName ->
                         val rule = focusRules.find { it.categoryName == categoryName }
                         val currentRule = rule ?: FocusRule(categoryName, showOnlyDuringFocus = true)
-                        
+
                         ZenModeRuleItem(
                             categoryName = categoryName,
                             rule = currentRule,
@@ -195,7 +196,7 @@ fun ZenModePreferences(
                         )
                     }
                 }
-                
+
                 // All Categories
                 Text(
                     text = "All Categories",
@@ -203,7 +204,7 @@ fun ZenModePreferences(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
                 )
-                
+
                 focusRules.forEach { rule ->
                     ZenModeRuleItem(
                         categoryName = rule.categoryName,
@@ -217,7 +218,7 @@ fun ZenModePreferences(
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
@@ -234,6 +235,7 @@ fun ZenModeRuleItem(
     categoryName: String,
     rule: FocusRule,
     onRuleChange: (FocusRule) -> Unit,
+    modifier: Modifier = Modifier,
     highlightType: HighlightType = HighlightType.NONE,
 ) {
     val backgroundColor = when (highlightType) {
@@ -241,7 +243,7 @@ fun ZenModeRuleItem(
         HighlightType.SHOW -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
         HighlightType.NONE -> MaterialTheme.colorScheme.surface
     }
-    
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -264,7 +266,7 @@ fun ZenModeRuleItem(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                
+
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -287,7 +289,7 @@ fun ZenModeRuleItem(
                             )
                         }
                     }
-                    
+
                     if (rule.showOnlyDuringFocus) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -306,7 +308,7 @@ fun ZenModeRuleItem(
                             )
                         }
                     }
-                    
+
                     if (!rule.hideDuringFocus && !rule.showOnlyDuringFocus) {
                         Text(
                             text = "Always visible",
@@ -316,7 +318,7 @@ fun ZenModeRuleItem(
                     }
                 }
             }
-            
+
             Switch(
                 checked = rule.hideDuringFocus || rule.showOnlyDuringFocus,
                 onCheckedChange = { enabled ->

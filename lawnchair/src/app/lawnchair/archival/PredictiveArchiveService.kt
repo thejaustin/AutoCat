@@ -30,13 +30,13 @@ class PredictiveArchiveService(
     private val metadataProvider: AppMetadataProvider = AppMetadataProvider(context),
     private val batchService: AppBatchOperationService = AppBatchOperationService(context),
     private val prefs: PreferenceManager = PreferenceManager.getInstance(context),
-    private val tabDao: TabDao = TabDatabase.getInstance(context).tabDao()
+    private val tabDao: TabDao = TabDatabase.getInstance(context).tabDao(),
 ) {
 
     companion object {
         private const val TAG = "PredictiveArchive"
         private const val DEFAULT_UNUSED_THRESHOLD_DAYS = 30L
-        
+
         // Importance scores for categories (higher = less likely to archive)
         private val CATEGORY_IMPORTANCE = mapOf(
             "Finance" to 0.9f,
@@ -50,7 +50,7 @@ class PredictiveArchiveService(
             "Games" to 0.2f,
             "Entertainment" to 0.3f,
             "Social" to 0.5f,
-            "News" to 0.4f
+            "News" to 0.4f,
         )
     }
 
@@ -64,7 +64,7 @@ class PredictiveArchiveService(
         val daysUnused: Int,
         val importanceScore: Float, // 0.0 to 1.0 (1.0 = highly important)
         val category: String?,
-        val sizeBytes: Long = 0
+        val sizeBytes: Long = 0,
     )
 
     /**
@@ -73,10 +73,10 @@ class PredictiveArchiveService(
     suspend fun getArchiveCandidates(): List<ArchiveCandidate> = withContext(Dispatchers.IO) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return@withContext emptyList()
 
-        val thresholdDays = prefs.predictiveArchiveThreshold.get().toLong().takeIf { it > 0 } 
+        val thresholdDays = prefs.predictiveArchiveThreshold.get().toLong().takeIf { it > 0 }
             ?: DEFAULT_UNUSED_THRESHOLD_DAYS
         val thresholdMs = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(thresholdDays)
-        
+
         val apps = metadataProvider.getInstalledApps()
         val candidates = mutableListOf<ArchiveCandidate>()
 
@@ -85,13 +85,13 @@ class PredictiveArchiveService(
 
         for (app in apps) {
             val packageName = app.packageName
-            
+
             // Skip system apps or the launcher itself
             if (batchService.isSystemApp(packageName) || packageName == context.packageName) continue
-            
+
             val appStats = stats[packageName]
             val lastUsed = appStats?.lastTimeUsed ?: 0L
-            
+
             if (lastUsed < thresholdMs) {
                 val daysUnused = if (lastUsed == 0L) {
                     thresholdDays.toInt() + 1 // Never used in tracked history
@@ -113,8 +113,8 @@ class PredictiveArchiveService(
                             daysUnused = daysUnused,
                             importanceScore = importance,
                             category = category,
-                            sizeBytes = getAppSize(packageName)
-                        )
+                            sizeBytes = getAppSize(packageName),
+                        ),
                     )
                 }
             }
@@ -129,13 +129,16 @@ class PredictiveArchiveService(
 
     private fun calculateImportance(packageName: String, category: String?, daysUnused: Int): Float {
         var score = CATEGORY_IMPORTANCE[category] ?: 0.5f
-        
+
         // Decay score further for extremely long periods of inactivity
-        if (daysUnused > 90) score *= 0.5f
-        else if (daysUnused > 60) score *= 0.75f
-        
+        if (daysUnused > 90) {
+            score *= 0.5f
+        } else if (daysUnused > 60) {
+            score *= 0.75f
+        }
+
         // Future: Ask LLM for a refined importance score based on app purpose
-        
+
         return score
     }
 

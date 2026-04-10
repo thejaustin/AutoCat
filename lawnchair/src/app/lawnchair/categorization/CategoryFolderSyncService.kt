@@ -28,7 +28,7 @@ class CategoryFolderSyncService(
     private val context: Context,
     private val prefs: PreferenceManager = PreferenceManager.getInstance(context),
     private val drawerFolderService: FolderService = FolderService.INSTANCE.get(context),
-    private val reloadHelper: ReloadHelper = ReloadHelper(context)
+    private val reloadHelper: ReloadHelper = ReloadHelper(context),
 ) {
 
     // Mutex to serialize folder sync operations and prevent race conditions
