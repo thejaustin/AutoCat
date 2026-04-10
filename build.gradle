@@ -507,6 +507,8 @@ dependencies {
 
     implementation libs.google.guava
 
+    implementation libs.androidx.exifinterface
+
     debugImplementation libs.leakcanary.android
 }
 

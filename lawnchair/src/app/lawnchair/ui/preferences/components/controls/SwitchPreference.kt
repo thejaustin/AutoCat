@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -47,7 +48,8 @@ import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.theme.dividerColor
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
 import app.lawnchair.ui.util.preview.PreviewAutoCat
-import app.lawnchair.ui.util.rememberExpressiveHaptics
+import com.android.launcher3.util.MSDLPlayerWrapper
+import com.google.android.msdl.data.model.MSDLToken
 
 @Composable
 fun SwitchPreference(
@@ -60,11 +62,9 @@ fun SwitchPreference(
     onClick: (() -> Unit)? = null,
 ) {
     val checked = adapter.state.value
-    val haptics = rememberExpressiveHaptics()
     SwitchPreference(
         checked = checked,
         onCheckedChange = {
-            haptics.click()
             adapter.onChange(it)
         },
         label = label,
@@ -91,7 +91,12 @@ fun SwitchPreference(
     onClick: (() -> Unit)? = null,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val haptics = rememberExpressiveHaptics()
+    val mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(LocalContext.current)
+
+    val wrappedOnCheckedChange: (Boolean) -> Unit = { newValue ->
+        mMSDLPlayerWrapper.playToken(if (newValue) MSDLToken.SWITCH_ON else MSDLToken.SWITCH_OFF)
+        onCheckedChange(newValue)
+    }
 
     PreferenceTemplate(
         startWidget = icon?.let {
@@ -109,11 +114,10 @@ fun SwitchPreference(
             indication = ripple(),
             interactionSource = interactionSource,
         ) {
-            haptics.click()
             if (onClick != null) {
                 onClick()
             } else {
-                onCheckedChange(!checked)
+                wrappedOnCheckedChange(!checked)
             }
         },
         contentModifier = Modifier
@@ -137,10 +141,7 @@ fun SwitchPreference(
                     .padding(all = 16.dp)
                     .height(24.dp),
                 checked = checked,
-                onCheckedChange = {
-                    haptics.click()
-                    onCheckedChange(it)
-                },
+                onCheckedChange = wrappedOnCheckedChange,
                 enabled = enabled,
                 interactionSource = interactionSource,
                 thumbContent = {
