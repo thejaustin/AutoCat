@@ -482,6 +482,34 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                 return new BubbleShortcut<>(activity, itemInfo, originalView);
             };
 
+    public static final Factory<ActivityContext> FOLDER_COVER =
+            (activity, itemInfo, originalView) -> {
+                if (!(itemInfo instanceof FolderInfo)) {
+                    return null;
+                }
+                return new FolderCover<>(activity, itemInfo, originalView);
+            };
+
+    public static class FolderCover<T extends ActivityContext> extends SystemShortcut<T> {
+        public FolderCover(T target, ItemInfo itemInfo, View originalView) {
+            super(R.drawable.ic_folder_cover, R.string.folder_cover_label, target, itemInfo, originalView);
+        }
+
+        @Override
+        public void onClick(View view) {
+            FolderInfo info = (FolderInfo) mItemInfo;
+            boolean isCover = info.hasOption(FolderInfo.FLAG_FOLDER_COVER);
+            info.setOption(FolderInfo.FLAG_FOLDER_COVER, !isCover, mTarget.getModelWriter());
+            
+            // Refresh the folder icon
+            if (mOriginalView instanceof FolderIcon) {
+                ((FolderIcon) mOriginalView).onItemsChanged(true);
+            }
+            
+            dismissTaskMenuView();
+        }
+    }
+
     public interface BubbleActivityStarter {
         /** Tell SysUI to show the provided shortcut in a bubble. */
         void showShortcutBubble(ShortcutInfo info);

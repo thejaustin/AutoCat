@@ -971,4 +971,5 @@
     <string name="grant_requested_permissions_tap">Tap to grant permissions</string>
     <!-- Message shown when all home screen views are removed -->
     <string name="home_screen_all_views_removed_msg">Home screen cleared</string>
+    <string name="folder_cover_label">Folder Cover</string>
 </resources>

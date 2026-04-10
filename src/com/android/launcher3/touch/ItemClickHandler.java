@@ -138,7 +138,24 @@ public class ItemClickHandler {
      * @param v The view that was clicked. Must be an instance of {@link FolderIcon}.
      */
     private static void onClickFolderIcon(View v) {
-        Folder folder = ((FolderIcon) v).getFolder();
+        FolderIcon folderIcon = (FolderIcon) v;
+        FolderInfo info = folderIcon.mInfo;
+        
+        if (info.hasOption(FolderInfo.FLAG_FOLDER_COVER)) {
+            List<ItemInfo> contents = info.getContents();
+            if (!contents.isEmpty()) {
+                ItemInfo firstItem = contents.get(0);
+                Launcher launcher = Launcher.getLauncher(v.getContext());
+                if (firstItem instanceof WorkspaceItemInfo) {
+                    onClickAppShortcut(v, (WorkspaceItemInfo) firstItem, launcher);
+                } else if (firstItem instanceof AppInfo) {
+                    startAppShortcutOrInfoActivity(v, (AppInfo) firstItem, launcher);
+                }
+                return;
+            }
+        }
+
+        Folder folder = folderIcon.getFolder();
         if (!folder.isOpen() && !folder.isDestroyed()) {
             // Open the requested folder
             folder.animateOpen();

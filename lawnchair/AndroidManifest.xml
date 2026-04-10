@@ -147,7 +147,6 @@
 
         <service
             android:name="app.lawnchair.bugreport.UploaderService"
-            android:foregroundServiceType="shortService"
             android:enabled="true"
             android:exported="false"
             android:process=":bugReport"

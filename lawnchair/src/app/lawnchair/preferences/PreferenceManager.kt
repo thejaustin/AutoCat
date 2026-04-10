@@ -221,6 +221,8 @@ class PreferenceManager @Inject constructor(
     val settingsCategoryVisibility = StringPref("pref_settingsCategoryVisibility", "")
 
     // AutoCat: Archival/Disabling Method
+    val predictiveArchiveThreshold = IntPref("pref_predictiveArchiveThreshold", 30, {})
+    val enableWidgetStacks = BoolPref("pref_enableWidgetStacks", false, {})
     val archivalMethod = StringPref("pref_archivalMethod", "none", {})
 
     // AutoCat: Onboarding

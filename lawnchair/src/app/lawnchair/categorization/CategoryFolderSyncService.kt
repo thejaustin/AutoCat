@@ -26,11 +26,10 @@ import kotlinx.coroutines.withTimeout
  */
 class CategoryFolderSyncService(
     private val context: Context,
+    private val prefs: PreferenceManager = PreferenceManager.getInstance(context),
+    private val drawerFolderService: FolderService = FolderService.INSTANCE.get(context),
+    private val reloadHelper: ReloadHelper = ReloadHelper(context)
 ) {
-
-    private val prefs by lazy { PreferenceManager.getInstance(context) }
-    private val drawerFolderService by lazy { FolderService.INSTANCE.get(context) }
-    private val reloadHelper by lazy { ReloadHelper(context) }
 
     // Mutex to serialize folder sync operations and prevent race conditions
     private val syncMutex = Mutex()

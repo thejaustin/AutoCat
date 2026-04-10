@@ -95,8 +95,24 @@ class ItemInflater<T>(
             Favorites.ITEM_TYPE_APPWIDGET,
             Favorites.ITEM_TYPE_CUSTOM_APPWIDGET ->
                 return inflateAppWidget(item as LauncherAppWidgetInfo, context.modelWriter)
+            Favorites.ITEM_TYPE_WIDGET_STACK ->
+                return inflateWidgetStack(item as WidgetStackInfo)
             else -> throw RuntimeException("Invalid Item Type")
         }
+    }
+
+    private fun inflateWidgetStack(item: WidgetStackInfo): View {
+        val stackView = WidgetStackView(context)
+        stackView.tag = item
+        stackView.setStackInfo(item)
+        
+        item.getWidgets().forEach { widget ->
+            val widgetView = inflateAppWidget(widget, context.modelWriter)
+            if (widgetView != null) {
+                stackView.addWidgetView(widgetView)
+            }
+        }
+        return stackView
     }
 
     /**

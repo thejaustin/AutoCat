@@ -10,6 +10,7 @@ import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.ViewColumn
+import androidx.compose.material.icons.rounded.ViewStream
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -100,6 +101,12 @@ fun ExperimentalFeaturesPreferences(
                 label = stringResource(R.string.show_deck_layout),
                 description = stringResource(R.string.show_deck_layout_description),
                 icon = Icons.Rounded.ViewColumn,
+            )
+            SwitchPreference(
+                adapter = prefs.enableWidgetStacks.getAdapter(),
+                label = "Widget Stacks",
+                description = "Allow stacking multiple widgets of the same size and swiping between them.",
+                icon = Icons.Rounded.ViewStream,
             )
             SwitchPreference(
                 adapter = prefs.autoCatDevMode.getAdapter(),

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - '15-dev'
+      - '16-dev'
     paths-ignore:
       - '**.md'
       - '.idea/**'
@@ -24,6 +24,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         with:
           cache-encryption-key: Da25KUVSE5jbGds2zXmfXw==
+      - name: Scan for Security Issues, Leaks, and Crash Points
+        run: ./gradlew lintDebug
       - name: Write sign info
         if: github.repository_owner == 'LawnchairLauncher'
         run: |

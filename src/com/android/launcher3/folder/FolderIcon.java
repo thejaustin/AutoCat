@@ -666,6 +666,14 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
      * Returns the list of items which should be visible in the preview
      */
     public List<ItemInfo> getPreviewItemsOnPage(int page) {
+        if (page == 0 && mInfo.hasOption(FolderInfo.FLAG_FOLDER_COVER)) {
+            List<ItemInfo> contents = mInfo.getContents();
+            if (!contents.isEmpty()) {
+                List<ItemInfo> coverItems = new ArrayList<>();
+                coverItems.add(contents.get(0));
+                return coverItems;
+            }
+        }
         return mPreviewVerifier.setFolderInfo(mInfo).previewItemsForPage(page, mInfo.getContents());
     }
 

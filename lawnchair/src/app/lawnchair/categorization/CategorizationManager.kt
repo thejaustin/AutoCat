@@ -130,14 +130,12 @@ class CategorizationManager(private val context: Context) {
                 return@withContext
             }
 
-            // Stage 0: Local ML categorizer (High priority if enabled)
-            val useLocalModel = prefManager.llmUseLocalModel.get()
-            if (useLocalModel) {
-                android.util.Log.d(TAG, "Starting Stage 0 (Local ML)")
-                mlCategorizer.categorizeBatch(uncategorizedApps)
-            }
+            // Stage 0: Local ML categorizer (FAST, OFFLINE INITIAL PASS)
+            android.util.Log.d(TAG, "Starting Stage 0 (Local ML - Keyword/TFLite)")
+            mlCategorizer.categorizeBatch(uncategorizedApps)
 
             // Stage 0.5: Local LLM providers (on-device inference / local server)
+            val useLocalModel = prefManager.llmUseLocalModel.get()
             if (useLocalModel) {
                 val categoriesAfterML = categoryDao.getAllAppTabs().associateBy { it.packageName }
                 val uncategorizedForLocal = uncategorizedApps.filter { !categoriesAfterML.containsKey(it.packageName) }
@@ -284,17 +282,15 @@ class CategorizationManager(private val context: Context) {
                 // Get all installed apps
                 val apps = metadataProvider.getInstalledApps()
 
-                // Stage 0: Local ML
-                val useLocalModel = prefManager.llmUseLocalModel.get()
-                if (useLocalModel) {
-                    _progress.update {
-                        it.copy(currentStage = "Local AI", totalCount = apps.size)
-                    }
-                    android.util.Log.d(TAG, "Starting Stage 0 (Local ML)")
-                    mlCategorizer.categorizeBatch(apps)
+                // Stage 0: Local ML (FAST, OFFLINE INITIAL PASS)
+                _progress.update {
+                    it.copy(currentStage = "Local ML", totalCount = apps.size)
                 }
+                android.util.Log.d(TAG, "Starting Stage 0 (Local ML - Keyword/TFLite)")
+                mlCategorizer.categorizeBatch(apps)
 
                 // Stage 0.5: Local LLM providers (on-device inference / local server)
+                val useLocalModel = prefManager.llmUseLocalModel.get()
                 if (useLocalModel) {
                     val categoriesAfterML = categoryDao.getAllAppTabs().associateBy { it.packageName }
                     val uncategorizedForLocal = apps.filter { !categoriesAfterML.containsKey(it.packageName) }

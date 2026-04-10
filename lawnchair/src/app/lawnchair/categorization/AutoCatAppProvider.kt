@@ -174,18 +174,27 @@ class AutoCatAppProvider(private val context: Context) {
         // Map<TabName, MutableMap<SubCategory, MutableList<AppInfo>>>
         val categorizedApps = mutableMapOf<String, MutableMap<String, MutableList<AppInfo>>>()
         val uncategorizedApps = mutableListOf<AppInfo>()
+        val vaultApps = mutableListOf<AppInfo>()
 
         // Use cached categories (fast in-memory lookup)
         val cache = categoryCache.get()
         validApps.forEach { app ->
-            val catInfo = app.packageName.let { cache[it] }
+            val wrapper = com.android.launcher3.util.ApplicationInfoWrapper(context, app.packageName, android.os.Process.myUserHandle())
+            val isArchived = wrapper.isArchived()
+            val isEnabled = wrapper.isEnabled()
 
-            if (catInfo != null) {
-                val subMap = categorizedApps.getOrPut(catInfo.tabName) { mutableMapOf() }
-                val subCatKey = catInfo.subCategory ?: ""
-                subMap.getOrPut(subCatKey) { mutableListOf() }.add(app)
+            if (isArchived || !isEnabled) {
+                vaultApps.add(app)
             } else {
-                uncategorizedApps.add(app)
+                val catInfo = app.packageName.let { cache[it] }
+
+                if (catInfo != null) {
+                    val subMap = categorizedApps.getOrPut(catInfo.tabName) { mutableMapOf() }
+                    val subCatKey = catInfo.subCategory ?: ""
+                    subMap.getOrPut(subCatKey) { mutableListOf() }.add(app)
+                } else {
+                    uncategorizedApps.add(app)
+                }
             }
         }
 
@@ -193,6 +202,12 @@ class AutoCatAppProvider(private val context: Context) {
         if (uncategorizedApps.isNotEmpty()) {
             val otherMap = categorizedApps.getOrPut(CategorizationConstants.UNCATEGORIZED_TAB) { mutableMapOf() }
             otherMap.getOrPut("") { mutableListOf() }.addAll(uncategorizedApps)
+        }
+
+        // Add archived/frozen apps to Vault tab
+        if (vaultApps.isNotEmpty()) {
+            val vaultMap = categorizedApps.getOrPut(AppTabsController.TAB_VAULT) { mutableMapOf() }
+            vaultMap.getOrPut("") { mutableListOf() }.addAll(vaultApps)
         }
 
         // Sort tabs alphabetically, and sub-folders alphabetically

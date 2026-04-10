@@ -291,6 +291,8 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     private static final int DRAG_MODE_CREATE_FOLDER = 1;
     private static final int DRAG_MODE_ADD_TO_FOLDER = 2;
     private static final int DRAG_MODE_REORDER = 3;
+    private static final int DRAG_MODE_CREATE_WIDGET_STACK = 4;
+    private static final int DRAG_MODE_ADD_TO_WIDGET_STACK = 5;
     protected int mDragMode = DRAG_MODE_NONE;
     @Thunk
     int mLastReorderX = -1;
@@ -2124,8 +2126,70 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         return false;
     }
 
-    boolean addToExistingFolderIfNecessary(View newView, CellLayout target, int[] targetCell,
-            float distance, DragObject d, boolean external) {
+    private boolean createWidgetStackIfNecessary(View newView, int container, CellLayout target,
+            int[] targetCell, float distance, DragObject d) {
+        if (distance > target.getFolderCreationRadius(targetCell)) return false;
+        View v = target.getChildAt(targetCell[0], targetCell[1]);
+        if (v == null || v == newView) return false;
+
+        ItemInfo sourceInfo = d.dragInfo;
+        Object tag = v.getTag();
+
+        if (sourceInfo instanceof LauncherAppWidgetInfo && tag instanceof LauncherAppWidgetInfo) {
+            LauncherAppWidgetInfo sourceWidget = (LauncherAppWidgetInfo) sourceInfo;
+            LauncherAppWidgetInfo destWidget = (LauncherAppWidgetInfo) tag;
+
+            if (sourceWidget.spanX == destWidget.spanX && sourceWidget.spanY == destWidget.spanY) {
+                WidgetStackInfo stackInfo = new WidgetStackInfo();
+                stackInfo.container = container;
+                stackInfo.screenId = getCellLayoutId(target);
+                stackInfo.cellX = targetCell[0];
+                stackInfo.cellY = targetCell[1];
+                stackInfo.spanX = sourceWidget.spanX;
+                stackInfo.spanY = sourceWidget.spanY;
+
+                mLauncher.getModelWriter().addItemToDatabase(stackInfo, container,
+                        stackInfo.screenId, stackInfo.cellX, stackInfo.cellY);
+
+                mLauncher.getModelWriter().moveItemInDatabase(destWidget, stackInfo.id, 0, 0, 0);
+                mLauncher.getModelWriter().moveItemInDatabase(sourceWidget, stackInfo.id, 0, 0, 0);
+
+                target.removeView(v);
+                mLauncher.bindItemsAdded(java.util.Collections.singletonList(stackInfo));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean addToWidgetStackIfNecessary(View newView, int container, CellLayout target,
+            int[] targetCell, float distance, DragObject d) {
+        if (distance > target.getFolderCreationRadius(targetCell)) return false;
+        View v = target.getChildAt(targetCell[0], targetCell[1]);
+        if (v == null || v == newView) return false;
+
+        ItemInfo sourceInfo = d.dragInfo;
+        Object tag = v.getTag();
+
+        if (sourceInfo instanceof LauncherAppWidgetInfo && tag instanceof WidgetStackInfo) {
+            LauncherAppWidgetInfo sourceWidget = (LauncherAppWidgetInfo) sourceInfo;
+            WidgetStackInfo stackInfo = (WidgetStackInfo) tag;
+
+            if (sourceWidget.spanX == stackInfo.spanX && sourceWidget.spanY == stackInfo.spanY) {
+                mLauncher.getModelWriter().moveItemInDatabase(sourceWidget, stackInfo.id, 0, 0, 0);
+                // Refresh stack view
+                if (v instanceof WidgetStackView) {
+                    ((WidgetStackView) v).addWidgetView(mLauncher.getItemInflater().inflateItem(sourceWidget));
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean addToExistingFolderIfNecessary(View newView, CellLayout target, int[] targetCell,
+                                                    float distance, DragObject d, boolean external) {
+
         if (distance > target.getFolderCreationRadius(targetCell)) return false;
 
         View dropOverView = target.getChildAt(targetCell[0], targetCell[1]);
@@ -2197,7 +2261,11 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 if (createUserFolderIfNecessary(cell, container, dropTargetLayout, mTargetCell,
                         distance, false, d)
                         || addToExistingFolderIfNecessary(cell, dropTargetLayout, mTargetCell,
-                        distance, d, false)) {
+                        distance, d, false)
+                        || createWidgetStackIfNecessary(cell, container, dropTargetLayout, mTargetCell,
+                        distance, d)
+                        || addToWidgetStackIfNecessary(cell, dropTargetLayout, mTargetCell,
+                        distance, d)) {
                     if (!mLauncher.isInState(EDIT_MODE)) {
                         mLauncher.getStateManager().goToState(NORMAL, SPRING_LOADED_EXIT_DELAY);
                     }
@@ -2654,6 +2722,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     mDragViewVisualCenter[0], mDragViewVisualCenter[1], mTargetCell);
 
             manageFolderFeedback(targetCellDistance, d);
+            manageWidgetStackFeedback(targetCellDistance, d);
 
             boolean nearestDropOccupied = mDragTargetLayout.isNearestDropLocationOccupied((int)
                             mDragViewVisualCenter[0], (int) mDragViewVisualCenter[1], item.spanX,
@@ -2823,66 +2892,71 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         return null;
     }
 
-    private void manageFolderFeedback(float distance, DragObject dragObject) {
+    private void manageWidgetStackFeedback(float distance, DragObject dragObject) {
         if (distance > mDragTargetLayout.getFolderCreationRadius(mTargetCell)) {
-            if ((mDragMode == DRAG_MODE_ADD_TO_FOLDER
-                    || mDragMode == DRAG_MODE_CREATE_FOLDER)) {
+            if ((mDragMode == DRAG_MODE_ADD_TO_WIDGET_STACK
+                    || mDragMode == DRAG_MODE_CREATE_WIDGET_STACK)) {
                 setDragMode(DRAG_MODE_NONE);
             }
             return;
         }
 
-        mDragOverView = mDragTargetLayout.getChildAt(mTargetCell[0], mTargetCell[1]);
+        View dropOverView = mDragTargetLayout.getChildAt(mTargetCell[0], mTargetCell[1]);
         ItemInfo info = dragObject.dragInfo;
-        boolean userFolderPending = willCreateUserFolder(info, mDragOverView, false);
-        if (mDragMode == DRAG_MODE_NONE && userFolderPending) {
+
+        boolean willCreateStack = willCreateWidgetStack(info, dropOverView);
+        if (mDragMode == DRAG_MODE_NONE && willCreateStack) {
             if (Flags.msdlFeedback()) {
                 mMSDLPlayerWrapper.playToken(MSDLToken.DRAG_INDICATOR_DISCRETE);
             }
+            // Use folder background for now as visual feedback
             mFolderCreateBg = new PreviewBackground(getContext());
             mFolderCreateBg.setup(mLauncher, mLauncher, null,
-                    mDragOverView.getMeasuredWidth(), mDragOverView.getPaddingTop());
-
-            // The full preview background should appear behind the icon
+                    dropOverView.getMeasuredWidth(), dropOverView.getPaddingTop());
             mFolderCreateBg.isClipping = false;
-
-            if (mDragOverView instanceof AppPairIcon api) {
-                api.getIconDrawableArea().onTemporaryContainerChange(DISPLAY_FOLDER);
-            }
-
             mFolderCreateBg.animateToAccept(mDragTargetLayout, mTargetCell[0], mTargetCell[1]);
             mDragTargetLayout.clearDragOutlines();
-            setDragMode(DRAG_MODE_CREATE_FOLDER);
-
-            if (dragObject.stateAnnouncer != null) {
-                dragObject.stateAnnouncer.announce(WorkspaceAccessibilityHelper
-                        .getDescriptionForDropOver(mDragOverView, getContext()));
-            }
+            setDragMode(DRAG_MODE_CREATE_WIDGET_STACK);
             return;
         }
 
-        boolean willAddToFolder = willAddToExistingUserFolder(info, mDragOverView);
-        if (willAddToFolder && mDragMode == DRAG_MODE_NONE) {
-            mDragOverFolderIcon = ((FolderIcon) mDragOverView);
-            mDragOverFolderIcon.onDragEnter(info);
+        boolean willAddToStack = willAddToWidgetStack(info, dropOverView);
+        if (willAddToStack && mDragMode == DRAG_MODE_NONE) {
             if (mDragTargetLayout != null) {
                 mDragTargetLayout.clearDragOutlines();
             }
-            setDragMode(DRAG_MODE_ADD_TO_FOLDER);
-
-            if (dragObject.stateAnnouncer != null) {
-                dragObject.stateAnnouncer.announce(WorkspaceAccessibilityHelper
-                        .getDescriptionForDropOver(mDragOverView, getContext()));
-            }
+            setDragMode(DRAG_MODE_ADD_TO_WIDGET_STACK);
             return;
         }
 
-        if (mDragMode == DRAG_MODE_ADD_TO_FOLDER && !willAddToFolder) {
+        if (mDragMode == DRAG_MODE_ADD_TO_WIDGET_STACK && !willAddToStack) {
             setDragMode(DRAG_MODE_NONE);
         }
-        if (mDragMode == DRAG_MODE_CREATE_FOLDER && !userFolderPending) {
+        if (mDragMode == DRAG_MODE_CREATE_WIDGET_STACK && !willCreateStack) {
             setDragMode(DRAG_MODE_NONE);
         }
+    }
+
+    private boolean willCreateWidgetStack(ItemInfo info, View dropOverView) {
+        if (!mPreferenceManger.getEnableWidgetStacks().get()) {
+            return false;
+        }
+        if (dropOverView == null || !(dropOverView.getTag() instanceof LauncherAppWidgetInfo)) {
+            return false;
+        }
+        LauncherAppWidgetInfo target = (LauncherAppWidgetInfo) dropOverView.getTag();
+        return info instanceof LauncherAppWidgetInfo && info.spanX == target.spanX && info.spanY == target.spanY;
+    }
+
+    private boolean willAddToWidgetStack(ItemInfo info, View dropOverView) {
+        if (!mPreferenceManger.getEnableWidgetStacks().get()) {
+            return false;
+        }
+        if (dropOverView == null || !(dropOverView.getTag() instanceof WidgetStackInfo)) {
+            return false;
+        }
+        WidgetStackInfo target = (WidgetStackInfo) dropOverView.getTag();
+        return info instanceof LauncherAppWidgetInfo && info.spanX == target.spanX && info.spanY == target.spanY;
     }
 
     class ReorderAlarmListener implements OnAlarmListener {

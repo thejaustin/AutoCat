@@ -128,6 +128,11 @@ public class LauncherSettings {
          */
         public static final int ITEM_TYPE_APP_PAIR = 10;
 
+        /**
+         * The favorite is a stack of widgets.
+         */
+        public static final int ITEM_TYPE_WIDGET_STACK = 12;
+
         // *** Below enum values are used for metrics purpose but not used in Favorites DB ***
 
         /**

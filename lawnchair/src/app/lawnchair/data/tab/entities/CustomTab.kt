@@ -16,6 +16,8 @@ import androidx.room.PrimaryKey
  * @property sortOrder Display order in the app drawer (lower = earlier)
  * @property isVisible Whether this tab should be shown in the drawer
  * @property createdAt Timestamp of tab creation (milliseconds since epoch)
+ * @property hideDuringFocusMode Hide this tab when Focus Mode is active
+ * @property showOnlyDuringFocusMode Show this tab ONLY during Focus Mode (essential apps)
  */
 @Entity(tableName = "custom_categories")
 data class CustomTab(
@@ -40,6 +42,12 @@ data class CustomTab(
 
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
+
+    @ColumnInfo(name = "hide_during_focus_mode", defaultValue = "false")
+    val hideDuringFocusMode: Boolean = false,
+
+    @ColumnInfo(name = "show_only_during_focus_mode", defaultValue = "false")
+    val showOnlyDuringFocusMode: Boolean = false,
 ) {
     companion object {
         // Default tab colors

@@ -116,12 +116,35 @@ class WorkspaceItemProcessor(
                 Favorites.ITEM_TYPE_DEEP_SHORTCUT -> processAppOrDeepShortcut()
                 Favorites.ITEM_TYPE_FOLDER,
                 Favorites.ITEM_TYPE_APP_PAIR -> processFolderOrAppPair()
+                Favorites.ITEM_TYPE_WIDGET_STACK -> processWidgetStack()
                 Favorites.ITEM_TYPE_APPWIDGET,
                 Favorites.ITEM_TYPE_CUSTOM_APPWIDGET -> processWidget()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Desktop items loading interrupted", e)
         }
+    }
+
+    private fun processWidgetStack() {
+        var collection = c.findOrMakeFolder(c.id, loadedItems)
+        if (collection is FolderInfo) {
+            val newStack = WidgetStackInfo()
+            // Move any widgets that were already added to the placeholder folder
+            collection.getContents().forEach {
+                if (it is LauncherAppWidgetInfo) {
+                    newStack.add(it)
+                }
+            }
+            collection = newStack
+        }
+
+        c.applyCommonProperties(collection)
+        collection.title = c.getString(c.mTitleIndex)
+        collection.spanX = c.spanX
+        collection.spanY = c.spanY
+        
+        c.markRestored()
+        c.checkAndAddItem(collection, loadedItems, memoryLogger)
     }
 
     /**

@@ -27,6 +27,7 @@ class AppTabsController private constructor(private val context: Context) : Safe
 
         const val TAB_ALL = "All Apps"
         const val TAB_WORK = "Work"
+        const val TAB_VAULT = "Vault"
         const val TAB_ALL_INDEX = 0
 
         @JvmStatic
@@ -90,6 +91,9 @@ class AppTabsController private constructor(private val context: Context) : Safe
             names.add(TAB_WORK)
         }
 
+        // Add Vault tab (Archived/Frozen apps)
+        names.add(TAB_VAULT)
+
         _tabNames.value = names
     }
 
@@ -134,12 +138,15 @@ class AppTabsController private constructor(private val context: Context) : Safe
      * Get the tab name for a given tab index.
      * Returns null for "All Apps" tab.
      * Returns TAB_WORK constant for Work tab.
+     * Returns TAB_VAULT constant for Vault tab.
      */
     fun getTabNameForTab(tabIndex: Int): String? {
         return if (tabIndex == TAB_ALL_INDEX) {
             null // "All Apps" shows everything
         } else if (isWorkTab(tabIndex)) {
             TAB_WORK // Special marker for work tab
+        } else if (isVaultTab(tabIndex)) {
+            TAB_VAULT // Special marker for vault tab
         } else if (tabIndex > 0 && tabIndex <= _tabs.value.size) {
             _tabs.value[tabIndex - 1].name
         } else {
@@ -154,9 +161,17 @@ class AppTabsController private constructor(private val context: Context) : Safe
         val prefs = app.lawnchair.preferences.PreferenceManager.getInstance(context)
         if (!prefs.showWorkTab.get()) return false
 
-        // Work tab is always the last tab
-        val workTabIndex = _tabNames.value.size - 1
-        return tabIndex == workTabIndex && _tabNames.value.getOrNull(workTabIndex) == TAB_WORK
+        // Work tab is typically the second to last if Vault is enabled
+        return _tabNames.value.getOrNull(tabIndex) == TAB_WORK
+    }
+
+    /**
+     * Check if the given tab index is the Vault tab.
+     */
+    fun isVaultTab(tabIndex: Int): Boolean {
+        // Vault tab is currently always the last tab
+        val vaultIndex = _tabNames.value.size - 1
+        return tabIndex == vaultIndex && _tabNames.value.getOrNull(vaultIndex) == TAB_VAULT
     }
 
     /**

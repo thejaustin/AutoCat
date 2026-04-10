@@ -26,7 +26,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Inventory
 import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.Psychology
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -310,17 +312,17 @@ private fun WelcomeStep(modifier: Modifier = Modifier) {
                 FeatureBullet(
                     icon = Icons.Rounded.Psychology,
                     title = "AI-Powered",
-                    description = "Categorizes apps using your choice of Gemini, Claude, GPT, or Perplexity.",
+                    description = "Categorizes apps using your choice of local ML, Gemini, Claude, GPT, or Perplexity.",
                 )
                 FeatureBullet(
-                    icon = Icons.Rounded.AutoAwesome,
-                    title = "Automatic",
-                    description = "Newly installed apps are categorized without lifting a finger.",
+                    icon = Icons.Rounded.Inventory,
+                    title = "The Vault & Archiving",
+                    description = "Smart predictive archiving keeps your drawer clean by automatically suggesting unused apps for cold storage.",
                 )
                 FeatureBullet(
-                    icon = Icons.Rounded.Check,
-                    title = "Yours to Override",
-                    description = "Disagree with a suggestion? Change any category assignment anytime.",
+                    icon = Icons.Rounded.Layers,
+                    title = "Smart Organization",
+                    description = "Declutter your home screen with Folder Covers and experimental Widget Stacking.",
                 )
             }
         }

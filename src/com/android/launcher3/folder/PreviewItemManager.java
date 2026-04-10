@@ -183,7 +183,7 @@ public class PreviewItemManager {
         // We use an index of -1 to represent an icon on the workspace for the destroy
         // and
         // create animations
-        if (index == -1) {
+        if (index == -1 || mIcon.mInfo.hasOption(FolderInfo.FLAG_FOLDER_COVER)) {
             return getFinalIconParams(params);
         }
         return mIcon.mPreviewLayoutRule.computePreviewItemDrawingParams(index, curNumItems, params);
@@ -292,7 +292,9 @@ public class PreviewItemManager {
             params.add(new PreviewItemDrawingParams(0, 0, 0));
         }
 
-        int numItemsInFirstPagePreview = page == 0 ? items.size() : MAX_NUM_ITEMS_IN_PREVIEW;
+        int numItemsInFirstPagePreview = page == 0
+                ? (mIcon.mInfo.hasOption(FolderInfo.FLAG_FOLDER_COVER) ? 1 : items.size())
+                : MAX_NUM_ITEMS_IN_PREVIEW;
         for (int i = 0; i < params.size(); i++) {
             PreviewItemDrawingParams p = params.get(i);
             setDrawable(p, items.get(i));

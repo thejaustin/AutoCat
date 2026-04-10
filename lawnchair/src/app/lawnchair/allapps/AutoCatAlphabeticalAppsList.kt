@@ -177,26 +177,33 @@ class AutoCatAlphabeticalAppsList<T>(
             // 1. Basic checks (User filter & Hidden apps)
             var visible = (itemFilter?.test(info) != false) && !hiddenApps.contains(componentKey)
 
-            // 2. Tab Filtering
-            if (visible && currentTabFilter != null && currentTabFilter != AppTabsController.TAB_ALL && packageName != null) {
-                if (currentTabFilter == "DISCOVERY") {
-                    // Discovery tab logic: show recently installed apps (last 7 days)
-                    // and maybe some smart suggestions in the future.
-                    // AppInfo in this version doesn't store installedTime directly.
-                    // TODO: Fetch from PackageManager or store in database
-                    val isRecent = false // info.installedTime > System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
-                    visible = isRecent
-                } else if (currentTabFilter == AppTabsController.TAB_WORK) {
-                    // Work tab filtering is usually handled by the Work adapter's user matcher.
-                    // If we rely on this list for work tab, we'd check user profile.
-                    // For now, assume Work Adapter handles user check, so we pass true if it's work tab
-                    // (letting the base WorkProfileManager filter handle the user check)
-                } else {
-                    // Determine if app belongs to the current tab
-                    val appTabInfo = cachedCategorizedApps?.get(currentTabFilter)?.values?.flatten()?.find {
-                        it.packageName == packageName
+            // 2. Archival / Vault filtering
+            val wrapper = com.android.launcher3.util.ApplicationInfoWrapper(context, packageName ?: "", info.user)
+            val isArchived = wrapper.isArchived()
+            val isEnabled = wrapper.isEnabled()
+            val isColdStorage = isArchived || !isEnabled
+
+            if (currentTabFilter == AppTabsController.TAB_VAULT) {
+                // Vault tab: show ONLY archived or disabled apps
+                visible = visible && isColdStorage
+            } else {
+                // Other tabs: EXCLUDE archived or disabled apps
+                visible = visible && !isColdStorage
+
+                // 3. Tab Filtering (Original logic)
+                if (visible && currentTabFilter != null && currentTabFilter != AppTabsController.TAB_ALL && packageName != null) {
+                    if (currentTabFilter == "DISCOVERY") {
+                        val isRecent = false // TODO: implement recent logic
+                        visible = isRecent
+                    } else if (currentTabFilter == AppTabsController.TAB_WORK) {
+                        // Work profile handled by its own adapter
+                    } else {
+                        // Determine if app belongs to the current tab
+                        val appTabInfo = cachedCategorizedApps?.get(currentTabFilter)?.values?.flatten()?.find {
+                            it.packageName == packageName
+                        }
+                        visible = appTabInfo != null
                     }
-                    visible = appTabInfo != null
                 }
             }
 

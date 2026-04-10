@@ -59,6 +59,11 @@ public class FolderInfo extends CollectionInfo {
     public static final int FLAG_MANUAL_FOLDER_NAME = 0x00000008;
 
     /**
+     * Folder is in 'Cover' mode (Tap opens first app, swipe/long press opens folder).
+     */
+    public static final int FLAG_FOLDER_COVER = 0x00000010;
+
+    /**
      * Different states of folder label.
      */
     public enum LabelState {
