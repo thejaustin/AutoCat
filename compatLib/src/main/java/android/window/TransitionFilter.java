@@ -20,10 +20,6 @@ import androidx.annotation.Nullable;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_UNDEFINED;
 import static android.app.WindowConfiguration.WINDOWING_MODE_UNDEFINED;
-import static android.view.WindowManager.TransitionType;
-
-import android.annotation.IntDef;
-
 
 import android.app.ActivityManager;
 import android.app.WindowConfiguration;
@@ -31,7 +27,9 @@ import android.content.ComponentName;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.view.WindowManager;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * A parcelable filter that can be used for rerouting transitions to a remote. This is a local
@@ -48,23 +46,20 @@ public final class TransitionFilter implements Parcelable {
     public static final int CONTAINER_ORDER_TOP = 1;
 
     /** @hide */
-    @IntDef(prefix = { "CONTAINER_ORDER_" }, value = {
-            CONTAINER_ORDER_ANY,
-            CONTAINER_ORDER_TOP,
-    })
+    @Retention(RetentionPolicy.SOURCE)
     public @interface ContainerOrder {}
 
     /**
      * When non-null: this is a list of transition types that this filter applies to. This filter
      * will fail for transitions that aren't one of these types.
      */
-    @Nullable public @TransitionType int[] mTypeSet = null;
+    @Nullable public int[] mTypeSet = null;
 
     /** All flags must be set on a transition. */
-    public @WindowManager.TransitionFlags int mFlags = 0;
+    public int mFlags = 0;
 
     /** All flags must NOT be set on a transition. */
-    public @WindowManager.TransitionFlags int mNotFlags = 0;
+    public int mNotFlags = 0;
 
     /**
      * A list of required changes. To pass, a transition must meet all requirements.
@@ -147,7 +142,7 @@ public final class TransitionFilter implements Parcelable {
         sb.append("{types=[");
         if (mTypeSet != null) {
             for (int i = 0; i < mTypeSet.length; ++i) {
-                sb.append((i == 0 ? "" : ",") + WindowManager.transitTypeToString(mTypeSet[i]));
+                sb.append((i == 0 ? "" : ",") + TransitionInfo.modeToString(mTypeSet[i]));
             }
         }
         sb.append("] flags=0x" + Integer.toHexString(mFlags));
@@ -177,7 +172,7 @@ public final class TransitionFilter implements Parcelable {
         public int[] mModes = null;
 
         /** Matches only if all the flags here are set on the change. */
-        public @TransitionInfo.ChangeFlags int mFlags = 0;
+        public int mFlags = 0;
 
         /** If this needs to be a task. */
         public boolean mMustBeTask = false;

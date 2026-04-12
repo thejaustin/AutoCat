@@ -16,23 +16,14 @@
 
 package android.window;
 
-import static android.app.WindowConfiguration.ROTATION_UNDEFINED;
-import static android.view.Display.INVALID_DISPLAY;
-import static android.view.WindowManager.LayoutParams.ROTATION_ANIMATION_UNSPECIFIED;
-
-import android.annotation.AnimRes;
-import android.annotation.ColorInt;
-import android.annotation.IntDef;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.HardwareBuffer;
-import android.os.BinderProxy;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.view.Surface;
 import android.view.SurfaceControl;
 import android.view.WindowManager;
 
@@ -49,11 +40,16 @@ import java.util.Objects;
 public final class TransitionInfo implements Parcelable {
     private static final String TAG = "TransitionInfo";
 
+    private static final int ROTATION_UNDEFINED = -1;
+    private static final int INVALID_DISPLAY = -1;
+    private static final int ROTATION_ANIMATION_UNSPECIFIED = -1;
+
     private static final int TRANSIT_NONE = 0;
     private static final int TRANSIT_OPEN = 1;
     private static final int TRANSIT_CLOSE = 2;
     private static final int TRANSIT_TO_FRONT = 3;
     private static final int TRANSIT_TO_BACK = 4;
+    private static final int TRANSIT_RELAUNCH = 5;
     private static final int TRANSIT_CHANGE = 6;
     private static final int TRANSIT_FLAG_KEYGUARD_APPEARING = 0x20;
     private static final int TRANSIT_FLAG_KEYGUARD_GOING_AWAY = 0x100;
@@ -76,7 +72,7 @@ public final class TransitionInfo implements Parcelable {
     @Retention(RetentionPolicy.SOURCE)
     public @interface TransitionFlags {}
 
-    private static String transitTypeToString(@TransitionType int type) {
+    private static String transitTypeToString(int type) {
         return modeToString(type);
     }
 
@@ -85,15 +81,6 @@ public final class TransitionInfo implements Parcelable {
      * @hide
      */
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef(prefix = { "TRANSIT_" }, value = {
-            TRANSIT_NONE,
-            TRANSIT_OPEN,
-            TRANSIT_CLOSE,
-            // Note: to_front/to_back really mean show/hide respectively at the container level.
-            TRANSIT_TO_FRONT,
-            TRANSIT_TO_BACK,
-            TRANSIT_CHANGE
-    })
     public @interface TransitionMode {}
 
     /** No flags */
@@ -193,33 +180,6 @@ public final class TransitionInfo implements Parcelable {
 
     /** @hide */
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef(prefix = { "FLAG_" }, flag = true, value = {
-            FLAG_NONE,
-            FLAG_SHOW_WALLPAPER,
-            FLAG_IS_WALLPAPER,
-            FLAG_TRANSLUCENT,
-            FLAG_STARTING_WINDOW_TRANSFER_RECIPIENT,
-            FLAG_IS_VOICE_INTERACTION,
-            FLAG_IS_DISPLAY,
-            FLAG_DISPLAY_HAS_ALERT_WINDOWS,
-            FLAG_IS_INPUT_METHOD,
-            FLAG_IN_TASK_WITH_EMBEDDED_ACTIVITY,
-            FLAG_FILLS_TASK,
-            FLAG_WILL_IME_SHOWN,
-            FLAG_CROSS_PROFILE_OWNER_THUMBNAIL,
-            FLAG_CROSS_PROFILE_WORK_THUMBNAIL,
-            FLAG_IS_BEHIND_STARTING_WINDOW,
-            FLAG_IS_OCCLUDED,
-            FLAG_IS_SYSTEM_WINDOW,
-            FLAG_BACK_GESTURE_ANIMATED,
-            FLAG_NO_ANIMATION,
-            FLAG_TASK_LAUNCHING_BEHIND,
-            FLAG_MOVED_TO_TOP,
-            FLAG_SYNC,
-            FLAG_CONFIG_AT_END,
-            FLAG_IS_TASK_DISPLAY_AREA,
-            FLAG_FIRST_CUSTOM
-    })
     public @interface ChangeFlags {}
 
     private final @TransitionType int mType;
@@ -605,8 +565,23 @@ public final class TransitionInfo implements Parcelable {
      * lingering surfaces.
      */
     public void setUnreleasedWarningCallSiteForAllSurfaces(String callsite) {
-        for (int i = mChanges.size() - 1; i >= 0; --i) {
-            mChanges.get(i).getLeash().setUnreleasedWarningCallSite(callsite);
+        // setUnreleasedWarningCallSite is an internal API; no-op in compat build
+    }
+
+    /**
+     * Creates a copy of a SurfaceControl via reflection (the copy constructor is internal-only).
+     * Falls back to the original reference if reflection fails.
+     */
+    @SuppressWarnings("JavaReflectionMemberAccess")
+    private static SurfaceControl copySurfaceControl(SurfaceControl sc, String name) {
+        if (sc == null) return null;
+        try {
+            java.lang.reflect.Constructor<SurfaceControl> ctor =
+                    SurfaceControl.class.getDeclaredConstructor(SurfaceControl.class, String.class);
+            ctor.setAccessible(true);
+            return ctor.newInstance(sc, name);
+        } catch (Exception e) {
+            return sc;
         }
     }
 
@@ -645,15 +620,15 @@ public final class TransitionInfo implements Parcelable {
         private boolean mAllowEnterPip;
         private int mStartDisplayId = INVALID_DISPLAY;
         private int mEndDisplayId = INVALID_DISPLAY;
-        private @Surface.Rotation int mStartRotation = ROTATION_UNDEFINED;
-        private @Surface.Rotation int mEndRotation = ROTATION_UNDEFINED;
+        private int mStartRotation = ROTATION_UNDEFINED;
+        private int mEndRotation = ROTATION_UNDEFINED;
         /**
          * The end rotation of the top activity after fixed rotation is finished. If the top
          * activity is not in fixed rotation, it will be {@link ROTATION_UNDEFINED}.
          */
-        private @Surface.Rotation int mEndFixedRotation = ROTATION_UNDEFINED;
+        private int mEndFixedRotation = ROTATION_UNDEFINED;
         private int mRotationAnimation = ROTATION_ANIMATION_UNSPECIFIED;
-        private @ColorInt int mBackgroundColor;
+        private int mBackgroundColor;
         private SurfaceControl mSnapshot = null;
         private float mSnapshotLuma;
         private ActivityTransitionInfo mActivityTransitionInfo = null;
@@ -669,8 +644,7 @@ public final class TransitionInfo implements Parcelable {
             mContainer = in.readTypedObject(WindowContainerToken.CREATOR);
             mParent = in.readTypedObject(WindowContainerToken.CREATOR);
             mLastParent = in.readTypedObject(WindowContainerToken.CREATOR);
-            mLeash = new SurfaceControl();
-            mLeash.readFromParcel(in);
+            mLeash = SurfaceControl.CREATOR.createFromParcel(in);
             mMode = in.readInt();
             mFlags = in.readInt();
             mStartAbsBounds.readFromParcel(in);
@@ -694,7 +668,7 @@ public final class TransitionInfo implements Parcelable {
         }
 
         private Change localRemoteCopy() {
-            final Change out = new Change(mContainer, new SurfaceControl(mLeash, "localRemote"));
+            final Change out = new Change(mContainer, copySurfaceControl(mLeash, "localRemote"));
             out.mParent = mParent;
             out.mLastParent = mLastParent;
             out.mMode = mMode;
@@ -712,7 +686,7 @@ public final class TransitionInfo implements Parcelable {
             out.mEndFixedRotation = mEndFixedRotation;
             out.mRotationAnimation = mRotationAnimation;
             out.mBackgroundColor = mBackgroundColor;
-            out.mSnapshot = mSnapshot != null ? new SurfaceControl(mSnapshot, "localRemote") : null;
+            out.mSnapshot = mSnapshot != null ? copySurfaceControl(mSnapshot, "localRemote") : null;
             out.mSnapshotLuma = mSnapshotLuma;
             if (mActivityTransitionInfo != null) {
                 out.mActivityTransitionInfo = new ActivityTransitionInfo(mActivityTransitionInfo);
@@ -792,13 +766,13 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Sets the start and end rotation of this container. */
-        public void setRotation(@Surface.Rotation int start, @Surface.Rotation int end) {
+        public void setRotation(int start, int end) {
             mStartRotation = start;
             mEndRotation = end;
         }
 
         /** Sets end rotation that top activity will be launched to after fixed rotation. */
-        public void setEndFixedRotation(@Surface.Rotation int endFixedRotation) {
+        public void setEndFixedRotation(int endFixedRotation) {
             mEndFixedRotation = endFixedRotation;
         }
 
@@ -811,7 +785,7 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** Sets the background color of this change's container. */
-        public void setBackgroundColor(@ColorInt int backgroundColor) {
+        public void setBackgroundColor(int backgroundColor) {
             mBackgroundColor = backgroundColor;
         }
 
@@ -936,17 +910,14 @@ public final class TransitionInfo implements Parcelable {
             return mEndDisplayId;
         }
 
-        @Surface.Rotation
         public int getStartRotation() {
             return mStartRotation;
         }
 
-        @Surface.Rotation
         public int getEndRotation() {
             return mEndRotation;
         }
 
-        @Surface.Rotation
         public int getEndFixedRotation() {
             return mEndFixedRotation;
         }
@@ -957,7 +928,6 @@ public final class TransitionInfo implements Parcelable {
         }
 
         /** @return get the background color of this change's container. */
-        @ColorInt
         public int getBackgroundColor() {
             return mBackgroundColor;
         }
@@ -1052,7 +1022,7 @@ public final class TransitionInfo implements Parcelable {
         public String toString() {
             final StringBuilder sb = new StringBuilder();
             sb.append('{');
-            if (mContainer != null && !(mContainer.asBinder() instanceof BinderProxy)) {
+            if (mContainer != null && (mContainer.asBinder() instanceof android.os.Binder)) {
                 // Only log the token if it is not a binder proxy and has additional container info
                 sb.append(mContainer);
                 sb.append(" ");
@@ -1124,20 +1094,19 @@ public final class TransitionInfo implements Parcelable {
          * animation.
          */
         @SuppressWarnings("ResourceType") // Use as a hint to use the system default animation.
-        @AnimRes
         public static final int DEFAULT_ANIMATION_RESOURCES_ID = 0xFFFFFFFF;
 
         private int mType;
-        private @AnimRes int mEnterResId = DEFAULT_ANIMATION_RESOURCES_ID;
-        private @AnimRes int mChangeResId = DEFAULT_ANIMATION_RESOURCES_ID;
-        private @AnimRes int mExitResId = DEFAULT_ANIMATION_RESOURCES_ID;
+        private int mEnterResId = DEFAULT_ANIMATION_RESOURCES_ID;
+        private int mChangeResId = DEFAULT_ANIMATION_RESOURCES_ID;
+        private int mExitResId = DEFAULT_ANIMATION_RESOURCES_ID;
         private boolean mOverrideTaskTransition;
         private String mPackageName;
         private final Rect mTransitionBounds = new Rect();
         private HardwareBuffer mThumbnail;
         private int mAnimations;
         // TODO(b/295805497): Extract mBackgroundColor from AnimationOptions
-        private @ColorInt int mBackgroundColor;
+        private int mBackgroundColor;
         // Customize activity transition animation
         private CustomActivityTransition mCustomActivityOpenTransition;
         private CustomActivityTransition mCustomActivityCloseTransition;
@@ -1209,7 +1178,7 @@ public final class TransitionInfo implements Parcelable {
          * @param overrideTaskTransition indicates whether to override task transition.
          */
         public static AnimationOptions makeCustomAnimOptions(String packageName,
-                @AnimRes int enterResId, @AnimRes int changeResId, @AnimRes int exitResId,
+                int enterResId, int changeResId, int exitResId,
                 boolean overrideTaskTransition) {
             AnimationOptions options = new AnimationOptions(ANIM_CUSTOM);
             options.mPackageName = packageName;
@@ -1271,17 +1240,14 @@ public final class TransitionInfo implements Parcelable {
             return mType;
         }
 
-        @AnimRes
         public int getEnterResId() {
             return mEnterResId;
         }
 
-        @AnimRes
         public int getChangeResId() {
             return mChangeResId;
         }
 
-        @AnimRes
         public int getExitResId() {
             return mExitResId;
         }
@@ -1467,14 +1433,12 @@ public final class TransitionInfo implements Parcelable {
 
         private Root(Parcel in) {
             mDisplayId = in.readInt();
-            mLeash = new SurfaceControl();
-            mLeash.readFromParcel(in);
-            mLeash.setUnreleasedWarningCallSite("TransitionInfo.Root");
+            mLeash = SurfaceControl.CREATOR.createFromParcel(in);
             mOffset.readFromParcel(in);
         }
 
         private Root localRemoteCopy() {
-            return new Root(mDisplayId, new SurfaceControl(mLeash, "localRemote"),
+            return new Root(mDisplayId, copySurfaceControl(mLeash, "localRemote"),
                     mOffset.x, mOffset.y);
         }
 

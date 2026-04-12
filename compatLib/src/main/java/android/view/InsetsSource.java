@@ -18,25 +18,13 @@ package android.view;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import static android.view.InsetsSourceProto.ATTACHED_INSETS;
-import static android.view.InsetsSourceProto.FRAME;
-import static android.view.InsetsSourceProto.TYPE;
-import static android.view.InsetsSourceProto.TYPE_NUMBER;
-import static android.view.InsetsSourceProto.VISIBLE;
-import static android.view.InsetsSourceProto.VISIBLE_FRAME;
 import static android.view.WindowInsets.Type.captionBar;
 import static android.view.WindowInsets.Type.ime;
-
-import android.annotation.IntDef;
-import android.annotation.IntRange;
-
 
 import android.graphics.Insets;
 import android.graphics.Rect;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.proto.ProtoOutputStream;
-import android.view.WindowInsets.Type.InsetsType;
 
 import java.io.PrintWriter;
 import java.lang.annotation.Retention;
@@ -53,14 +41,6 @@ import java.util.StringJoiner;
 public class InsetsSource implements Parcelable {
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef(prefix = "SIDE_", value = {
-            SIDE_NONE,
-            SIDE_LEFT,
-            SIDE_TOP,
-            SIDE_RIGHT,
-            SIDE_BOTTOM,
-            SIDE_UNKNOWN
-    })
     public @interface InternalInsetsSide {}
 
     static final int SIDE_NONE = 0;
@@ -123,14 +103,6 @@ public class InsetsSource implements Parcelable {
     public static final int FLAG_INVALID = 1 << 5;
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef(flag = true, prefix = "FLAG_", value = {
-            FLAG_SUPPRESS_SCRIM,
-            FLAG_INSETS_ROUNDED_CORNER,
-            FLAG_FORCE_CONSUMING,
-            FLAG_ANIMATE_RESIZING,
-            FLAG_FORCE_CONSUMING_OPAQUE_CAPTION_BAR,
-            FLAG_INVALID,
-    })
     public @interface Flags {}
 
     /**
@@ -146,7 +118,7 @@ public class InsetsSource implements Parcelable {
      */
     private final int mId;
 
-    private final @InsetsType int mType;
+    private final int mType;
 
     /** Frame of the source in screen coordinate space */
     private final Rect mFrame;
@@ -168,11 +140,11 @@ public class InsetsSource implements Parcelable {
     private final Rect mTmpFrame = new Rect();
     private final Rect mTmpFrame2 = new Rect();
 
-    public InsetsSource(int id, @InsetsType int type) {
+    public InsetsSource(int id, int type) {
         mId = id;
         mType = type;
         mFrame = new Rect();
-        mVisible = (WindowInsets.Type.defaultVisible() & type) != 0;
+        mVisible = (insetsTypeDefaultVisible() & type) != 0;
     }
 
     public InsetsSource(InsetsSource other) {
@@ -266,7 +238,7 @@ public class InsetsSource implements Parcelable {
         return mId;
     }
 
-    public @InsetsType int getType() {
+    public int getType() {
         return mType;
     }
 
@@ -623,8 +595,8 @@ public class InsetsSource implements Parcelable {
      * @param type The {@link InsetsType type} of the source.
      * @return a unique integer as the identifier.
      */
-    public static int createId(Object owner, @IntRange(from = 0, to = 2047) int index,
-            @InsetsType int type) {
+    public static int createId(Object owner, int index,
+            int type) {
         if (index < 0 || index >= 2048) {
             throw new IllegalArgumentException();
         }
@@ -633,7 +605,7 @@ public class InsetsSource implements Parcelable {
         // type takes bottom 5 bits.
         return ((System.identityHashCode(owner) % (1 << 16)) << 16)
                 + (index << 5)
-                + WindowInsets.Type.indexOf(type);
+                + insetsTypeIndexOf(type);
     }
 
     /**
@@ -686,32 +658,16 @@ public class InsetsSource implements Parcelable {
 
     /**
      * Export the state of {@link InsetsSource} into a protocol buffer output stream.
-     *
-     * @param proto   Stream to write the state to
-     * @param fieldId FieldId of InsetsSource as defined in the parent message
+     * Stubbed out: ProtoOutputStream is an internal API not available in compat builds.
      */
-    public void dumpDebug(ProtoOutputStream proto, long fieldId) {
-        final long token = proto.start(fieldId);
-        if (!android.os.Flags.androidOsBuildVanillaIceCream()) {
-            // Deprecated since V.
-            proto.write(TYPE, WindowInsets.Type.toString(mType));
-        }
-        mFrame.dumpDebug(proto, FRAME);
-        if (mVisibleFrame != null) {
-            mVisibleFrame.dumpDebug(proto, VISIBLE_FRAME);
-        }
-        proto.write(VISIBLE, mVisible);
-        proto.write(TYPE_NUMBER, mType);
-        if (mAttachedInsets != null) {
-            mAttachedInsets.dumpDebug(proto, ATTACHED_INSETS);
-        }
-        proto.end(token);
+    public void dumpDebug(Object proto, long fieldId) {
+        // no-op stub
     }
 
     public void dump(String prefix, PrintWriter pw) {
         pw.print(prefix);
         pw.print("InsetsSource id="); pw.print(Integer.toHexString(mId));
-        pw.print(" type="); pw.print(WindowInsets.Type.toString(mType));
+        pw.print(" type="); pw.print(insetsTypeToString(mType));
         if (mAttachedInsets != null) {
             pw.print(" attachedInsets="); pw.print(mAttachedInsets);
         } else {
@@ -810,7 +766,7 @@ public class InsetsSource implements Parcelable {
     @Override
     public String toString() {
         return "InsetsSource: {" + Integer.toHexString(mId)
-                + " mType=" + WindowInsets.Type.toString(mType)
+                + " mType=" + insetsTypeToString(mType)
                 + " mFrame=" + mFrame.toShortString()
                 + " mAttachedInsets=" + mAttachedInsets
                 + " mVisible=" + mVisible
@@ -818,6 +774,27 @@ public class InsetsSource implements Parcelable {
                 + " mSideHint=" + sideToString(mSideHint)
                 + " mBoundingRects=" + Arrays.toString(mBoundingRects)
                 + "}";
+    }
+
+    /** Local stub: WindowInsets.Type.toString(int) is internal; returns a numeric string. */
+    private static String insetsTypeToString(int type) {
+        return "0x" + Integer.toHexString(type);
+    }
+
+    /**
+     * Local stub: WindowInsets.Type.indexOf(int) converts a type bit to an index.
+     * Equivalent to Integer.numberOfTrailingZeros(type).
+     */
+    private static int insetsTypeIndexOf(int type) {
+        return Integer.numberOfTrailingZeros(type);
+    }
+
+    /**
+     * Local stub: WindowInsets.Type.defaultVisible() returns a mask of types that are visible
+     * by default (statusBars=1, navigationBars=2).
+     */
+    private static int insetsTypeDefaultVisible() {
+        return 0x3; // statusBars() | navigationBars()
     }
 
     public static final @NonNull Creator<InsetsSource> CREATOR = new Creator<>() {

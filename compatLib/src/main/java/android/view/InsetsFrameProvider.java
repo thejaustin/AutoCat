@@ -18,16 +18,12 @@ package android.view;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import android.annotation.IntRange;
-
-
 import android.graphics.Insets;
 import android.graphics.Rect;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.view.InsetsSource.Flags;
-import android.view.WindowInsets.Type.InsetsType;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -135,8 +131,8 @@ public class InsetsFrameProvider implements Parcelable {
      * @param type the {@link InsetsType}.
      * @see InsetsSource#createId(Object, int, int)
      */
-    public InsetsFrameProvider(Object owner, @IntRange(from = 0, to = 2047) int index,
-            @InsetsType int type) {
+    public InsetsFrameProvider(Object owner, int index,
+            int type) {
         mId = InsetsSource.createId(owner, index, type);
     }
 
@@ -252,7 +248,7 @@ public class InsetsFrameProvider implements Parcelable {
         final StringBuilder sb = new StringBuilder("InsetsFrameProvider: {");
         sb.append("id=#").append(Integer.toHexString(mId));
         sb.append(", index=").append(getIndex());
-        sb.append(", type=").append(WindowInsets.Type.toString(getType()));
+        sb.append(", type=0x").append(Integer.toHexString(getType()));
         sb.append(", source=").append(sourceToString(mSource));
         sb.append(", flags=[").append(InsetsSource.flagsToString(mFlags)).append("]");
         if (mInsetsSize != null) {
@@ -412,8 +408,7 @@ public class InsetsFrameProvider implements Parcelable {
         public String toString() {
             StringBuilder sb = new StringBuilder(32);
             sb.append("TypedInsetsSize: {");
-            sb.append("windowType=").append(ViewDebug.intToString(
-                    WindowManager.LayoutParams.class, "type", mWindowType));
+            sb.append("windowType=").append(mWindowType);
             sb.append(", insetsSize=").append(mInsetsSize);
             sb.append("}");
             return sb.toString();
