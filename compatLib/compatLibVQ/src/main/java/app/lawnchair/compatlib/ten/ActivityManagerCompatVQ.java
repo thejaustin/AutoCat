@@ -1,6 +1,4 @@
 package app.lawnchair.compatlib.ten;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import static android.app.ActivityManager.RECENT_IGNORE_UNAVAILABLE;
 
@@ -11,16 +9,21 @@ import android.app.WindowConfiguration;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.hardware.HardwareBuffer;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.IRecentsAnimationController;
 import android.view.IRecentsAnimationRunner;
 import android.view.RemoteAnimationTarget;
 
-
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+
 import app.lawnchair.compatlib.ActivityManagerCompat;
 import app.lawnchair.compatlib.RecentsAnimationRunnerCompat;
+
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -120,27 +123,18 @@ public class ActivityManagerCompatVQ implements ActivityManagerCompat {
 
     @Override
     public ThumbnailData getTaskThumbnail(int taskId, boolean isLowResolution) {
-        ActivityManager.TaskSnapshot snapshot = null;
-        try {
-            snapshot = ActivityTaskManager.getService().getTaskSnapshot(taskId, isLowResolution);
-        } catch (RemoteException e) {
-            Log.w(TAG, "Failed to retrieve task snapshot", e);
-        }
-        if (snapshot != null) {
-            return makeThumbnailData(snapshot);
-        } else {
-            return null;
-        }
+        Object snapshot = getTaskSnapshotViaReflection(taskId, isLowResolution);
+        return snapshot != null ? makeThumbnailData(snapshot) : null;
     }
 
-//    @Override
+    //    @Override
     // pE-TODO(QuickSwitch): Investigate
     public ThumbnailData takeScreenshot(
             IRecentsAnimationController animationController, int taskId) {
         try {
-            ActivityManager.TaskSnapshot snapshot = animationController.screenshotTask(taskId);
+            Object snapshot = screenshotTaskViaReflection(animationController, taskId);
             return snapshot != null ? makeThumbnailData(snapshot) : new ThumbnailData();
-        } catch (RemoteException e) {
+        } catch (Exception e) {
             Log.e(TAG, "Failed to screenshot task", e);
             return new ThumbnailData();
         }
@@ -148,27 +142,59 @@ public class ActivityManagerCompatVQ implements ActivityManagerCompat {
 
     @Override
     public ThumbnailData convertTaskSnapshotToThumbnailData(Object taskSnapshot) {
-        if (taskSnapshot != null) {
-            return makeThumbnailData((ActivityManager.TaskSnapshot) taskSnapshot);
-        } else {
+        return taskSnapshot != null ? makeThumbnailData(taskSnapshot) : null;
+    }
+
+    // Accepts Object so this compiles without the hidden ActivityManager.TaskSnapshot type.
+    @SuppressWarnings("unchecked")
+    public ThumbnailData makeThumbnailData(Object snapshot) {
+        ThumbnailData data = new ThumbnailData();
+        try {
+            HardwareBuffer buffer = (HardwareBuffer) invoke(snapshot, "getSnapshot");
+            Object colorSpace = invoke(snapshot, "getColorSpace");
+            data.thumbnail = Bitmap.wrapHardwareBuffer(
+                    buffer, colorSpace instanceof android.graphics.ColorSpace
+                            ? (android.graphics.ColorSpace) colorSpace : null);
+            Rect contentInsets = (Rect) invoke(snapshot, "getContentInsets");
+            data.insets = contentInsets != null ? new Rect(contentInsets) : new Rect();
+            data.orientation = (int) invoke(snapshot, "getOrientation");
+            data.reducedResolution = (boolean) invoke(snapshot, "isReducedResolution");
+            data.scale = (float) invoke(snapshot, "getScale");
+            data.isRealSnapshot = (boolean) invoke(snapshot, "isRealSnapshot");
+            data.isTranslucent = (boolean) invoke(snapshot, "isTranslucent");
+            data.windowingMode = (int) invoke(snapshot, "getWindowingMode");
+            data.systemUiVisibility = (int) invoke(snapshot, "getSystemUiVisibility");
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to extract thumbnail data from snapshot", e);
+        }
+        return data;
+    }
+
+    // ── Reflection helpers ────────────────────────────────────────────────────
+
+    private static Object invoke(Object target, String methodName) throws ReflectiveOperationException {
+        Method m = target.getClass().getMethod(methodName);
+        return m.invoke(target);
+    }
+
+    private Object getTaskSnapshotViaReflection(int taskId, boolean isLowResolution) {
+        try {
+            Object service = ActivityTaskManager.getService();
+            Method m = service.getClass().getMethod("getTaskSnapshot", int.class, boolean.class);
+            return m.invoke(service, taskId, isLowResolution);
+        } catch (Exception e) {
+            Log.w(TAG, "getTaskSnapshot via reflection failed", e);
             return null;
         }
     }
 
-    public ThumbnailData makeThumbnailData(ActivityManager.TaskSnapshot snapshot) {
-        ThumbnailData data = new ThumbnailData();
-        data.thumbnail =
-                Bitmap.wrapHardwareBuffer(snapshot.getSnapshot(), snapshot.getColorSpace());
-        data.insets = new Rect(snapshot.getContentInsets());
-        data.orientation = snapshot.getOrientation();
-        data.reducedResolution = snapshot.isReducedResolution();
-        // TODO(b/149579527): Pass task size instead of computing scale.
-        // Assume width and height were scaled the same; compute scale only for width
-        data.scale = snapshot.getScale();
-        data.isRealSnapshot = snapshot.isRealSnapshot();
-        data.isTranslucent = snapshot.isTranslucent();
-        data.windowingMode = snapshot.getWindowingMode();
-        data.systemUiVisibility = snapshot.getSystemUiVisibility();
-        return data;
+    private static Object screenshotTaskViaReflection(
+            IRecentsAnimationController controller, int taskId) {
+        try {
+            Method m = controller.getClass().getMethod("screenshotTask", int.class);
+            return m.invoke(controller, taskId);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
