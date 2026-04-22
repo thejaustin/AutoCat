@@ -108,7 +108,8 @@ public class ActivityManagerCompatVR extends ActivityManagerCompatVQ {
     }
 
     @Override
-    public ThumbnailData makeThumbnailData(ActivityManager.TaskSnapshot snapshot) {
+    public ThumbnailData makeThumbnailData(Object rawSnapshot) {
+        ActivityManager.TaskSnapshot snapshot = (ActivityManager.TaskSnapshot) rawSnapshot;
         ThumbnailData data = new ThumbnailData();
         final GraphicBuffer buffer = snapshot.getSnapshot();
         if (buffer == null || (buffer.getUsage() & HardwareBuffer.USAGE_GPU_SAMPLED_IMAGE) == 0) {
