@@ -106,11 +106,13 @@ allprojects {
             dependencies {
                 compileOnly files(frameworkJar)
             }
+            // Capture as FileCollection at config time; doFirst must not access `project`.
+            final def jarFiles = files(frameworkJar)
             tasks.withType(JavaCompile).configureEach { task ->
-                // Prepend at execution time so AGP doesn't overwrite our classpath.
-                // bootstrapClasspath is unsupported in Java 9+; use classpath prepend instead.
+                // Prepend at execution time so AGP finalised classpath doesn't override us.
+                // bootstrapClasspath is silently ignored in Java 9+; this replaces it.
                 task.doFirst {
-                    task.classpath = project.files(frameworkJar) + task.classpath
+                    task.classpath = jarFiles + task.classpath
                 }
             }
             tasks.withType(KotlinCompile).configureEach { task ->
