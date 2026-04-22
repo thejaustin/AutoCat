@@ -226,7 +226,7 @@ public final class TransitionFilter implements Parcelable {
                 }
                 if (mActivityType != ACTIVITY_TYPE_UNDEFINED) {
                     if (change.getTaskInfo() == null
-                            || change.getTaskInfo().getActivityType() != mActivityType) {
+                            || getActivityType(change.getTaskInfo()) != mActivityType) {
                         continue;
                     }
                 }
@@ -269,7 +269,7 @@ public final class TransitionFilter implements Parcelable {
                 }
                 if (mWindowingMode != WINDOWING_MODE_UNDEFINED) {
                     if (change.getTaskInfo() == null
-                            || change.getTaskInfo().getWindowingMode() != mWindowingMode) {
+                            || getWindowingMode(change.getTaskInfo()) != mWindowingMode) {
                         continue;
                     }
                 }
@@ -292,7 +292,7 @@ public final class TransitionFilter implements Parcelable {
         private boolean matchesCookie(ActivityManager.RunningTaskInfo info) {
             if (mLaunchCookie == null) return true;
             if (info == null) return false;
-            for (IBinder cookie : info.launchCookies) {
+            for (IBinder cookie : getLaunchCookies(info)) {
                 if (mLaunchCookie.equals(cookie)) {
                     return true;
                 }
@@ -305,7 +305,7 @@ public final class TransitionFilter implements Parcelable {
             // Can't check modes/order since the transition hasn't been built at this point.
             if (mActivityType == ACTIVITY_TYPE_UNDEFINED) return true;
             return request.getTriggerTask() != null
-                    && request.getTriggerTask().getActivityType() == mActivityType
+                    && getActivityType(request.getTriggerTask()) == mActivityType
                     && matchesTopActivity(request.getTriggerTask(), null /* activityCmp */)
                     && matchesCookie(request.getTriggerTask());
         }
@@ -386,5 +386,37 @@ public final class TransitionFilter implements Parcelable {
             case CONTAINER_ORDER_TOP: return "TOP";
         }
         return "UNKNOWN(" + order + ")";
+    }
+
+    // Reflection helpers for AOSP-internal RunningTaskInfo fields/methods not present in SDK stubs.
+
+    private static int getActivityType(ActivityManager.RunningTaskInfo info) {
+        if (info == null) return ACTIVITY_TYPE_UNDEFINED;
+        try {
+            return (int) info.getClass().getMethod("getActivityType").invoke(info);
+        } catch (ReflectiveOperationException e) {
+            return ACTIVITY_TYPE_UNDEFINED;
+        }
+    }
+
+    private static int getWindowingMode(ActivityManager.RunningTaskInfo info) {
+        if (info == null) return WINDOWING_MODE_UNDEFINED;
+        try {
+            return (int) info.getClass().getMethod("getWindowingMode").invoke(info);
+        } catch (ReflectiveOperationException e) {
+            return WINDOWING_MODE_UNDEFINED;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static java.util.List<IBinder> getLaunchCookies(ActivityManager.RunningTaskInfo info) {
+        if (info == null) return java.util.Collections.emptyList();
+        try {
+            Object val = info.getClass().getField("launchCookies").get(info);
+            if (val instanceof java.util.List) return (java.util.List<IBinder>) val;
+        } catch (ReflectiveOperationException e) {
+            // fall through
+        }
+        return java.util.Collections.emptyList();
     }
 }

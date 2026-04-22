@@ -675,8 +675,8 @@ public final class TransitionInfo implements Parcelable {
             out.mFlags = mFlags;
             out.mStartAbsBounds.set(mStartAbsBounds);
             out.mEndAbsBounds.set(mEndAbsBounds);
-            out.mEndRelOffset.set(mEndRelOffset);
-            out.mEndParentSize.set(mEndParentSize);
+            out.mEndRelOffset.set(mEndRelOffset.x, mEndRelOffset.y);
+            out.mEndParentSize.set(mEndParentSize.x, mEndParentSize.y);
             out.mTaskInfo = mTaskInfo;
             out.mAllowEnterPip = mAllowEnterPip;
             out.mStartDisplayId = mStartDisplayId;
@@ -1070,9 +1070,9 @@ public final class TransitionInfo implements Parcelable {
             }
             if (mTaskInfo != null) {
                 sb.append(" taskParent=");
-                sb.append(mTaskInfo.parentTaskId);
+                sb.append(getParentTaskId(mTaskInfo));
                 sb.append(" winMode=");
-                sb.append(mTaskInfo.getWindowingMode());
+                sb.append(getWindowingMode(mTaskInfo));
             }
             if (mAnimationOptions != null) {
                 sb.append(" opt=").append(mAnimationOptions);
@@ -1082,6 +1082,23 @@ public final class TransitionInfo implements Parcelable {
             }
             sb.append('}');
             return sb.toString();
+        }
+
+        private static int getParentTaskId(ActivityManager.RunningTaskInfo info) {
+            try {
+                return info.getClass().getField("parentTaskId").getInt(info);
+            } catch (ReflectiveOperationException e) {
+                return -1;
+            }
+        }
+
+        private static int getWindowingMode(ActivityManager.RunningTaskInfo info) {
+            if (info == null) return 0;
+            try {
+                return (int) info.getClass().getMethod("getWindowingMode").invoke(info);
+            } catch (ReflectiveOperationException e) {
+                return 0;
+            }
         }
     }
 
