@@ -107,8 +107,11 @@ allprojects {
                 compileOnly files(frameworkJar)
             }
             tasks.withType(JavaCompile).configureEach { task ->
-                task.classpath = project.files(frameworkJar, task.classpath ?: project.files())
-                task.options.bootstrapClasspath = project.files(frameworkJar, task.options.bootstrapClasspath ?: project.files())
+                // Prepend at execution time so AGP doesn't overwrite our classpath.
+                // bootstrapClasspath is unsupported in Java 9+; use classpath prepend instead.
+                task.doFirst {
+                    task.classpath = project.files(frameworkJar) + task.classpath
+                }
             }
             tasks.withType(KotlinCompile).configureEach { task ->
                 task.libraries.setFrom(project.files(frameworkJar, task.libraries ?: project.files()))
