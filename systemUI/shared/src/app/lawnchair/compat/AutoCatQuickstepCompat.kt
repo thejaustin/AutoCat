@@ -14,9 +14,6 @@ import app.lawnchair.compatlib.ten.QuickstepCompatFactoryVQ
 import app.lawnchair.compatlib.thirteen.QuickstepCompatFactoryVT
 import app.lawnchair.compatlib.twelve.QuickstepCompatFactoryVS
 
-// Upstream systemUI/quickstep Java sources still reference the old name.
-typealias LawnchairQuickstepCompat = AutoCatQuickstepCompat
-
 object AutoCatQuickstepCompat {
 
     @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
