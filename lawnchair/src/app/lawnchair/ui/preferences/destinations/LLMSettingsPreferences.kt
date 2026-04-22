@@ -3,7 +3,6 @@ package app.lawnchair.ui.preferences.destinations
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Memory
@@ -28,7 +26,6 @@ import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.WifiTethering
 import androidx.compose.material.icons.rounded.WorkspacePremium
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -38,6 +35,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -71,7 +70,9 @@ import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.categorization.llm.TestResult
 import app.lawnchair.categorization.local.DeviceCapabilityChecker
 import app.lawnchair.categorization.local.LocalEndpointProvider
+import app.lawnchair.categorization.local.LocalModelInfo
 import app.lawnchair.categorization.local.LocalModelRegistry
+import app.lawnchair.categorization.local.LocalModelType
 import app.lawnchair.categorization.local.MediaPipeLLMProvider
 import app.lawnchair.data.tab.entities.ModelAccuracyStats
 import app.lawnchair.preferences.getAdapter
@@ -87,6 +88,7 @@ import app.lawnchair.ui.preferences.components.controls.TextPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
+import java.io.File
 import kotlinx.coroutines.launch
 
 @Composable
@@ -571,6 +573,7 @@ fun CategorizationStatus(
 }
 
 @Composable
+@Composable
 private fun LocalAiSection(
     prefs: app.lawnchair.preferences.PreferenceManager,
     scope: kotlinx.coroutines.CoroutineScope,
@@ -583,9 +586,8 @@ private fun LocalAiSection(
     var ramText by remember { mutableStateOf("") }
     var gpuText by remember { mutableStateOf("") }
     var androidText by remember { mutableStateOf("") }
-    var recommendedBadge by remember { mutableStateOf<String?>(null) }
-    var recommendedName by remember { mutableStateOf("") }
-    var aiCoreAvailable by remember { mutableStateOf(false) }
+    var recommendedId by remember { mutableStateOf<String?>(null) }
+    var compatibleModelIds by remember { mutableStateOf<Set<String>>(emptySet()) }
 
     // Connection test state
     var endpointTestStatus by remember { mutableStateOf<String?>(null) }
@@ -595,25 +597,27 @@ private fun LocalAiSection(
 
     val endpointEnabled by prefs.localEndpointEnabled.getAdapter().state
     val endpointUrl by prefs.localEndpointUrl.getAdapter().state
+    val endpointModelId by prefs.localEndpointModelId.getAdapter().state
     val customModelPath by prefs.localCustomModelPath.getAdapter().state
+    val selectedModelId by prefs.selectedLocalModelId.getAdapter().state
 
     LaunchedEffect(Unit) {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             val caps = DeviceCapabilityChecker.getCapabilities(context)
             val recommended = LocalModelRegistry.getRecommendedModel(caps)
+            val compatible = LocalModelRegistry.getCompatibleModels(caps).map { it.id }.toSet()
             val totalGb = caps.totalRamMb / 1024.0
             ramText = "%.1f GB RAM".format(totalGb)
             gpuText = caps.gpuFamily.name.lowercase().replaceFirstChar { it.uppercase() }
             androidText = "Android ${caps.androidVersion}"
-            aiCoreAvailable = caps.isAiCoreAvailable
-            recommendedName = recommended?.displayName ?: "None available"
-            recommendedBadge = recommended?.recommendationBadge
+            recommendedId = recommended?.id
+            compatibleModelIds = compatible
             capsLoading = false
         }
     }
 
     Column(modifier = modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-        // ── Device Analysis Card ────────────────────────────────────────────
+        // ── Device Analysis Card ─────────────────────────────────────────────
         ElevatedCard(
             modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
             colors = CardDefaults.elevatedCardColors(),
@@ -625,7 +629,6 @@ private fun LocalAiSection(
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Spacer(modifier = Modifier.height(6.dp))
-
                 if (capsLoading) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 } else {
@@ -639,52 +642,22 @@ private fun LocalAiSection(
                         Text("·", style = MaterialTheme.typography.bodySmall)
                         Text(androidText, style = MaterialTheme.typography.bodySmall)
                     }
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Outlined.Memory,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp).padding(end = 4.dp),
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                        Text(
-                            text = "Recommended: $recommendedName",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                    recommendedBadge?.let { badge ->
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Surface(
-                            shape = RoundedCornerShape(50),
-                            color = MaterialTheme.colorScheme.tertiaryContainer,
-                        ) {
-                            Text(
-                                text = badge,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                            )
-                        }
-                    }
-                    if (aiCoreAvailable) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "✓ AICore available on this device",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
                 }
             }
         }
 
-        // ── Local Server Section ────────────────────────────────────────────
+        // ── Local Server Section ─────────────────────────────────────────────
         Text(
             text = "Local Server (Ollama / LM Studio)",
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 4.dp),
+        )
+        Text(
+            text = "Ollama: http://localhost:11434  ·  LM Studio: http://localhost:1234",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 6.dp),
         )
 
         SwitchPreference(
@@ -699,6 +672,11 @@ private fun LocalAiSection(
                     adapter = prefs.localEndpointUrl.getAdapter(),
                     label = "Server URL",
                 )
+                TextPreference(
+                    adapter = prefs.localEndpointModelId.getAdapter(),
+                    label = "Model name (blank = auto-detect)",
+                    description = { it.ifBlank { "e.g. llama3.2, mistral, phi3" } },
+                )
 
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -710,7 +688,11 @@ private fun LocalAiSection(
                             scope.launch {
                                 endpointTesting = true
                                 endpointTestStatus = null
-                                val result = LocalEndpointProvider(context, endpointUrl).testConnection()
+                                val result = LocalEndpointProvider(
+                                    context,
+                                    endpointUrl,
+                                    endpointModelId,
+                                ).testConnection()
                                 endpointTestStatus = if (result.success) {
                                     "✅ ${result.modelVersion ?: "Connected"} · ${result.latencyMs}ms"
                                 } else {
@@ -738,6 +720,53 @@ private fun LocalAiSection(
             }
         }
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // ── On-Device Model Browser ──────────────────────────────────────────
+        Text(
+            text = "On-Device Model",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 2.dp),
+        )
+        Text(
+            text = "Place downloaded .bin files in ${context.filesDir}/local_models/",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+
+        val mediaPipeModels = LocalModelRegistry.ALL_MODELS.filter {
+            it.type == LocalModelType.MEDIAPIPE || it.type == LocalModelType.AICORE
+        }
+        mediaPipeModels.forEach { model ->
+            val isCompatible = model.id in compatibleModelIds
+            val isSelected = model.id == selectedModelId
+            val isDownloaded = when (model.type) {
+                LocalModelType.AICORE -> isCompatible
+
+                LocalModelType.MEDIAPIPE -> File(
+                    context.filesDir,
+                    "local_models/${model.id}.bin",
+                ).exists()
+
+                else -> false
+            }
+            LocalModelCard(
+                model = model,
+                isCompatible = isCompatible,
+                isRecommended = model.id == recommendedId,
+                isSelected = isSelected,
+                isDownloaded = isDownloaded,
+                onSelect = {
+                    scope.launch {
+                        prefs.selectedLocalModelId.set(if (isSelected) "" else model.id)
+                    }
+                },
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
 
         // ── Custom Model File Section ────────────────────────────────────────
@@ -750,7 +779,7 @@ private fun LocalAiSection(
 
         TextPreference(
             adapter = prefs.localCustomModelPath.getAdapter(),
-            label = "Model file path (.bin for MediaPipe)",
+            label = "Full path to .bin file",
         )
 
         Row(
@@ -788,35 +817,124 @@ private fun LocalAiSection(
                 )
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // ── Model Browser (Phase 2 placeholder) ─────────────────────────────
-        Text(
-            text = "Model Browser",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 4.dp),
-        )
-
-        var showComingSoon by remember { mutableStateOf(false) }
-        OutlinedButton(
-            onClick = { showComingSoon = true },
-            modifier = Modifier.fillMaxWidth(),
+@Composable
+private fun LocalModelCard(
+    model: LocalModelInfo,
+    isCompatible: Boolean,
+    isRecommended: Boolean,
+    isSelected: Boolean,
+    isDownloaded: Boolean,
+    onSelect: () -> Unit,
+) {
+    val borderColor = when {
+        isSelected -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+    }
+    OutlinedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = isCompatible, onClick = onSelect),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
+        ),
+        border = androidx.compose.foundation.BorderStroke(
+            width = if (isSelected) 1.5.dp else 0.5.dp,
+            color = borderColor,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.Top,
         ) {
-            Icon(Icons.Rounded.ExpandMore, null, modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(6.dp))
-            Text("Browse compatible models")
-        }
-
-        AnimatedVisibility(visible = showComingSoon) {
-            Text(
-                text = "Model browser coming soon. Downloaded models will appear here.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp),
+            RadioButton(
+                selected = isSelected,
+                onClick = if (isCompatible) onSelect else null,
+                modifier = Modifier.padding(top = 2.dp),
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = model.displayName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (isCompatible) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    )
+                    if (isRecommended) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                        ) {
+                            Text(
+                                text = "Recommended",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = model.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (model.sizeMb > 0) {
+                        val sizeLabel = if (model.sizeMb >= 1024) "%.1f GB".format(model.sizeMb / 1024f) else "${model.sizeMb} MB"
+                        ModelChip(sizeLabel)
+                    }
+                    when {
+                        isDownloaded -> ModelChip("Ready", MaterialTheme.colorScheme.primary)
+                        !isCompatible -> ModelChip("Incompatible", MaterialTheme.colorScheme.error)
+                        model.downloadUrl != null -> ModelChip("Not downloaded")
+                    }
+                    model.recommendationBadge?.let { ModelChip(it, MaterialTheme.colorScheme.tertiary) }
+                }
+                if (!isCompatible) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Requires Android ${model.minSdkVersion}+, ${model.minRamMb / 1024} GB RAM",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                } else if (!isDownloaded && model.type == LocalModelType.MEDIAPIPE && model.downloadUrl != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Download from: ${model.downloadUrl}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun ModelChip(label: String, color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.secondaryContainer) {
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = color.copy(alpha = 0.2f),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+        )
     }
 }
 

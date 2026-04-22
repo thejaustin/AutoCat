@@ -519,7 +519,7 @@ class CategorizationManager(private val context: Context) {
 
         val endpointUrl = prefs.localEndpointUrl.get()
         if (prefs.localEndpointEnabled.get() && endpointUrl.isNotBlank()) {
-            providers += LocalEndpointProvider(context, endpointUrl)
+            providers += LocalEndpointProvider(context, endpointUrl, prefs.localEndpointModelId.get())
         }
 
         val modelPath = resolveLocalModelPath(prefs)

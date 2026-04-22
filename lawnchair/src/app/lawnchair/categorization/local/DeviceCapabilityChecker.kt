@@ -54,17 +54,20 @@ object DeviceCapabilityChecker {
     }
 
     suspend fun isLocalServerReachable(baseUrl: String): Boolean = withContext(Dispatchers.IO) {
-        try {
-            val url = baseUrl.trimEnd('/') + "/api/version"
-            val request = Request.Builder().url(url).get().build()
-            pingClient.newCall(request).execute().use { response ->
-                response.isSuccessful
+        // Try /v1/models first (works with Ollama, LM Studio, koboldcpp).
+        // Fall back to /api/version for Ollama-native servers that may not expose /v1/models.
+        val candidates = listOf("/v1/models", "/api/version")
+        for (path in candidates) {
+            try {
+                val url = baseUrl.trimEnd('/') + path
+                val request = Request.Builder().url(url).get().build()
+                val reachable = pingClient.newCall(request).execute().use { it.isSuccessful }
+                if (reachable) return@withContext true
+            } catch (_: IOException) {
+            } catch (_: Exception) {
             }
-        } catch (e: IOException) {
-            false
-        } catch (e: Exception) {
-            false
         }
+        false
     }
 
     fun probeAiCoreAvailable(): Boolean {

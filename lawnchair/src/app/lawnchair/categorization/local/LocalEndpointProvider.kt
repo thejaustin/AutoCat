@@ -31,12 +31,15 @@ import org.json.JSONObject
  *
  * Speaks the /v1/chat/completions endpoint. Ollama also exposes this at the same path.
  *
+ * [preferredModelId] pins the model name; blank means "use first available from /v1/models".
+ *
  * Batch requests run up to [PARALLEL_BATCH_LIMIT] concurrent coroutines since the
  * server (not this client) manages threading.
  */
 class LocalEndpointProvider(
     private val context: Context,
     private val baseUrl: String,
+    private val preferredModelId: String = "",
 ) : LLMProvider {
 
     override val name: String = "Local Server"
@@ -51,7 +54,7 @@ class LocalEndpointProvider(
     private val httpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
     }
@@ -59,6 +62,9 @@ class LocalEndpointProvider(
     // Cached ping result — re-checked every 30 s
     private var lastPingMs: Long = 0L
     private var lastPingResult: Boolean = false
+
+    // Cached model id — refreshed when null
+    private var resolvedModelId: String? = null
 
     override suspend fun isAvailable(): Boolean = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
@@ -71,7 +77,7 @@ class LocalEndpointProvider(
 
     override suspend fun getCurrentModel(): ModelInfo? = withContext(Dispatchers.IO) {
         if (!isAvailable()) return@withContext null
-        val modelId = fetchFirstModelId() ?: return@withContext null
+        val modelId = resolveModelId() ?: return@withContext null
         ModelInfo(
             id = modelId,
             displayName = modelId,
@@ -86,7 +92,7 @@ class LocalEndpointProvider(
     override suspend fun testConnection(): TestResult = withContext(Dispatchers.IO) {
         val start = System.currentTimeMillis()
         return@withContext try {
-            val modelId = fetchFirstModelId()
+            val modelId = resolveModelId()
                 ?: return@withContext TestResult(false, "No models found at $baseUrl", latencyMs = System.currentTimeMillis() - start)
             val latency = System.currentTimeMillis() - start
             TestResult(success = true, message = "Connected", latencyMs = latency, modelVersion = modelId)
@@ -102,10 +108,10 @@ class LocalEndpointProvider(
         availableTabs: List<String>,
         hints: String,
     ): CategorizationResult = withContext(Dispatchers.IO) {
-        val modelId = fetchFirstModelId() ?: throw LLMException("No model available at $baseUrl")
+        val modelId = resolveModelId() ?: throw LLMException("No model available at $baseUrl")
         val effectiveHints = hints.ifBlank { learner.generateLLMHintText() }
-        val prompt = buildPrompt(appName, appPackage, appDescription, availableTabs, effectiveHints)
-        val raw = callChatCompletions(modelId, prompt)
+        val (system, user) = buildMessages(appName, appPackage, appDescription, availableTabs, effectiveHints)
+        val raw = callChatCompletions(modelId, system, user)
         parseResponse(raw, availableTabs)
     }
 
@@ -140,20 +146,16 @@ class LocalEndpointProvider(
         existingTabs: List<String>,
         maxSuggestions: Int,
     ): List<SuggestedCategory> = withContext(Dispatchers.IO) {
-        val modelId = fetchFirstModelId() ?: throw LLMException("No model available at $baseUrl")
+        val modelId = resolveModelId() ?: throw LLMException("No model available at $baseUrl")
         val appsSample = installedApps.take(40).joinToString(", ")
         val existing = existingTabs.joinToString(", ")
-        val prompt = "Given these Android apps: $appsSample\n" +
-            "Existing categories: $existing\n" +
-            "Suggest $maxSuggestions new useful category names (comma-separated):"
-        val raw = callChatCompletions(modelId, prompt)
+        val system = "You are a category naming assistant. Reply only with comma-separated category names, nothing else."
+        val user = "Android apps: $appsSample\nExisting categories: $existing\n" +
+            "Suggest $maxSuggestions new category names:"
+        val raw = callChatCompletions(modelId, system, user)
         raw.split(",").mapIndexedNotNull { i, s ->
             val name = s.trim().take(30)
-            if (name.isBlank()) {
-                null
-            } else {
-                SuggestedCategory(name, "", emptyList(), 0.65f - (i * 0.05f))
-            }
+            if (name.isBlank()) null else SuggestedCategory(name, "", emptyList(), 0.65f - (i * 0.05f))
         }.take(maxSuggestions)
     }
 
@@ -162,13 +164,12 @@ class LocalEndpointProvider(
         apps: List<AppBatchInfo>,
     ): List<SuggestedFolder> = withContext(Dispatchers.IO) {
         if (apps.isEmpty()) return@withContext emptyList()
-        val modelId = fetchFirstModelId() ?: return@withContext emptyList()
+        val modelId = resolveModelId() ?: return@withContext emptyList()
         try {
             val appList = apps.take(20).joinToString(", ") { it.appName }
-            val prompt = "These apps are all in the '$tabName' category: $appList\n" +
-                "Suggest 2-3 folder names to organize them into subgroups.\n" +
-                "Reply with only folder names separated by commas, nothing else."
-            val raw = callChatCompletions(modelId, prompt)
+            val system = "You are a folder naming assistant. Reply only with folder names separated by commas, nothing else."
+            val user = "Apps in '$tabName': $appList\nSuggest 2-3 folder names to organize them into subgroups:"
+            val raw = callChatCompletions(modelId, system, user)
             val folderNames = raw.split(",").map { it.trim() }.filter { it.isNotBlank() }.take(3)
             folderNames.map { folderName ->
                 val chunk = apps.take(apps.size / folderNames.size.coerceAtLeast(1))
@@ -187,6 +188,16 @@ class LocalEndpointProvider(
 
     // ── Private helpers ────────────────────────────────────────────────────────
 
+    /**
+     * Returns the model ID to use: [preferredModelId] if set, otherwise the first
+     * model from /v1/models. Result is cached for the lifetime of this instance.
+     */
+    private fun resolveModelId(): String? {
+        if (preferredModelId.isNotBlank()) return preferredModelId
+        resolvedModelId?.let { return it }
+        return fetchFirstModelId().also { resolvedModelId = it }
+    }
+
     private fun fetchFirstModelId(): String? {
         return try {
             val url = baseUrl.trimEnd('/') + "/v1/models"
@@ -202,20 +213,26 @@ class LocalEndpointProvider(
         }
     }
 
-    private fun callChatCompletions(modelId: String, userMessage: String): String {
+    private fun callChatCompletions(modelId: String, systemMessage: String, userMessage: String): String {
         val url = baseUrl.trimEnd('/') + "/v1/chat/completions"
+        val messages = JSONArray().apply {
+            put(
+                JSONObject().apply {
+                    put("role", "system")
+                    put("content", systemMessage)
+                },
+            )
+            put(
+                JSONObject().apply {
+                    put("role", "user")
+                    put("content", userMessage)
+                },
+            )
+        }
         val body = JSONObject().apply {
             put("model", modelId)
-            put(
-                "messages",
-                JSONArray().put(
-                    JSONObject().apply {
-                        put("role", "user")
-                        put("content", userMessage)
-                    },
-                ),
-            )
-            put("max_tokens", 256)
+            put("messages", messages)
+            put("max_tokens", 32)
             put("temperature", 0.0)
         }.toString().toRequestBody("application/json".toMediaType())
 
@@ -233,20 +250,20 @@ class LocalEndpointProvider(
             ?: throw LLMException("Unexpected response format from local endpoint")
     }
 
-    private fun buildPrompt(
+    private fun buildMessages(
         appName: String,
         appPackage: String,
         appDescription: String?,
         availableTabs: List<String>,
         hints: String,
-    ): String {
+    ): Pair<String, String> {
         val categories = availableTabs.joinToString(", ")
+        val system = "You are an Android app categorizer. " +
+            "Given an app, reply with exactly one of the provided category names and nothing else."
         val desc = if (appDescription.isNullOrBlank()) "" else "\nDescription: $appDescription"
-        val hintsLine = if (hints.isBlank()) "" else "\nHints: $hints"
-        return "Categorize this Android app into exactly one of the given categories.\n" +
-            "App: $appName ($appPackage)$desc\n" +
-            "Categories: $categories$hintsLine\n" +
-            "Reply with only the category name, nothing else."
+        val hintsLine = if (hints.isBlank()) "" else "\nContext: $hints"
+        val user = "App: $appName ($appPackage)$desc\nCategories: $categories$hintsLine"
+        return system to user
     }
 
     private fun parseResponse(raw: String, availableTabs: List<String>): CategorizationResult {

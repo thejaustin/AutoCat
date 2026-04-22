@@ -186,6 +186,7 @@ class PreferenceManager @Inject constructor(
     // AutoCat: Local AI (on-device LLM / local server)
     val localEndpointEnabled = BoolPref("pref_localEndpointEnabled", false, {})
     val localEndpointUrl = StringPref("pref_localEndpointUrl", "http://localhost:11434", {})
+    val localEndpointModelId = StringPref("pref_localEndpointModelId", "", {}) // blank = first available
     val localCustomModelPath = StringPref("pref_localCustomModelPath", "", {})
     val selectedLocalModelId = StringPref("pref_selectedLocalModelId", "", {})
 
