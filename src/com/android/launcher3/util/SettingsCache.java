@@ -148,7 +148,13 @@ public class SettingsCache extends ContentObserver {
     }
 
     private void registerUriAsync(Uri uri) {
-        UI_HELPER_EXECUTOR.execute(() -> mResolver.registerContentObserver(uri, false, this));
+        UI_HELPER_EXECUTOR.execute(() -> {
+            try {
+                mResolver.registerContentObserver(uri, false, this);
+            } catch (SecurityException e) {
+                Log.w("LC_SettingsCache", "Cannot register content observer for " + uri, e);
+            }
+        });
     }
 
     /**
@@ -161,18 +167,23 @@ public class SettingsCache extends ContentObserver {
     }
 
     private boolean updateValue(Uri keyUri, int defaultValue) {
-        String key = keyUri.getLastPathSegment();
-        boolean newVal;
-        if (keyUri.toString().startsWith(SYSTEM_URI_PREFIX)) {
-            newVal = Settings.System.getInt(mResolver, key, defaultValue) == 1;
-        } else if (keyUri.toString().startsWith(GLOBAL_URI_PREFIX)) {
-            newVal = Settings.Global.getInt(mResolver, key, defaultValue) == 1;
-        } else { // SETTING_SECURE
-            newVal = Settings.Secure.getInt(mResolver, key, defaultValue) == 1;
-        }
+        try {
+            String key = keyUri.getLastPathSegment();
+            boolean newVal;
+            if (keyUri.toString().startsWith(SYSTEM_URI_PREFIX)) {
+                newVal = Settings.System.getInt(mResolver, key, defaultValue) == 1;
+            } else if (keyUri.toString().startsWith(GLOBAL_URI_PREFIX)) {
+                newVal = Settings.Global.getInt(mResolver, key, defaultValue) == 1;
+            } else { // SETTING_SECURE
+                newVal = Settings.Secure.getInt(mResolver, key, defaultValue) == 1;
+            }
 
-        mKeyCache.put(keyUri, newVal);
-        return newVal;
+            mKeyCache.put(keyUri, newVal);
+            return newVal;
+        } catch (SecurityException e) {
+            Log.w("LC_SettingsCache", "Key not readable, assume false for " + keyUri, e);
+            return false;
+        }
     }
 
     /**

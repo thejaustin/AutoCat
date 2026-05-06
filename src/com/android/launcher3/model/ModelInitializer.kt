@@ -21,7 +21,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.LauncherApps
 import android.content.pm.LauncherApps.ArchiveCompatibilityParams
-import app.lawnchair.icons.LawnchairIconProvider
+import app.lawnchair.icons.AutoCatIconProvider
 import com.android.launcher3.BuildConfigs
 import com.android.launcher3.Flags
 import com.android.launcher3.InvariantDeviceProfile

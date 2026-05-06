@@ -94,7 +94,7 @@ import app.lawnchair.smartspace.provider.SmartspaceProvider;
 import app.lawnchair.theme.ThemeProvider;
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreferenceModelList;
 import app.lawnchair.ui.preferences.data.liveinfo.LiveInformationManager;
-import app.lawnchair.util.LawnchairWindowManagerProxy;
+import app.lawnchair.util.AutoCatWindowManagerProxy;
 import dagger.BindsInstance;
 
 /**
@@ -147,7 +147,7 @@ public interface LauncherBaseAppComponent {
 
     // Lawnchair-specific
     
-    LawnchairWindowManagerProxy getLWMP();
+    AutoCatWindowManagerProxy getLWMP();
     DeviceProfileOverrides getDPO();
     ThemeProvider getThemeProvider();
     SmartspaceProvider getSmartspaceProvider();

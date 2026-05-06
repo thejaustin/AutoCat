@@ -372,7 +372,8 @@ class SplitSelectDataHolder(var context: Context?) {
         if (initialPendingIntent != null) {
             return SPLIT_SINGLE_INTENT_FULLSCREEN
         }
-        throw IllegalStateException("Unidentified fullscreen launch type")
+        throw IllegalStateException("Unidentified fullscreen launch type: " +
+                "taskId=$initialTaskId, shortcut=$initialShortcut, pendingIntent=$initialPendingIntent")
     }
 
     data class SplitLaunchData(

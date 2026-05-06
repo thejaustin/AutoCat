@@ -107,10 +107,12 @@ public class DragPreviewProvider {
         if (mView instanceof BubbleTextView btv
                 && btv.getIconDisplay() == DISPLAY_SEARCH_RESULT_APP_ROW) {
             FastBitmapDrawable icon = ((BubbleTextView) mView).getIcon();
-            Drawable drawable = icon.getConstantState().newDrawable();
-            float xInset = (float) blurSizeOutline / (float) (width + blurSizeOutline);
-            float yInset = (float) blurSizeOutline / (float) (height + blurSizeOutline);
-            return new InsetDrawable(drawable, xInset / 2, yInset / 2, xInset / 2, yInset / 2);
+            if (icon != null && icon.getConstantState() != null) {
+                Drawable drawable = icon.getConstantState().newDrawable();
+                float xInset = (float) blurSizeOutline / (float) (width + blurSizeOutline);
+                float yInset = (float) blurSizeOutline / (float) (height + blurSizeOutline);
+                return new InsetDrawable(drawable, xInset / 2, yInset / 2, xInset / 2, yInset / 2);
+            }
         }
 
         Bitmap bitmap =
