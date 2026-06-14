@@ -8,6 +8,22 @@ import com.android.systemui.shared.recents.model.Task
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+/**
+ * High-level API for managing task lock states.
+ *
+ * This is a wrapper around [LawnchairLockedStateController] that provides a simpler interface
+ * for setting and checking if tasks are locked. It also maintains a local cache of locked apps
+ * for quick access.
+ *
+ * Usage:
+ * ```kotlin
+ * // Lock a task
+ * TaskUtilLockState.setTaskLockState(context, componentName, true, taskKey)
+ *
+ * // Check if a task is locked
+ * val isLocked = TaskUtilLockState.getTaskLockState(context, componentName, taskKey)
+ * ```
+ */
 object TaskUtilLockState {
     private val mLockedApps: MutableList<String> = ArrayList()
     private val mIoExecutor: ExecutorService = Executors.newSingleThreadExecutor()

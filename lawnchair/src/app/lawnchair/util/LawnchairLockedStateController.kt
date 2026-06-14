@@ -1,3 +1,5 @@
+package app.lawnchair.util
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
@@ -8,6 +10,24 @@ import android.provider.Settings
 import android.util.Log
 import com.android.systemui.shared.system.ActivityManagerWrapper
 
+/**
+ * Manages task lock states for recent apps.
+ *
+ * Task locking allows users to prevent specific apps from being cleared from the recents menu.
+ * This controller maintains the lock state across user sessions and handles cleanup when apps
+ * are uninstalled.
+ *
+ * Architecture:
+ * - Storage: Uses SharedPreferences to persist lock states
+ * - Format: Stores task identifiers with user IDs in the format "{packageName/...#userId}"
+ * - Cleanup: Automatically removes lock states when packages are uninstalled via PackageUpdatedTask
+ * - Thread safety: All write operations are executed on a background handler thread
+ *
+ * Related components:
+ * - [TaskUtilLockState]: High-level API for setting/getting task lock states
+ * - [RecentHelper]: Uses lock state to determine which tasks to clear
+ * - [PackageUpdatedTask]: Calls removeTaskLockState on package uninstall
+ */
 @SuppressLint("StaticFieldLeak")
 object LawnchairLockedStateController {
 

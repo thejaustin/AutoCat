@@ -10,8 +10,19 @@ import com.android.quickstep.views.RecentsView
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.system.ActivityManagerWrapper
 
+/**
+ * Helper utilities for managing recent tasks.
+ */
 object RecentHelper {
 
+    /**
+     * Clears all task stacks from recent apps, except:
+     * - Locked apps (via [isAppLocked])
+     * - The launcher itself
+     * - Tasks with locked state (via [TaskUtilLockState])
+     *
+     * If an error occurs during selective removal, falls back to removing all recent tasks.
+     */
     fun clearAllTaskStacks(context: Context) {
         try {
             val launcher = context.launcher
@@ -29,17 +40,16 @@ object RecentHelper {
                         packageName = packageName?.replace("unknown", "")
                         if (!packageName.isNullOrEmpty()) {
                             packageName += "#" + UserHandle.getUserId(taskId)
-                            val taskLockState = taskKey.baseIntent.component?.let {
-                                TaskUtilLockState.getTaskLockState(
-                                    context,
-                                    it,
-                                    taskKey,
-                                )
-                            }
-                            if (!isAppLocked(packageName, context) &&
+                            val component = taskKey.baseIntent.component
+                            val taskLockState = component?.let {
+                                TaskUtilLockState.getTaskLockState(context, it, taskKey)
+                            } ?: false
+
+                            val shouldRemoveTask = !isAppLocked(packageName, context) &&
                                 !packageName.contains(BuildConfig.APPLICATION_ID) &&
-                                !taskLockState!!
-                            ) {
+                                !taskLockState
+
+                            if (shouldRemoveTask) {
                                 ActivityManagerWrapper.getInstance().removeTask(taskId)
                             }
                         }
