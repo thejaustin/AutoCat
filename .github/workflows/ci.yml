@@ -1,4 +1,4 @@
-name: CI
+name: Lawnchair CI
 
 on:
   push:
@@ -28,167 +28,135 @@ on:
 
 jobs:
   build-debug-apk:
-    permissions:
-      contents: read
+    strategy:
+      matrix:
+        build-variant: [ assembleLawnWithQuickstepNightlyRelease, assembleLawnWithQuickstepGithubDebug, assembleLawnWithQuickstepPlayDebug ]
     runs-on: ubuntu-latest
-    continue-on-error: true
-    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           submodules: true
-          fetch-depth: 1
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: ${{ runner.os }}-ccache
-          max-size: 2G
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
         with:
           distribution: 'zulu'
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@39fdf500b386709a9a4a769f717dad447ac345b9
         with:
           cache-encryption-key: Da25KUVSE5jbGds2zXmfXw==
-          cache-read-only: ${{ github.ref != 'refs/heads/15-dev' }}
       - name: Write sign info
+        if: github.repository_owner == 'LawnchairLauncher'
         run: |
           if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
             echo storePassword='${{ secrets.KEYSTORE_PASSWORD }}' >> keystore.properties
             echo keyAlias='${{ secrets.KEY_ALIAS }}' >> keystore.properties
             echo keyPassword='${{ secrets.KEY_PASSWORD }}' >> keystore.properties
             echo storeFile='${{ github.workspace }}/key.jks' >> keystore.properties
-            echo "${{ secrets.KEYSTORE }}" | base64 --decode > ${{ github.workspace }}/key.jks
+            echo ${{ secrets.KEYSTORE }} | base64 --decode > ${{ github.workspace }}/key.jks
           fi
-      - name: Build debug APK
-        run: |
-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
-          ./gradlew assembleLawnWithQuickstepGithubDebug --parallel --build-cache
-        env:
-          CCACHE_DIR: ${{ github.workspace }}/.ccache
+      - name: Build APK
+        run: ./gradlew ${{ matrix.build-variant }}
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
-          name: Debug APK
+          name: ${{ matrix.build-variant }}
           path: build/outputs/apk/**/*.apk
 
   check-style:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           submodules: true
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
         with:
           distribution: 'zulu'
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v5
-        with:
-          cache-read-only: true
-      - run: ./gradlew spotlessCheck --no-configuration-cache
+      - uses: gradle/actions/setup-gradle@39fdf500b386709a9a4a769f717dad447ac345b9
+      - run: ./gradlew spotlessCheck
 
-  autocat-release:
+  send-notifications:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'thejaustin' && github.event_name == 'push' && github.ref == 'refs/heads/15-dev'
+    if: github.repository_owner == 'LawnchairLauncher'
     needs: build-debug-apk
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: true
+          fetch-depth: 0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.x'
+      - name: Install Python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install gitpython requests
+      - name: Download artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: assembleLawnWith*
+          merge-multiple: true
+          path: artifacts/debug-apk
+      - name: Send notifications
+        run: python ci.py
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_CI_BOT_TOKEN }}
+          TELEGRAM_CI_CHANNEL_ID: ${{ secrets.TELEGRAM_CI_CHANNEL_ID }}
+          TELEGRAM_TEAM_GROUP_ID: ${{ secrets.NOTIFY_CHANNEL_ID }}
+          ARTIFACT_DIRECTORY: artifacts/debug-apk
+          GITHUB_REF: ${{ github.ref }}
+          ACTION: internal_notifications
+
+  crowdin-auto-merge:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'lawnchair-bot' && github.event.pull_request.title == 'New Crowdin translations by Github Action'
+    needs: build-debug-apk
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.LAWNCHAIR_BOT_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          gh pr comment $PR_URL --body "No issues found, auto-merging the Crowdin pull request."
+          gh pr merge $PR_URL --auto --squash --delete-branch
+
+  # Status check that is required in branch protection rules.
+  final-status:
+    needs:
+      - build-debug-apk
+      - check-style
+    runs-on: ubuntu-slim
+    if: always()
+    steps:
+      - name: Check
+        run: |
+          results=$(tr -d '\n' <<< '${{ toJSON(needs.*.result) }}')
+          if ! grep -q -v -E '(failure|cancelled)' <<< "$results"; then
+            echo "One or more required jobs failed"
+            exit 1
+          fi
+          echo "All required jobs completed successfully."
+
+  nightly-release:
+    runs-on: ubuntu-latest
+    # Lawnchair-TODO(Configuration): Don't publish nightly build until Android 8.0, 8.1 is stable, and (probably) stable to match Lawnchair 15 Beta 1 or 2
+    if: false
+    # if: github.repository_owner == 'LawnchairLauncher' && github.event_name == 'push' && github.ref == 'refs/heads/15-dev'
+    needs: final-status
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          fetch-depth: 10
-          submodules: false
-      - uses: actions/download-artifact@v7
-        with:
-          name: Debug APK
-          path: apk-artifacts
-      - name: Prepare APK and version info
-        run: |
-          # Find the GitHub debug APK (installable variant)
-          APK_FILE=$(find apk-artifacts -name "*GithubDebug.apk" | head -1)
-          if [ -z "$APK_FILE" ]; then
-            echo "No GitHub Debug APK found, trying any debug APK"
-            APK_FILE=$(find apk-artifacts -name "*debug.apk" | head -1)
-          fi
-
-          # Version info
-          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          VERSION_TAG="v15.0.b1-autocat.${{ github.run_number }}"
-          APK_NAME="AutoCat-${VERSION_TAG}-${SHORT_SHA}.apk"
-          DEV_APK_NAME="AutoCat-dev-latest.apk"
-
-          # Copy APK with versioned name
-          cp "$APK_FILE" "./$APK_NAME"
-          cp "$APK_FILE" "./$DEV_APK_NAME"
-
-          # Export variables
-          echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
-          echo "DEV_APK_NAME=$DEV_APK_NAME" >> $GITHUB_ENV
-          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
-          echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
-      - name: Create versioned release
+          name: assembleLawnWithQuickstepNightlyRelease
+      # Note the # and () symbols are not supported in GitHub Release filenames, even manually
+      - name: Export APK_NAME for later use
+        run: echo "APK_NAME=Lawnchair.Debug.${{ github.ref_name }}.Nightly-CI_${{ github.run_number }}-$(echo ${{ github.sha }} | cut -c1-7).apk" >> $GITHUB_ENV
+      - name: Rename .apk file
+        run: mv "./lawnWithQuickstepNightly/release/"*.apk "./$APK_NAME"
+      - name: Delete release if exist then create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Create permanent versioned release
-          gh release create "$VERSION_TAG" "./$APK_NAME" \
-            --title "AutoCat $VERSION_TAG" \
-            --notes "**AutoCat Build #${{ github.run_number }}**
-
-            ### Version Info
-            - **Version**: $VERSION_TAG
-            - **Commit**: [\`$SHORT_SHA\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
-            - **Branch**: ${{ github.ref_name }}
-            - **Build Date**: $(date -u +'%Y-%m-%d %H:%M UTC')
-
-            ### Installation
-            1. Download \`$APK_NAME\` below
-            2. Enable 'Install from Unknown Sources' in Android settings
-            3. Install the APK
-
-            ### Changes in this build
-            $(git log -1 --pretty=format:'**%s**%n%n%b')
-
-            ### What's in AutoCat $VERSION_TAG
-            - **Base**: Lawnchair 15.0 Beta 1 (b1)
-            - **Features**: Room database foundation for app categorization
-            - **Infrastructure**: Development logs system, versioning
-
-            ---
-
-            📥 **[Download Latest](https://github.com/${{ github.repository }}/releases/tag/dev-latest)** | 📝 **[All Releases](https://github.com/${{ github.repository }}/releases)**"
-      - name: Update dev-latest rolling release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Delete old dev-latest
-          gh release view "dev-latest" && gh release delete "dev-latest" -y --cleanup-tag || true
-
-          # Create new dev-latest pointing to same build
-          gh release create "dev-latest" "./$DEV_APK_NAME" \
-            --prerelease \
-            --title "AutoCat Development Build (Latest)" \
-            --notes "**🔄 Rolling release - Always points to latest build**
-
-            Current version: **$VERSION_TAG** from commit [\`$SHORT_SHA\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
-
-            ### Quick Install
-            1. Download \`$DEV_APK_NAME\` below
-            2. Install on your Android device
-            3. Test and report issues
-
-            ### This Build
-            - **Build**: #${{ github.run_number }}
-            - **Date**: $(date -u +'%Y-%m-%d %H:%M UTC')
-
-            $(git log -1 --pretty=format:'**Changes**: %s')
-
-            ---
-
-            💡 **Want a specific version?** See [all versioned releases](https://github.com/${{ github.repository }}/releases)
-
-            ⚠️ **Development Build** - For testing only"
+          gh release view "nightly" && gh release delete "nightly" -y --cleanup-tag
+          gh release create "nightly" "./$APK_NAME" -p -t "Lawnchair Nightly" --generate-notes
