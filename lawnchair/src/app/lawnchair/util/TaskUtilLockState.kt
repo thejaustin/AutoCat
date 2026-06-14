@@ -1,6 +1,5 @@
 package app.lawnchair.util
 
-import LawnchairLockedStateController
 import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
