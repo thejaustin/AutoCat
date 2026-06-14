@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, AutoCat
+ * Copyright 2021, Lawnchair
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import app.lawnchair.font.FontCache
 import com.android.launcher3.InvariantDeviceProfile
-import com.android.launcher3.LauncherPrefs
+import com.android.launcher3.Utilities
 import java.util.concurrent.CopyOnWriteArraySet
 import org.json.JSONObject
 
 sealed class BasePreferenceManager(private val context: Context) : SharedPreferences.OnSharedPreferenceChangeListener {
-    val sp: SharedPreferences = LauncherPrefs.getPrefs(context)
+    val sp: SharedPreferences = Utilities.getPrefs(context)
     val prefsMap = mutableMapOf<String, BasePref<*>>()
 
     private var changedPrefs: MutableSet<BasePref<*>>? = null
@@ -280,6 +280,31 @@ sealed class BasePreferenceManager(private val context: Context) : SharedPrefere
         }
     }
 
+    inner class LongPref(
+        key: String,
+        override val defaultValue: Long,
+        primaryListener: ChangeListener? = null,
+    ) : BasePref<Long>(key, primaryListener) {
+        private var currentValue = 0L
+
+        init {
+            prefsMap[key] = this
+        }
+
+        override fun get(): Long {
+            if (!loaded) {
+                currentValue = sp.getLong(key, defaultValue)
+                loaded = true
+            }
+            return currentValue
+        }
+
+        override fun set(newValue: Long) {
+            currentValue = newValue
+            editSp { putLong(key, newValue) }
+        }
+    }
+
     inner class StringSetPref(
         key: String,
         override val defaultValue: Set<String>,
@@ -351,9 +376,7 @@ sealed class BasePreferenceManager(private val context: Context) : SharedPrefere
         override fun get() = HashMap(valueMap)
 
         override fun set(newValue: Map<K, V>) {
-            valueMap.clear()
-            valueMap.putAll(newValue)
-            saveChanges()
+            throw NotImplementedError()
         }
 
         open fun flattenKey(key: K) = key.toString()

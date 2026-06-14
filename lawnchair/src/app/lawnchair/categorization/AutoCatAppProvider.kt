@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import app.lawnchair.categorization.stages.LLMCategorizer
-import app.lawnchair.categorization.stages.MLCategorizer
 import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.tab.TabDatabase
 import java.util.concurrent.ConcurrentHashMap
@@ -27,9 +26,8 @@ import kotlinx.coroutines.withContext
 class AutoCatAppProvider(private val context: Context) {
 
     private val database by lazy { TabDatabase.getInstance(context) }
-    private val categoryDao by lazy { database.tabDao() }
+    private val categoryDao by lazy { database.categoryDao() }
     private val llmCategorizer by lazy { LLMCategorizer(context, categoryDao) }
-    private val mlCategorizer by lazy { MLCategorizer(context, categoryDao) }
     private val packageManager = context.packageManager
 
     private data class CategoryInfo(val tabName: String, val subCategory: String?)
@@ -75,7 +73,7 @@ class AutoCatAppProvider(private val context: Context) {
     private fun initializeCache() {
         scope.launch {
             try {
-                val appCategories = categoryDao.getAllAppTabs()
+                val appCategories = categoryDao.getAllAppCategories()
                 val newCache = appCategories.associate { appCategory ->
                     appCategory.packageName to CategoryInfo(appCategory.tabName, appCategory.subCategory)
                 }
@@ -174,40 +172,25 @@ class AutoCatAppProvider(private val context: Context) {
         // Map<TabName, MutableMap<SubCategory, MutableList<AppInfo>>>
         val categorizedApps = mutableMapOf<String, MutableMap<String, MutableList<AppInfo>>>()
         val uncategorizedApps = mutableListOf<AppInfo>()
-        val vaultApps = mutableListOf<AppInfo>()
 
         // Use cached categories (fast in-memory lookup)
         val cache = categoryCache.get()
         validApps.forEach { app ->
-            val wrapper = com.android.launcher3.util.ApplicationInfoWrapper(context, app.packageName, android.os.Process.myUserHandle())
-            val isArchived = wrapper.isArchived()
-            val isEnabled = wrapper.isEnabled()
+            val catInfo = app.packageName.let { cache[it] }
 
-            if (isArchived || !isEnabled) {
-                vaultApps.add(app)
+            if (catInfo != null) {
+                val subMap = categorizedApps.getOrPut(catInfo.tabName) { mutableMapOf() }
+                val subCatKey = catInfo.subCategory ?: ""
+                subMap.getOrPut(subCatKey) { mutableListOf() }.add(app)
             } else {
-                val catInfo = app.packageName.let { cache[it] }
-
-                if (catInfo != null) {
-                    val subMap = categorizedApps.getOrPut(catInfo.tabName) { mutableMapOf() }
-                    val subCatKey = catInfo.subCategory ?: ""
-                    subMap.getOrPut(subCatKey) { mutableListOf() }.add(app)
-                } else {
-                    uncategorizedApps.add(app)
-                }
+                uncategorizedApps.add(app)
             }
         }
 
         // Add uncategorized apps to "Other" tab if any exist
         if (uncategorizedApps.isNotEmpty()) {
-            val otherMap = categorizedApps.getOrPut(CategorizationConstants.UNCATEGORIZED_TAB) { mutableMapOf() }
+            val otherMap = categorizedApps.getOrPut("Other") { mutableMapOf() }
             otherMap.getOrPut("") { mutableListOf() }.addAll(uncategorizedApps)
-        }
-
-        // Add archived/frozen apps to Vault tab
-        if (vaultApps.isNotEmpty()) {
-            val vaultMap = categorizedApps.getOrPut(AppTabsController.TAB_VAULT) { mutableMapOf() }
-            vaultMap.getOrPut("") { mutableListOf() }.addAll(vaultApps)
         }
 
         // Sort tabs alphabetically, and sub-folders alphabetically
@@ -224,7 +207,7 @@ class AutoCatAppProvider(private val context: Context) {
      */
     suspend fun getTabColor(tabName: String): String? {
         return withContext(Dispatchers.IO) {
-            categoryDao.getCustomTabByName(tabName)?.colorHex
+            categoryDao.getCustomCategoryByName(tabName)?.colorHex
         }
     }
 
@@ -246,14 +229,8 @@ class AutoCatAppProvider(private val context: Context) {
                     description = null,
                 )
 
-                // Stage 1: LLM categorizer
-                val llmSuccess = llmCategorizer.categorize(appInfo)
-
-                // Stage 2: On-device ML categorizer (fallback when LLM fails or no key)
-                if (!llmSuccess) {
-                    mlCategorizer.categorize(appInfo)
-                }
-
+                // Categorize using LLMCategorizer
+                llmCategorizer.categorize(appInfo)
                 refreshCache()
                 Log.d(TAG, "Successfully categorized and cached new app: $packageName")
             } catch (e: Exception) {

@@ -20,8 +20,12 @@ __pycache__
 .vscode
 .fleet
 lawnWithQuickstep/release
-sentry.properties
+.env
 
-CLAUDE.md
-GEMINI.md
-QWEN.md
+# Local AI Assistant Context Files (device-only, never commit)
+AUTOCAT_CONTEXT.md
+AUTOCAT_KNOWLEDGE_BASE.md
+AUTOCAT_COMPLETE_HISTORY.md
+.claude/
+NEVER_BUILD_LOCALLY.md
+

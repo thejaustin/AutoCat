@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, AutoCat
+ * Copyright 2021, Lawnchair
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,24 +17,21 @@
 package app.lawnchair.ui.preferences.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
-import app.lawnchair.ui.util.addIf
 
 @Composable
 fun NavigationActionPreference(
     label: String,
+    destination: PreferenceRoute,
     modifier: Modifier = Modifier,
-    destination: PreferenceRoute? = null,
     subtitle: String? = null,
     icon: ImageVector? = null,
     endWidget: (@Composable () -> Unit)? = null,
@@ -42,27 +39,19 @@ fun NavigationActionPreference(
     val navController = LocalNavController.current
 
     PreferenceTemplate(
-        modifier = modifier.addIf(destination != null) {
-            clickable {
-                // LC-Note: We probably shouldn't do this, but IDE/Kotlin won't stop complaining even if there's addIf condition
-                destination?.let {
-                    navController.navigate(
-                        route = it,
-                    )
-                }
-            }
-        },
+        modifier = modifier.clickable { navController.navigate(route = destination) },
         title = { Text(text = label) },
         description = { subtitle?.let { Text(text = it) } },
-        startWidget = icon?.let {
+        startWidget = if (icon != null) {
             {
                 Icon(
-                    imageVector = it,
+                    imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        } else {
+            null
         },
         endWidget = endWidget,
     )

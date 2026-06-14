@@ -1,7 +1,10 @@
 package app.lawnchair.override
 
+import android.app.Activity
 import android.graphics.drawable.Drawable
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,8 +34,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import app.lawnchair.autoCatLauncher
 import app.lawnchair.gestures.type.GestureType
+import app.lawnchair.launcher
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.asState
@@ -147,16 +150,17 @@ fun CustomizeAppDialog(
     }
     val launcherAppState = LauncherAppState.getInstance(context)
 
-    // AutoCat-TODO: We use rememberLauncherForActivityResult, but it was broke so intent was used.
+    val request = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
+        onClose()
+    }
 
     val route = SelectIcon(componentKey.toString())
 
-    Log.d("CustomizeDialog", route.toString())
+    Log.d("TEST", route.toString())
 
     val openIconPicker = {
-        val intent = PreferenceActivity.createIntent(context, route)
-            .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
+        request.launch(PreferenceActivity.createIntent(context, route))
     }
 
     DisposableEffect(Unit) {
@@ -194,9 +198,11 @@ fun CustomizeAppDialog(
             )
         }
 
-        if (preferenceManager2.iconSwipeGestures.asState().value && context.autoCatLauncher.stateManager.state != LauncherState.ALL_APPS) {
+        if (preferenceManager2.iconSwipeGestures.asState().value && context.launcher.stateManager.state != LauncherState.ALL_APPS) {
             PreferenceGroup(heading = stringResource(R.string.gestures_label)) {
                 listOf(
+                    GestureType.SWIPE_UP,
+                    GestureType.SWIPE_DOWN,
                     GestureType.SWIPE_LEFT,
                     GestureType.SWIPE_RIGHT,
                 ).map { gestureType ->

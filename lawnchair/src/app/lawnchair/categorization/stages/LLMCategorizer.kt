@@ -9,9 +9,7 @@ import app.lawnchair.categorization.llm.ClaudeProvider
 import app.lawnchair.categorization.llm.ConfidenceCalibrator
 import app.lawnchair.categorization.llm.GoogleAIProvider
 import app.lawnchair.categorization.llm.LLMException
-import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.categorization.llm.LLMProvider
-import app.lawnchair.categorization.llm.LLMUtils
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.categorization.llm.ProviderCircuitBreaker
@@ -19,8 +17,6 @@ import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.tab.TabDao
 import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.preferences.PreferenceManager
-import io.sentry.Sentry
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
 import kotlin.math.pow
 import kotlinx.coroutines.async
@@ -74,7 +70,7 @@ class LLMCategorizer(
      */
     suspend fun categorize(appInfo: AppInfo): Boolean {
         // Get available custom categories
-        val customCategories = categoryDao.getVisibleCustomTabs()
+        val customCategories = categoryDao.getVisibleCustomCategories()
 
         if (customCategories.isEmpty()) {
             android.util.Log.d(TAG, "No custom categories available for LLM categorization")
@@ -95,7 +91,7 @@ class LLMCategorizer(
                 isUserOverride = false,
                 reasoning = "Based on ${hint.sampleCount} previous user corrections for similar apps",
             )
-            categoryDao.insertAppTab(appTab)
+            categoryDao.insertAppCategory(appTab)
 
             android.util.Log.d(
                 TAG,
@@ -105,7 +101,25 @@ class LLMCategorizer(
             return true
         }
 
-        val allProviders = getProvidersInOrder()
+        // Get user's preferred provider (or auto-selected best provider)
+        val prefManager = PreferenceManager.getInstance(context)
+        val preferredProviderId = if (adaptiveSelector.isAutoSelectEnabled()) {
+            val bestProvider = adaptiveSelector.getBestProvider()
+            if (bestProvider != null) {
+                android.util.Log.d(TAG, "Auto-selected provider: $bestProvider")
+                bestProvider
+            } else {
+                android.util.Log.d(TAG, "Auto-select enabled but no data; using manual preference")
+                prefManager.llmProviderPreference.get()
+            }
+        } else {
+            prefManager.llmProviderPreference.get()
+        }
+
+        // Order providers: Preferred/Auto-selected first, then others as fallback
+        val primary = providers[preferredProviderId] ?: googleProvider
+        val fallbacks = providers.values.filter { it.name != primary.name }
+        val allProviders = listOf(primary) + fallbacks
 
         for (provider in allProviders) {
             // Check circuit breaker first
@@ -123,28 +137,13 @@ class LLMCategorizer(
 
                 android.util.Log.d(TAG, "Trying provider: ${provider.name}")
 
-                // Generate hints from user corrections
-                val hints = learner.generateLLMHintText()
-
-                // Call LLM to categorize with retry logic
-                val result = LLMUtils.retryWithBackoff(
-                    maxRetries = MAX_RETRIES,
-                    initialDelayMs = INITIAL_RETRY_DELAY_MS,
-                    onRetry = { attempt, exception, nextDelayMs ->
-                        android.util.Log.w(
-                            TAG,
-                            "${provider.name} attempt $attempt failed for ${appInfo.packageName}, retrying in ${nextDelayMs}ms: ${exception.message}",
-                        )
-                    },
-                ) {
-                    provider.categorizeApp(
-                        appName = appInfo.label,
-                        appPackage = appInfo.packageName,
-                        appDescription = appInfo.description,
-                        availableTabs = tabNames,
-                        hints = hints,
-                    )
-                }
+                // Call LLM to categorize
+                val result = provider.categorizeApp(
+                    appName = appInfo.label,
+                    appPackage = appInfo.packageName,
+                    appDescription = appInfo.description,
+                    availableTabs = tabNames,
+                )
 
                 // Record success with circuit breaker
                 circuitBreaker.recordSuccess(provider.name)
@@ -175,7 +174,7 @@ class LLMCategorizer(
                     model = provider.getCurrentModel()?.id,
                 )
 
-                categoryDao.insertAppTab(appTab)
+                categoryDao.insertAppCategory(appTab)
 
                 android.util.Log.d(
                     TAG,
@@ -198,18 +197,6 @@ class LLMCategorizer(
         }
 
         android.util.Log.w(TAG, "All LLM providers failed for ${appInfo.packageName}")
-        LLMLogger.logWarning(
-            "LLMCategorizer",
-            "ALL_PROVIDERS_FAILED",
-            "All LLM providers exhausted for ${appInfo.packageName}",
-            mapOf("package" to appInfo.packageName),
-        )
-        if (Sentry.isEnabled()) {
-            Sentry.captureMessage(
-                "All LLM providers failed for ${appInfo.packageName}",
-                io.sentry.SentryLevel.WARNING,
-            )
-        }
         return false
     }
 
@@ -248,7 +235,7 @@ class LLMCategorizer(
         if (apps.isEmpty()) return 0
 
         // Get available custom categories
-        val customCategories = categoryDao.getVisibleCustomTabs()
+        val customCategories = categoryDao.getVisibleCustomCategories()
         if (customCategories.isEmpty()) {
             android.util.Log.d(TAG, "No custom categories available for LLM categorization")
             return 0
@@ -256,9 +243,25 @@ class LLMCategorizer(
 
         val tabNames = customCategories.map { it.name }
 
+        // Get user's preferred provider (or auto-selected best provider)
         val prefManager = PreferenceManager.getInstance(context)
-        val allProviders = getProvidersInOrder()
-        val primary = allProviders.first()
+        val preferredProviderId = if (adaptiveSelector.isAutoSelectEnabled()) {
+            val bestProvider = adaptiveSelector.getBestProvider()
+            if (bestProvider != null) {
+                android.util.Log.d(TAG, "Batch: Auto-selected provider: $bestProvider")
+                bestProvider
+            } else {
+                android.util.Log.d(TAG, "Batch: Auto-select enabled but no data; using manual preference")
+                prefManager.llmProviderPreference.get()
+            }
+        } else {
+            prefManager.llmProviderPreference.get()
+        }
+
+        // Order providers: Preferred/Auto-selected first, then others as fallback
+        val primary = providers[preferredProviderId] ?: googleProvider
+        val fallbacks = providers.values.filter { it.name != primary.name }
+        val allProviders = listOf(primary) + fallbacks
 
         // Get model info to calculate batch size
         val modelInfo = primary.getCurrentModel()
@@ -285,7 +288,7 @@ class LLMCategorizer(
         // Calculate total batches for progress tracking
         val batches = apps.chunked(batchSize)
         val totalBatches = batches.size
-        val currentBatchIndex = AtomicInteger(0)
+        var currentBatchIndex = 0
         val startTime = System.currentTimeMillis()
 
         android.util.Log.d(
@@ -295,15 +298,14 @@ class LLMCategorizer(
 
         // Process batches in parallel chunks to maximize throughput
         // while respecting rate limits
-        val parallelLimit = if (prefManager.autoCatDevMode.get()) 8 else PARALLEL_BATCH_LIMIT
-        val batchChunks = batches.chunked(parallelLimit)
+        val batchChunks = batches.chunked(PARALLEL_BATCH_LIMIT)
 
         for (batchChunk in batchChunks) {
             // Process multiple batches concurrently
             val results = coroutineScope {
                 batchChunk.map { batch ->
                     async {
-                        val batchIndex = currentBatchIndex.incrementAndGet()
+                        val batchIndex = ++currentBatchIndex
 
                         // Update progress at start of batch
                         onProgress?.invoke(
@@ -352,25 +354,22 @@ class LLMCategorizer(
 
                             // Retry with exponential backoff
                             val batchStartTime = System.currentTimeMillis()
-                            val hints = learner.generateLLMHintText()
-                            val apiResults = try {
-                                LLMUtils.retryWithBackoff(
-                                    maxRetries = MAX_RETRIES,
-                                    initialDelayMs = INITIAL_RETRY_DELAY_MS,
-                                    onRetry = { attempt, exception, nextDelayMs ->
-                                        android.util.Log.w(
-                                            TAG,
-                                            "Batch $batchIndex: ${provider.name} attempt $attempt failed, retrying in ${nextDelayMs}ms: ${exception.message}",
-                                        )
-                                    },
-                                ) {
-                                    val result = provider.categorizeAppBatch(batchInfo, tabNames, hints)
+                            val apiResults = retryWithBackoff(
+                                maxRetries = MAX_RETRIES,
+                                initialDelayMs = INITIAL_RETRY_DELAY_MS,
+                            ) {
+                                android.util.Log.d(
+                                    TAG,
+                                    "Batch $batchIndex/$totalBatches: Categorizing ${batch.size} apps with ${provider.name}",
+                                )
+                                try {
+                                    val result = provider.categorizeAppBatch(batchInfo, tabNames)
                                     circuitBreaker.recordSuccess(provider.name)
                                     result
+                                } catch (e: Exception) {
+                                    circuitBreaker.recordFailure(provider.name, e)
+                                    throw e // Re-throw to trigger retryWithBackoff's retry logic
                                 }
-                            } catch (e: Exception) {
-                                circuitBreaker.recordFailure(provider.name, e)
-                                null
                             }
                             val batchDuration = System.currentTimeMillis() - batchStartTime
 
@@ -394,12 +393,6 @@ class LLMCategorizer(
                                 TAG,
                                 "Batch $batchIndex: FAILED - All providers exhausted. Last error: $lastError",
                             )
-                            LLMLogger.logWarning(
-                                "LLMCategorizer",
-                                "BATCH_ALL_PROVIDERS_FAILED",
-                                "Batch $batchIndex exhausted all providers",
-                                mapOf("batchIndex" to batchIndex, "lastError" to (lastError ?: "unknown")),
-                            )
                         }
 
                         return@async Triple(null, null, null)
@@ -411,11 +404,11 @@ class LLMCategorizer(
             results.forEach { (apiResults, providerName, modelId) ->
                 totalApiCalls++
 
-                if (apiResults != null && providerName != null) {
+                if (apiResults != null) {
                     apiResults.forEach { (packageName, result) ->
                         val calibratedConfidence = ConfidenceCalibrator.calibrate(
                             result.confidence,
-                            providerName,
+                            providerName!!, // Assert non-null here
                         )
                         if (calibratedConfidence >= MIN_CONFIDENCE) {
                             val appTab = AppTab(
@@ -428,7 +421,7 @@ class LLMCategorizer(
                                 provider = providerName,
                                 model = modelId,
                             )
-                            categoryDao.insertAppTab(appTab)
+                            categoryDao.insertAppCategory(appTab)
                             categorizedCount++
 
                             android.util.Log.d(
@@ -504,6 +497,42 @@ class LLMCategorizer(
     }
 
     /**
+     * Retries an operation with exponential backoff.
+     *
+     * @param maxRetries Maximum number of retry attempts
+     * @param initialDelayMs Initial delay in milliseconds (doubles each retry)
+     * @param operation The operation to retry
+     * @return Result of the operation, or null if all retries failed
+     */
+    private suspend fun <T> retryWithBackoff(
+        maxRetries: Int,
+        initialDelayMs: Long,
+        operation: suspend () -> T,
+    ): T? {
+        var lastException: Exception? = null
+
+        repeat(maxRetries) { attempt ->
+            try {
+                return operation()
+            } catch (e: Exception) {
+                lastException = e
+                if (attempt < maxRetries - 1) {
+                    // True exponential backoff: delay = initialDelay * 2^attempt
+                    val currentDelay = (initialDelayMs * 2.0.pow(attempt.toDouble())).toLong()
+                    android.util.Log.w(
+                        TAG,
+                        "Attempt ${attempt + 1}/$maxRetries failed, retrying in ${currentDelay}ms: ${e.message}",
+                    )
+                    delay(currentDelay)
+                }
+            }
+        }
+
+        android.util.Log.e(TAG, "All $maxRetries retry attempts failed", lastException)
+        return null
+    }
+
+    /**
      * Categorizes apps sequentially (fallback method).
      */
     private suspend fun categorizeBatchSequential(apps: List<AppInfo>): Int {
@@ -551,29 +580,6 @@ class LLMCategorizer(
      */
     fun resetCircuitBreakers() {
         circuitBreaker.resetAll()
-    }
-
-    /**
-     * Get providers ordered by preference: auto-selected or manually preferred first, then fallbacks.
-     */
-    private suspend fun getProvidersInOrder(): List<LLMProvider> {
-        val prefManager = PreferenceManager.getInstance(context)
-        val preferredProviderId = if (adaptiveSelector.isAutoSelectEnabled()) {
-            val bestProvider = adaptiveSelector.getBestProvider()
-            if (bestProvider != null) {
-                android.util.Log.d(TAG, "Auto-selected provider: $bestProvider")
-                bestProvider
-            } else {
-                android.util.Log.d(TAG, "Auto-select enabled but no data; using manual preference")
-                prefManager.llmProviderPreference.get()
-            }
-        } else {
-            prefManager.llmProviderPreference.get()
-        }
-
-        val primary = providers[preferredProviderId] ?: googleProvider
-        val fallbacks = providers.values.filter { it.name != primary.name }
-        return listOf(primary) + fallbacks
     }
 
     companion object {

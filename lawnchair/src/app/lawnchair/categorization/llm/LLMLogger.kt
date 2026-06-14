@@ -1,7 +1,6 @@
 package app.lawnchair.categorization.llm
 
 import android.content.Context
-import io.sentry.Sentry
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -212,10 +211,9 @@ object LLMLogger {
         // Add to buffer
         logBuffer.offer(entry)
 
-        // Trim buffer if too large (amortized check to avoid O(N) on every insert)
-        // Only trim when we're significantly over the limit to reduce overhead
-        if (logBuffer.size > MAX_LOG_ENTRIES + 20) {
-            repeat(20) { logBuffer.poll() }
+        // Trim buffer if too large
+        while (logBuffer.size > MAX_LOG_ENTRIES) {
+            logBuffer.poll()
         }
 
         // Emit to flow
@@ -223,8 +221,8 @@ object LLMLogger {
             try {
                 _logFlow.emit(entry)
             } catch (e: Exception) {
+                // Ignore errors during logging to prevent crashes
                 android.util.Log.e("LLMLogger", "Failed to emit log", e)
-                if (Sentry.isEnabled()) Sentry.captureException(e)
             }
         }
 
@@ -233,30 +231,9 @@ object LLMLogger {
         val message = "${entry.operation}: ${entry.message}"
         when (entry.level) {
             LogLevel.DEBUG -> android.util.Log.d(tag, message, entry.exception)
-
             LogLevel.INFO -> android.util.Log.i(tag, message, entry.exception)
-
-            LogLevel.WARNING -> {
-                android.util.Log.w(tag, message, entry.exception)
-                if (Sentry.isEnabled()) {
-                    val breadcrumb = io.sentry.Breadcrumb("[$tag] $message").apply {
-                        level = io.sentry.SentryLevel.WARNING
-                        setData("operation", entry.operation)
-                        setData("provider", entry.provider)
-                        entry.details?.forEach { (k, v) -> setData(k, v.toString()) }
-                    }
-                    Sentry.addBreadcrumb(breadcrumb)
-                }
-            }
-
-            LogLevel.ERROR -> {
-                android.util.Log.e(tag, message, entry.exception)
-                if (entry.exception != null && Sentry.isEnabled()) {
-                    Sentry.captureException(entry.exception)
-                } else if (Sentry.isEnabled()) {
-                    Sentry.captureMessage("[$tag] $message", io.sentry.SentryLevel.ERROR)
-                }
-            }
+            LogLevel.WARNING -> android.util.Log.w(tag, message, entry.exception)
+            LogLevel.ERROR -> android.util.Log.e(tag, message, entry.exception)
         }
     }
 

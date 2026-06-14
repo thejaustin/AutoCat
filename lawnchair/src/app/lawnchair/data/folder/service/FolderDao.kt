@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface FolderDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFolder(folder: FolderInfoEntity): Long
+    suspend fun insertFolder(folder: FolderInfoEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFolderItems(items: List<FolderItemEntity>)
@@ -57,6 +57,20 @@ interface FolderDao {
 
     @Query("DELETE FROM Folders WHERE id = :folderId")
     suspend fun deleteFolder(folderId: Int)
+
+    @Query(
+        value = """
+                UPDATE Folders
+                SET coverMode = :coverMode, coverAppComponent = :coverAppComponent, timestamp = :timestamp
+                WHERE id = :folderId
+            """,
+    )
+    suspend fun updateFolderCover(
+        folderId: Int,
+        coverMode: Boolean,
+        coverAppComponent: String?,
+        timestamp: Long = System.currentTimeMillis(),
+    )
 
     @RawQuery
     suspend fun checkpoint(supportSQLiteQuery: SupportSQLiteQuery): Int

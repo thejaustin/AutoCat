@@ -13,6 +13,10 @@ data class FolderInfoEntity(
     val hide: Boolean = false,
     val rank: Int = 0,
     val timestamp: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = "NULL") val icon: String? = null,
+    // New fields for Folder Cover Mode
+    @ColumnInfo(defaultValue = "0") val coverMode: Boolean = false, // 0 for false
+    @ColumnInfo(defaultValue = "NULL") val coverAppComponent: String? = null, // ComponentKey.flattenToString()
 )
 
 @Entity(

@@ -8,23 +8,24 @@ import androidx.core.graphics.drawable.toBitmap
 import app.lawnchair.data.AppDatabase
 import app.lawnchair.data.wallpaper.Wallpaper
 import app.lawnchair.util.bitmapToByteArray
-import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.dagger.LauncherAppComponent
-import com.android.launcher3.dagger.LauncherAppSingleton
-import com.android.launcher3.util.DaggerSingletonObject
+import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
-import javax.inject.Inject
-import kotlinx.coroutines.runBlocking
 
-@LauncherAppSingleton
-class WallpaperService @Inject constructor(
-    @ApplicationContext private val context: Context,
-) : SafeCloseable {
+class WallpaperService(val context: Context) : SafeCloseable {
 
-    val dao = AppDatabase.Companion.INSTANCE.get(context).wallpaperDao()
+    private val database by lazy { AppDatabase.INSTANCE.get(context) }
+    val dao by lazy { database.wallpaperDao() }
+
+    // Cache for quick synchronous isEmpty check
+    @Volatile
+    private var cachedWallpapers: List<Wallpaper>? = null
+
+    private fun updateCache(wallpapers: List<Wallpaper>) {
+        cachedWallpapers = wallpapers
+    }
 
     suspend fun saveWallpaper(wallpaperManager: WallpaperManager) {
         try {
@@ -87,6 +88,8 @@ class WallpaperService @Inject constructor(
             )
             dao.insert(wallpaper)
         }
+        // Update cache after modifications
+        updateCache(dao.getTopWallpapers())
     }
 
     suspend fun updateWallpaperRank(selectedWallpaper: Wallpaper) {
@@ -100,11 +103,22 @@ class WallpaperService @Inject constructor(
                 dao.updateRank(wallpaper.rank)
             }
         }
+        // Update cache after modifications
+        updateCache(dao.getTopWallpapers())
     }
 
-    fun getTopWallpapers(): List<Wallpaper> = runBlocking {
+    suspend fun getTopWallpapers(): List<Wallpaper> {
         val wallpapers = dao.getTopWallpapers()
-        wallpapers.ifEmpty { emptyList() }
+        updateCache(wallpapers)
+        return wallpapers.ifEmpty { emptyList() }
+    }
+
+    /**
+     * Synchronous check if wallpaper list is empty.
+     * Uses cached value if available, otherwise returns true to be safe.
+     */
+    fun isWallpaperListEmpty(): Boolean {
+        return cachedWallpapers?.isEmpty() ?: true
     }
 
     private fun deleteWallpaperFile(imagePath: String) {
@@ -133,9 +147,10 @@ class WallpaperService @Inject constructor(
     }
 
     override fun close() {
+        TODO("Not yet implemented")
     }
     companion object {
         @JvmField
-        val INSTANCE = DaggerSingletonObject(LauncherAppComponent::getWallpaperService)
+        val INSTANCE = MainThreadInitializedObject(::WallpaperService)
     }
 }

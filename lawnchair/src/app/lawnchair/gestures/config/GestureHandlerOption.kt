@@ -27,11 +27,11 @@ sealed class GestureHandlerOption(
     data object Sleep : Simple(GestureHandlerConfig.Sleep)
     data object Recents : Simple(GestureHandlerConfig.Recents)
     data object OpenNotifications : Simple(GestureHandlerConfig.OpenNotifications)
-    data object OpenQuickSettings : Simple(GestureHandlerConfig.OpenQuickSettings)
     data object OpenAppDrawer : Simple(GestureHandlerConfig.OpenAppDrawer)
     data object OpenAppSearch : Simple(GestureHandlerConfig.OpenAppSearch)
     data object OpenSearch : Simple(GestureHandlerConfig.OpenSearch)
     data object OpenAssistant : Simple(GestureHandlerConfig.OpenAssistant)
+    data object OpenFolder : Simple(GestureHandlerConfig.OpenFolder)
 
     data object OpenApp : GestureHandlerOption(
         R.string.gesture_handler_open_app_option,

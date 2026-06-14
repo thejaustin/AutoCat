@@ -128,7 +128,7 @@ class UserCorrectionLearner(
      */
     suspend fun analyzeAccuracy(): AccuracyStats = withContext(Dispatchers.IO) {
         val userOverrides = categoryDao.getUserOverriddenApps()
-        val allCategorizations = categoryDao.getAllAppTabs()
+        val allCategorizations = categoryDao.getAllAppCategories()
 
         val totalCategorizations = allCategorizations.size
         val totalOverrides = userOverrides.size

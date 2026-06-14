@@ -38,7 +38,7 @@ class BuiltInCategorizer(
             isUserOverride = false,
         )
 
-        categoryDao.insertAppTab(appCategory)
+        categoryDao.insertAppCategory(appCategory)
         return true
     }
 
@@ -68,7 +68,7 @@ class BuiltInCategorizer(
 
         // Batch insert all categorized apps in a single transaction
         if (appTabs.isNotEmpty()) {
-            categoryDao.insertAppTabs(appTabs)
+            categoryDao.insertAppCategories(appTabs)
         }
 
         return appTabs.size

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, AutoCat
+ * Copyright 2021, Lawnchair
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import app.lawnchair.ui.preferences.navigation.PreferenceNavigation
 import app.lawnchair.ui.preferences.navigation.PreferenceRootRoute
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
 import app.lawnchair.ui.preferences.navigation.Root
+import app.lawnchair.ui.preferences.navigation.SelectApp
 import app.lawnchair.ui.preferences.navigation.SelectIcon
 import app.lawnchair.ui.util.ProvideBottomSheetHandler
 import app.lawnchair.util.ProvideLifecycleState
@@ -67,6 +68,8 @@ val LocalIsExpandedScreen = compositionLocalOf { false }
 val twoPaneBlacklist = setOf(
     IconPicker::class,
     SelectIcon::class,
+    // SelectFolderIcon::class, // TODO: Implement folder icon selection
+    SelectApp::class,
 )
 
 @Composable

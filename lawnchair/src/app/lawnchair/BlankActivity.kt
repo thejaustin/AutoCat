@@ -2,6 +2,7 @@ package app.lawnchair
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -15,29 +16,34 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.core.os.bundleOf
-import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.theme.EdgeToEdge
+import app.lawnchair.ui.theme.LawnchairTheme
 import app.lawnchair.util.unsafeLazy
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 class BlankActivity : ComponentActivity() {
 
-    private val resultReceiver by unsafeLazy { intent.getParcelableExtra<ResultReceiver>("callback")!! }
+    private val resultReceiver by unsafeLazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("callback", ResultReceiver::class.java)!!
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra<ResultReceiver>("callback")!!
+        }
+    }
     private var resultSent = false
     private var firstResume = true
     private var targetStarted = false
 
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -46,7 +52,7 @@ class BlankActivity : ComponentActivity() {
             return
         }
         setContent {
-            AutoCatTheme {
+            LawnchairTheme {
                 EdgeToEdge()
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -55,18 +61,12 @@ class BlankActivity : ComponentActivity() {
                     AlertDialog(
                         onDismissRequest = { if (!targetStarted) finish() },
                         confirmButton = {
-                            Button(
-                                onClick = { startTargetActivity() },
-                                shapes = ButtonDefaults.shapes(),
-                            ) {
+                            Button(onClick = { startTargetActivity() }) {
                                 Text(text = intent.getStringExtra("positiveButton")!!)
                             }
                         },
                         dismissButton = {
-                            OutlinedButton(
-                                onClick = { finish() },
-                                shapes = ButtonDefaults.shapes(),
-                            ) {
+                            OutlinedButton(onClick = { finish() }) {
                                 Text(text = stringResource(id = android.R.string.cancel))
                             }
                         },
@@ -95,14 +95,20 @@ class BlankActivity : ComponentActivity() {
     private fun startTargetActivity() {
         when {
             intent.hasExtra("intent") -> {
+                val targetIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra("intent", Intent::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra("intent")
+                }
                 if (intent.hasExtra("dialogTitle")) {
-                    startActivity(intent.getParcelableExtra("intent"))
+                    startActivity(targetIntent)
                 } else {
                     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                         resultReceiver.send(it.resultCode, it.data?.extras)
                         resultSent = true
                         finish()
-                    }.launch(requireNotNull(intent.getParcelableExtra("intent")))
+                    }.launch(requireNotNull(targetIntent))
                 }
             }
 

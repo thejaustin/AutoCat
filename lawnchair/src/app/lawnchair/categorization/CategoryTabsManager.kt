@@ -16,7 +16,7 @@ import kotlinx.coroutines.withContext
 class CategoryTabsManager(private val context: Context) {
 
     private val database by lazy { TabDatabase.getInstance(context) }
-    private val categoryDao by lazy { database.tabDao() }
+    private val categoryDao by lazy { database.categoryDao() }
     private val prefs by lazy { PreferenceManager.getInstance(context) }
 
     /**
@@ -50,19 +50,9 @@ class CategoryTabsManager(private val context: Context) {
     suspend fun getTabs(hasWorkApps: Boolean): List<TabInfo> {
         val tabs = mutableListOf<TabInfo>()
 
-        // Add "Discovery" tab at the beginning
-        tabs.add(
-            TabInfo(
-                id = "discovery",
-                name = "Discovery",
-                tabName = "DISCOVERY", // Special marker
-                colorHex = "#FF4081", // Pinkish color
-            ),
-        )
-
         // Get visible custom tabs from database (already sorted by sortOrder)
         val customCategoryTabs = withContext(Dispatchers.IO) {
-            categoryDao.getVisibleCustomTabs()
+            categoryDao.getVisibleCustomCategories()
         }
 
         android.util.Log.d(TAG, "getTabs: Found ${customCategoryTabs.size} visible custom tabs")
@@ -96,7 +86,7 @@ class CategoryTabsManager(private val context: Context) {
         tabs.add(
             TabInfo(
                 id = "other",
-                name = CategorizationConstants.UNCATEGORIZED_TAB,
+                name = "Other",
                 tabName = null,
                 colorHex = "#9E9E9E", // Gray color
                 isOtherTab = true,

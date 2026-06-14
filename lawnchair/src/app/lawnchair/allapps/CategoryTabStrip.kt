@@ -6,7 +6,6 @@ import android.animation.ValueAnimator
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.drawable.RippleDrawable
-import android.os.VibrationEffect
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.Menu
@@ -17,31 +16,23 @@ import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
-import android.widget.Toast
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
-import app.lawnchair.animation.M3ESpringConfig
-import app.lawnchair.appops.AppBatchOperationService
-import app.lawnchair.categorization.AppTabsController
-import app.lawnchair.data.tab.TabDatabase
+import app.lawnchair.categorization.CategoryTabsController
 import app.lawnchair.font.FontManager
 import app.lawnchair.theme.color.tokens.ColorStateListTokens
 import app.lawnchair.theme.drawable.DrawableTokens
 import com.android.launcher3.BaseActivity
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.R
-import com.android.launcher3.Utilities
-import com.android.launcher3.pageindicators.Direction
 import com.android.launcher3.pageindicators.PageIndicator
 import com.android.launcher3.util.Themes
-import com.android.launcher3.util.VibratorWrapper
 import com.android.launcher3.views.ActivityContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Scrollable tab strip for app tabs in app drawer.
@@ -59,7 +50,7 @@ class CategoryTabStrip @JvmOverloads constructor(
     }
 
     private val tabContainer: LinearLayout
-    private val categoryController = AppTabsController.getInstance(context)
+    private val categoryController = CategoryTabsController.getInstance(context)
     private val fontManager = FontManager.INSTANCE.get(context)
 
     private var onActivePageChangedListener: OnActivePageChangedListener? = null
@@ -113,7 +104,7 @@ class CategoryTabStrip @JvmOverloads constructor(
                 }
             }
             launch {
-                categoryController.currentTabIndex.collect { index: Int ->
+                categoryController.currentTabIndex.collect { index ->
                     setActiveMarker(index)
                 }
             }
@@ -126,14 +117,14 @@ class CategoryTabStrip @JvmOverloads constructor(
     }
 
     /**
-     * Initialize tabs from AppTabsController.
+     * Initialize tabs from CategoryTabsController.
      */
     fun setupTabs() {
         tabContainer.removeAllViews()
         tabs.clear()
 
         val tabNames = categoryController.tabNames.value
-        tabNames.forEachIndexed { index: Int, name: String ->
+        tabNames.forEachIndexed { index, name ->
             val tab = createTab(name, index)
             tabs.add(tab)
             tabContainer.addView(tab)
@@ -176,8 +167,6 @@ class CategoryTabStrip @JvmOverloads constructor(
 
             // Click listener
             setOnClickListener {
-                // M3E: Haptic feedback on tab switch
-                VibratorWrapper.INSTANCE.get(context).vibrate(VibratorWrapper.EFFECT_CLICK)
                 setActiveMarker(index)
             }
 
@@ -190,14 +179,13 @@ class CategoryTabStrip @JvmOverloads constructor(
     }
 
     private fun showTabOptions(view: View, tabName: String) {
-        if (tabName == AppTabsController.TAB_ALL || tabName == AppTabsController.TAB_WORK) {
+        if (tabName == CategoryTabsController.TAB_ALL || tabName == CategoryTabsController.TAB_WORK) {
             return
         }
 
         val popup = PopupMenu(context, view)
         popup.menu.add(Menu.NONE, 1, 1, "Rename")
         popup.menu.add(Menu.NONE, 2, 2, "Delete")
-        popup.menu.add(Menu.NONE, 3, 3, context.getString(R.string.archive_all_label))
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -208,11 +196,6 @@ class CategoryTabStrip @JvmOverloads constructor(
 
                 2 -> {
                     showDeleteDialog(tabName)
-                    true
-                }
-
-                3 -> {
-                    showArchiveAllDialog(tabName)
                     true
                 }
 
@@ -251,115 +234,6 @@ class CategoryTabStrip @JvmOverloads constructor(
             .show()
     }
 
-    private fun showArchiveAllDialog(tabName: String) {
-        val scope = CoroutineScope(Dispatchers.Main + Job())
-        val service = AppBatchOperationService(context)
-        val tabDao = TabDatabase.getInstance(context).tabDao()
-
-        scope.launch {
-            val appTabs = withContext(Dispatchers.IO) {
-                tabDao.getAppsByTab(tabName)
-            }
-            val packageNames = appTabs.map { it.packageName }
-            val systemAppCount = service.countSystemApps(packageNames)
-            val archivableCount = packageNames.size - systemAppCount
-
-            if (archivableCount == 0) {
-                Toast.makeText(
-                    context,
-                    R.string.archive_app_system_error,
-                    Toast.LENGTH_SHORT,
-                ).show()
-                return@launch
-            }
-
-            AlertDialog.Builder(context)
-                .setTitle(context.getString(R.string.archive_all_dialog_title, tabName))
-                .setMessage(
-                    context.getString(
-                        R.string.archive_all_dialog_message,
-                        archivableCount,
-                        systemAppCount,
-                    ),
-                )
-                .setPositiveButton(R.string.archive_all_label) { _, _ ->
-                    executeArchiveAll(tabName, packageNames, service)
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-        }
-    }
-
-    private fun executeArchiveAll(
-        tabName: String,
-        packages: List<String>,
-        service: AppBatchOperationService,
-    ) {
-        val scope = CoroutineScope(Dispatchers.Main + Job())
-
-        // Show progress dialog
-        val progressDialog = AlertDialog.Builder(context)
-            .setTitle(R.string.archive_all_progress_title)
-            .setMessage(context.getString(R.string.archive_all_progress_message, "", 0, packages.size))
-            .setCancelable(false)
-            .show()
-
-        scope.launch {
-            val results = service.archiveApps(packages) { progress ->
-                scope.launch(Dispatchers.Main) {
-                    val appLabel = service.getAppLabel(progress.currentPackage)
-                    progressDialog.setMessage(
-                        context.getString(
-                            R.string.archive_all_progress_message,
-                            appLabel,
-                            progress.current,
-                            progress.total,
-                        ),
-                    )
-                }
-            }
-
-            progressDialog.dismiss()
-
-            val successCount = results.values.count { it is AppBatchOperationService.OperationResult.Success }
-            val skippedCount = results.values.count { it is AppBatchOperationService.OperationResult.Skipped }
-            val failedCount = results.values.count {
-                it is AppBatchOperationService.OperationResult.Failed ||
-                    it is AppBatchOperationService.OperationResult.RequiresUserConfirmation
-            }
-
-            Toast.makeText(
-                context,
-                context.getString(R.string.archive_all_complete, successCount, skippedCount, failedCount),
-                Toast.LENGTH_LONG,
-            ).show()
-
-            // For RequiresUserConfirmation results, offer to launch intents sequentially
-            val needsConfirmation = results.entries
-                .filter { it.value is AppBatchOperationService.OperationResult.RequiresUserConfirmation }
-                .map { it.key }
-
-            if (needsConfirmation.isNotEmpty()) {
-                AlertDialog.Builder(context)
-                    .setTitle(R.string.archive_all_requires_confirmation)
-                    .setMessage(
-                        context.getString(
-                            R.string.archive_all_dialog_message,
-                            needsConfirmation.size,
-                            0,
-                        ),
-                    )
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        needsConfirmation.forEach { pkg ->
-                            context.startActivity(service.createUninstallIntent(pkg))
-                        }
-                    }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-            }
-        }
-    }
-
     override fun setActiveMarker(activePage: Int) {
         if (activePage < 0 || activePage >= tabs.size) return
 
@@ -396,57 +270,43 @@ class CategoryTabStrip @JvmOverloads constructor(
      * Material 3 Expressive: Animate tab selection with spring physics
      */
     private fun animateTabSelection(tab: Button) {
-        // M3E: Expressive Spatial FAST for quick, bouncy tab selection
-        // Using official M3E parameters: stiffness 800, damping 0.6
-        val scaleX = SpringAnimation(tab, DynamicAnimation.SCALE_X, 1.12f).apply {
-            spring.stiffness = M3ESpringConfig.ExpressiveSpatial.FAST.stiffness // 800f
-            spring.dampingRatio = M3ESpringConfig.ExpressiveSpatial.FAST.dampingRatio // 0.6f
+        // Spring-based scale animation with overshoot for expressive feel
+        val scaleX = SpringAnimation(tab, DynamicAnimation.SCALE_X, 1.08f).apply {
+            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
+            spring.dampingRatio = SpringForce.DAMPING_RATIO_LOW_BOUNCY // Creates expressive bounce
         }
 
-        val scaleY = SpringAnimation(tab, DynamicAnimation.SCALE_Y, 1.12f).apply {
-            spring.stiffness = 800f // M3E Expressive Spatial FAST
-            spring.dampingRatio = 0.6f // More bounce than before
+        val scaleY = SpringAnimation(tab, DynamicAnimation.SCALE_Y, 1.08f).apply {
+            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
+            spring.dampingRatio = SpringForce.DAMPING_RATIO_LOW_BOUNCY
         }
 
         scaleX.start()
         scaleY.start()
 
-        // Enhanced elevation animation for depth
-        ObjectAnimator.ofFloat(
-            tab,
-            "elevation",
-            0f,
-            resources.getDimensionPixelSize(R.dimen.all_apps_header_pill_height) * 0.12f,
-        ).apply {
-            duration = 300
-            start()
-        }
+        // Subtle elevation animation for depth
+        tab.elevation = resources.getDimensionPixelSize(R.dimen.all_apps_header_pill_height) * 0.08f
     }
 
     /**
      * Material 3 Expressive: Animate tab deselection
      */
     private fun animateTabDeselection(tab: Button) {
-        // M3E: Expressive Spatial DEFAULT for smooth return
-        // Using official M3E parameters: stiffness 380, damping 0.8
         val scaleX = SpringAnimation(tab, DynamicAnimation.SCALE_X, 1.0f).apply {
-            spring.stiffness = M3ESpringConfig.ExpressiveSpatial.DEFAULT.stiffness // 380f
-            spring.dampingRatio = M3ESpringConfig.ExpressiveSpatial.DEFAULT.dampingRatio // 0.8f
+            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
+            spring.dampingRatio = SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY
         }
 
         val scaleY = SpringAnimation(tab, DynamicAnimation.SCALE_Y, 1.0f).apply {
-            spring.stiffness = 380f // M3E Expressive Spatial DEFAULT
-            spring.dampingRatio = 0.8f // Moderate bounce
+            spring.stiffness = SpringForce.STIFFNESS_MEDIUM
+            spring.dampingRatio = SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY
         }
 
         scaleX.start()
         scaleY.start()
 
-        // Animate elevation back to 0
-        ObjectAnimator.ofFloat(tab, "elevation", tab.elevation, 0f).apply {
-            duration = 200
-            start()
-        }
+        // Reset elevation
+        tab.elevation = 0f
     }
 
     fun setOnActivePageChangedListener(listener: OnActivePageChangedListener?) {
@@ -459,10 +319,6 @@ class CategoryTabStrip @JvmOverloads constructor(
 
     override fun setMarkersCount(numMarkers: Int) {
         // Tabs are set up via setupTabs() instead
-    }
-
-    override fun setArrowClickListener(listener: java.util.function.Consumer<Direction>?) {
-        // Not applicable for category tabs - no arrows needed
     }
 
     /**

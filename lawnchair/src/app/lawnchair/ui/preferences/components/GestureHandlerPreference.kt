@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -44,15 +42,14 @@ val options = listOf(
     GestureHandlerOption.Sleep,
     GestureHandlerOption.Recents,
     GestureHandlerOption.OpenNotifications,
-    GestureHandlerOption.OpenQuickSettings,
     GestureHandlerOption.OpenAppDrawer,
     GestureHandlerOption.OpenAppSearch,
     GestureHandlerOption.OpenSearch,
     GestureHandlerOption.OpenApp,
     GestureHandlerOption.OpenAssistant,
+    GestureHandlerOption.OpenFolder,
 )
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GestureHandlerPreference(
     adapter: PreferenceAdapter<GestureHandlerConfig>,
@@ -89,10 +86,7 @@ fun GestureHandlerPreference(
                 ModalBottomSheetContent(
                     title = { Text(label) },
                     buttons = {
-                        OutlinedButton(
-                            onClick = { bottomSheetHandler.hide() },
-                            shapes = ButtonDefaults.shapes(),
-                        ) {
+                        OutlinedButton(onClick = { bottomSheetHandler.hide() }) {
                             Text(text = stringResource(id = AndroidR.string.cancel))
                         }
                     },

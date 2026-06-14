@@ -1,37 +1,33 @@
 ﻿package app.lawnchair.data.folder.service
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.LauncherApps
 import android.util.Log
+import app.lawnchair.categorization.CategoryFolderSyncService
 import app.lawnchair.data.AppDatabase
 import app.lawnchair.data.Converters
 import app.lawnchair.data.folder.FolderInfoEntity
 import app.lawnchair.data.toEntity
 import com.android.launcher3.AppFilter
-import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.dagger.LauncherAppComponent
-import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.pm.UserCache
-import com.android.launcher3.util.DaggerSingletonObject
+import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
-@LauncherAppSingleton
-class FolderService @Inject constructor(
-    @ApplicationContext private val context: Context,
-) : SafeCloseable {
+class FolderService(val context: Context) : SafeCloseable {
 
-    private val folderDao = AppDatabase.INSTANCE.get(context).folderDao()
-    private val launcherApps = context.getSystemService(LauncherApps::class.java)
-    private val userCache = UserCache.INSTANCE.get(context)
-    private val appFilter = AppFilter(context)
+    private val database by lazy { AppDatabase.INSTANCE.get(context) }
+    private val folderDao by lazy { database.folderDao() }
+    private val launcherApps by lazy { context.getSystemService(LauncherApps::class.java) }
+    private val userCache by lazy { UserCache.INSTANCE.get(context) }
+    private val appFilter by lazy { AppFilter(context) }
     private val converters = Converters()
 
     fun getFoldersFlow(): Flow<List<FolderInfo>> {
@@ -42,24 +38,52 @@ class FolderService @Inject constructor(
         }
     }
 
-    suspend fun updateFolderWithItems(folderInfoId: Int, title: String, appInfos: List<AppInfo>) = withContext(Dispatchers.IO) {
+    suspend fun updateFolderWithItems(folderInfoId: Int, title: String, appInfos: List<AppInfo>, icon: String? = null) = withContext(Dispatchers.IO) {
         folderDao.insertFolderWithItems(
-            FolderInfoEntity(id = folderInfoId, title = title),
+            FolderInfoEntity(id = folderInfoId, title = title, icon = icon),
             appInfos.mapIndexed { index, appInfo ->
                 appInfo.toEntity(folderInfoId).copy(rank = index)
             }.toList(),
         )
+        // Bidirectional sync: Update categories when folder contents change
+        // TODO: Implement CategoryFolderSyncService
+        // CategoryFolderSyncService.getInstance(context).onFolderItemsChanged(
+        //     folderId = folderInfoId,
+        //     categoryName = title,
+        //     newAppPackages = appInfos.mapNotNull { it.componentName?.packageName },
+        // )
     }
 
-    suspend fun saveFolderInfo(folderInfo: FolderInfo): Long = withContext(Dispatchers.IO) {
-        folderDao.insertFolder(FolderInfoEntity(title = folderInfo.title.toString()))
+    suspend fun saveFolderInfo(folderInfo: FolderInfo) = withContext(Dispatchers.IO) {
+        folderDao.insertFolder(
+            FolderInfoEntity(
+                title = folderInfo.title.toString(),
+                icon = folderInfo.icon,
+                coverMode = folderInfo.coverMode,
+                coverAppComponent = folderInfo.coverApp?.flattenToString(),
+            ),
+        )
     }
 
     suspend fun updateFolderInfo(folderInfo: FolderInfo, hide: Boolean = false) = withContext(Dispatchers.IO) {
         folderDao.updateFolderInfo(folderInfo.id, folderInfo.title.toString(), hide)
     }
 
+    suspend fun updateFolderCover(folderId: Int, coverMode: Boolean, coverApp: ComponentName?) = withContext(Dispatchers.IO) {
+        folderDao.updateFolderCover(folderId, coverMode, coverApp?.flattenToString())
+    }
+
     suspend fun deleteFolderInfo(id: Int) = withContext(Dispatchers.IO) {
+        // Bidirectional sync: Notify when folder is deleted
+        // TODO: Implement CategoryFolderSyncService
+        // val folder = getFolderInfo(id, true)
+        // if (folder != null) {
+        //     CategoryFolderSyncService.getInstance(context).onFolderDeleted(
+        //         folderId = id,
+        //         categoryName = folder.title.toString(),
+        //         removeCategories = false, // Don't delete categories by default when folder is deleted
+        //     )
+        // }
         folderDao.deleteFolder(id)
     }
 
@@ -75,13 +99,17 @@ class FolderService @Inject constructor(
                 // if no id, launcher automatically creates an id for this
                 if (hasId) id = folderWithItems.folder.id
                 title = folderWithItems.folder.title
+                icon = folderWithItems.folder.icon
+                // New fields for Folder Cover Mode
+                coverMode = folderWithItems.folder.coverMode
+                coverApp = folderWithItems.folder.coverAppComponent?.let { ComponentName.unflattenFromString(it) }
             }
 
             folderWithItems.items.sortedBy { it.rank }.forEach { itemEntity ->
                 // Consider caching toItemInfo results if componentKey lookups are slow
                 // and items don't change frequently without folder data changing
                 toItemInfo(itemEntity.componentKey)?.let { appInfo ->
-                    domainFolderInfo.add(appInfo)
+                    domainFolderInfo.add(appInfo, false)
                 }
             }
             domainFolderInfo
@@ -92,9 +120,9 @@ class FolderService @Inject constructor(
     }
 
     private fun toItemInfo(componentKey: String?): AppInfo? {
-        if (launcherApps != null) {
+        launcherApps?.let { service ->
             return userCache.userProfiles.asSequence()
-                .flatMap { launcherApps.getActivityList(null, it) }
+                .flatMap { service.getActivityList(null, it) }
                 .filter { appFilter.shouldShowApp(it.componentName) }
                 .map { AppInfo(context, it, it.user) }
                 .filter { converters.fromComponentKey(it.componentKey) == componentKey }
@@ -103,7 +131,7 @@ class FolderService @Inject constructor(
         return null
     }
 
-    suspend fun getAllFolders(): List<FolderInfo> = withContext(Dispatchers.Main) {
+    suspend fun getAllFolders(): List<FolderInfo> = withContext(Dispatchers.IO) {
         try {
             val folderEntities = folderDao.getAllFolders().firstOrNull() ?: emptyList()
             folderEntities.mapNotNull { folderEntity ->
@@ -116,11 +144,11 @@ class FolderService @Inject constructor(
     }
 
     override fun close() {
-        // No resources to release
+        TODO("Not yet implemented")
     }
 
     companion object {
         @JvmField
-        val INSTANCE = DaggerSingletonObject(LauncherAppComponent::getFolderService)
+        val INSTANCE = MainThreadInitializedObject(::FolderService)
     }
 }

@@ -9,7 +9,6 @@ import app.lawnchair.gestures.handlers.OpenAppSearchGestureHandler
 import app.lawnchair.gestures.handlers.OpenAppTarget
 import app.lawnchair.gestures.handlers.OpenAssistantHandler
 import app.lawnchair.gestures.handlers.OpenNotificationsHandler
-import app.lawnchair.gestures.handlers.OpenQuickSettingsHandler
 import app.lawnchair.gestures.handlers.OpenSearchGestureHandler
 import app.lawnchair.gestures.handlers.RecentsGestureHandler
 import app.lawnchair.gestures.handlers.SleepGestureHandler
@@ -52,11 +51,6 @@ sealed class GestureHandlerConfig {
     data object OpenNotifications : Simple(R.string.gesture_handler_open_notifications, ::OpenNotificationsHandler)
 
     @Serializable
-    @SerialName("openQuickSettings")
-    data object OpenQuickSettings :
-        Simple(R.string.gesture_handler_open_quick_settings, ::OpenQuickSettingsHandler)
-
-    @Serializable
     @SerialName("openAppDrawer")
     data object OpenAppDrawer : Simple(R.string.gesture_handler_open_app_drawer, ::OpenAppDrawerGestureHandler)
 
@@ -71,6 +65,14 @@ sealed class GestureHandlerConfig {
     @Serializable
     @SerialName("openAssistant")
     data object OpenAssistant : Simple(R.string.gesture_handler_open_assistant, ::OpenAssistantHandler)
+
+    @Serializable
+    @SerialName("openFolder")
+    data object OpenFolder : Simple(R.string.gesture_handler_open_folder, { context ->
+        // This handler needs specific context (the folder info) which isn't available in the generic factory.
+        // However, we can create a generic handler that looks for the folder info in the triggering view's tag.
+        app.lawnchair.gestures.handlers.OpenFolderGestureHandler(context)
+    })
 
     @Serializable
     @SerialName("openApp")

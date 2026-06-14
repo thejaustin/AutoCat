@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, AutoCat
+ * Copyright 2021, Lawnchair
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,8 +49,10 @@ import com.android.launcher3.settings.SettingsActivity.EXTRA_FRAGMENT_ARGS
 import com.android.launcher3.settings.SettingsActivity.EXTRA_FRAGMENT_HIGHLIGHT_KEY
 import com.android.launcher3.util.SettingsCache
 import com.android.launcher3.util.SettingsCache.NOTIFICATION_BADGING_URI
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.withContext
 
 @Composable
 fun NotificationDotsPreference(
@@ -165,13 +168,14 @@ fun isNotificationServiceEnabled(context: Context): Boolean {
 fun notificationServiceEnabled(): Boolean {
     val context = LocalContext.current
 
-    val enabledState = remember { mutableStateOf(isNotificationServiceEnabled(context)) }
+    val enabledState = remember { mutableStateOf(false) }
     val resumed = lifecycleState().isAtLeast(Lifecycle.State.RESUMED)
 
-    if (resumed) {
-        DisposableEffect(null) {
-            enabledState.value = isNotificationServiceEnabled(context)
-            onDispose { }
+    LaunchedEffect(resumed) {
+        if (resumed) {
+            withContext(Dispatchers.IO) {
+                enabledState.value = isNotificationServiceEnabled(context)
+            }
         }
     }
 

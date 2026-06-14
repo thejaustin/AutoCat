@@ -40,26 +40,76 @@ class GoogleAIProvider(
     }
 
     private val effectiveApiKey: String
-        get() = LLMProviderUtils.resolveApiKey(
-            constructorKey = apiKey,
-            context = context,
-            prefKeyGetter = { it.llmGoogleAIKey.get() },
-            envVarName = "GOOGLE_AI_API_KEY",
-            tag = TAG,
-            providerName = "Google AI",
-        )
+        get() {
+            // Priority: constructor param > user preference > environment variable
+            val userKey = apiKey ?: PreferenceManager.getInstance(context).llmGoogleAIKey.get()
+            val envKey = System.getenv("GOOGLE_AI_API_KEY") ?: ""
+            val finalKey = when {
+                !userKey.isNullOrEmpty() -> userKey
+                envKey.isNotEmpty() -> envKey
+                else -> ""
+            }
+            android.util.Log.d(
+                TAG,
+                "Google AI API key status: ${if (finalKey.isEmpty()) {
+                    "NOT SET"
+                } else {
+                    "SET (length: ${finalKey.length}, source: ${
+                        when {
+                            !userKey.isNullOrEmpty() -> "user pref"
+                            envKey.isNotEmpty() -> "env var"
+                            else -> "none"
+                        }
+                    })"
+                }}",
+            )
+            return finalKey
+        }
 
+    /**
+     * Gets the effective model to use, with fallback handling
+     */
     private val effectiveModel: String
-        get() = LLMProviderUtils.resolveModel(
-            context = context,
-            providerId = "google_ai",
-            prefModelGetter = { it.llmGoogleAIModel.get() },
-            defaultModel = DEFAULT_MODEL,
-            tag = TAG,
-        )
+        get() {
+            // Try to get user's preferred model from preferences
+            val prefs = PreferenceManager.getInstance(context)
+            val preferredModel = try {
+                prefs.llmGoogleAIModel.get()
+            } catch (e: Exception) {
+                // Preference might not exist yet
+                android.util.Log.w(TAG, "Could not read llmGoogleAIModel preference: ${e.message}")
+                null
+            }
 
-    /** Shared HTTP client from factory for efficient connection pooling. */
-    private val httpClient by lazy { HttpClientFactory.defaultClient }
+            // Check if preferred model is available
+            val model = if (!preferredModel.isNullOrEmpty() &&
+                ModelRegistry.isModelAvailable("google_ai", preferredModel)
+            ) {
+                preferredModel
+            } else {
+                // Fall back to registry's recommended model
+                val fallback = ModelRegistry.getFallbackModel("google_ai", preferredModel ?: "")
+                fallback?.id ?: DEFAULT_MODEL
+            }
+
+            android.util.Log.d(TAG, "Using model: $model")
+            return model
+        }
+
+    /**
+     * Shared OkHttp client with connection pooling for efficient HTTP requests.
+     * - Connection pool: 5 connections kept alive for 5 minutes
+     * - Reduces TCP handshake overhead on repeated API calls
+     * - 40-60% reduction in API latency compared to HttpURLConnection
+     */
+    private val httpClient by lazy {
+        OkHttpClient.Builder()
+            .connectionPool(ConnectionPool(5, 5, TimeUnit.MINUTES))
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build()
+    }
 
     override suspend fun isAvailable(): Boolean {
         // Check if API key is configured
@@ -155,7 +205,6 @@ class GoogleAIProvider(
         appPackage: String,
         appDescription: String?,
         availableTabs: List<String>,
-        hints: String,
     ): CategorizationResult = withContext(Dispatchers.IO) {
         try {
             LLMLogger.logDebug(
@@ -168,7 +217,7 @@ class GoogleAIProvider(
                 ),
             )
 
-            val prompt = buildPrompt(appName, appPackage, appDescription, availableTabs, hints)
+            val prompt = buildPrompt(appName, appPackage, appDescription, availableTabs)
             val response = callGeminiAPIWithFallback(prompt)
             val result = parseResponse(response, availableTabs)
 
@@ -200,7 +249,6 @@ class GoogleAIProvider(
     override suspend fun categorizeAppBatch(
         apps: List<AppBatchInfo>,
         availableTabs: List<String>,
-        hints: String,
     ): Map<String, CategorizationResult> = withContext(Dispatchers.IO) {
         try {
             LLMLogger.logDebug(
@@ -213,7 +261,7 @@ class GoogleAIProvider(
                 ),
             )
 
-            val prompt = buildBatchPrompt(apps, availableTabs, hints)
+            val prompt = buildBatchPrompt(apps, availableTabs)
             val response = callGeminiAPIWithFallback(prompt)
             val results = parseBatchResponse(response, apps, availableTabs)
 
@@ -248,7 +296,6 @@ class GoogleAIProvider(
                         appPackage = app.packageName,
                         appDescription = app.appDescription,
                         availableTabs = availableTabs,
-                        hints = hints,
                     )
                     results[app.packageName] = result
                 } catch (e: Exception) {
@@ -305,6 +352,7 @@ class GoogleAIProvider(
                 error = e,
                 context = mapOf(
                     "appsCount" to installedApps.size,
+                    "maxSuggestions" to maxSuggestions,
                 ),
             )
             throw LLMException("Google AI category suggestion failed: ${e.message}", e)
@@ -456,7 +504,6 @@ class GoogleAIProvider(
         appPackage: String,
         appDescription: String?,
         availableTabs: List<String>,
-        hints: String = "",
     ): String {
         // Sanitize all user-controlled inputs
         val safeAppName = sanitizeInput(appName)
@@ -464,15 +511,12 @@ class GoogleAIProvider(
         val safeDescription = appDescription?.let { sanitizeInput(it) }
 
         val descriptionText = safeDescription?.let { "\nDescription: $it" } ?: ""
-        val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
-        val hintSection = if (hints.isNotEmpty()) "\n\n$hints" else ""
 
         return """
 You are an expert at categorizing Android apps. Given an app's information, choose the BEST matching category from the provided list.
-$languageInstruction
 
 App Name: $safeAppName
-Package: $safeAppPackage$descriptionText$hintSection
+Package: $safeAppPackage$descriptionText
 
 Available Categories:
 ${availableTabs.joinToString("\n") { "- $it" }}
@@ -508,11 +552,8 @@ Respond ONLY in this JSON format:
             ""
         }
 
-        val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
-
         return """
 You are an expert at organizing Android apps. Analyze this list of installed apps and suggest useful custom categories that would help organize them.
-$languageInstruction
 
 Installed Apps:
 $appSample
@@ -582,7 +623,6 @@ Respond ONLY in this JSON format:
     private fun buildBatchPrompt(
         apps: List<AppBatchInfo>,
         availableTabs: List<String>,
-        hints: String = "",
     ): String {
         val appsText = apps.joinToString("\n") { app ->
             // Sanitize all app inputs to prevent injection
@@ -593,15 +633,11 @@ Respond ONLY in this JSON format:
             "- $safeName ($safePackage)$desc"
         }
 
-        val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
-        val hintSection = if (hints.isNotEmpty()) "\n\n$hints" else ""
-
         return """
 You are an expert at categorizing Android apps. Given a list of apps, categorize each one by choosing the BEST matching category from the provided list.
-$languageInstruction
 
 Apps to categorize:
-$appsText$hintSection
+$appsText
 
 Available Categories:
 ${availableTabs.joinToString("\n") { "- $it" }}
@@ -664,7 +700,7 @@ Respond ONLY in this JSON format:
                     "generationConfig",
                     JSONObject().apply {
                         put("temperature", 0.2) // Lower temperature for more consistent categorization
-                        put("maxOutputTokens", 2048)
+                        put("maxOutputTokens", 200)
                     },
                 )
             }

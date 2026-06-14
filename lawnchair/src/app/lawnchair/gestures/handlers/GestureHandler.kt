@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, AutoCat
+ * Copyright 2021, Lawnchair
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,16 @@
 package app.lawnchair.gestures.handlers
 
 import android.content.Context
-import app.lawnchair.AutoCatLauncher
+import app.lawnchair.LawnchairLauncher
 
 sealed class GestureHandler(val context: Context) {
-    abstract suspend fun onTrigger(launcher: AutoCatLauncher)
+    abstract suspend fun onTrigger(launcher: LawnchairLauncher)
+
+    open suspend fun onTrigger(launcher: LawnchairLauncher, itemInfo: Any?) {
+        onTrigger(launcher)
+    }
 }
 
 class NoOpGestureHandler(context: Context) : GestureHandler(context) {
-    override suspend fun onTrigger(launcher: AutoCatLauncher) = Unit
+    override suspend fun onTrigger(launcher: LawnchairLauncher) = Unit
 }

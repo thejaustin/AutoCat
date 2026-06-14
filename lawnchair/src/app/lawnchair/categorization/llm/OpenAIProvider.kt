@@ -37,29 +37,76 @@ class OpenAIProvider(
     }
 
     private val effectiveApiKey: String
-        get() = LLMProviderUtils.resolveApiKey(
-            constructorKey = apiKey,
-            context = context,
-            prefKeyGetter = { it.llmOpenAIKey.get() },
-            envVarName = "OPENAI_API_KEY",
-            tag = TAG,
-            providerName = "OpenAI",
-        )
+        get() {
+            // Priority: constructor param > user preference > environment variable
+            val userKey = apiKey ?: PreferenceManager.getInstance(context).llmOpenAIKey.get()
+            val envKey = System.getenv("OPENAI_API_KEY") ?: ""
+            val finalKey = when {
+                !userKey.isNullOrEmpty() -> userKey
+                envKey.isNotEmpty() -> envKey
+                else -> ""
+            }
+            android.util.Log.d(
+                TAG,
+                "OpenAI API key status: ${if (finalKey.isEmpty()) {
+                    "NOT SET"
+                } else {
+                    "SET (length: ${finalKey.length}, source: ${
+                        when {
+                            !userKey.isNullOrEmpty() -> "user pref"
+                            envKey.isNotEmpty() -> "env var"
+                            else -> "none"
+                        }
+                    })"
+                }}",
+            )
+            return finalKey
+        }
 
+    /**
+     * Gets the effective model to use, with fallback handling
+     */
     private val effectiveModel: String
-        get() = LLMProviderUtils.resolveModel(
-            context = context,
-            providerId = "openai",
-            prefModelGetter = { it.llmOpenAIModel.get() },
-            defaultModel = DEFAULT_MODEL,
-            tag = TAG,
-        )
+        get() {
+            // Try to get user's preferred model from preferences
+            val prefs = PreferenceManager.getInstance(context)
+            val preferredModel = try {
+                prefs.llmOpenAIModel.get()
+            } catch (e: Exception) {
+                // Preference might not exist yet
+                android.util.Log.w(TAG, "Could not read llmOpenAIModel preference: ${e.message}")
+                null
+            }
+
+            // Check if preferred model is available
+            val model = if (!preferredModel.isNullOrEmpty() &&
+                ModelRegistry.isModelAvailable("openai", preferredModel)
+            ) {
+                preferredModel
+            } else {
+                // Fall back to registry's recommended model
+                val fallback = ModelRegistry.getFallbackModel("openai", preferredModel ?: "")
+                fallback?.id ?: DEFAULT_MODEL
+            }
+
+            android.util.Log.d(TAG, "Using model: $model")
+            return model
+        }
 
     /**
      * Shared OkHttp client with connection pooling for efficient HTTP requests.
-     * Shared HTTP client from factory for efficient connection pooling.
+     * - Connection pool: 5 connections kept alive for 5 minutes
+     * - Reduces TCP handshake overhead on repeated API calls
+     * - 40-60% reduction in API latency compared to HttpURLConnection
      */
-    private val httpClient by lazy { HttpClientFactory.defaultClient }
+    private val httpClient by lazy {
+        OkHttpClient.Builder()
+            .connectionPool(ConnectionPool(5, 5, TimeUnit.MINUTES))
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build()
+    }
 
     override suspend fun isAvailable(): Boolean {
         val available = effectiveApiKey.isNotEmpty()
@@ -140,7 +187,6 @@ class OpenAIProvider(
         appPackage: String,
         appDescription: String?,
         availableTabs: List<String>,
-        hints: String,
     ): CategorizationResult = withContext(Dispatchers.IO) {
         try {
             LLMLogger.logDebug(
@@ -153,7 +199,7 @@ class OpenAIProvider(
                 ),
             )
 
-            val prompt = buildPrompt(appName, appPackage, appDescription, availableTabs, hints)
+            val prompt = buildPrompt(appName, appPackage, appDescription, availableTabs)
             val response = callOpenAIAPIWithFallback(prompt)
             val result = parseResponse(response, availableTabs)
 
@@ -186,7 +232,6 @@ class OpenAIProvider(
     override suspend fun categorizeAppBatch(
         apps: List<AppBatchInfo>,
         availableTabs: List<String>,
-        hints: String,
     ): Map<String, CategorizationResult> = withContext(Dispatchers.IO) {
         try {
             LLMLogger.logDebug(
@@ -199,7 +244,7 @@ class OpenAIProvider(
                 ),
             )
 
-            val prompt = buildBatchPrompt(apps, availableTabs, hints)
+            val prompt = buildBatchPrompt(apps, availableTabs)
             val response = callOpenAIAPIWithFallback(prompt)
             val results = parseBatchResponse(response, apps, availableTabs)
 
@@ -234,7 +279,6 @@ class OpenAIProvider(
                         appPackage = app.packageName,
                         appDescription = app.appDescription,
                         availableTabs = availableTabs,
-                        hints = hints,
                     )
                     results[app.packageName] = result
                 } catch (e: Exception) {
@@ -467,7 +511,6 @@ class OpenAIProvider(
         appPackage: String,
         appDescription: String?,
         availableTabs: List<String>,
-        hints: String = "",
     ): String {
         // Sanitize all user-controlled inputs
         val safeAppName = sanitizeInput(appName)
@@ -475,15 +518,12 @@ class OpenAIProvider(
         val safeDescription = appDescription?.let { sanitizeInput(it) }
 
         val descriptionText = safeDescription?.let { "\nDescription: $it" } ?: ""
-        val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
-        val hintSection = if (hints.isNotEmpty()) "\n\n$hints" else ""
 
         return """
 You are an expert at categorizing Android apps. Given an app's information, choose the BEST matching category from the provided list.
-$languageInstruction
 
 App Name: $safeAppName
-Package: $safeAppPackage$descriptionText$hintSection
+Package: $safeAppPackage$descriptionText
 
 Available Categories:
 ${availableTabs.joinToString("\n") { "- $it" }}
@@ -518,11 +558,8 @@ Respond ONLY in this JSON format:
             ""
         }
 
-        val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
-
         return """
 You are an expert at organizing Android apps. Analyze this list of installed apps and suggest useful custom categories that would help organize them.
-$languageInstruction
 
 Installed Apps:
 $appSample
@@ -592,7 +629,6 @@ Respond ONLY in this JSON format:
     private fun buildBatchPrompt(
         apps: List<AppBatchInfo>,
         availableTabs: List<String>,
-        hints: String = "",
     ): String {
         val appsText = apps.joinToString("\n") { app ->
             // Sanitize all app inputs to prevent injection
@@ -603,15 +639,11 @@ Respond ONLY in this JSON format:
             "- $safeName ($safePackage)$desc"
         }
 
-        val languageInstruction = LLMProviderUtils.getLanguageInstruction(context)
-        val hintSection = if (hints.isNotEmpty()) "\n\n$hints" else ""
-
         return """
 You are an expert at categorizing Android apps. Given a list of apps, categorize each one by choosing the BEST matching category from the provided list.
-$languageInstruction
 
 Apps to categorize:
-$appsText$hintSection
+$appsText
 
 Available Categories:
 ${availableTabs.joinToString("\n") { "- $it" }}
@@ -663,7 +695,7 @@ Respond ONLY in this JSON format:
                     },
                 )
                 put("temperature", 0.2)
-                put("max_tokens", 2048)
+                put("max_tokens", 200)
             }
 
             val requestBodyStr = requestBody.toString()

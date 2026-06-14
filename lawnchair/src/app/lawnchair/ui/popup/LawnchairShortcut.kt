@@ -10,6 +10,9 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.LauncherActivityInfo
 import android.content.pm.LauncherApps
 import android.content.pm.SuspendDialogInfo
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.UserHandle
 import android.util.Log
@@ -17,24 +20,35 @@ import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
 import app.lawnchair.LawnchairLauncher
+import app.lawnchair.categorization.CategorizationManager
+import app.lawnchair.categorization.CategoryTabsController
+import app.lawnchair.data.tab.TabDatabase
+import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.override.CustomizeAppDialog
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.views.ComposeBottomSheet
 import com.android.launcher3.AbstractFloatingView
+import com.android.launcher3.BaseDraggingActivity
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
+import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_FOLDER
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_TASK
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.model.data.AppInfo as ModelAppInfo
+import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.popup.SystemShortcut
-import com.android.launcher3.util.ApplicationInfoWrapper
 import com.android.launcher3.util.ComponentKey
-import com.android.launcher3.views.ActivityContext
+import com.android.launcher3.util.PackageManagerHelper
 import com.patrykmichalik.opto.core.firstBlocking
+import java.io.File
 import java.net.URISyntaxException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LawnchairShortcut {
 
@@ -45,7 +59,11 @@ class LawnchairShortcut {
                 if (PreferenceManager2.getInstance(activity).lockHomeScreen.firstBlocking()) {
                     null
                 } else {
-                    getAppInfo(activity, itemInfo)?.let { Customize(activity, it, itemInfo, originalView) }
+                    if (itemInfo.itemType == ITEM_TYPE_FOLDER) {
+                        CustomizeFolder(activity, itemInfo as FolderInfo, originalView)
+                    } else {
+                        getAppInfo(activity, itemInfo)?.let { Customize(activity, it, itemInfo, originalView) }
+                    }
                 }
             }
 
@@ -57,15 +75,14 @@ class LawnchairShortcut {
         }
 
         val UNINSTALL =
-            SystemShortcut.Factory { activity: ActivityContext, itemInfo: ItemInfo, view: View ->
+            SystemShortcut.Factory { activity: BaseDraggingActivity, itemInfo: ItemInfo, view: View ->
                 if (itemInfo.targetComponent == null) {
                     return@Factory null
                 }
-                if (ApplicationInfoWrapper(
-                        activity.asContext(),
+                if (PackageManagerHelper.isSystemApp(
+                        activity,
                         itemInfo.targetComponent!!.packageName,
-                        itemInfo.user,
-                    ).isSystem()
+                    )
                 ) {
                     return@Factory null
                 }
@@ -76,16 +93,16 @@ class LawnchairShortcut {
             val targetCmp = itemInfo.targetComponent
             val packageName = targetCmp?.packageName ?: return@Factory null
 
-            if (ApplicationInfoWrapper(
-                    activity.asContext(),
-                    packageName,
-                    itemInfo.user,
-                ).isSuspended()
-            ) {
-                return@Factory null
-            }
+            if (PackageManagerHelper(activity).isAppSuspended(packageName, itemInfo.user)) return@Factory null
 
             PauseApps(activity, itemInfo, originalView)
+        }
+
+        val CHANGE_TAB = SystemShortcut.Factory { activity: LawnchairLauncher, itemInfo: ItemInfo, originalView: View ->
+            val targetCmp = itemInfo.targetComponent
+            val packageName = targetCmp?.packageName ?: return@Factory null
+
+            ChangeTab(activity, itemInfo, originalView)
         }
     }
 
@@ -100,8 +117,7 @@ class LawnchairShortcut {
             val outObj = Array<Any?>(1) { null }
             var icon = Utilities.loadFullDrawableWithoutTheme(launcher, appInfo, 0, 0, outObj)
             if (mItemInfo.screenId != NO_ID && icon is BitmapInfo.Extender) {
-                // Lawnchair-TODO-BubbleTea: Fix getThemedDrawable
-                // icon = icon.getThemedDrawable(launcher)
+                icon = icon.getThemedDrawable(launcher)
             }
             val launcherActivityInfo = outObj[0] as LauncherActivityInfo?
             if (launcherActivityInfo != null) {
@@ -125,6 +141,55 @@ class LawnchairShortcut {
         }
     }
 
+    class CustomizeFolder(
+        private val launcher: LawnchairLauncher,
+        private val folderInfo: FolderInfo,
+        originalView: View,
+    ) : SystemShortcut<LawnchairLauncher>(R.drawable.ic_edit, R.string.action_customize, launcher, folderInfo, originalView) {
+
+        @SuppressLint("UseCompatLoadingForDrawables")
+        override fun onClick(v: View) {
+            var icon: Drawable? = null
+            if (folderInfo.icon != null) {
+                try {
+                    val file = File(folderInfo.icon)
+                    if (file.exists()) {
+                        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                        if (bitmap != null) {
+                            icon = BitmapDrawable(launcher.resources, bitmap)
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            if (icon == null) {
+                icon = try {
+                    launcher.getDrawable(R.drawable.ic_folder)
+                } catch (e: Exception) {
+                    android.graphics.drawable.ColorDrawable(android.graphics.Color.GRAY)
+                }
+            }
+
+            val defaultTitle = folderInfo.title?.toString() ?: ""
+
+            // TODO: Implement folder customization dialog
+            // AbstractFloatingView.closeAllOpenViews(launcher)
+            // ComposeBottomSheet.show(
+            //     context = launcher,
+            //     contentPaddings = PaddingValues(bottom = 64.dp),
+            // ) {
+            //     CustomizeFolderDialog(
+            //         icon = icon!!,
+            //         defaultTitle = defaultTitle,
+            //         folderInfo = folderInfo,
+            //     ) { close(true) }
+            // }
+            Toast.makeText(launcher, "Folder customization coming soon", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     class PauseApps(
         target: LawnchairLauncher,
         itemInfo: ItemInfo,
@@ -139,11 +204,15 @@ class LawnchairShortcut {
         @SuppressLint("NewApi")
         override fun onClick(view: View) {
             val context = view.context
-            val appLabel = ApplicationInfoWrapper(
-                context,
+            val appLabel = PackageManagerHelper(context).getApplicationInfo(
                 mItemInfo.targetComponent?.packageName ?: "",
                 mItemInfo.user,
-            ).toString()
+                0,
+            )?.let {
+                context.packageManager.getApplicationLabel(
+                    it,
+                )
+            }
             AlertDialog.Builder(context)
                 .setIcon(R.drawable.ic_hourglass_top)
                 .setTitle(context.getString(R.string.pause_apps_dialog_title, appLabel))
@@ -174,8 +243,8 @@ class LawnchairShortcut {
         }
     }
 
-    class UnInstall(private var target: ActivityContext?, private var itemInfo: ItemInfo?, originalView: View?) :
-        SystemShortcut<ActivityContext>(
+    class UnInstall(private var target: BaseDraggingActivity?, private var itemInfo: ItemInfo?, originalView: View?) :
+        SystemShortcut<BaseDraggingActivity>(
             R.drawable.ic_uninstall_no_shadow,
             R.string.uninstall_drop_target_label,
             target,
@@ -235,6 +304,79 @@ class LawnchairShortcut {
                 AbstractFloatingView.closeAllOpenViews(target)
             } catch (e: URISyntaxException) {
                 // Do nothing.
+            }
+        }
+    }
+
+    class ChangeTab(
+        private val launcher: LawnchairLauncher,
+        itemInfo: ItemInfo,
+        originalView: View,
+    ) : SystemShortcut<LawnchairLauncher>(
+        R.drawable.ic_palette,
+        R.string.change_tab_title,
+        launcher,
+        itemInfo,
+        originalView,
+    ) {
+        override fun onClick(view: View) {
+            val context = view.context
+            val packageName = mItemInfo.targetComponent?.packageName ?: return
+
+            val categoryController = CategoryTabsController.getInstance(context)
+
+            // Tabs are available synchronously from the controller's StateFlow
+            val tabs = categoryController.categories.value
+
+            if (tabs.isEmpty()) {
+                Toast.makeText(context, "No tabs available", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Launch a coroutine to fetch current tab and then show dialog
+            launcher.lifecycleScope.launch(Dispatchers.Main) {
+                val currentTab = withContext(Dispatchers.IO) {
+                    TabDatabase.getInstance(context).categoryDao().getAppCategory(packageName)?.tabName
+                }
+
+                // Create tab names array for dialog
+                val tabNames = tabs.map { it.name }.toTypedArray()
+                val currentIndex = tabNames.indexOf(currentTab).takeIf { it >= 0 } ?: -1
+
+                // Show tab picker dialog
+                AlertDialog.Builder(context)
+                    .setTitle(R.string.change_tab_title)
+                    .setSingleChoiceItems(tabNames, currentIndex) { dialog, which ->
+                        val selectedTab = tabs[which]
+
+                        // Update tab in database with user override
+                        launcher.lifecycleScope.launch(Dispatchers.IO) {
+                            TabDatabase.getInstance(context).categoryDao().insertAppCategory(
+                                AppTab(
+                                    packageName = packageName,
+                                    tabName = selectedTab.name,
+                                    confidence = 1.0f,
+                                    source = AppTab.SOURCE_USER,
+                                    isUserOverride = true,
+                                ),
+                            )
+
+                            // Refresh the app drawer on main thread
+                            withContext(Dispatchers.Main) {
+                                launcher.appsView.activeRecyclerView?.apps?.updateAdapterItems()
+                                Toast.makeText(
+                                    context,
+                                    "Moved to ${selectedTab.name}",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
+                        }
+
+                        dialog.dismiss()
+                        AbstractFloatingView.closeAllOpenViews(launcher)
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
             }
         }
     }

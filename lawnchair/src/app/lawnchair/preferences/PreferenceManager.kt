@@ -19,55 +19,47 @@ package app.lawnchair.preferences
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import app.lawnchair.AutoCatLauncher
+import app.lawnchair.LawnchairLauncher
 import app.lawnchair.font.FontCache
-import app.lawnchair.util.getApkVersionComparison
-import app.lawnchair.util.isGestureNavContractCompatible
 import app.lawnchair.util.isOnePlusStock
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT
-import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.dagger.LauncherAppComponent
-import com.android.launcher3.dagger.LauncherAppSingleton
-import com.android.launcher3.graphics.ThemeManager
 import com.android.launcher3.model.DeviceGridState
 import com.android.launcher3.util.ComponentKey
-import com.android.launcher3.util.DaggerSingletonObject
+import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
-import com.android.quickstep.RecentsModel
-import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
-@LauncherAppSingleton
-class PreferenceManager @Inject constructor(
-    @ApplicationContext private val context: Context,
-) : BasePreferenceManager(context),
+class PreferenceManager private constructor(private val context: Context) :
+    BasePreferenceManager(context),
     SafeCloseable {
     private val idp get() = InvariantDeviceProfile.INSTANCE.get(context)
-    private val mRecentsModel get() = RecentsModel.INSTANCE.get(context)
-    private val themeManager = ThemeManager.INSTANCE.get(context)
-    private val reloadIcons: () -> Unit = { mRecentsModel.onThemeChanged() }
+    private val reloadIcons = { idp.onPreferencesChanged(context) }
     private val reloadGrid: () -> Unit = { idp.onPreferencesChanged(context) }
 
     private val recreate = {
-        AutoCatLauncher.instance?.recreateIfNotScheduled()
+        LawnchairLauncher.instance?.recreateIfNotScheduled()
         Unit
     }
 
     val iconPackPackage = StringPref("pref_iconPackPackage", "", reloadIcons)
     val themedIconPackPackage = StringPref("pref_themedIconPackPackage", "", recreate)
     val allowRotation = BoolPref("pref_allowRotation", false)
-    val wrapAdaptiveIcons = BoolPref("prefs_wrapAdaptive", true, recreate)
+    val wrapAdaptiveIcons = BoolPref("prefs_wrapAdaptive", false, recreate)
     val transparentIconBackground = BoolPref("prefs_transparentIconBackground", false, recreate)
     val shadowBGIcons = BoolPref("pref_shadowBGIcons", true, recreate)
     val addIconToHome = BoolPref("pref_add_icon_to_home", true)
     val hotseatColumns = IntPref("pref_hotseatColumns", 4, reloadGrid)
     val workspaceColumns = IntPref("pref_workspaceColumns", 4)
-    val workspaceRows = IntPref("pref_workspaceRows", 7)
+    val workspaceRows = IntPref("pref_workspaceRows", 5)
     val workspaceIncreaseMaxGridSize = BoolPref("pref_workspace_increase_max_grid_size", false)
     val folderRows = IdpIntPref("pref_folderRows", { numFolderRows[INDEX_DEFAULT] }, reloadGrid)
 
-    val drawerOpacity = FloatPref("pref_drawerOpacity", .4f, recreate)
-    val coloredBackgroundLightness = FloatPref("pref_coloredBackgroundLightness", 1F, recreate)
+    val drawerOpacity = FloatPref("pref_drawerOpacity", 1F, recreate)
+    val coloredBackgroundLightness = FloatPref("pref_coloredBackgroundLightness", 0.9F, recreate)
     val feedProvider = StringPref("pref_feedProvider", "")
     val ignoreFeedWhitelist = BoolPref("pref_ignoreFeedWhitelist", false)
     val launcherTheme = StringPref("pref_launcherTheme", "system")
@@ -110,6 +102,8 @@ class PreferenceManager @Inject constructor(
     val searchResultSettingsEntry = BoolPref("pref_searchResultSettingsEntry", false, recreate)
     val searchResulRecentSuggestion = BoolPref("pref_searchResultRecentSuggestion", false, recreate)
 
+    val allAppBulkIconLoading = BoolPref("pref_allapps_bulk_icon_loading", false, recreate)
+
     val themedIcons = BoolPref("themed_icons", false, recreate)
     val drawerThemedIcons = BoolPref("drawer_themed_icons", false, recreate)
     val tintIconPackBackgrounds = BoolPref("tint_icon_pack_backgrounds", false, recreate)
@@ -133,26 +127,6 @@ class PreferenceManager @Inject constructor(
     val drawerList = BoolPref("pref_drawerList", true, recreate)
     val folderApps = BoolPref("pref_hideFolderApps", true, reloadGrid)
 
-    val recentsActionScreenshot = BoolPref("pref_recentsActionScreenshot", !isOnePlusStock)
-    val recentsActionShare = BoolPref("pref_recentsActionShare", isOnePlusStock)
-    val recentsActionLens = BoolPref("pref_recentsActionLens", true)
-    val recentsActionClearAll = BoolPref("pref_clearAllAsAction", false)
-    val recentsActionLocked = BoolPref("pref_lockedAsAction", false)
-    val recentsTranslucentBackground = BoolPref("pref_recentsTranslucentBackground", false, recreate)
-    val recentsTranslucentBackgroundAlpha = FloatPref("pref_recentTranslucentBackgroundAlpha", .8f, recreate)
-
-    val hideVersionInfo = BoolPref("pref_hideVersionInfo", false)
-    val pseudonymVersion = StringPref("pref_pseudonymVersion", "Bubble Tea")
-    val enableGnc = BoolPref("pref_enableGnc", isGestureNavContractCompatible, recreate)
-    val hasOpenedSettings = BoolPref("pref_hasOpenedSettings", false)
-
-    val lawnchairMajorVersion = IntPref(
-        "pref_lawnchairMajorVersion",
-        context.getApkVersionComparison().first[0],
-    )
-
-    val forceIconMonochrome = BoolPref("pref_forceIconMonochrome", false, recreate)
-
     // AutoCat: Work apps settings
     val showWorkTab = BoolPref("pref_showWorkTab", false, recreate)
     val hideWorkApps = BoolPref("pref_hideWorkApps", false, recreate)
@@ -172,23 +146,7 @@ class PreferenceManager @Inject constructor(
     val llmGoogleAIModel = StringPref("pref_llmGoogleAIModel", "gemini-2.0-flash-exp", {})
     val llmClaudeModel = StringPref("pref_llmClaudeModel", "claude-3-5-haiku-20241022", {})
     val llmOpenAIModel = StringPref("pref_llmOpenAIModel", "gpt-4o-mini", {})
-    val llmPerplexityModel = StringPref("pref_llmPerplexityModel", "llama-3.1-sonar-small-128k-online", {})
-    val llmPromptLanguage = StringPref("pref_llmPromptLanguage", "System Default", {})
-
-    // AutoCat: LLM device state constraints
-    val llmOnlyOnWifi = BoolPref("pref_llmOnlyOnWifi", false, {})
-    val llmOnlyWhileCharging = BoolPref("pref_llmOnlyWhileCharging", false, {})
-
-    // AutoCat: Local ML Model
-    val llmUseLocalModel = BoolPref("pref_llmUseLocalModel", true, {}) // Default on for S22+
-    val llmLocalModelPath = StringPref("pref_llmLocalModelPath", "ml/autocat_categorizer.tflite", {})
-
-    // AutoCat: Local AI (on-device LLM / local server)
-    val localEndpointEnabled = BoolPref("pref_localEndpointEnabled", false, {})
-    val localEndpointUrl = StringPref("pref_localEndpointUrl", "http://localhost:11434", {})
-    val localEndpointModelId = StringPref("pref_localEndpointModelId", "", {}) // blank = first available
-    val localCustomModelPath = StringPref("pref_localCustomModelPath", "", {})
-    val selectedLocalModelId = StringPref("pref_selectedLocalModelId", "", {})
+    val llmPerplexityModel = StringPref("pref_llmPerplexityModel", "llama-3.1-sonar-small-128k-online", {}) // Updated to 2025 API
 
     // AutoCat: Batch processing settings
     val llmEnableBatching = BoolPref("pref_llmEnableBatching", true, {})
@@ -210,30 +168,32 @@ class PreferenceManager @Inject constructor(
     // AutoCat: Circuit Breaker settings
     val circuitBreakerEnabled = BoolPref("pref_circuitBreakerEnabled", true, {})
     val circuitBreakerFailureThreshold = IntPref("pref_circuitBreakerFailureThreshold", 3, {})
-    val circuitBreakerTimeoutMs = IntPref("pref_circuitBreakerTimeoutMs", 5000, {})
+    val circuitBreakerTimeoutMs = LongPref("pref_circuitBreakerTimeoutMs", 60_000L, {})
+    val circuitBreakerHalfOpenDurationMs = LongPref("pref_circuitBreakerHalfOpenDurationMs", 10_000L, {})
 
-    // AutoCat: Settings customization
+    // Advanced / Dev Options
     val hideQuickstepSettings = BoolPref("pref_hideQuickstepSettings", false)
     val hideSettingsWarnings = BoolPref("pref_hideSettingsWarnings", false)
-    val settingsCardRadius = IntPref("pref_settingsCardRadius", 28)
 
-    // AutoCat: Settings category order and visibility
-    val settingsCategoryOrder = StringPref("pref_settingsCategoryOrder", "")
-    val settingsCategoryVisibility = StringPref("pref_settingsCategoryVisibility", "")
-
-    // AutoCat: Archival/Disabling Method
-    val predictiveArchiveThreshold = IntPref("pref_predictiveArchiveThreshold", 30, {})
-    val enableWidgetStacks = BoolPref("pref_enableWidgetStacks", false, {})
-    val archivalMethod = StringPref("pref_archivalMethod", "none", {})
-
-    // AutoCat: Onboarding
-    val smartCategoriesOnboardingCompleted = BoolPref("pref_smartCatOnboardingCompleted", false, {})
+    val recentsActionScreenshot = BoolPref("pref_recentsActionScreenshot", !isOnePlusStock)
+    val recentsActionShare = BoolPref("pref_recentsActionShare", isOnePlusStock)
+    val recentsActionLens = BoolPref("pref_recentsActionLens", true)
+    val recentsActionClearAll = BoolPref("pref_clearAllAsAction", false)
+    val recentsActionLocked = BoolPref("pref_lockedAsAction", false)
+    val recentsTranslucentBackground = BoolPref("pref_recentsTranslucentBackground", false, recreate)
+    val recentsTranslucentBackgroundAlpha = FloatPref("pref_recentTranslucentBackgroundAlpha", .8f, recreate)
 
     override fun close() {
+        scope.cancel()
     }
 
-    init {
-        sp.registerOnSharedPreferenceChangeListener(this)
+    private val scope = CoroutineScope(Dispatchers.IO)
+    private var migrationsPerformed = false
+
+    private fun performMigrations() {
+        if (migrationsPerformed) return
+        migrationsPerformed = true
+
         migratePrefs(CURRENT_VERSION) { oldVersion ->
             if (oldVersion < 2) {
                 val gridState = DeviceGridState(context).toProtoMessage()
@@ -253,8 +213,15 @@ class PreferenceManager @Inject constructor(
             llmGoogleAIModel.set("gemini-2.0-flash-exp")
             android.util.Log.i(
                 "PreferenceManager",
-                "Migrated deprecated Gemini model to gemini-2.0-flash-exp",
+                "Auto-migrated Gemini model from deprecated 1.5 to 2.0",
             )
+        }
+    }
+
+    init {
+        sp.registerOnSharedPreferenceChangeListener(this)
+        scope.launch {
+            performMigrations()
         }
     }
 
@@ -262,7 +229,7 @@ class PreferenceManager @Inject constructor(
         private const val CURRENT_VERSION = 2
 
         @JvmField
-        val INSTANCE = DaggerSingletonObject(LauncherAppComponent::getPreferenceManager)
+        val INSTANCE = MainThreadInitializedObject(::PreferenceManager)
 
         @JvmStatic
         fun getInstance(context: Context) = INSTANCE.get(context)!!
