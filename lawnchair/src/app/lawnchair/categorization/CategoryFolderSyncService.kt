@@ -4,10 +4,13 @@ import android.content.Context
 import app.lawnchair.categorization.llm.LLMLogger
 import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.data.tab.TabDatabase
+import app.lawnchair.deck.AddFoldersWithItemsTask
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.ReloadHelper
+import com.android.launcher3.LauncherAppState
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
+import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.UserCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -183,13 +186,13 @@ class CategoryFolderSyncService(
                     }
             }
 
-            // TODO: Sync to home screen folders if enabled
+            // Sync to home screen folders if enabled
             if (shouldSyncToHomeScreen()) {
-                LLMLogger.logWarning(
-                    provider = "CategoryFolderSync",
-                    operation = "SYNC_HOME_SCREEN",
-                    message = "Home screen folder sync not yet implemented",
-                )
+                syncToHomeScreen(appsByTab, appsByPackage)
+                    .also { result ->
+                        foldersCreated += result.first
+                        appsMovedToFolders += result.second
+                    }
             }
 
             val result = SyncResult(
@@ -315,6 +318,50 @@ class CategoryFolderSyncService(
         }
 
         return Pair(foldersCreated, appsMovedToFolders)
+    }
+
+    /**
+     * Syncs apps to home screen folders.
+     * Uses AddFoldersWithItemsTask for automatic placement.
+     */
+    private fun syncToHomeScreen(
+        appsByTab: Map<String, List<String>>,
+        appsByPackage: Map<String, List<AppInfo>>,
+    ): Pair<Int, Int> {
+        val foldersToAdd = mutableListOf<FolderInfo>()
+        var appsAdded = 0
+
+        appsByTab.forEach { (tabName, packageNames) ->
+            val folderName = getFolderName(tabName)
+            val apps = packageNames.flatMap { appsByPackage[it] ?: emptyList() }
+
+            if (apps.isNotEmpty()) {
+                val folderInfo = FolderInfo().apply {
+                    title = folderName
+                }
+
+                apps.forEach { appInfo ->
+                    val workspaceItem = WorkspaceItemInfo(appInfo)
+                    folderInfo.add(workspaceItem, false)
+                    appsAdded++
+                }
+
+                foldersToAdd.add(folderInfo)
+            }
+        }
+
+        if (foldersToAdd.isNotEmpty()) {
+            LLMLogger.logInfo(
+                provider = "CategoryFolderSync",
+                operation = "SYNC_HOME_SCREEN",
+                message = "Adding ${foldersToAdd.size} folders to home screen",
+            )
+            val model = LauncherAppState.getInstance(context).model
+            val task = AddFoldersWithItemsTask(foldersToAdd)
+            model.enqueueModelUpdateTask(task)
+        }
+
+        return Pair(foldersToAdd.size, appsAdded)
     }
 
     /**

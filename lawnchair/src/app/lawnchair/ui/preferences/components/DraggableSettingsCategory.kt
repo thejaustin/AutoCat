@@ -1,5 +1,8 @@
 package app.lawnchair.ui.preferences.components
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -37,7 +40,7 @@ import app.lawnchair.ui.preferences.components.controls.PreferenceCategory
 /**
  * A draggable settings category card with edit mode support
  */
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun DraggableSettingsCategory(
     category: SettingsCategory,
@@ -47,6 +50,8 @@ fun DraggableSettingsCategory(
     onNavigate: () -> Unit,
     onToggleVisibility: () -> Unit,
     onLongPress: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
 ) {
     val elevation by animateDpAsState(

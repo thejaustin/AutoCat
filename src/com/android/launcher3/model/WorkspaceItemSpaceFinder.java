@@ -94,18 +94,10 @@ public class WorkspaceItemSpaceFinder {
         boolean found = false;
 
         int screenCount = workspaceScreens.size();
-        // First check the preferred screen.
-        IntSet screensToExclude = new IntSet();
-        
-        boolean smartspaceEnabled = PreferenceExtensionsKt.firstBlocking(PreferenceManager2.INSTANCE.get(context).getEnableSmartspace());
-        if (smartspaceEnabled) {
-            screensToExclude.add(FIRST_SCREEN_ID);
-        }
-
         for (int screen = 0; screen < screenCount; screen++) {
             screenId = workspaceScreens.get(screen);
-            if (!screensToExclude.contains(screenId) && findNextAvailableIconSpaceInScreen(
-                    screenItems.get(screenId), coordinates, spanX, spanY)) {
+            if (findNextAvailableIconSpaceInScreen(
+                    screenItems.get(screenId), coordinates, spanX, spanY, screenId, context)) {
                 // We found a space for it
                 found = true;
                 break;
@@ -122,7 +114,7 @@ public class WorkspaceItemSpaceFinder {
 
             // If we still can't find an empty space, then God help us all!!!
             if (!findNextAvailableIconSpaceInScreen(
-                    screenItems.get(screenId), coordinates, spanX, spanY)) {
+                    screenItems.get(screenId), coordinates, spanX, spanY, screenId, context)) {
                 throw new RuntimeException("Can't find space to add the item");
             }
         }
@@ -130,8 +122,19 @@ public class WorkspaceItemSpaceFinder {
     }
 
     private boolean findNextAvailableIconSpaceInScreen(
-            ArrayList<ItemInfo> occupiedPos, int[] xy, int spanX, int spanY) {
+            ArrayList<ItemInfo> occupiedPos, int[] xy, int spanX, int spanY, int screenId, Context context) {
         GridOccupancy occupied = new GridOccupancy(mIDP.numColumns, mIDP.numRows);
+
+        // LC-Note: Reserve space for Smartspace on the first screen
+        if (screenId == FIRST_SCREEN_ID) {
+            boolean smartspaceEnabled = PreferenceExtensionsKt.firstBlocking(
+                    PreferenceManager2.INSTANCE.get(context).getEnableSmartspace());
+            if (smartspaceEnabled) {
+                // Reserve the first row for smartspace to prevent overlapping
+                occupied.markCells(0, 0, mIDP.numColumns, 1, true);
+            }
+        }
+
         if (occupiedPos != null) {
             for (ItemInfo r : occupiedPos) {
                 occupied.markCells(r, true);
