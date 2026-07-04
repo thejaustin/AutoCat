@@ -25,20 +25,18 @@ jobs:
         with:
           cache-encryption-key: Da25KUVSE5jbGds2zXmfXw==
       - name: Write sign info
-        if: github.repository_owner == 'LawnchairLauncher'
+        if: ${{ secrets.KEYSTORE != '' }}
         run: |
-          if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
-            echo storePassword='${{ secrets.KEYSTORE_PASSWORD }}' >> keystore.properties
-            echo keyAlias='${{ secrets.KEY_ALIAS }}' >> keystore.properties
-            echo keyPassword='${{ secrets.KEY_PASSWORD }}' >> keystore.properties
-            echo storeFile='${{ github.workspace }}/key.jks' >> keystore.properties
-            echo ${{ secrets.KEYSTORE }} | base64 --decode > ${{ github.workspace }}/key.jks
-          fi
+          echo storePassword='${{ secrets.KEYSTORE_PASSWORD }}' >> keystore.properties
+          echo keyAlias='${{ secrets.KEY_ALIAS }}' >> keystore.properties
+          echo keyPassword='${{ secrets.KEY_PASSWORD }}' >> keystore.properties
+          echo storeFile='${{ github.workspace }}/key.jks' >> keystore.properties
+          echo '${{ secrets.KEYSTORE }}' | base64 --decode > ${{ github.workspace }}/key.jks
       - name: Build release APK
         run: ./gradlew assembleLawnWithQuickstepGithubRelease bundleLawnWithQuickstepPlayRelease
       - name: Upload artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: Release APK
-          path: build/outputs/*
+          path: build/outputs/apk/**/*.apk
           
