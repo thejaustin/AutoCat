@@ -41,9 +41,6 @@ import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -52,10 +49,13 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -504,7 +504,7 @@ private fun TabHeader(
     val primary = MaterialTheme.colorScheme.primary
     val secondary = MaterialTheme.colorScheme.secondary
     val tertiary = MaterialTheme.colorScheme.tertiary
-    
+
     val categoryColor = remember(tabName, primary, secondary, tertiary) {
         val colors = listOf(primary, secondary, tertiary)
         colors[Math.abs(tabName.hashCode()) % colors.size]
@@ -794,7 +794,8 @@ private fun TabOverrideDialog(
 
     var selectedTabName by remember { mutableStateOf(appTab.tabName) }
     var subCategory by remember { mutableStateOf(appTab.subCategory ?: "") }
-    var expanded by remember { mutableStateOf(false) }    val sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var expanded by remember { mutableStateOf(false) }
+    val sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -886,7 +887,7 @@ private fun TabOverrideDialog(
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
@@ -916,7 +917,7 @@ private fun TabOverrideDialog(
                 TextButton(onClick = onDismiss) {
                     Text("Cancel")
                 }
-                
+
                 Spacer(modifier = Modifier.weight(1f))
 
                 // Reset to AI button — only when user has overridden
@@ -955,7 +956,7 @@ private fun TabOverrideDialog(
                 }
             }
         }
-    }   
+    }
 }
 
 // Helper function to parse color - added here for the dropdown improvement

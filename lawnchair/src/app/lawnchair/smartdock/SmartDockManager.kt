@@ -1,17 +1,17 @@
 package app.lawnchair.smartdock
 
 import android.content.Context
+import androidx.lifecycle.lifecycleScope
 import app.lawnchair.preferences.PreferenceManager
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherAppState
+import com.android.launcher3.LauncherSettings.Favorites
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.PredictedContainerInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
-import com.android.launcher3.LauncherSettings.Favorites
 import java.util.Calendar
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import androidx.lifecycle.lifecycleScope
 
 class SmartDockManager(private val launcher: Launcher) {
     private val prefs = PreferenceManager.getInstance(launcher)
@@ -49,7 +49,7 @@ class SmartDockManager(private val launcher: Launcher) {
         }
 
         val info = PredictedContainerInfo(Favorites.CONTAINER_HOTSEAT_PREDICTION, predictedWorkspaceItems)
-        
+
         if (launcher is com.android.launcher3.uioverrides.QuickstepLauncher) {
             launcher.hotseatPredictionController?.setPredictedItems(info)
         }

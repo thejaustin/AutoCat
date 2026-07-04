@@ -59,8 +59,8 @@ class CategoryTabsManager(private val context: Context) {
 
         // Get visible custom tabs from database (already sorted by sortOrder)
         val customCategoryTabs = withContext(Dispatchers.IO) {
-            categoryDao.getVisibleCustomCategories().filter { 
-                !isZenModeActive || !it.hideInZenMode 
+            categoryDao.getVisibleCustomCategories().filter {
+                !isZenModeActive || !it.hideInZenMode
             }
         }
 

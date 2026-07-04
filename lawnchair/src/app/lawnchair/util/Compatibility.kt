@@ -54,12 +54,18 @@ private fun checkMeizuStock(): Boolean = when {
 
 private fun checkGestureNavContract(): Boolean = when {
     !Utilities.ATLEAST_Q -> false
+
     checkOnePlusStock() -> false
+
     // checkSamsungStock() -> false // Removed to enable gesture navigation support on modern OneUI
     checkXiaomiStock() -> false
+
     checkHuaweiHonorStock() -> false
+
     checkOppoStock() -> false
+
     checkMeizuStock() -> false
+
     else -> true
 }
 

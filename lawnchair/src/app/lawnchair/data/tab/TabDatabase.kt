@@ -70,7 +70,7 @@ abstract class TabDatabase : RoomDatabase() {
          * Builds the Room database instance with appropriate configuration.
          */
         private fun buildDatabase(context: Context): TabDatabase {
-            val MIGRATION_6_7 = object : androidx.room.migration.Migration(6, 7) {
+            val migration67 = object : androidx.room.migration.Migration(6, 7) {
                 override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                     db.execSQL("ALTER TABLE custom_categories ADD COLUMN hide_in_zen_mode INTEGER NOT NULL DEFAULT 0")
                 }
@@ -81,7 +81,7 @@ abstract class TabDatabase : RoomDatabase() {
                 TabDatabase::class.java,
                 DATABASE_NAME,
             )
-                .addMigrations(MIGRATION_6_7)
+                .addMigrations(migration67)
                 // For development: destroy and rebuild on schema changes
                 // TODO: Replace with proper migrations before production release
                 // dropAllTables = true: all tables will be dropped on migration failure

@@ -663,7 +663,7 @@ private fun TabDialog(
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
-                    
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -673,7 +673,7 @@ private fun TabDialog(
                     ) {
                         androidx.compose.material3.Checkbox(
                             checked = hideInZenMode,
-                            onCheckedChange = { hideInZenMode = it }
+                            onCheckedChange = { hideInZenMode = it },
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
@@ -681,7 +681,7 @@ private fun TabDialog(
                             Text(
                                 text = "Hides this tab when Do Not Disturb is active",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }

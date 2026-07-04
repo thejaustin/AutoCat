@@ -273,7 +273,7 @@ fun CategorizationSettingsPreferences(
                         // Status message
                         AnimatedVisibility(visible = categorizationStatus.isNotEmpty()) {
                             val isSuccess = categorizationStatus.startsWith("✅")
-                            
+
                             Surface(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -487,7 +487,7 @@ fun DiscoveryCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        onClick = onClick
+        onClick = onClick,
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

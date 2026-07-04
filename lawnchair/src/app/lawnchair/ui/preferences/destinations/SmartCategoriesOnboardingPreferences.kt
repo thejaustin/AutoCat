@@ -257,13 +257,13 @@ fun SmartCategoriesOnboardingPreferences(
 }
 
 @Composable
-fun SmartFeaturesStep() {
+fun SmartFeaturesStep(modifier: Modifier = Modifier) {
     val prefs = preferenceManager()
     var smartDockEnabled by remember { mutableStateOf(prefs.autoCatSmartDockEnabled.get()) }
     var genAIFolderNamingEnabled by remember { mutableStateOf(prefs.autoCatGenAIFolderNaming.get()) }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
@@ -322,7 +322,7 @@ fun SmartFeaturesStep() {
                     onCheckedChange = {
                         smartDockEnabled = it
                         prefs.autoCatSmartDockEnabled.set(it)
-                    }
+                    },
                 )
             }
         }
@@ -355,7 +355,7 @@ fun SmartFeaturesStep() {
                     onCheckedChange = {
                         genAIFolderNamingEnabled = it
                         prefs.autoCatGenAIFolderNaming.set(it)
-                    }
+                    },
                 )
             }
         }
