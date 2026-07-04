@@ -168,6 +168,9 @@ class PreferenceManager private constructor(private val context: Context) :
     // AutoCat: Smart Dock
     val autoCatSmartDockEnabled = BoolPref("pref_autoCatSmartDockEnabled", false, recreate)
 
+    // AutoCat: PWA App Drawer Integration
+    val autoCatPwaIntegrationEnabled = BoolPref("pref_autoCatPwaIntegrationEnabled", true, recreate)
+
     // AutoCat: Zen Mode
     val autoCatEnableZenMode = BoolPref("pref_autoCatEnableZenMode", false, recreate)
 

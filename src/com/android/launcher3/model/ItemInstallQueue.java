@@ -188,6 +188,7 @@ public class ItemInstallQueue {
      */
     public void queueItem(ShortcutInfo info) {
         queuePendingShortcutInfo(new PendingInstallShortcutInfo(info));
+        com.android.launcher3.util.PwaShortcutManager.saveShortcut(mContext, info);
     }
 
     /**

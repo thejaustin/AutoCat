@@ -670,6 +670,38 @@ public class LoaderTask implements Runnable {
             allActivityList.addAll(apps);
         }
 
+        // AutoCat: Load PWA shortcuts into App Drawer
+        if (app.lawnchair.preferences.PreferenceManager.getInstance(mContext).getAutoCatPwaIntegrationEnabled().get()) {
+            java.util.Set<String> savedPwas = com.android.launcher3.util.PwaShortcutManager.getSavedShortcuts(mContext);
+            if (savedPwas != null && !savedPwas.isEmpty()) {
+                for (String entry : savedPwas) {
+                    String[] parts = entry.split("\\|");
+                    if (parts.length >= 2) {
+                        String pkgName = parts[0];
+                        String id = parts[1];
+                        try {
+                            com.android.launcher3.shortcuts.ShortcutRequest req = new com.android.launcher3.shortcuts.ShortcutRequest(mContext, myUserHandle());
+                            req.forPackage(pkgName, java.util.Arrays.asList(id));
+                            com.android.launcher3.shortcuts.ShortcutRequest.QueryResult res = req.query(com.android.launcher3.shortcuts.ShortcutRequest.ALL);
+                            if (!res.isEmpty()) {
+                                android.content.pm.ShortcutInfo shortcutInfo = res.get(0);
+                                android.content.ComponentName fakeComponent = new android.content.ComponentName(pkgName, "PwaShortcut_" + id);
+                                android.content.Intent intent = com.android.launcher3.shortcuts.ShortcutKey.makeIntent(shortcutInfo);
+                                com.android.launcher3.model.data.AppInfo pwaAppInfo = new com.android.launcher3.model.data.AppInfo(fakeComponent, shortcutInfo.getShortLabel(), myUserHandle(), intent);
+                                pwaAppInfo.itemType = com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT;
+                                com.android.launcher3.model.data.WorkspaceItemInfo tempInfo = new com.android.launcher3.model.data.WorkspaceItemInfo(shortcutInfo, mContext);
+                                mApp.getIconCache().getShortcutIcon(tempInfo, shortcutInfo);
+                                pwaAppInfo.bitmap = tempInfo.bitmap;
+                                mBgAllAppsList.data.add(pwaAppInfo);
+                            }
+                        } catch (Exception e) {
+                            android.util.Log.e("LoaderTask", "Failed to load PWA shortcut", e);
+                        }
+                    }
+                }
+            }
+        }
+
         if (FeatureFlags.PROMISE_APPS_IN_ALL_APPS.get()) {
             // get all active sessions and add them to the all apps list
             for (PackageInstaller.SessionInfo info :

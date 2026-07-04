@@ -381,6 +381,12 @@ fun CategorizationSettingsPreferences(
                         description = "Automatically generate smart names when you create folders on the home screen.",
                     )
 
+                    SwitchPreference(
+                        adapter = prefs.autoCatPwaIntegrationEnabled.getAdapter(),
+                        label = "PWA / Web Shortcut Integration",
+                        description = "Show saved web shortcuts seamlessly in your app drawer alongside native apps.",
+                    )
+
                     val syncFolders by prefs.autoCatSyncFolders.getAdapter().state
                     AnimatedVisibility(visible = syncFolders) {
                         ListPreference(

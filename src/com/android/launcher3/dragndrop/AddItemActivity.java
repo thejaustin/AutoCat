@@ -341,6 +341,7 @@ public class AddItemActivity extends BaseActivity
         if (mRequest.getRequestType() == PinItemRequest.REQUEST_TYPE_SHORTCUT) {
             ShortcutInfo shortcutInfo = mRequest.getShortcutInfo();
             ItemInstallQueue.INSTANCE.get(this).queueItem(shortcutInfo);
+            com.android.launcher3.util.PwaShortcutManager.saveShortcut(this, shortcutInfo);
             logCommand(LAUNCHER_ADD_EXTERNAL_ITEM_PLACED_AUTOMATICALLY);
             mRequest.accept();
             CharSequence label = shortcutInfo.getLongLabel();
