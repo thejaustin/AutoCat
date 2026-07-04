@@ -25,13 +25,19 @@ jobs:
         with:
           cache-encryption-key: Da25KUVSE5jbGds2zXmfXw==
       - name: Write sign info
-        if: ${{ secrets.KEYSTORE != '' }}
+        env:
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          echo storePassword='${{ secrets.KEYSTORE_PASSWORD }}' >> keystore.properties
-          echo keyAlias='${{ secrets.KEY_ALIAS }}' >> keystore.properties
-          echo keyPassword='${{ secrets.KEY_PASSWORD }}' >> keystore.properties
-          echo storeFile='${{ github.workspace }}/key.jks' >> keystore.properties
-          echo '${{ secrets.KEYSTORE }}' | base64 --decode > ${{ github.workspace }}/key.jks
+          if [ -n "$KEYSTORE" ]; then
+            echo storePassword="$KEYSTORE_PASSWORD" >> keystore.properties
+            echo keyAlias="$KEY_ALIAS" >> keystore.properties
+            echo keyPassword="$KEY_PASSWORD" >> keystore.properties
+            echo storeFile='${{ github.workspace }}/key.jks' >> keystore.properties
+            echo "$KEYSTORE" | base64 --decode > ${{ github.workspace }}/key.jks
+          fi
       - name: Build release APK
         run: ./gradlew assembleLawnWithQuickstepGithubRelease bundleLawnWithQuickstepPlayRelease
       - name: Upload artifact
