@@ -34,7 +34,7 @@ sentry {
 allprojects {
     plugins.withType(AndroidBasePlugin).configureEach {
         android {
-            buildToolsVersion "36.1.0"
+            buildToolsVersion = "36.1.0"
             compileSdk {
                 version = release(36) {
                     minorApiLevel = 1
@@ -159,7 +159,7 @@ android {
         // AutoCat - Fork of Lawnchair Launcher 16.0
         def autocatBuildCode = ciRunNumber != "local" ? (ciRunNumber.toInteger()) : 0
         versionCode 160000 + autocatBuildCode
-        versionName "${versionDisplayName}"
+        versionName = "${versionDisplayName}"
         buildConfigField "String", "VERSION_DISPLAY_NAME", "\"${versionDisplayName}\""
         buildConfigField "String", "MAJOR_VERSION", "\"${majorVersion}\""
         buildConfigField "String", "COMMIT_HASH", "\"${buildCommit}\""

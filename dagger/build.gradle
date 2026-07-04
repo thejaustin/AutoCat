@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace "com.android.launcher3.dagger"
+    namespace = "com.android.launcher3.dagger"
     sourceSets {
         main {
             java.srcDirs = ['src']

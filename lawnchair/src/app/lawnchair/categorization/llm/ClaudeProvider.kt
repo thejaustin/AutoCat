@@ -693,7 +693,7 @@ Respond ONLY in this JSON format:
         try {
             val requestBody = JSONObject().apply {
                 put("model", model)
-                put("max_tokens", 1024)
+                put("max_tokens", 4096)
                 put(
                     "messages",
                     JSONArray().apply {

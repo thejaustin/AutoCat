@@ -706,7 +706,7 @@ Respond ONLY in this JSON format:
                     },
                 )
                 put("temperature", 0.2)
-                put("max_tokens", 1024)
+                put("max_tokens", 4096)
             }
 
             val requestBodyStr = requestBody.toString()

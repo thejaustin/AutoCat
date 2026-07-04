@@ -4,10 +4,10 @@ plugins {
 }
 
 android {
-    buildToolsVersion "36.1.0"
-    namespace "com.android.systemui.shared"
+    buildToolsVersion = "36.1.0"
+    namespace = "com.android.systemui.shared"
     buildFeatures {
-        aidl true
+        aidl = true
     }
     sourceSets {
         main {

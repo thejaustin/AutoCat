@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace "com.android.launcher3.concurrent"
+    namespace = "com.android.launcher3.concurrent"
     sourceSets {
         main {
             java.srcDirs = ['src']

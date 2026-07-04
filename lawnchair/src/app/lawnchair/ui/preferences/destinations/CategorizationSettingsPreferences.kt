@@ -375,6 +375,12 @@ fun CategorizationSettingsPreferences(
                         description = "Create and maintain folders based on app categories.",
                     )
 
+                    SwitchPreference(
+                        adapter = prefs.autoCatGenAIFolderNaming.getAdapter(),
+                        label = "GenAI Folder Naming",
+                        description = "Automatically generate smart names when you create folders on the home screen.",
+                    )
+
                     val syncFolders by prefs.autoCatSyncFolders.getAdapter().state
                     AnimatedVisibility(visible = syncFolders) {
                         ListPreference(

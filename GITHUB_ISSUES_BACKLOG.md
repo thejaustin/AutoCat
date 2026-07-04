@@ -99,7 +99,7 @@ Fix broken theming for apps in the Work Profile.
 - [x] Update `AutoCatIconProvider` to resolve user handles via app UID
 - [x] Ensure icon packs correctly map to Work Profile package names
 
-### Issue #70: Zen Mode (Dynamic Focus Categories)
+### [x] Issue #70: Zen Mode (Dynamic Focus Categories)
 **Description:**
 Link AutoCat categories to Android's "Focus Modes" (Work, Sleep, DND) to dynamically hide or surface app tabs based on context.
 - [ ] Implement `FocusModeListener` to track system state

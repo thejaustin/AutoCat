@@ -47,8 +47,8 @@ object ModelRegistry {
     // Google AI (Gemini) Models
     val GOOGLE_AI_MODELS = listOf(
         ModelInfo(
-            id = "gemini-2.0-flash-exp",
-            displayName = "Gemini 2.0 Flash Exp (Recommended)",
+            id = "gemini-2.0-flash",
+            displayName = "Gemini 2.0 Flash (Recommended)",
             provider = "google_ai",
             isAvailable = true,
             costTier = ModelInfo.CostTier.FREE,
@@ -58,25 +58,25 @@ object ModelRegistry {
             recommendedFor = listOf("categorization", "suggestions", "batch"),
         ),
         ModelInfo(
+            id = "gemini-2.0-pro-exp",
+            displayName = "Gemini 2.0 Pro",
+            provider = "google_ai",
+            isAvailable = true,
+            costTier = ModelInfo.CostTier.LOW,
+            contextWindow = 2097152, // 2M tokens
+            speedTier = ModelInfo.SpeedTier.FAST,
+            qualityTier = ModelInfo.QualityTier.PREMIUM,
+            recommendedFor = listOf("suggestions"),
+        ),
+        ModelInfo(
             id = "gemini-1.5-flash",
             displayName = "Gemini 1.5 Flash (Deprecated)",
             provider = "google_ai",
             isAvailable = false,
             costTier = ModelInfo.CostTier.FREE,
-            contextWindow = 32768,
+            contextWindow = 1048576,
             speedTier = ModelInfo.SpeedTier.FAST,
             qualityTier = ModelInfo.QualityTier.STANDARD,
-            recommendedFor = emptyList(),
-        ),
-        ModelInfo(
-            id = "gemini-1.5-pro",
-            displayName = "Gemini 1.5 Pro (Deprecated)",
-            provider = "google_ai",
-            isAvailable = false,
-            costTier = ModelInfo.CostTier.LOW,
-            contextWindow = 2097152, // 2M tokens
-            speedTier = ModelInfo.SpeedTier.MEDIUM,
-            qualityTier = ModelInfo.QualityTier.PREMIUM,
             recommendedFor = emptyList(),
         ),
     )
@@ -95,8 +95,8 @@ object ModelRegistry {
             recommendedFor = listOf("categorization", "batch"),
         ),
         ModelInfo(
-            id = "claude-3-5-sonnet-20241022",
-            displayName = "Claude 3.5 Sonnet (Best Quality)",
+            id = "claude-3-7-sonnet-20250219",
+            displayName = "Claude 3.7 Sonnet (Best Quality)",
             provider = "claude",
             isAvailable = true,
             costTier = ModelInfo.CostTier.MEDIUM,
@@ -132,19 +132,19 @@ object ModelRegistry {
             recommendedFor = listOf("suggestions"),
         ),
         ModelInfo(
-            id = "gpt-3.5-turbo",
-            displayName = "GPT-3.5 Turbo (Budget)",
+            id = "o3-mini",
+            displayName = "o3-mini (Reasoning)",
             provider = "openai",
             isAvailable = true,
-            costTier = ModelInfo.CostTier.FREE,
-            contextWindow = 16385,
-            speedTier = ModelInfo.SpeedTier.VERY_FAST,
-            qualityTier = ModelInfo.QualityTier.STANDARD,
-            recommendedFor = listOf("categorization"),
+            costTier = ModelInfo.CostTier.MEDIUM,
+            contextWindow = 200000,
+            speedTier = ModelInfo.SpeedTier.MEDIUM,
+            qualityTier = ModelInfo.QualityTier.PREMIUM,
+            recommendedFor = listOf("suggestions"),
         ),
     )
 
-    // Perplexity Models (updated to current API - 2025)
+    // Perplexity Models (updated to current API - 2026)
     val PERPLEXITY_MODELS = listOf(
         ModelInfo(
             id = "sonar",

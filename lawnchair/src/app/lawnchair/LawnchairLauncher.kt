@@ -249,6 +249,7 @@ class LawnchairLauncher : QuickstepLauncher() {
                 prefs.themedIcons.set(newValue = false)
             }
 
+            app.lawnchair.smartdock.SmartDockManager(this).start()
             showQuickstepWarningIfNecessary()
 
             reloadIconsIfNeeded()

@@ -694,8 +694,15 @@ Respond ONLY in this JSON format:
                         )
                     },
                 )
-                put("temperature", 0.2)
-                put("max_tokens", 200)
+                // o1 and o3 models use max_completion_tokens instead of max_tokens, and don't support custom temperature
+                if (model.startsWith("o1-") || model.startsWith("o3-")) {
+                    put("max_completion_tokens", 8192)
+                    // Temperature not allowed for o1/o3 models
+                } else {
+                    put("temperature", 0.2)
+                    put("max_tokens", 4096)
+                    put("response_format", JSONObject().apply { put("type", "json_object") })
+                }
             }
 
             val requestBodyStr = requestBody.toString()

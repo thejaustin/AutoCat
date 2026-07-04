@@ -162,6 +162,12 @@ class PreferenceManager private constructor(private val context: Context) :
     // AutoCat: Developer mode
     val autoCatDevMode = BoolPref("pref_autoCatDevMode", false, {})
 
+    // AutoCat: GenAI Folder Naming
+    val autoCatGenAIFolderNaming = BoolPref("pref_autoCatGenAIFolderNaming", true, {})
+
+    // AutoCat: Smart Dock
+    val autoCatSmartDockEnabled = BoolPref("pref_autoCatSmartDockEnabled", false, recreate)
+
     // AutoCat: Zen Mode
     val autoCatEnableZenMode = BoolPref("pref_autoCatEnableZenMode", false, recreate)
 

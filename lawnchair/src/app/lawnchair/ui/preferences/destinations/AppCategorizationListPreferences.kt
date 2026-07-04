@@ -40,7 +40,10 @@ import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -498,16 +501,13 @@ private fun TabHeader(
     onClick: () -> Unit,
 ) {
     // Material 3 Expressive: Enhanced header with gradient and spring animation
-    val categoryColor = remember(tabName) {
-        Color(
-            android.graphics.Color.HSVToColor(
-                floatArrayOf(
-                    (tabName.hashCode() % 360).toFloat(),
-                    0.65f,
-                    0.85f,
-                ),
-            ),
-        )
+    val primary = MaterialTheme.colorScheme.primary
+    val secondary = MaterialTheme.colorScheme.secondary
+    val tertiary = MaterialTheme.colorScheme.tertiary
+    
+    val categoryColor = remember(tabName, primary, secondary, tertiary) {
+        val colors = listOf(primary, secondary, tertiary)
+        colors[Math.abs(tabName.hashCode()) % colors.size]
     }
 
     Surface(
@@ -794,104 +794,134 @@ private fun TabOverrideDialog(
 
     var selectedTabName by remember { mutableStateOf(appTab.tabName) }
     var subCategory by remember { mutableStateOf(appTab.subCategory ?: "") }
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }    val sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    AlertDialog(
+    androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = {
-            Text("Change Tab")
-        },
-        text = {
-            Column {
-                Text(
-                    text = "Change tab for $appName",
-                    style = MaterialTheme.typography.bodyMedium,
+        sheetState = sheetState,
+        dragHandle = { androidx.compose.material3.BottomSheetDefaults.DragHandle() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 48.dp),
+        ) {
+            Text(
+                text = "Change Tab",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Change tab for $appName",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Tab dropdown - improved for better UX
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = it },
+            ) {
+                OutlinedTextField(
+                    value = selectedTabName,
+                    onValueChange = {}, // Read-only for dropdown
+                    readOnly = true,
+                    label = { Text("Tab") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Tab dropdown - improved for better UX
-                ExposedDropdownMenuBox(
+                ExposedDropdownMenu(
                     expanded = expanded,
-                    onExpandedChange = { expanded = it },
+                    onDismissRequest = {
+                        expanded = false
+                    },
                 ) {
-                    OutlinedTextField(
-                        value = selectedTabName,
-                        onValueChange = {}, // Read-only for dropdown
-                        readOnly = true,
-                        label = { Text("Tab") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                        },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth(),
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = {
-                            expanded = false
-                        },
-                    ) {
-                        availableCustomTabs.forEach { tab ->
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(16.dp)
-                                                .background(
-                                                    color = parseColor(tab.colorHex),
-                                                    shape = CircleShape,
-                                                ),
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(text = tab.name)
-                                    }
-                                },
-                                onClick = {
-                                    selectedTabName = tab.name
-                                    expanded = false
-                                },
-                            )
-                        }
+                    availableCustomTabs.forEach { tab ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .background(
+                                                color = parseColor(tab.colorHex),
+                                                shape = CircleShape,
+                                            ),
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(text = tab.name)
+                                }
+                            },
+                            onClick = {
+                                selectedTabName = tab.name
+                                expanded = false
+                            },
+                        )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                // Subcategory (Folder) input
-                OutlinedTextField(
-                    value = subCategory,
-                    onValueChange = { subCategory = it },
-                    label = { Text("Folder / Subcategory (Optional)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                )
+            // Subcategory (Folder) input
+            OutlinedTextField(
+                value = subCategory,
+                onValueChange = { subCategory = it },
+                label = { Text("Folder / Subcategory (Optional)") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
 
-                // Show current reasoning if available
-                if (!appTab.reasoning.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Current reasoning:",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = appTab.reasoning,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                    )
+            // Show current reasoning if available
+            if (!appTab.reasoning.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = "AI Reasoning",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = appTab.reasoning,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                        )
+                    }
                 }
             }
-        },
-        confirmButton = {
-            Row {
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+                
+                Spacer(modifier = Modifier.weight(1f))
+
                 // Reset to AI button — only when user has overridden
                 if (appTab.isUserOverride) {
-                    TextButton(
+                    androidx.compose.material3.OutlinedButton(
                         onClick = {
                             onAutoCategorize(appTab.packageName)
                             onDismiss()
@@ -901,7 +931,7 @@ private fun TabOverrideDialog(
                     }
                 } else if (appTab.source != AppTab.SOURCE_LLM && appTab.source != AppTab.SOURCE_ML) {
                     // Auto Categorize button for non-AI-sorted apps without override
-                    TextButton(
+                    androidx.compose.material3.OutlinedButton(
                         onClick = {
                             onAutoCategorize(appTab.packageName)
                             onDismiss()
@@ -913,7 +943,7 @@ private fun TabOverrideDialog(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                TextButton(
+                androidx.compose.material3.Button(
                     onClick = {
                         onSave(
                             selectedTabName,
@@ -924,13 +954,8 @@ private fun TabOverrideDialog(
                     Text("Save")
                 }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        },
-    )
+        }
+    }   
 }
 
 // Helper function to parse color - added here for the dropdown improvement

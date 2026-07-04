@@ -120,7 +120,7 @@ class GoogleAIProvider(
 
     companion object {
         private const val TAG = "GoogleAIProvider"
-        private const val DEFAULT_MODEL = "gemini-2.0-flash-exp"
+        private const val DEFAULT_MODEL = "gemini-2.0-flash"
 
         // Use v1beta for experimental models like 2.0-flash-exp
         private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
@@ -700,7 +700,8 @@ Respond ONLY in this JSON format:
                     "generationConfig",
                     JSONObject().apply {
                         put("temperature", 0.2) // Lower temperature for more consistent categorization
-                        put("maxOutputTokens", 200)
+                        put("maxOutputTokens", 8192)
+                        put("responseMimeType", "application/json")
                     },
                 )
             }

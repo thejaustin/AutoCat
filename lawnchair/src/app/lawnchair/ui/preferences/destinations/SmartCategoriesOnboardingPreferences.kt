@@ -87,7 +87,7 @@ fun SmartCategoriesOnboardingPreferences(
     val scope = rememberCoroutineScope()
 
     var step by remember { mutableIntStateOf(0) }
-    val totalSteps = 3
+    val totalSteps = 4
 
     // Step 1 state — provider + key
     var selectedProviderId by remember { mutableStateOf(prefs.llmProviderPreference.get()) }
@@ -165,7 +165,9 @@ fun SmartCategoriesOnboardingPreferences(
                                 step = 2
                             }
 
-                            2 -> complete()
+                            2 -> step = 3
+
+                            3 -> complete()
                         }
                     },
                     modifier = Modifier.weight(if (step == 0) 2f else 1f),
@@ -246,7 +248,115 @@ fun SmartCategoriesOnboardingPreferences(
                     },
                 )
 
-                2 -> ReadyStep()
+                2 -> SmartFeaturesStep()
+
+                3 -> ReadyStep()
+            }
+        }
+    }
+}
+
+@Composable
+fun SmartFeaturesStep() {
+    val prefs = preferenceManager()
+    var smartDockEnabled by remember { mutableStateOf(prefs.autoCatSmartDockEnabled.get()) }
+    var genAIFolderNamingEnabled by remember { mutableStateOf(prefs.autoCatGenAIFolderNaming.get()) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.AutoAwesome,
+            contentDescription = null,
+            modifier = Modifier
+                .size(72.dp)
+                .padding(bottom = 24.dp),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+
+        Text(
+            text = "Enable Smart Features",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 12.dp),
+        )
+
+        Text(
+            text = "Enhance your launcher with predictive and AI-generated features.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 32.dp),
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            ),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+                    Text(
+                        text = "Smart Dock",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = "Predicts which apps you need in your dock based on time of day.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                androidx.compose.material3.Switch(
+                    checked = smartDockEnabled,
+                    onCheckedChange = {
+                        smartDockEnabled = it
+                        prefs.autoCatSmartDockEnabled.set(it)
+                    }
+                )
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            ),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+                    Text(
+                        text = "GenAI Folder Naming",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = "Automatically suggest names when creating folders.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                androidx.compose.material3.Switch(
+                    checked = genAIFolderNamingEnabled,
+                    onCheckedChange = {
+                        genAIFolderNamingEnabled = it
+                        prefs.autoCatGenAIFolderNaming.set(it)
+                    }
+                )
             }
         }
     }

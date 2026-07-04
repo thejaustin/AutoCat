@@ -46,7 +46,7 @@ object LLMUtils {
      * @throws Exception if all retries fail, throws the last exception encountered
      */
     suspend fun <T> retryWithBackoff(
-        maxRetries: Int = 3,
+        maxRetries: Int = 4, // Increased default retries to 4
         initialDelayMs: Long = 1000L,
         onRetry: (attempt: Int, exception: Exception, nextDelayMs: Long) -> Unit = { _, _, _ -> },
         operation: suspend () -> T,
@@ -73,6 +73,10 @@ object LLMUtils {
                         currentDelay *= 2 // Double the delay for rate limits
                         Log.w(TAG, "Rate limit hit (429), increasing backoff to ${currentDelay}ms")
                     }
+
+                    // Add jitter (+/- 15%) to prevent stampeding
+                    val jitter = (currentDelay * 0.15).toLong()
+                    currentDelay += (-jitter..jitter).random()
 
                     onRetry(attempt + 1, e, currentDelay)
                     delay(currentDelay)

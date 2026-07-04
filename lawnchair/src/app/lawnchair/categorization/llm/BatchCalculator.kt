@@ -48,11 +48,14 @@ object BatchCalculator {
 
         // Apply reasonable limits based on model tier
         val batchSize = when {
-            // Large context models can handle bigger batches
-            contextWindow >= 100000 -> maxAppsPerBatch.coerceIn(20, 50)
+            // Large context models can handle bigger batches (e.g., 1M+ tokens)
+            contextWindow >= 500000 -> maxAppsPerBatch.coerceIn(50, 150)
+
+            // Medium-large context models (100k - 200k)
+            contextWindow >= 100000 -> maxAppsPerBatch.coerceIn(20, 80)
 
             // Medium context models
-            contextWindow >= 30000 -> maxAppsPerBatch.coerceIn(15, 30)
+            contextWindow >= 30000 -> maxAppsPerBatch.coerceIn(15, 40)
 
             // Small context models
             else -> maxAppsPerBatch.coerceIn(10, 20)

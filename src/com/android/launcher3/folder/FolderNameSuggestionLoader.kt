@@ -22,6 +22,8 @@ import com.android.launcher3.LauncherModel
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -54,7 +56,49 @@ constructor(
         MODEL_EXECUTOR.execute {
             val nameInfos = FolderNameInfos()
             folderNameProvider?.getSuggestedFolderName(context, workspaceItemInfos, nameInfos)
-            callback.accept(nameInfos)
+
+            val prefs = app.lawnchair.preferences.PreferenceManager.getInstance(context)
+            if (prefs.autoCatGenAIFolderNaming.get()) {
+                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    try {
+                        val appNames = workspaceItemInfos.mapNotNull { it.title?.toString() }.filter { it.isNotBlank() }
+                        if (appNames.size >= 2) {
+                            val providerId = prefs.llmProviderPreference.get()
+                            val provider = when (providerId) {
+                                "google_ai" -> app.lawnchair.categorization.llm.GoogleAIProvider(context)
+                                "claude" -> app.lawnchair.categorization.llm.ClaudeProvider(context)
+                                "openai" -> app.lawnchair.categorization.llm.OpenAIProvider(context)
+                                "perplexity" -> app.lawnchair.categorization.llm.PerplexityProvider(context)
+                                else -> app.lawnchair.categorization.llm.GoogleAIProvider(context)
+                            }
+                            
+                            val prompt = "I am creating a folder with the following apps: ${appNames.joinToString(", ")}. What is a concise, 1-2 word name for this folder? Return ONLY the folder name, nothing else."
+                            val suggestedName = provider.generateText(prompt)
+                            if (suggestedName.isNotBlank() && suggestedName.length < 25) {
+                                val cleanName = suggestedName.replace("\"", "").trim()
+                                val newNameInfos = FolderNameInfos()
+                                newNameInfos.setStatus(FolderNameInfos.HAS_PRIMARY)
+                                val baseLabels = nameInfos.labels?.filterNotNull() ?: emptyList()
+                                val newLabels = (listOf(cleanName) + baseLabels).distinct().toTypedArray()
+                                newNameInfos.setLabels(newLabels)
+                                com.android.launcher3.util.Executors.MAIN_EXECUTOR.execute {
+                                    callback.accept(newNameInfos)
+                                }
+                                return@launch
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("FolderNameSuggest", "LLM naming failed", e)
+                    }
+                    com.android.launcher3.util.Executors.MAIN_EXECUTOR.execute {
+                        callback.accept(nameInfos)
+                    }
+                }
+            } else {
+                com.android.launcher3.util.Executors.MAIN_EXECUTOR.execute {
+                    callback.accept(nameInfos)
+                }
+            }
         }
     }
 }
