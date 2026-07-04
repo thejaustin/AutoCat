@@ -40,6 +40,9 @@ data class CustomTab(
 
     @ColumnInfo(name = "created_at")
     val createdAt: Long = System.currentTimeMillis(),
+
+    @ColumnInfo(name = "hide_in_zen_mode")
+    val hideInZenMode: Boolean = false,
 ) {
     companion object {
         // Default tab colors

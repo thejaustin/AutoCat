@@ -348,7 +348,7 @@ fun TabManagementPreferences(
                 showAddDialog = false
                 editingTab = null
             },
-            onSave = { name, color ->
+            onSave = { name, color, hideInZenMode ->
                 scope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     try {
                         if (editingTab != null) {
@@ -357,6 +357,7 @@ fun TabManagementPreferences(
                                 editingTab!!.copy(
                                     name = name,
                                     colorHex = color,
+                                    hideInZenMode = hideInZenMode,
                                 ),
                             )
                             successMessage = "✓ Tab '$name' updated"
@@ -370,6 +371,7 @@ fun TabManagementPreferences(
                                     colorHex = color,
                                     sortOrder = maxSortOrder + 1,
                                     isVisible = true,
+                                    hideInZenMode = hideInZenMode,
                                 ),
                             )
                             android.util.Log.d("TabManagement", "Tab created with ID: $tabId")
@@ -541,10 +543,11 @@ private fun TabItem(
 private fun TabDialog(
     tab: CustomTab?,
     onDismiss: () -> Unit,
-    onSave: (String, String) -> Unit,
+    onSave: (String, String, Boolean) -> Unit,
 ) {
     var name by remember { mutableStateOf(tab?.name ?: "") }
     var colorHex by remember { mutableStateOf(tab?.colorHex ?: "#4CAF50") }
+    var hideInZenMode by remember { mutableStateOf(tab?.hideInZenMode ?: false) }
 
     val predefinedColors = listOf(
         "#4CAF50" to "Green",
@@ -658,12 +661,36 @@ private fun TabDialog(
                                 .border(1.5.dp, MaterialTheme.colorScheme.outline, CircleShape),
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { hideInZenMode = !hideInZenMode }
+                            .padding(vertical = 8.dp),
+                    ) {
+                        androidx.compose.material3.Checkbox(
+                            checked = hideInZenMode,
+                            onCheckedChange = { hideInZenMode = it }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text("Hide in Zen Mode", style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                text = "Hides this tab when Do Not Disturb is active",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { onSave(name, colorHex) },
+                onClick = { onSave(name, colorHex, hideInZenMode) },
                 enabled = name.isNotBlank(),
             ) {
                 Text("Save")

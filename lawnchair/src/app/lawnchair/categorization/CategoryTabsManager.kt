@@ -50,9 +50,18 @@ class CategoryTabsManager(private val context: Context) {
     suspend fun getTabs(hasWorkApps: Boolean): List<TabInfo> {
         val tabs = mutableListOf<TabInfo>()
 
+        val isZenModeActive = if (prefs.autoCatEnableZenMode.get()) {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            notificationManager.currentInterruptionFilter != android.app.NotificationManager.INTERRUPTION_FILTER_ALL
+        } else {
+            false
+        }
+
         // Get visible custom tabs from database (already sorted by sortOrder)
         val customCategoryTabs = withContext(Dispatchers.IO) {
-            categoryDao.getVisibleCustomCategories()
+            categoryDao.getVisibleCustomCategories().filter { 
+                !isZenModeActive || !it.hideInZenMode 
+            }
         }
 
         android.util.Log.d(TAG, "getTabs: Found ${customCategoryTabs.size} visible custom tabs")
