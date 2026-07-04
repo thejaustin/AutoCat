@@ -3,10 +3,10 @@ plugins {
 }
 
 android {
-    buildToolsVersion = "36.1.0"
-    namespace = "com.android.systemui.log"
+    buildToolsVersion "36.1.0"
+    namespace "com.android.systemui.log"
     buildFeatures {
-        aidl = true
+        aidl true
     }
     sourceSets {
         main {
