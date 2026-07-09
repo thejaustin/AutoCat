@@ -156,6 +156,11 @@ interface LLMProvider {
         tabName: String,
         apps: List<AppBatchInfo>,
     ): List<SuggestedFolder>
+
+    /**
+     * Generates a raw text response for a given prompt.
+     */
+    suspend fun generateText(prompt: String): String
 }
 
 /**

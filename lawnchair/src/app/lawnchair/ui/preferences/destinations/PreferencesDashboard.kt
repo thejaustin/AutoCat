@@ -273,7 +273,7 @@ private fun PreferencesSetDefaultLauncherWarning(
     )
 }
 
-private fun openAppInfo(context: Context) {
+internal fun openAppInfo(context: Context) {
     val launcherApps = context.getSystemService<LauncherApps>()
     val componentName = ComponentName(context, AutoCatLauncher::class.java)
     launcherApps?.startAppDetailsActivity(componentName, Process.myUserHandle(), null, null)

@@ -184,8 +184,8 @@ class AutoCatApp : Application() {
             // Check for crash reports (deferred from main thread)
             try {
                 val preferenceManager2 = PreferenceManager2.getInstance(this@AutoCatApp)
-                val lastCrashId = preferenceManager2.lastCrashId.get().first()
-                val showLocalUi = preferenceManager2.showLocalCrashUi.get().first()
+                val lastCrashId = preferenceManager2.lastCrashId.firstBlocking()
+                val showLocalUi = preferenceManager2.showLocalCrashUi.firstBlocking()
                 if (lastCrashId != -1 && showLocalUi) {
                     CoroutineScope(Dispatchers.Main).launch {
                         BugReportActivity.show(this@AutoCatApp, lastCrashId)

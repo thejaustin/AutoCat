@@ -394,6 +394,15 @@ class PerplexityProvider(
         }
     }
 
+    override suspend fun generateText(prompt: String): String = withContext(Dispatchers.IO) {
+        try {
+            callPerplexityAPIWithFallback(prompt)
+        } catch (e: Exception) {
+            throw LLMException("Perplexity text generation failed: ${e.message}", e)
+        }
+    }
+
+
     /**
      * Calls Perplexity API with automatic model fallback.
      * Tries the preferred model first, then falls back to other available models if it fails.

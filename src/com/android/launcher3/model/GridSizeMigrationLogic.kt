@@ -21,6 +21,7 @@ import android.graphics.Point
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import app.lawnchair.preferences2.PreferenceManager2
+import com.patrykmichalik.opto.core.firstBlocking
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.BuildConfigs
 import com.android.launcher3.Flags

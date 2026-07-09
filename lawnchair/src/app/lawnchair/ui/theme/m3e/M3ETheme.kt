@@ -19,8 +19,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.theme.AutoCatTheme
 
@@ -53,23 +51,7 @@ fun M3ETheme(
     content: @Composable () -> Unit,
 ) {
     AutoCatTheme {
-        ProvideExpressiveShapes(
-            extraSmall = MaterialExpressiveTheme.shapes.extraSmall,
-            small = MaterialExpressiveTheme.shapes.small,
-            medium = MaterialExpressiveTheme.shapes.medium,
-            large = MaterialExpressiveTheme.shapes.large,
-            extraLarge = MaterialExpressiveTheme.shapes.extraLarge,
-        ) {
-            ProvideExpressiveTypography(
-                display = MaterialExpressiveTheme.typography.displayLarge,
-                headline = MaterialExpressiveTheme.typography.headlineLarge,
-                title = MaterialExpressiveTheme.typography.titleLarge,
-                body = MaterialExpressiveTheme.typography.bodyLarge,
-                label = MaterialExpressiveTheme.typography.labelLarge,
-            ) {
-                content()
-            }
-        }
+        content()
     }
 }
 
@@ -197,11 +179,13 @@ fun M3EClickable(
         }
     }
 
-    androidx.compose.foundation.clickable(
-        interactionSource = interactionSource,
-        indication = LocalIndication.current,
-        enabled = enabled,
-        onClick = onClick,
+    androidx.compose.foundation.layout.Box(
+        modifier = modifier.clickable(
+            interactionSource = interactionSource,
+            indication = LocalIndication.current,
+            enabled = enabled,
+            onClick = onClick,
+        )
     ) {
         content()
     }

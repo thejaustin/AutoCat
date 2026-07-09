@@ -80,7 +80,9 @@ constructor(
                                 newNameInfos.setStatus(FolderNameInfos.HAS_PRIMARY)
                                 val baseLabels = nameInfos.labels?.filterNotNull() ?: emptyList()
                                 val newLabels = (listOf(cleanName) + baseLabels).distinct().toTypedArray()
-                                newNameInfos.setLabels(newLabels)
+                                for ((index, label) in newLabels.withIndex()) {
+                                    newNameInfos.setLabel(index, label, 1.0f - (index * 0.1f))
+                                }
                                 com.android.launcher3.util.Executors.MAIN_EXECUTOR.execute {
                                     callback.accept(newNameInfos)
                                 }

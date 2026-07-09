@@ -394,6 +394,15 @@ class ClaudeProvider(
         }
     }
 
+    override suspend fun generateText(prompt: String): String = withContext(Dispatchers.IO) {
+        try {
+            callClaudeAPIWithFallback(prompt)
+        } catch (e: Exception) {
+            throw LLMException("Claude text generation failed: ${e.message}", e)
+        }
+    }
+
+
     /**
      * Calls Claude API with automatic model fallback.
      * Tries the preferred model first, then falls back to other available models if it fails.

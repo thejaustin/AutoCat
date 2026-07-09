@@ -31,8 +31,8 @@ sealed class WallpaperManagerCompat(val context: Context) {
     }
 
     protected fun notifyChange() {
-        if (service.getTopWallpapers().isEmpty()) {
-            CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO).launch {
+            if (service.getTopWallpapers().isEmpty()) {
                 service.saveWallpaper(wallpaperManager)
             }
         }

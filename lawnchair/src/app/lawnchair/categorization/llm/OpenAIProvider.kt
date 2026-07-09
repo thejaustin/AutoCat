@@ -383,6 +383,15 @@ class OpenAIProvider(
         }
     }
 
+    override suspend fun generateText(prompt: String): String = withContext(Dispatchers.IO) {
+        try {
+            callOpenAIAPIWithFallback(prompt)
+        } catch (e: Exception) {
+            throw LLMException("OpenAI text generation failed: ${e.message}", e)
+        }
+    }
+
+
     /**
      * Calls OpenAI API with automatic model fallback.
      * Tries the preferred model first, then falls back to other available models if it fails.

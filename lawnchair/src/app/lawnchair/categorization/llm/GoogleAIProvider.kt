@@ -404,6 +404,15 @@ class GoogleAIProvider(
         }
     }
 
+    override suspend fun generateText(prompt: String): String = withContext(Dispatchers.IO) {
+        try {
+            callGeminiAPIWithFallback(prompt)
+        } catch (e: Exception) {
+            throw LLMException("Google AI text generation failed: ${e.message}", e)
+        }
+    }
+
+
     /**
      * Calls Gemini API with automatic model fallback.
      * Tries the preferred model first, then falls back to other available models if it fails.
