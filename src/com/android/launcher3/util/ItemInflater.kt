@@ -34,6 +34,8 @@ import com.android.launcher3.model.data.AppPairInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.LauncherAppWidgetInfo
+import com.android.launcher3.model.data.WidgetStackInfo
+import com.android.launcher3.widget.WidgetStackView
 import com.android.launcher3.model.data.WorkspaceItemFactory
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.views.ActivityContext
@@ -106,10 +108,13 @@ class ItemInflater<T>(
         stackView.tag = item
         stackView.setStackInfo(item)
         
-        item.getWidgets().forEach { widget ->
-            val widgetView = inflateAppWidget(widget, context.modelWriter)
-            if (widgetView != null) {
-                stackView.addWidgetView(widgetView)
+        item.getContents().forEach { widgetItem ->
+            val widget = widgetItem as? LauncherAppWidgetInfo
+            if (widget != null) {
+                val widgetView = inflateAppWidget(widget, context.modelWriter)
+                if (widgetView != null) {
+                    stackView.addWidgetView(widgetView)
+                }
             }
         }
         return stackView

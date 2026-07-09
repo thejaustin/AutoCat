@@ -167,28 +167,7 @@ public interface LauncherBaseAppComponent {
 
     LawnchairActivityCachingLogic getLawnchairActivityCachingLogic();
     FolderService getFolderService();
-
-    // AutoCat-specific
-    
-    AutoCatWindowManagerProxy getLWMP();
-    DeviceProfileOverrides getDPO();
-    ThemeProvider getThemeProvider();
-    SmartspaceProvider getSmartspaceProvider();
-    HeadlessWidgetsManager getHeadlessWidgetsManager();
-    NotificationManager getNotificationManager();
-    ColorPreferenceModelList getColorPreferenceModelList();
-    LiveInformationManager getLiveInformationManager();
-    PreferenceManager2 getPreferenceManager2();
-    PreferenceManager getPreferenceManager();
     ShizukuManager getShizukuManager();
-    FontCache getFontCache();
-    FontManager getFontManager();
-    IconShapeManager getIconShapeManager();
-    IconPackProvider getIconPackProvider();
-    GoogleFontsListing getGoogleFontsListing();
-    WallpaperService getWallpaperService();
-    IconOverrideRepository getIconOverrideRepository();
-    FolderService getFolderService();
 
     /** Builder for LauncherBaseAppComponent. */
     interface Builder {
