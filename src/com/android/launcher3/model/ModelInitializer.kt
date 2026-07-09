@@ -57,7 +57,7 @@ constructor(
     private val themeManager: ThemeManager,
     private val userCache: UserCache,
     private val settingsCache: SettingsCache,
-    private val iconProvider: LawnchairIconProvider,
+    private val iconProvider: AutoCatIconProvider,
     private val customWidgetManager: CustomWidgetManager,
     private val installSessionHelper: InstallSessionHelper,
     private val lifeCycle: DaggerSingletonTracker,

@@ -40,11 +40,14 @@ import com.android.launcher3.icons.LauncherIconProvider.ATTR_PACKAGE
 import com.android.launcher3.icons.LauncherIconProvider.TAG_ICON
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.SafeCloseable
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
+import javax.inject.Inject
 import org.xmlpull.v1.XmlPullParser
 
-class AutoCatIconProvider @JvmOverloads constructor(
-    private val context: Context,
-    supportsIconTheme: Boolean = false,
+@LauncherAppSingleton
+class AutoCatIconProvider @Inject constructor(
+    @ApplicationContext private val context: Context,
 ) : IconProvider(context) {
 
     private val prefs = PreferenceManager.getInstance(context)
