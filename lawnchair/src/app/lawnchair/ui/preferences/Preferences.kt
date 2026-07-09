@@ -54,6 +54,10 @@ import app.lawnchair.util.ProvideLifecycleState
 import com.google.accompanist.adaptive.HorizontalTwoPaneStrategy
 import com.google.accompanist.adaptive.TwoPane
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+
 // todo migrate away from implicit navcontroller
 val LocalNavController = staticCompositionLocalOf<NavController> {
     error("CompositionLocal LocalNavController not present")
@@ -64,6 +68,11 @@ val LocalPreferenceInteractor = staticCompositionLocalOf<PreferenceInteractor> {
 }
 
 val LocalIsExpandedScreen = compositionLocalOf { false }
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+val LocalSharedTransitionScope = staticCompositionLocalOf<SharedTransitionScope?> { null }
+
+val LocalAnimatedVisibilityScope = staticCompositionLocalOf<AnimatedVisibilityScope?> { null }
 
 val twoPaneBlacklist = setOf(
     IconPicker::class,

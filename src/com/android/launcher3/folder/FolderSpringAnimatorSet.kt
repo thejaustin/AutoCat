@@ -39,7 +39,6 @@ import com.android.launcher3.anim.SpringAnimationBuilder
 import com.android.launcher3.apppairs.AppPairIcon
 import com.android.launcher3.folder.ClippedFolderIconLayoutRule.MAX_NUM_ITEMS_IN_PREVIEW
 import com.android.launcher3.util.Themes
-import com.android.launcher3.views.BaseDragLayer
 
 /** Holder for Animators created from [FolderAnimationSpringBuilderManager] */
 class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
@@ -379,6 +378,26 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                 property = SCALE_PROPERTY,
                 view = hotseat,
             )
+            val dragLayerBlurProperty = object : FloatProperty<View>("blur") {
+                override fun get(view: View): Float {
+                    return try {
+                        val method = view.javaClass.getMethod("getBlurRadius")
+                        (method.invoke(view) as Number).toFloat()
+                    } catch (e: Exception) {
+                        0f
+                    }
+                }
+
+                override fun setValue(view: View, value: Float) {
+                    try {
+                        val method = view.javaClass.getMethod("setBlur", Float::class.javaPrimitiveType)
+                        method.invoke(view, value)
+                    } catch (e: Exception) {
+                        // Ignore
+                    }
+                }
+            }
+
             playSpringAnimation(
                 context = context,
                 animatorSet = animatorSet,
@@ -389,7 +408,7 @@ class FolderSpringAnimatorSet(val animatorSet: AnimatorSet) {
                 startValue = 0f,
                 endValue = 25f, // Max blur radius for folders
                 minVisibleChange = MIN_VISIBLE_CHANGE_PIXELS,
-                property = LauncherAnimUtils.DRAG_LAYER_BLUR as Property<View, Float>,
+                property = dragLayerBlurProperty,
                 view = launcher.dragLayer as View,
             )
             animatorSet.addListener(FolderScrimAnimationListener(scrimView, isOpening, launcher))

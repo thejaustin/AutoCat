@@ -73,9 +73,6 @@ data object ExperimentalFeatures : PreferenceRootRoute
 data object DebugMenu : PreferenceRootRoute
 
 @Serializable
-data object BackupAndRestore : PreferenceRootRoute
-
-@Serializable
 data object Developer : PreferenceRootRoute
 
 @Serializable

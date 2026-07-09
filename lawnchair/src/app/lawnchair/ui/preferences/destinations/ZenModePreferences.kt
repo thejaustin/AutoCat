@@ -1,6 +1,6 @@
 package app.lawnchair.ui.preferences.destinations
 
-import android.app.appsearch.exceptions.SecurityException
+import java.lang.SecurityException
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.FocusMode
+import androidx.compose.material.icons.rounded.DoNotDisturb
 import androidx.compose.material.icons.rounded.HideSource
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material3.Card
@@ -40,7 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import app.lawnchair.R
+import com.android.launcher3.R
 import app.lawnchair.categorization.zenmode.ZenModeManager
 import app.lawnchair.categorization.zenmode.ZenModeManager.FocusRule
 import app.lawnchair.ui.preferences.components.controls.PreferenceCategory
@@ -118,7 +118,7 @@ fun ZenModePreferences(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Icon(
-                            Icons.Rounded.FocusMode,
+                            Icons.Rounded.DoNotDisturb,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
