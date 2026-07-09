@@ -1,4 +1,4 @@
-﻿package app.lawnchair.data.wallpaper.service
+package app.lawnchair.data.wallpaper.service
 
 import android.app.WallpaperManager
 import android.content.Context
@@ -14,7 +14,12 @@ import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
 
-class WallpaperService(val context: Context) : SafeCloseable {
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
+import javax.inject.Inject
+
+@LauncherAppSingleton
+class WallpaperService @Inject constructor(@ApplicationContext val context: Context) : SafeCloseable {
 
     private val database by lazy { AppDatabase.INSTANCE.get(context) }
     val dao by lazy { database.wallpaperDao() }

@@ -33,7 +33,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-class PreferenceManager private constructor(private val context: Context) :
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
+import javax.inject.Inject
+
+@LauncherAppSingleton
+class PreferenceManager @Inject constructor(@ApplicationContext private val context: Context) :
     BasePreferenceManager(context),
     SafeCloseable {
     private val idp get() = InvariantDeviceProfile.INSTANCE.get(context)

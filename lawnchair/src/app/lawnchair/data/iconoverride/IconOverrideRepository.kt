@@ -17,7 +17,12 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 
-class IconOverrideRepository(private val context: Context) : SafeCloseable {
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
+import javax.inject.Inject
+
+@LauncherAppSingleton
+class IconOverrideRepository @Inject constructor(@ApplicationContext private val context: Context) : SafeCloseable {
 
     private val scope = MainScope() + CoroutineName("IconOverrideRepository")
     private val database by lazy { AppDatabase.INSTANCE.get(context) }

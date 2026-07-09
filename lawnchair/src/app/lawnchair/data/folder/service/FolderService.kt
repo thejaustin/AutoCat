@@ -1,4 +1,4 @@
-﻿package app.lawnchair.data.folder.service
+package app.lawnchair.data.folder.service
 
 import android.content.ComponentName
 import android.content.Context
@@ -21,7 +21,12 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
-class FolderService(val context: Context) : SafeCloseable {
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
+import javax.inject.Inject
+
+@LauncherAppSingleton
+class FolderService @Inject constructor(@ApplicationContext val context: Context) : SafeCloseable {
 
     private val database by lazy { AppDatabase.INSTANCE.get(context) }
     private val folderDao by lazy { database.folderDao() }
