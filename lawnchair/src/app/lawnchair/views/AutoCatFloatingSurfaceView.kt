@@ -34,7 +34,7 @@ import com.android.launcher3.GestureNavContract
 import com.android.launcher3.Insettable
 import com.android.launcher3.LauncherAnimUtils
 import com.android.launcher3.QuickstepTransitionManager.CONTENT_SCALE_DURATION
-import com.android.launcher3.QuickstepTransitionManager.LaunchDepthController
+import com.android.launcher3.statehandlers.DepthController
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.util.Executors
@@ -167,7 +167,7 @@ class AutoCatFloatingSurfaceView @JvmOverloads constructor(
     }
 
     private fun getBackgroundAnimator(): ObjectAnimator {
-        val depthController = LaunchDepthController(mLauncher)
+        val depthController = DepthController(mLauncher)
         val targetDepth = mLauncher.stateManager.state.getDepth<AutoCatLauncher?>(mLauncher)
 
         val backgroundRadiusAnim = createDepthAnimator(
@@ -206,7 +206,7 @@ class AutoCatFloatingSurfaceView @JvmOverloads constructor(
     }
 
     private fun createDepthAnimator(
-        depthController: LaunchDepthController,
+        depthController: DepthController,
         targetDepth: Float,
         onEnd: (() -> Unit)? = null,
     ): ObjectAnimator {
