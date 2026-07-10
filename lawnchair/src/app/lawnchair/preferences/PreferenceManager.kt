@@ -146,6 +146,11 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     val llmOpenAIKey = StringPref("pref_llmOpenAIKey", "", {})
     val llmPerplexityKey = StringPref("pref_llmPerplexityKey", "", {})
     val llmProviderPreference = StringPref("pref_llmProvider", "google_ai", {})
+    val localEndpointEnabled = BoolPref("pref_localEndpointEnabled", false, {})
+    val localEndpointUrl = StringPref("pref_localEndpointUrl", "http://localhost:11434/v1", {})
+    val localEndpointModelId = StringPref("pref_localEndpointModelId", "", {})
+    val localCustomModelPath = StringPref("pref_localCustomModelPath", "", {})
+    val selectedLocalModelId = StringPref("pref_selectedLocalModelId", "", {})
     val llmAutoSelectBestModel = BoolPref("pref_llmAutoSelectBestModel", false, {})
 
     // AutoCat: LLM model selection
