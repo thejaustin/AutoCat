@@ -159,6 +159,8 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     val forceIconMonochrome = BoolPref("pref_forceIconMonochrome", false, recreate)
     val enableGnc = BoolPref("pref_enableGnc", true, recreate)
     val archivalMethod = StringPref("pref_archivalMethod", "default", {})
+    val enableWidgetStacks = BoolPref("pref_enableWidgetStacks", false, recreate)
+    val settingsCardRadius = IntPref("pref_settingsCardRadius", 24, recreate)
 
     // AutoCat: LLM model selection
     val llmGoogleAIModel = StringPref("pref_llmGoogleAIModel", "gemini-2.0-flash-exp", {})

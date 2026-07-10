@@ -30,7 +30,7 @@ import app.lawnchair.ui.preferences.navigation.PreferenceRoute
 @Composable
 fun NavigationActionPreference(
     label: String,
-    destination: PreferenceRoute,
+    destination: PreferenceRoute?,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     icon: ImageVector? = null,
@@ -39,7 +39,13 @@ fun NavigationActionPreference(
     val navController = LocalNavController.current
 
     PreferenceTemplate(
-        modifier = modifier.clickable { navController.navigate(route = destination) },
+        modifier = modifier.then(
+            if (destination != null) {
+                Modifier.clickable { navController.navigate(route = destination) }
+            } else {
+                Modifier
+            }
+        ),
         title = { Text(text = label) },
         description = { subtitle?.let { Text(text = it) } },
         startWidget = if (icon != null) {
