@@ -108,16 +108,7 @@ fun SettingsSearchBar(
     animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "SearchThrob")
-    val weight by infiniteTransition.animateFloat(
-        initialValue = 400f,
-        targetValue = 550f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2000),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "weight",
-    )
+
 
     with(sharedTransitionScope) {
         Surface(
@@ -146,9 +137,7 @@ fun SettingsSearchBar(
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = stringResource(id = R.string.search_settings),
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontVariationSettings = "'wght' $weight",
-                    ),
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

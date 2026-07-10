@@ -972,4 +972,6 @@
     <!-- Message shown when all home screen views are removed -->
     <string name="home_screen_all_views_removed_msg">Home screen cleared</string>
     <string name="folder_cover_label">Folder Cover</string>
+    <string name="search_settings">Search Settings</string>
+    <string name="settings_debug_warning">Debug builds may contain bugs and breaking changes. Use at your own risk.</string>
 </resources>
