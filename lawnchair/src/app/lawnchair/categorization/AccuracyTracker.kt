@@ -224,4 +224,11 @@ class AccuracyTracker(private val context: Context) {
         minSamples = minSamples,
         since = System.currentTimeMillis() - (daysBack * 24 * 60 * 60 * 1000L),
     )
+
+    /**
+     * Clears all recorded model accuracy statistics.
+     */
+    suspend fun resetStats() {
+        accuracyDao.deleteAll()
+    }
 }

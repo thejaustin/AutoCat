@@ -52,7 +52,7 @@ import app.lawnchair.ui.util.addIf
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import sh.calvin.reorderable.ReorderableColumn
-import sh.calvin.reorderable.ReorderableScope
+import sh.calvin.reorderable.ReorderableListItemScope
 
 @Composable
 fun <T> DraggablePreferenceGroup(
@@ -61,7 +61,7 @@ fun <T> DraggablePreferenceGroup(
     defaultList: List<T>,
     onOrderChange: (List<T>) -> Unit,
     modifier: Modifier = Modifier,
-    itemContent: @Composable ReorderableScope.(
+    itemContent: @Composable ReorderableListItemScope.(
         item: T,
         index: Int,
         isDragging: Boolean,
@@ -234,7 +234,7 @@ fun DraggableSwitchPreference(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DragHandle(
-    scope: ReorderableScope,
+    scope: ReorderableListItemScope,
     interactionSource: MutableInteractionSource,
     modifier: Modifier = Modifier,
     isDraggable: Boolean = true,

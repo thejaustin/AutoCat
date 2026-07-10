@@ -573,7 +573,6 @@ fun CategorizationStatus(
 }
 
 @Composable
-@Composable
 private fun LocalAiSection(
     prefs: app.lawnchair.preferences.PreferenceManager,
     scope: kotlinx.coroutines.CoroutineScope,

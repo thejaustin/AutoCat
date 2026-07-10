@@ -151,6 +151,10 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     val localEndpointModelId = StringPref("pref_localEndpointModelId", "", {})
     val localCustomModelPath = StringPref("pref_localCustomModelPath", "", {})
     val selectedLocalModelId = StringPref("pref_selectedLocalModelId", "", {})
+    val llmUseLocalModel = BoolPref("pref_llmUseLocalModel", false, {})
+    val llmPromptLanguage = StringPref("pref_llmPromptLanguage", "en", {})
+    val llmOnlyOnWifi = BoolPref("pref_llmOnlyOnWifi", false, {})
+    val llmOnlyWhileCharging = BoolPref("pref_llmOnlyWhileCharging", false, {})
     val llmAutoSelectBestModel = BoolPref("pref_llmAutoSelectBestModel", false, {})
 
     // AutoCat: LLM model selection

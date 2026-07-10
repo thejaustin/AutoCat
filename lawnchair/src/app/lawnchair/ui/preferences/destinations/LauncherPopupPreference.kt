@@ -35,7 +35,7 @@ import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.popup.LauncherOptionPopupItem
 import app.lawnchair.ui.popup.LauncherOptionsPopup
-import sh.calvin.reorderable.ReorderableScope
+import sh.calvin.reorderable.ReorderableListItemScope
 import app.lawnchair.ui.popup.toLauncherOptions
 import app.lawnchair.ui.popup.toOptionOrderString
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
