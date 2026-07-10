@@ -138,6 +138,7 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
 
     // AutoCat: Category tabs settings
     val useAppTabs = BoolPref("pref_useAppTabs", true, recreate)
+    val smartCategoriesOnboardingCompleted = BoolPref("pref_smartCategoriesOnboardingCompleted", false, {})
 
     // AutoCat: LLM API keys
     val llmGoogleAIKey = StringPref("pref_llmGoogleAIKey", "", {})

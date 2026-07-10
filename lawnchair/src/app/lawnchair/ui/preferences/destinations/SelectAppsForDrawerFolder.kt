@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -65,8 +66,8 @@ fun SelectAppsForDrawerFolder(
         folderInfo?.getContents()?.map { ComponentKey(it.targetComponent, it.user).toString() } ?: emptyList()
     }
 
-    val (positionalItems, activeCount) = remember(apps, activeIds, filterNonUniqueItems, allFolderPackages) {
-        val filtered = apps.filter { app ->
+    val filteredApps = remember(apps, activeIds, filterNonUniqueItems, allFolderPackages) {
+        apps.filter { app ->
             if (filterNonUniqueItems) {
                 !allFolderPackages.contains(app.key.componentName.packageName) ||
                     activeIds.contains(app.key.toString())
@@ -74,8 +75,11 @@ fun SelectAppsForDrawerFolder(
                 true
             }
         }
+    }
+
+    val (positionalItems, activeCount) = remember(filteredApps, activeIds) {
         PositionalMapper.prepareCategorizedItems(
-            allItems = filtered,
+            allItems = filteredApps,
             enabledIds = activeIds,
             idSelector = { it.key.toString() },
         )
