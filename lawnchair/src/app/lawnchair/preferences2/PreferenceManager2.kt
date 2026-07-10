@@ -748,6 +748,12 @@ class PreferenceManager2 @Inject constructor(
         save = { it.toString() },
     )
 
+    val enableSmartspaceCalendarSelection = preference(
+        key = booleanPreferencesKey(name = "enable_smartspace_calendar_selection"),
+        defaultValue = false,
+        onSet = { reloadHelper.recreate() },
+    )
+
     val smartspacerMaxCount = preference(
         key = intPreferencesKey(name = "smartspace_max_count"),
         defaultValue = 5,

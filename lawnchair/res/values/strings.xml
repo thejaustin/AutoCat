@@ -974,4 +974,5 @@
     <string name="folder_cover_label">Folder Cover</string>
     <string name="search_settings">Search Settings</string>
     <string name="settings_debug_warning">Debug builds may contain bugs and breaking changes. Use at your own risk.</string>
+    <string name="debug_label">Debug Menu</string>
 </resources>

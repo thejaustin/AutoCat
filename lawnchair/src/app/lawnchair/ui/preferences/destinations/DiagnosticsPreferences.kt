@@ -76,10 +76,10 @@ fun DiagnosticsPreferences(
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             val db = TabDatabase.getInstance(context)
-            val dao = db.tabDao()
-            appCount = dao.getAllAppTabs().size
-            tabCount = dao.getAllCustomTabs().size
-            overrideCount = dao.getAllAppTabs().count { it.isUserOverride }
+            val dao = db.categoryDao()
+            appCount = dao.getAllAppCategories().size
+            tabCount = dao.getAllCustomCategories().size
+            overrideCount = dao.getAllAppCategories().count { it.isUserOverride }
             crashLogs.clear()
             crashLogs.addAll(app.lawnchair.bugreport.AutoCatBugReporter.INSTANCE.get(context).getLogs())
         }
@@ -155,8 +155,8 @@ fun DiagnosticsPreferences(
                         subtitle = "CAUTION: Deletes all app assignments (not overrides)",
                         onClick = {
                             scope.launch(Dispatchers.IO) {
-                                TabDatabase.getInstance(context).tabDao().deleteNonUserOverrides()
-                                appCount = TabDatabase.getInstance(context).tabDao().getAllAppTabs().size
+                                TabDatabase.getInstance(context).categoryDao().deleteNonUserOverrides()
+                                appCount = TabDatabase.getInstance(context).categoryDao().getAllAppCategories().size
                             }
                         },
                     )
