@@ -156,6 +156,7 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     val llmOnlyOnWifi = BoolPref("pref_llmOnlyOnWifi", false, {})
     val llmOnlyWhileCharging = BoolPref("pref_llmOnlyWhileCharging", false, {})
     val llmAutoSelectBestModel = BoolPref("pref_llmAutoSelectBestModel", false, {})
+    val forceIconMonochrome = BoolPref("pref_forceIconMonochrome", false, recreate)
 
     // AutoCat: LLM model selection
     val llmGoogleAIModel = StringPref("pref_llmGoogleAIModel", "gemini-2.0-flash-exp", {})
