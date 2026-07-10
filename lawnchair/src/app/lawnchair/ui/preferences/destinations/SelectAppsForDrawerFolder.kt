@@ -1,4 +1,4 @@
-﻿package app.lawnchair.ui.preferences.destinations
+package app.lawnchair.ui.preferences.destinations
 
 import android.content.Context
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -38,6 +38,7 @@ import app.lawnchair.ui.preferences.components.reorderable.PositionalReorderer
 import app.lawnchair.util.App
 import app.lawnchair.util.appsState
 import com.android.launcher3.R
+import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.util.ComponentKey
 
 @Composable
@@ -88,6 +89,17 @@ fun SelectAppsForDrawerFolder(
 
     LaunchedEffect(folderInfoId) {
         viewModel.setFolderInfo(folderInfoId, false)
+    }
+
+    var selectedAppsInFolder by remember(folderInfo) {
+        mutableStateOf(
+            folderInfo?.getContents()?.mapNotNull { item ->
+                AppInfo().apply {
+                    componentName = item.targetComponent
+                    user = item.user
+                }
+            } ?: emptyList()
+        )
     }
 
     val loading = folderInfo == null && apps.isEmpty()
@@ -224,4 +236,19 @@ private fun updateViewModel(
     }
 
     viewModel.updateFolderItems(folderId, title, newSelection)
+}
+
+private fun updateFolderItems(
+    app: App,
+    items: List<AppInfo>,
+    context: Context,
+    onSetChange: (List<AppInfo>) -> Unit,
+) {
+    val exists = items.any { it.componentName?.packageName == app.key.componentName.packageName && it.user == app.key.user }
+    val newItems = if (exists) {
+        items.filterNot { it.componentName?.packageName == app.key.componentName.packageName && it.user == app.key.user }
+    } else {
+        items + app.toAppInfo(context)
+    }
+    onSetChange(newItems)
 }

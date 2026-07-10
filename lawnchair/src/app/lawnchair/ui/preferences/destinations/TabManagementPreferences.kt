@@ -102,7 +102,7 @@ fun TabManagementPreferences(
             try {
                 database = TabDatabase.getInstance(context)
                 appProvider = AutoCatAppProvider.getInstance(context)
-                tabs = database?.categoryDao()?.getAllCustomTabs() ?: emptyList()
+                tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
             } catch (e: Exception) {
                 android.util.Log.e("TabManagement", "Error initializing: ${e.message}", e)
                 initializationError = "Failed to initialize: ${e.message}"
@@ -171,8 +171,8 @@ fun TabManagementPreferences(
                     onDelete = {
                         haptics.click()
                         scope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                            database?.categoryDao()?.deleteCustomTab(it)
-                            tabs = database?.categoryDao()?.getAllCustomTabs() ?: emptyList()
+                            database?.categoryDao()?.deleteCustomCategory(it)
+                            tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
                         }
                     },
                 )
@@ -353,7 +353,7 @@ fun TabManagementPreferences(
                     try {
                         if (editingTab != null) {
                             // Edit existing
-                            database?.categoryDao()?.updateCustomTab(
+                            database?.categoryDao()?.updateCustomCategory(
                                 editingTab!!.copy(
                                     name = name,
                                     colorHex = color,
@@ -365,7 +365,7 @@ fun TabManagementPreferences(
                             // Add new tab
                             val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
                             android.util.Log.d("TabManagement", "Creating new tab: $name, sortOrder: ${maxSortOrder + 1}, isVisible: true")
-                            val tabId = database?.categoryDao()?.insertCustomTab(
+                            val tabId = database?.categoryDao()?.insertCustomCategory(
                                 CustomTab(
                                     name = name,
                                     colorHex = color,
@@ -378,7 +378,7 @@ fun TabManagementPreferences(
 
                             successMessage = "✓ Tab '$name' created! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
                         }
-                        tabs = database?.categoryDao()?.getAllCustomTabs() ?: emptyList()
+                        tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
                         android.util.Log.d("TabManagement", "Total tabs after save: ${tabs.size}")
                         tabs.forEach { t ->
                             android.util.Log.d("TabManagement", "  - ${t.name} (visible: ${t.isVisible}, sortOrder: ${t.sortOrder})")
@@ -412,14 +412,14 @@ fun TabManagementPreferences(
                 scope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     try {
                         val maxSortOrder = tabs.maxOfOrNull { it.sortOrder } ?: 0
-                        database?.categoryDao()?.insertCustomTab(
+                        database?.categoryDao()?.insertCustomCategory(
                             CustomTab(
                                 name = suggestion.name,
                                 colorHex = "#4CAF50", // Default green color
                                 sortOrder = maxSortOrder + 1,
                             ),
                         )
-                        tabs = database?.categoryDao()?.getAllCustomTabs() ?: emptyList()
+                        tabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
                         appProvider?.refreshCache()
 
                         successMessage = "✓ Added '${suggestion.name}' tab! Use 'Re-categorize All Apps' in LLM Settings to assign apps."
