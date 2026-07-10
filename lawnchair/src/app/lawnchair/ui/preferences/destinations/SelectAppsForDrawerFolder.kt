@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -96,7 +97,7 @@ fun SelectAppsForDrawerFolder(
     }
 
     var selectedAppsInFolder by remember(folderInfo) {
-        mutableStateOf(
+        mutableStateOf<List<AppInfo>>(
             folderInfo?.getContents()?.mapNotNull { item ->
                 AppInfo().apply {
                     componentName = item.targetComponent
