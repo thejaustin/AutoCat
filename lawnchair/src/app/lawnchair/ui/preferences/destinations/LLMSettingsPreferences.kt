@@ -231,21 +231,45 @@ fun LLMSettingsPreferences(
                         testStatus = testStatus,
                         onTestConnection = {
                             scope.launch {
-                                val result = when (activeProvider) {
-                                    "google_ai" -> GoogleAIProvider(context).testConnection()
-                                    "claude" -> ClaudeProvider(context).testConnection()
-                                    "openai" -> OpenAIProvider(context).testConnection()
-                                    "perplexity" -> PerplexityProvider(context).testConnection()
-                                    else -> TestResult(false, "Unknown provider")
+                                // Mark as testing
+                                testStatus = testStatus + (activeProvider to "⏳ Testing…")
+                                val provider = when (activeProvider) {
+                                    "google_ai" -> GoogleAIProvider(context)
+                                    "claude" -> ClaudeProvider(context)
+                                    "openai" -> OpenAIProvider(context)
+                                    "perplexity" -> PerplexityProvider(context)
+                                    else -> null
                                 }
-                                testStatus = testStatus + (
-                                    activeProvider to if (result.success) {
-                                        val model = result.modelVersion ?: "Connected"
-                                        "✅ $model · ${result.latencyMs}ms"
+                                if (provider == null) {
+                                    testStatus = testStatus + (activeProvider to "❌ Unknown provider")
+                                    return@launch
+                                }
+                                val result = provider.testConnection()
+                                val statusText = if (result.success) {
+                                    val model = result.modelVersion ?: "Connected"
+                                    val latency = result.latencyMs?.let { "${it}ms" } ?: ""
+                                    // Follow up with a sample categorization to confirm
+                                    // the model can actually classify, not just respond.
+                                    val sampleResult = runCatching {
+                                        provider.categorizeApp(
+                                            appName = "Spotify",
+                                            appPackage = "com.spotify.music",
+                                            appDescription = "Music streaming",
+                                            availableTabs = listOf("Music", "Entertainment", "Social", "Productivity", "Other"),
+                                        )
+                                    }.getOrNull()
+                                    if (sampleResult != null) {
+                                        "✅ $model · $latency · Spotify → ${sampleResult.category}"
                                     } else {
-                                        "❌ ${result.message}"
+                                        "✅ $model · $latency (reachable, categorization test skipped)"
                                     }
-                                    )
+                                } else {
+                                    // Surface specific error detail from the provider
+                                    val detail = result.error?.message?.takeIf { it.isNotBlank() }
+                                        ?: result.message
+                                    "❌ $detail"
+                                }
+                                testStatus = testStatus + (activeProvider to statusText)
                             }
                         },
                     )
@@ -285,21 +309,41 @@ fun LLMSettingsPreferences(
                                     testStatus = testStatus,
                                     onTestConnection = {
                                         scope.launch {
-                                            val result = when (pid) {
-                                                "google_ai" -> GoogleAIProvider(context).testConnection()
-                                                "claude" -> ClaudeProvider(context).testConnection()
-                                                "openai" -> OpenAIProvider(context).testConnection()
-                                                "perplexity" -> PerplexityProvider(context).testConnection()
-                                                else -> TestResult(false, "Unknown provider")
+                                            testStatus = testStatus + (pid to "⏳ Testing…")
+                                            val provider = when (pid) {
+                                                "google_ai" -> GoogleAIProvider(context)
+                                                "claude" -> ClaudeProvider(context)
+                                                "openai" -> OpenAIProvider(context)
+                                                "perplexity" -> PerplexityProvider(context)
+                                                else -> null
                                             }
-                                            testStatus = testStatus + (
-                                                pid to if (result.success) {
-                                                    val model = result.modelVersion ?: "Connected"
-                                                    "✅ $model · ${result.latencyMs}ms"
+                                            if (provider == null) {
+                                                testStatus = testStatus + (pid to "❌ Unknown provider")
+                                                return@launch
+                                            }
+                                            val result = provider.testConnection()
+                                            val statusText = if (result.success) {
+                                                val model = result.modelVersion ?: "Connected"
+                                                val latency = result.latencyMs?.let { "${it}ms" } ?: ""
+                                                val sampleResult = runCatching {
+                                                    provider.categorizeApp(
+                                                        appName = "Spotify",
+                                                        appPackage = "com.spotify.music",
+                                                        appDescription = "Music streaming",
+                                                        availableTabs = listOf("Music", "Entertainment", "Social", "Productivity", "Other"),
+                                                    )
+                                                }.getOrNull()
+                                                if (sampleResult != null) {
+                                                    "✅ $model · $latency · Spotify → ${sampleResult.category}"
                                                 } else {
-                                                    "❌ ${result.message}"
+                                                    "✅ $model · $latency (reachable, categorization test skipped)"
                                                 }
-                                                )
+                                            } else {
+                                                val detail = result.error?.message?.takeIf { it.isNotBlank() }
+                                                    ?: result.message
+                                                "❌ $detail"
+                                            }
+                                            testStatus = testStatus + (pid to statusText)
                                         }
                                     },
                                 )
