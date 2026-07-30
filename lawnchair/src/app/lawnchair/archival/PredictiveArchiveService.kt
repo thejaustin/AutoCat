@@ -124,7 +124,7 @@ class PredictiveArchiveService(
     }
 
     private suspend fun getAppCategory(packageName: String): String? {
-        return tabDao.getAppTab(packageName)?.tabName
+        return tabDao.getAppCategory(packageName)?.tabName
     }
 
     private fun calculateImportance(packageName: String, category: String?, daysUnused: Int): Float {

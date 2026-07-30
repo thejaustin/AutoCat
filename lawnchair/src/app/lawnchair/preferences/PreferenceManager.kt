@@ -203,6 +203,9 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     // AutoCat: Rate limiting
     val autoCatEnableRateLimiting = BoolPref("pref_autoCatEnableRateLimiting", false, {})
 
+    // AutoCat: Predictive Archive Threshold (days unused)
+    val predictiveArchiveThreshold = IntPref("pref_predictiveArchiveThreshold", 30, {})
+
     // AutoCat: Circuit Breaker settings
     val circuitBreakerEnabled = BoolPref("pref_circuitBreakerEnabled", true, {})
     val circuitBreakerFailureThreshold = IntPref("pref_circuitBreakerFailureThreshold", 3, {})
