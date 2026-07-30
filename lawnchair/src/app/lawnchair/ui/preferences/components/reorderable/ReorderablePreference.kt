@@ -96,7 +96,7 @@ fun <T> ReorderablePreferenceGroup(
                 val scope = this
                 key(item.hashCode()) {
                     Column {
-                        scope.ReorderablePreferenceItem(
+                        ReorderablePreferenceItem(
                             isDragging = isDragging,
                             modifier = Modifier
                                 .a11yDrag(

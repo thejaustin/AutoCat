@@ -69,7 +69,7 @@ fun ErrorPreference(
 @PreviewLawnchair
 @Composable
 private fun ErrorPreferencePreview() {
-    LawnchairTheme {
+    AutoCatTheme {
         PreferenceGroupPreviewContainer {
             ErrorPreference(
                 text = "Failed to load settings. Tap to retry.",
