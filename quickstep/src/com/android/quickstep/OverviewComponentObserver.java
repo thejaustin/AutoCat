@@ -376,7 +376,17 @@ public final class OverviewComponentObserver {
         try {
             context.startActivity(homeIntent, options);
         } catch (NullPointerException | ActivityNotFoundException | SecurityException e) {
-            context.startActivity(createHomeIntent(), options);
+            // Primary home intent failed; try a generic home intent as fallback.
+            // The fallback can also throw SecurityException on debug builds where
+            // RecentsActivity doesn't hold START_ACTIVITIES_FROM_BACKGROUND —
+            // catch and log rather than crashing (issue #99).
+            try {
+                context.startActivity(createHomeIntent(), options);
+            } catch (SecurityException se) {
+                android.util.Log.w("OverviewComponentObserver",
+                        "startHomeIntentSafely: both primary and fallback home intent were "
+                                + "denied by the system (SecurityException). reason=" + reason, se);
+            }
         }
     }
 

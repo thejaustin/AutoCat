@@ -73,7 +73,9 @@ public class ContextualSearchStateManager  {
     private static final String TAG = "ContextualSearchStMgr";
     private static final int MAX_DEBUG_EVENT_SIZE = 20;
     private static final Uri SEARCH_ALL_ENTRYPOINTS_ENABLED_URI =
-            Settings.Secure.getUriFor(Settings.Secure.SEARCH_ALL_ENTRYPOINTS_ENABLED);
+            // Use the raw string instead of Settings.Secure.SEARCH_ALL_ENTRYPOINTS_ENABLED
+            // (@hide on S+) to avoid hidden-API link issues at static-initializer time.
+            Settings.Secure.getUriFor("search_all_entrypoints_enabled");
 
     private final Runnable mSysUiStateChangeListener = this::updateOverridesToSysUi;
     private final SimpleBroadcastReceiver mContextualSearchPackageReceiver;
@@ -123,9 +125,19 @@ public class ContextualSearchStateManager  {
 
         SettingsCache.OnChangeListener settingChangedListener =
                 isEnabled -> mIsContextualSearchSettingEnabled = isEnabled;
-        settingsCache.register(SEARCH_ALL_ENTRYPOINTS_ENABLED_URI, settingChangedListener);
-        mIsContextualSearchSettingEnabled =
-                settingsCache.getValue(SEARCH_ALL_ENTRYPOINTS_ENABLED_URI);
+        try {
+            // SEARCH_ALL_ENTRYPOINTS_ENABLED is @hide on Android S+; guard the
+            // register/read path with SecurityException in case SettingsCache's
+            // own guard doesn't catch it (e.g. ContentObserver registration path
+            // that fires synchronously before the executor catch runs).
+            settingsCache.register(SEARCH_ALL_ENTRYPOINTS_ENABLED_URI, settingChangedListener);
+            mIsContextualSearchSettingEnabled =
+                    settingsCache.getValue(SEARCH_ALL_ENTRYPOINTS_ENABLED_URI);
+        } catch (SecurityException e) {
+            android.util.Log.w(TAG, "search_all_entrypoints_enabled not readable on this device; "
+                    + "defaulting contextual search setting to disabled.", e);
+            mIsContextualSearchSettingEnabled = false;
+        }
 
         systemUiProxy.addOnStateChangeListener(mSysUiStateChangeListener);
 

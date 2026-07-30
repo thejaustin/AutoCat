@@ -372,8 +372,11 @@ class SplitSelectDataHolder(var context: Context?) {
         if (initialPendingIntent != null) {
             return SPLIT_SINGLE_INTENT_FULLSCREEN
         }
-        throw IllegalStateException("Unidentified fullscreen launch type: " +
-                "taskId=$initialTaskId, shortcut=$initialShortcut, pendingIntent=$initialPendingIntent")
+        // All fields are unset — state may have been reset concurrently. Log and return a
+        // safe no-op sentinel rather than crashing (issue #95).
+        Log.w(TAG, "getFullscreenLaunchType: no valid initial task, shortcut, or pendingIntent "
+                + "(taskId=$initialTaskId). State may have been reset. Returning no-op sentinel.")
+        return SPLIT_SINGLE_TASK_FULLSCREEN  // INVALID_TASK_ID will be a benign no-op downstream
     }
 
     data class SplitLaunchData(
