@@ -41,6 +41,7 @@ import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -137,7 +138,7 @@ fun AppCategorizationListPreferences(
                 Log.d("AppCategorization", "Accuracy tracker initialized")
 
                 Log.d("AppCategorization", "Loading tabs...")
-                appTabs = database?.tabDao()?.getAllAppTabs() ?: emptyList()
+                appTabs = database?.tabDao()?.getAllAppCategories() ?: emptyList()
                 availableCustomTabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
                 Log.d("AppCategorization", "Loaded ${appTabs.size} app tabs and ${availableCustomTabs.size} custom tabs")
             } catch (e: Exception) {
@@ -437,15 +438,15 @@ fun AppCategorizationListPreferences(
                                 confidence = 1.0f,
                                 lastUpdated = System.currentTimeMillis(),
                             )
-                            tabDao.insertAppTab(updated)
+                            tabDao.insertAppCategory(updated)
 
                             // Reload categorizations
-                            appTabs = tabDao.getAllAppTabs()
+                            appTabs = tabDao.getAllAppCategories()
 
                             // Sync to folders if enabled
                             folderSyncService?.let { syncService ->
                                 if (syncService.isSyncEnabled()) {
-                                    val allAppTabs = tabDao.getAllAppTabs()
+                                    val allAppTabs = tabDao.getAllAppCategories()
                                     val categorizationMap = allAppTabs.associate { it.packageName to it.tabName }
                                     syncService.syncCategoriesToFolders(categorizationMap)
                                 }
@@ -465,11 +466,11 @@ fun AppCategorizationListPreferences(
                         try {
                             appProvider?.categorizeNewApp(packageName)
                             // Reload categorizations after auto-categorization
-                            appTabs = tabDao.getAllAppTabs()
+                            appTabs = tabDao.getAllAppCategories()
                             // Sync to folders if enabled
                             folderSyncService?.let { syncService ->
                                 if (syncService.isSyncEnabled()) {
-                                    val allAppTabs = tabDao.getAllAppTabs()
+                                    val allAppTabs = tabDao.getAllAppCategories()
                                     val categorizationMap = allAppTabs.associate { it.packageName to it.tabName }
                                     syncService.syncCategoriesToFolders(categorizationMap)
                                 }
