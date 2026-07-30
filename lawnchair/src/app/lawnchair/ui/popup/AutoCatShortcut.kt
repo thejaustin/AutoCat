@@ -700,6 +700,14 @@ fun AppSummaryDialog(
 
     androidx.compose.runtime.LaunchedEffect(packageName) {
         withContext(Dispatchers.IO) {
+            val cacheSp = context.getSharedPreferences("autocat_app_summaries_cache", Context.MODE_PRIVATE)
+            val cached = cacheSp.getString(packageName, null)
+            if (!cached.isNullOrBlank()) {
+                summaryText = cached
+                isLoading = false
+                return@withContext
+            }
+
             try {
                 val prefs = app.lawnchair.preferences.PreferenceManager.getInstance(context)
                 val googleKey = prefs.llmGoogleAIKey.get()
@@ -732,8 +740,10 @@ fun AppSummaryDialog(
 
                 val prompt = "Provide a concise 2-sentence summary of what the Android application '$appName' (package: $packageName) is used for, its primary feature set, and category/genre."
                 val result = provider.categorizeApp(appName, packageName, prompt, listOf("Summary"))
-                summaryText = result.reasoning?.takeIf { it.isNotBlank() }
+                val text = result.reasoning?.takeIf { it.isNotBlank() }
                     ?: "$appName is a mobile application. Categorized under: ${result.category}."
+                summaryText = text
+                cacheSp.edit().putString(packageName, text).apply()
                 isLoading = false
             } catch (e: Exception) {
                 errorMessage = "Failed to generate summary: ${e.message}"
@@ -809,6 +819,18 @@ fun AppSummaryDialog(
                 horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End,
             ) {
                 if (summaryText != null) {
+                    androidx.compose.material3.TextButton(
+                        onClick = {
+                            val cacheSp = context.getSharedPreferences("autocat_app_summaries_cache", Context.MODE_PRIVATE)
+                            cacheSp.edit().remove(packageName).apply()
+                            summaryText = null
+                            isLoading = true
+                            errorMessage = null
+                        },
+                    ) {
+                        androidx.compose.material3.Text("Regenerate")
+                    }
+                    androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.width(4.dp))
                     androidx.compose.material3.TextButton(
                         onClick = {
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager

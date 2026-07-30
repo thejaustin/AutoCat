@@ -128,6 +128,18 @@ class AppBatchOperationService(private val context: Context) {
     }
 
     /**
+     * Archive all non-system apps belonging to a specific tab / category.
+     */
+    suspend fun archiveCategoryApps(
+        categoryName: String,
+        onProgress: (BatchProgress) -> Unit,
+    ): Map<String, OperationResult> = withContext(Dispatchers.IO) {
+        val tabDao = app.lawnchair.data.tab.TabDatabase.getInstance(context).tabDao()
+        val categoryApps = tabDao.getAppsByTab(categoryName).map { it.packageName }
+        archiveApps(categoryApps, onProgress)
+    }
+
+    /**
      * Archive multiple apps with progress reporting.
      */
     suspend fun archiveApps(
