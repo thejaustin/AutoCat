@@ -89,11 +89,12 @@ import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.data.liveinfo.SyncLiveInformation
+import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
 import app.lawnchair.ui.preferences.navigation.General
 import app.lawnchair.ui.preferences.navigation.PreferenceRootRoute
 import app.lawnchair.ui.preferences.navigation.Root
 import app.lawnchair.ui.preferences.navigation.Search
-import app.lawnchair.ui.theme.isSelectedThemeDark
+import app.lawnchair.ui.preferences.navigation.SmartCategoriesOnboarding
 import app.lawnchair.ui.theme.preferenceGroupColor
 import app.lawnchair.util.isDefaultLauncher
 import com.android.launcher3.BuildConfig
@@ -203,6 +204,9 @@ fun PreferencesDashboard(
 
                 AnnouncementPreference()
 
+                // Smart Categories 3-state prominence banner (#83)
+                SmartCategoriesBanner()
+
                 val hideSettingsWarnings by prefs.hideSettingsWarnings.observeAsState()
 
                 if ((BuildConfig.APPLICATION_ID.contains("nightly") || BuildConfig.DEBUG) && !hideSettingsWarnings) {
@@ -264,4 +268,103 @@ internal fun openAppInfo(context: Context) {
     val launcherApps = context.getSystemService<LauncherApps>()
     val componentName = ComponentName(context, AutoCatLauncher::class.java)
     launcherApps?.startAppDetailsActivity(componentName, Process.myUserHandle(), null, null)
+}
+
+/**
+ * 3-state Smart Categories prominence banner shown on the settings dashboard (#83).
+ *
+ * - **Unconfigured**: no API key set → prominent "Set up Smart Categories" CTA
+ * - **Configured, never run**: API key present but onboarding incomplete → nudge to start
+ * - **Fully set up**: hide banner entirely — power users don't need it
+ */
+@Composable
+private fun SmartCategoriesBanner() {
+    val prefs = preferenceManager()
+    val navController = LocalNavController.current
+
+    val googleKey by prefs.llmGoogleAIKey.observeAsState()
+    val claudeKey by prefs.llmClaudeKey.observeAsState()
+    val openAiKey by prefs.llmOpenAIKey.observeAsState()
+    val perplexityKey by prefs.llmPerplexityKey.observeAsState()
+    val onboardingDone by prefs.smartCategoriesOnboardingCompleted.observeAsState()
+
+    val hasApiKey = googleKey.isNotEmpty() || claudeKey.isNotEmpty() ||
+        openAiKey.isNotEmpty() || perplexityKey.isNotEmpty()
+
+    // State 3 — fully configured: hide the banner
+    if (hasApiKey && onboardingDone) return
+
+    val bannerColor = if (!hasApiKey) {
+        // Unconfigured: use primary container for strong emphasis
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        // Configured but not run: use secondary container for gentler nudge
+        MaterialTheme.colorScheme.secondaryContainer
+    }
+    val onBannerColor = if (!hasApiKey) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSecondaryContainer
+    }
+
+    androidx.compose.animation.AnimatedVisibility(
+        visible = true,
+        enter = androidx.compose.animation.fadeIn() +
+            androidx.compose.animation.slideInVertically { -it / 4 },
+    ) {
+        Surface(
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+            color = bannerColor,
+            modifier = androidx.compose.ui.Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+                .clickable {
+                    if (!hasApiKey) {
+                        navController.navigate(SmartCategoriesOnboarding)
+                    } else {
+                        navController.navigate(AppDrawerLLMSettings)
+                    }
+                },
+        ) {
+            Row(
+                modifier = androidx.compose.ui.Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = if (!hasApiKey) Icons.Rounded.TipsAndUpdates else Icons.Rounded.Refresh,
+                    contentDescription = null,
+                    tint = onBannerColor,
+                    modifier = androidx.compose.ui.Modifier.size(24.dp),
+                )
+                Spacer(modifier = androidx.compose.ui.Modifier.width(12.dp))
+                Column(modifier = androidx.compose.ui.Modifier.weight(1f)) {
+                    Text(
+                        text = if (!hasApiKey) "Set up Smart Categories" else "Run Smart Categories",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = onBannerColor,
+                    )
+                    Spacer(modifier = androidx.compose.ui.Modifier.height(2.dp))
+                    Text(
+                        text = if (!hasApiKey) {
+                            "Connect an AI engine to auto-organise your apps into tabs and folders."
+                        } else {
+                            "Your AI engine is connected — tap to run your first categorization."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = onBannerColor.copy(alpha = 0.8f),
+                    )
+                }
+                Spacer(modifier = androidx.compose.ui.Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Rounded.Science,
+                    contentDescription = null,
+                    tint = onBannerColor.copy(alpha = 0.5f),
+                    modifier = androidx.compose.ui.Modifier.size(16.dp),
+                )
+            }
+        }
+    }
+    Spacer(modifier = androidx.compose.ui.Modifier.height(4.dp))
 }
