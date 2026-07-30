@@ -263,6 +263,7 @@ object LLMLogger {
      */
     fun clearLogs() {
         logBuffer.clear()
+        _logFlow.resetReplayCache()
         android.util.Log.d("LLMLogger", "Logs cleared")
     }
 

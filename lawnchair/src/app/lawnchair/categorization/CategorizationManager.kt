@@ -3,6 +3,7 @@ package app.lawnchair.categorization
 import android.content.Context
 import app.lawnchair.categorization.stages.BuiltInCategorizer
 import app.lawnchair.categorization.stages.LLMCategorizer
+import app.lawnchair.categorization.stages.MLCategorizer
 import app.lawnchair.data.apps.AppMetadataProvider
 import app.lawnchair.data.tab.TabDatabase
 import kotlinx.coroutines.Dispatchers
@@ -60,6 +61,7 @@ class CategorizationManager(private val context: Context) {
     private val metadataProvider by lazy { AppMetadataProvider(context) }
     private val builtInCategorizer by lazy { BuiltInCategorizer(categoryDao) }
     private val llmCategorizer by lazy { LLMCategorizer(context, categoryDao) }
+    private val mlCategorizer by lazy { MLCategorizer(context, categoryDao) }
     private val appProvider by lazy { AutoCatAppProvider.getInstance(context) }
     private val folderSyncService by lazy { CategoryFolderSyncService(context) }
 
@@ -117,24 +119,44 @@ class CategorizationManager(private val context: Context) {
                 "Stage 1 (LLM) complete: $llmCount/${uncategorizedApps.size} apps categorized",
             )
 
-            // Stage 2: Built-in categorizer for remaining apps (FALLBACK)
-            // Re-fetch categories to see which apps are still uncategorized after LLM
+            // Stage 2: On-device ML categorizer (Fallback)
             val categoriesAfterLLM = categoryDao.getAllAppCategories().associateBy { it.packageName }
             val stillUncategorized = uncategorizedApps.filter { app ->
                 !categoriesAfterLLM.containsKey(app.packageName)
             }
 
-            if (stillUncategorized.isNotEmpty()) {
+            val mlCount = if (stillUncategorized.isNotEmpty()) {
                 android.util.Log.d(
                     TAG,
-                    "Starting Stage 2 (Built-in) for ${stillUncategorized.size} remaining uncategorized apps",
+                    "Starting Stage 2 (ML) for ${stillUncategorized.size} remaining uncategorized apps",
+                )
+                mlCategorizer.categorizeBatch(stillUncategorized)
+            } else {
+                0
+            }
+
+            android.util.Log.d(
+                TAG,
+                "Stage 2 (ML) complete: $mlCount/${stillUncategorized.size} apps categorized",
+            )
+
+            // Stage 3: Built-in categorizer for remaining apps (FALLBACK)
+            val categoriesAfterML = categoryDao.getAllAppCategories().associateBy { it.packageName }
+            val finalUncategorized = stillUncategorized.filter { app ->
+                !categoriesAfterML.containsKey(app.packageName)
+            }
+
+            if (finalUncategorized.isNotEmpty()) {
+                android.util.Log.d(
+                    TAG,
+                    "Starting Stage 3 (Built-in) for ${finalUncategorized.size} remaining uncategorized apps",
                 )
 
-                val builtInCount = builtInCategorizer.categorizeBatch(stillUncategorized)
+                val builtInCount = builtInCategorizer.categorizeBatch(finalUncategorized)
 
                 android.util.Log.d(
                     TAG,
-                    "Stage 2 (Built-in) complete: $builtInCount/${stillUncategorized.size} apps categorized",
+                    "Stage 3 (Built-in) complete: $builtInCount/${finalUncategorized.size} apps categorized",
                 )
             }
 
@@ -207,32 +229,58 @@ class CategorizationManager(private val context: Context) {
                 "Stage 1 (LLM) complete: $llmCount/${apps.size} apps categorized",
             )
 
-            // Get uncategorized apps for built-in stage (FALLBACK)
-            // Fetch all categories in one query to avoid N+1 problem
-            val allCategories = categoryDao.getAllAppCategories().associateBy { it.packageName }
-            val uncategorizedApps = apps.filter { app ->
-                !allCategories.containsKey(app.packageName)
+            // Get uncategorized apps for Stage 2 (ML on-device fallback)
+            val categoriesAfterLLM = categoryDao.getAllAppCategories().associateBy { it.packageName }
+            val uncategorizedAfterLLM = apps.filter { app ->
+                !categoriesAfterLLM.containsKey(app.packageName)
             }
 
-            if (uncategorizedApps.isNotEmpty()) {
+            val mlCount = if (uncategorizedAfterLLM.isNotEmpty()) {
+                _progress.value = CategorizationProgress(
+                    isRunning = true,
+                    currentStage = "ML (On-device)",
+                    processedCount = llmCount,
+                    totalCount = apps.size,
+                )
+                android.util.Log.d(
+                    TAG,
+                    "Starting Stage 2 (ML) for ${uncategorizedAfterLLM.size} uncategorized apps",
+                )
+                mlCategorizer.categorizeBatch(uncategorizedAfterLLM)
+            } else {
+                0
+            }
+
+            android.util.Log.d(
+                TAG,
+                "Stage 2 (ML) complete: $mlCount/${uncategorizedAfterLLM.size} apps categorized",
+            )
+
+            // Get uncategorized apps for Stage 3 (Built-in stage fallback)
+            val categoriesAfterML = categoryDao.getAllAppCategories().associateBy { it.packageName }
+            val uncategorizedAfterML = uncategorizedAfterLLM.filter { app ->
+                !categoriesAfterML.containsKey(app.packageName)
+            }
+
+            if (uncategorizedAfterML.isNotEmpty()) {
                 _progress.value = CategorizationProgress(
                     isRunning = true,
                     currentStage = "Built-in",
-                    processedCount = 0,
-                    totalCount = uncategorizedApps.size,
+                    processedCount = llmCount + mlCount,
+                    totalCount = apps.size,
                 )
 
                 android.util.Log.d(
                     TAG,
-                    "Starting Stage 2 (Built-in) for ${uncategorizedApps.size} uncategorized apps",
+                    "Starting Stage 3 (Built-in) for ${uncategorizedAfterML.size} uncategorized apps",
                 )
 
-                // Stage 2: Built-in categorizer as fallback
-                val builtInCount = builtInCategorizer.categorizeBatch(uncategorizedApps)
+                // Stage 3: Built-in categorizer as fallback
+                val builtInCount = builtInCategorizer.categorizeBatch(uncategorizedAfterML)
 
                 android.util.Log.d(
                     TAG,
-                    "Stage 2 (Built-in) complete: $builtInCount/${uncategorizedApps.size} apps categorized",
+                    "Stage 3 (Built-in) complete: $builtInCount/${uncategorizedAfterML.size} apps categorized",
                 )
             }
 
@@ -307,7 +355,17 @@ class CategorizationManager(private val context: Context) {
                 return@withContext
             }
 
-            // Stage 2: Try LLM categorizer
+            // Stage 2: Try on-device ML categorizer
+            categorized = mlCategorizer.categorize(appInfo)
+
+            if (categorized) {
+                android.util.Log.d(TAG, "Categorized new app (ML): $packageName")
+                val appTab = categoryDao.getAppCategory(packageName)
+                appProvider.updateCacheForApp(packageName, appTab?.tabName)
+                return@withContext
+            }
+
+            // Stage 3: Try LLM categorizer
             categorized = llmCategorizer.categorize(appInfo)
 
             if (categorized) {

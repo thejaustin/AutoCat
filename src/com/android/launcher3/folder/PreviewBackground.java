@@ -55,6 +55,7 @@ import com.android.launcher3.graphics.ShapeDelegate;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
+import com.android.launcher3.model.data.FolderInfo;
 import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 import app.lawnchair.preferences2.PreferenceManager2;
@@ -104,6 +105,12 @@ public class PreviewBackground extends DelegatedCellDrawing {
     int basePreviewOffsetY;
 
     private CellLayout mDrawingDelegate;
+
+    private FolderInfo mFolderInfo;
+
+    public void setFolderInfo(FolderInfo folderInfo) {
+        mFolderInfo = folderInfo;
+    }
 
     // When the PreviewBackground is drawn under an icon (for creating a folder) the
     // border
@@ -197,7 +204,15 @@ public class PreviewBackground extends DelegatedCellDrawing {
         TypedArray ta = context.getTheme().obtainStyledAttributes(R.styleable.FolderIconPreview);
         mDotColor = ColorTokens.FolderDotColor.resolveColor(context);
         mStrokeColor = ColorTokens.FolderIconBorderColor.resolveColor(context);
-        if (folderColor != 0) {
+
+        int customColor = 0;
+        if (mFolderInfo != null) {
+            customColor = mFolderInfo.options & 0x00FFFFFF;
+        }
+
+        if (customColor != 0) {
+            mBgColor = customColor | 0xFF000000;
+        } else if (folderColor != 0) {
             mBgColor = folderColor;
         } else {
             mBgColor = ColorTokens.FolderPreviewColor.resolveColor(context);

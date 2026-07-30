@@ -410,3 +410,106 @@ inline fun <T> listWhileNotNull(generator: () -> T?): List<T> = mutableListOf<T>
 fun String.toTitleCase(): String = splitToSequence(" ")
     .map { word -> word.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } }
     .joinToString(" ")
+
+fun showCategoryPickerDialog(context: Context, itemInfo: com.android.launcher3.model.data.ItemInfo) {
+    val packageName = when (itemInfo) {
+        is com.android.launcher3.model.data.WorkspaceItemInfo -> itemInfo.targetComponent?.packageName ?: itemInfo.intent?.component?.packageName
+        is com.android.launcher3.model.data.AppInfo -> itemInfo.componentName?.packageName
+        else -> null
+    } ?: return
+
+    val db = app.lawnchair.data.tab.TabDatabase.getInstance(context)
+    val dao = db.categoryDao()
+
+    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        val visibleCategories = dao.getVisibleCustomCategories()
+        val currentCategory = dao.getAppCategory(packageName)
+        val categoryNames = visibleCategories.map { it.name }
+
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+            val namesArray = categoryNames.toTypedArray()
+            val selectedIdx = categoryNames.indexOf(currentCategory?.tabName ?: "Other")
+
+            android.app.AlertDialog.Builder(context)
+                .setTitle("Change Category")
+                .setSingleChoiceItems(namesArray, selectedIdx) { dialog, which ->
+                    val newCategory = namesArray[which]
+                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                        dao.insertAppCategory(
+                            app.lawnchair.data.tab.entities.AppTab(
+                                packageName = packageName,
+                                tabName = newCategory,
+                                confidence = 1.0f,
+                                source = app.lawnchair.data.tab.entities.AppTab.SOURCE_USER,
+                                isUserOverride = true,
+                            ),
+                        )
+
+                        val syncService = app.lawnchair.categorization.CategoryFolderSyncService(context)
+                        if (syncService.isSyncEnabled()) {
+                            val allCategories = dao.getAllAppCategories()
+                            syncService.syncCategoriesToFolders(allCategories)
+                        }
+                    }
+                    dialog.dismiss()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+}
+
+fun hideApp(context: Context, itemInfo: com.android.launcher3.model.data.ItemInfo) {
+    val componentKey = when (itemInfo) {
+        is com.android.launcher3.model.data.WorkspaceItemInfo -> itemInfo.targetComponent?.let { com.android.launcher3.util.ComponentKey(it, itemInfo.user).toString() }
+        is com.android.launcher3.model.data.AppInfo -> itemInfo.componentName?.let { com.android.launcher3.util.ComponentKey(it, itemInfo.user).toString() }
+        else -> null
+    } ?: return
+
+    val prefs = PreferenceManager2.getInstance(context)
+    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        val currentHidden = prefs.hiddenApps.firstBlocking()
+        val newHidden = currentHidden.toMutableSet()
+        newHidden.add(componentKey)
+        prefs.hiddenApps.set(newHidden)
+    }
+}
+
+fun categorizeNewAppInBackground(context: Context, packageName: String) {
+    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        try {
+            // Briefly delay so package details are fully registered by the OS
+            kotlinx.coroutines.delay(1000)
+            app.lawnchair.categorization.CategorizationManager.getInstance(context).categorizeNewApp(packageName)
+        } catch (e: Exception) {
+            Log.e("AutoCatUtils", "Failed to auto-categorize package: $packageName", e)
+        }
+    }
+}
+
+fun showCategoryTabInDrawer(context: Context, itemInfo: com.android.launcher3.model.data.ItemInfo) {
+    val packageName = when (itemInfo) {
+        is com.android.launcher3.model.data.WorkspaceItemInfo -> itemInfo.targetComponent?.packageName ?: itemInfo.intent?.component?.packageName
+        is com.android.launcher3.model.data.AppInfo -> itemInfo.componentName?.packageName
+        else -> null
+    } ?: return
+
+    val launcher = com.android.launcher3.Launcher.getLauncher(context) ?: return
+
+    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        val db = app.lawnchair.data.tab.TabDatabase.getInstance(context)
+        val appCategory = db.categoryDao().getAppCategory(packageName)
+        val tabName = appCategory?.tabName ?: "Other"
+
+        val controller = app.lawnchair.categorization.AppTabsController.getInstance(context)
+        val tabNamesList = controller.tabNames.value
+        val tabIndex = tabNamesList.indexOf(tabName)
+
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+            launcher.stateManager.goToState(com.android.launcher3.LauncherState.ALL_APPS)
+            if (tabIndex >= 0) {
+                launcher.appsView.switchToTab(tabIndex)
+            }
+        }
+    }
+}

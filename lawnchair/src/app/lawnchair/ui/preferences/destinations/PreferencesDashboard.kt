@@ -108,8 +108,6 @@ fun SettingsSearchBar(
     animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
 ) {
-
-
     with(sharedTransitionScope) {
         Surface(
             modifier = modifier

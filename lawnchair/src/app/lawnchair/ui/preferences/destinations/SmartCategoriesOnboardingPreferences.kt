@@ -261,6 +261,7 @@ fun SmartFeaturesStep(modifier: Modifier = Modifier) {
     val prefs = preferenceManager()
     var smartDockEnabled by remember { mutableStateOf(prefs.autoCatSmartDockEnabled.get()) }
     var genAIFolderNamingEnabled by remember { mutableStateOf(prefs.autoCatGenAIFolderNaming.get()) }
+    var pwaIntegrationEnabled by remember { mutableStateOf(prefs.autoCatPwaIntegrationEnabled.get()) }
 
     Column(
         modifier = modifier
@@ -328,7 +329,7 @@ fun SmartFeaturesStep(modifier: Modifier = Modifier) {
         }
 
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             ),
@@ -355,6 +356,39 @@ fun SmartFeaturesStep(modifier: Modifier = Modifier) {
                     onCheckedChange = {
                         genAIFolderNamingEnabled = it
                         prefs.autoCatGenAIFolderNaming.set(it)
+                    },
+                )
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            ),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
+                    Text(
+                        text = "PWA & Web Shortcuts",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = "Automatically categorize Progressive Web Apps and web shortcuts in the drawer.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                androidx.compose.material3.Switch(
+                    checked = pwaIntegrationEnabled,
+                    onCheckedChange = {
+                        pwaIntegrationEnabled = it
+                        prefs.autoCatPwaIntegrationEnabled.set(it)
                     },
                 )
             }

@@ -33,6 +33,8 @@ import app.lawnchair.util.getPackageVersionCode
 import app.lawnchair.util.isPackageInstalled
 import com.android.launcher3.R
 import com.android.launcher3.config.FeatureFlags
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.graphics.ThemeManager
 import com.android.launcher3.icons.IconProvider
 import com.android.launcher3.icons.LauncherIconProvider.ATTR_DRAWABLE
@@ -40,8 +42,6 @@ import com.android.launcher3.icons.LauncherIconProvider.ATTR_PACKAGE
 import com.android.launcher3.icons.LauncherIconProvider.TAG_ICON
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.SafeCloseable
-import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.dagger.LauncherAppSingleton
 import javax.inject.Inject
 import org.xmlpull.v1.XmlPullParser
 

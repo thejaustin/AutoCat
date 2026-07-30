@@ -4,22 +4,21 @@ import android.content.Context
 import app.lawnchair.data.AppDatabase
 import app.lawnchair.icons.IconPickerItem
 import com.android.launcher3.LauncherAppState
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.pm.PackageInstallInfo
 import com.android.launcher3.pm.PackageInstallInfo.STATUS_INSTALLED
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import java.util.concurrent.ConcurrentLinkedQueue
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-
-import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.dagger.LauncherAppSingleton
-import javax.inject.Inject
 
 @LauncherAppSingleton
 class IconOverrideRepository @Inject constructor(@ApplicationContext private val context: Context) : SafeCloseable {

@@ -19,6 +19,10 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- General -->
     <skip />
+    <string name="change_category">Change Category</string>
+    <string name="hide_app">Hide App</string>
+    <string name="app_hidden_message">App hidden from drawer</string>
+    <string name="show_in_drawer">Show in Drawer</string>
 
     <!-- Application name -->
     <string name="app_name">Launcher3</string>

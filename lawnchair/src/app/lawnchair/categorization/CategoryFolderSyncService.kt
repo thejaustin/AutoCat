@@ -338,6 +338,7 @@ class CategoryFolderSyncService(
             if (apps.isNotEmpty()) {
                 val folderInfo = FolderInfo().apply {
                     title = folderName
+                    options = options or -0x80000000
                 }
 
                 apps.forEach { appInfo ->

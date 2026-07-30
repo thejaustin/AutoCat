@@ -24,7 +24,7 @@ fun WarningPreference(
 ) {
     PreferenceTemplate(
         modifier = modifier.then(
-            if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+            if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
         ),
         title = {},
         description = {
@@ -52,7 +52,7 @@ fun WarningPreference(
             }
         } else {
             null
-        }
+        },
     )
 }
 

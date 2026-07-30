@@ -1,6 +1,5 @@
 package app.lawnchair.ui.preferences.destinations
 
-import java.lang.SecurityException
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,10 +39,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.android.launcher3.R
 import app.lawnchair.categorization.zenmode.ZenModeManager
 import app.lawnchair.categorization.zenmode.ZenModeManager.FocusRule
 import app.lawnchair.ui.preferences.components.controls.PreferenceCategory
+import com.android.launcher3.R
+import java.lang.SecurityException
 import kotlinx.coroutines.launch
 
 /**

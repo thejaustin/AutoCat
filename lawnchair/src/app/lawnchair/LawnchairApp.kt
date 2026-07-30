@@ -36,7 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import app.lawnchair.backup.LawnchairBackup
+import app.lawnchair.backup.AutoCatBackup
 import app.lawnchair.bugreport.LawnchairBugReporter
 import app.lawnchair.categorization.CategorizationManager
 import app.lawnchair.flowerpot.Flowerpot
@@ -151,10 +151,24 @@ class LawnchairApp : Application() {
     }
 
     fun renameRestoredDb(dbName: String) {
-        val restoredDbFile = getDatabasePath(LawnchairBackup.RESTORED_DB_FILE_NAME)
-        if (!restoredDbFile.exists()) return
-        val dbFile = getDatabasePath(dbName)
-        restoredDbFile.renameTo(dbFile)
+        val restoredDbFile = getDatabasePath(AutoCatBackup.RESTORED_DB_FILE_NAME)
+        if (restoredDbFile.exists()) {
+            val dbFile = getDatabasePath(dbName)
+            restoredDbFile.renameTo(dbFile)
+        }
+
+        val restoredCatDb = getDatabasePath("restored_category_database")
+        if (restoredCatDb.exists()) {
+            restoredCatDb.renameTo(getDatabasePath("category_database"))
+        }
+        val restoredCatWal = getDatabasePath("restored_category_database-wal")
+        if (restoredCatWal.exists()) {
+            restoredCatWal.renameTo(getDatabasePath("category_database-wal"))
+        }
+        val restoredCatShm = getDatabasePath("restored_category_database-shm")
+        if (restoredCatShm.exists()) {
+            restoredCatShm.renameTo(getDatabasePath("category_database-shm"))
+        }
     }
 
     fun migrateDbName(dbName: String) {

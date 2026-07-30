@@ -391,7 +391,6 @@ class OpenAIProvider(
         }
     }
 
-
     /**
      * Calls OpenAI API with automatic model fallback.
      * Tries the preferred model first, then falls back to other available models if it fails.

@@ -44,7 +44,7 @@ fun NavigationActionPreference(
                 Modifier.clickable { navController.navigate(route = destination) }
             } else {
                 Modifier
-            }
+            },
         ),
         title = { Text(text = label) },
         description = { subtitle?.let { Text(text = it) } },

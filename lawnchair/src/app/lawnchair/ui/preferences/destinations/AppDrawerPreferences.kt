@@ -36,14 +36,19 @@ import androidx.compose.material.icons.rounded.Label
 import androidx.compose.material.icons.rounded.ManageSearch
 import androidx.compose.material.icons.rounded.Notes
 import androidx.compose.material.icons.rounded.SwapVert
+import androidx.compose.material.icons.rounded.Tab
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import app.lawnchair.categorization.AppTabsController
 import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
@@ -53,6 +58,8 @@ import app.lawnchair.ui.preferences.components.AppDrawerHapticFeedbackPreference
 import app.lawnchair.ui.preferences.components.NavigationActionPreference
 import app.lawnchair.ui.preferences.components.SuggestionsPreference
 import app.lawnchair.ui.preferences.components.colorpreference.ColorPreference
+import app.lawnchair.ui.preferences.components.controls.ListPreference
+import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
 import app.lawnchair.ui.preferences.components.controls.SliderPreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreferenceWithPreview
@@ -213,8 +220,38 @@ fun AppDrawerPreferences(
                 adapter = prefs2.showScrollbar.getAdapter(),
                 icon = Icons.Rounded.SwapVert,
             )
+            Item { DefaultDrawerTabPreference() }
         }
     }
+}
+
+@Composable
+private fun DefaultDrawerTabPreference() {
+    val context = LocalContext.current
+    val prefs = preferenceManager()
+    val adapter = prefs.autoCatDefaultDrawerTab.getAdapter()
+    val controller = remember { AppTabsController.getInstance(context) }
+    val tabNames by controller.tabNames.collectAsState()
+    val allAppsLabel = stringResource(id = R.string.default_drawer_tab_all_apps)
+
+    // Build entries: first entry is "All Apps" (stored as ""), then each real tab name
+    val entries = remember(tabNames) {
+        val list = mutableListOf(
+            ListPreferenceEntry(value = "") { allAppsLabel },
+        )
+        tabNames.drop(1).forEach { name ->
+            list.add(ListPreferenceEntry(value = name) { name })
+        }
+        list
+    }
+
+    ListPreference(
+        adapter = adapter,
+        entries = entries,
+        label = stringResource(id = R.string.default_drawer_tab_title),
+        description = stringResource(id = R.string.default_drawer_tab_summary),
+        icon = Icons.Rounded.Tab,
+    )
 }
 
 @Composable

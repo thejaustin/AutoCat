@@ -37,6 +37,17 @@ object LLMUtils {
     }
 
     /**
+     * Gets the current battery level percentage (0 to 100).
+     */
+    fun getBatteryLevel(context: Context): Int {
+        val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+        if (level == -1 || scale == -1) return 100
+        return (level * 100.0 / scale).toInt()
+    }
+
+    /**
      * Retries an operation with exponential backoff.
      *
      * @param maxRetries Maximum number of retry attempts

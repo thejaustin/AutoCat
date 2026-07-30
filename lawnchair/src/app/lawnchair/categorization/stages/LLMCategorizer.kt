@@ -10,6 +10,7 @@ import app.lawnchair.categorization.llm.ConfidenceCalibrator
 import app.lawnchair.categorization.llm.GoogleAIProvider
 import app.lawnchair.categorization.llm.LLMException
 import app.lawnchair.categorization.llm.LLMProvider
+import app.lawnchair.categorization.llm.LLMUtils
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.categorization.llm.ProviderCircuitBreaker
@@ -60,6 +61,35 @@ class LLMCategorizer(
     private val circuitBreaker = ProviderCircuitBreaker()
     private val adaptiveSelector by lazy { AdaptiveModelSelector(context) }
 
+    private fun checkConstraints(): Boolean {
+        val prefManager = PreferenceManager.getInstance(context)
+
+        // Check Wi-Fi constraint
+        if (prefManager.llmOnlyOnWifi.get() && !LLMUtils.isConnectedToWifi(context)) {
+            android.util.Log.d(TAG, "Skipping LLM categorization: Wi-Fi connection required")
+            return false
+        }
+
+        // Check charging constraint
+        if (prefManager.llmOnlyWhileCharging.get() && !LLMUtils.isCharging(context)) {
+            android.util.Log.d(TAG, "Skipping LLM categorization: device must be charging")
+            return false
+        }
+
+        // Check battery level threshold constraint
+        val currentBattery = LLMUtils.getBatteryLevel(context)
+        val minBattery = prefManager.llmMinBatteryLevel.get()
+        if (currentBattery < minBattery) {
+            android.util.Log.d(
+                TAG,
+                "Skipping LLM categorization: battery level ($currentBattery%) is below threshold ($minBattery%)",
+            )
+            return false
+        }
+
+        return true
+    }
+
     /**
      * Attempts to categorize an app using LLM analysis with fallback support.
      *
@@ -69,6 +99,8 @@ class LLMCategorizer(
      * @return true if app was categorized, false if LLM couldn't determine a category
      */
     suspend fun categorize(appInfo: AppInfo): Boolean {
+        if (!checkConstraints()) return false
+
         // Get available custom categories
         val customCategories = categoryDao.getVisibleCustomCategories()
 
@@ -213,6 +245,8 @@ class LLMCategorizer(
         apps: List<AppInfo>,
         onProgress: ((CategorizationProgress) -> Unit)? = null,
     ): Int {
+        if (!checkConstraints()) return 0
+
         val prefManager = PreferenceManager.getInstance(context)
 
         // Check if batching is enabled
@@ -354,22 +388,33 @@ class LLMCategorizer(
 
                             // Retry with exponential backoff
                             val batchStartTime = System.currentTimeMillis()
-                            val apiResults = retryWithBackoff(
-                                maxRetries = MAX_RETRIES,
-                                initialDelayMs = INITIAL_RETRY_DELAY_MS,
-                            ) {
-                                android.util.Log.d(
-                                    TAG,
-                                    "Batch $batchIndex/$totalBatches: Categorizing ${batch.size} apps with ${provider.name}",
-                                )
-                                try {
-                                    val result = provider.categorizeAppBatch(batchInfo, tabNames)
-                                    circuitBreaker.recordSuccess(provider.name)
-                                    result
-                                } catch (e: Exception) {
-                                    circuitBreaker.recordFailure(provider.name, e)
-                                    throw e // Re-throw to trigger retryWithBackoff's retry logic
+                            val apiResults = try {
+                                LLMUtils.retryWithBackoff(
+                                    maxRetries = MAX_RETRIES,
+                                    initialDelayMs = INITIAL_RETRY_DELAY_MS,
+                                    onRetry = { attempt, exception, nextDelayMs ->
+                                        android.util.Log.w(
+                                            TAG,
+                                            "Attempt $attempt/$MAX_RETRIES failed with ${provider.name}, " +
+                                                "retrying in ${nextDelayMs}ms: ${exception.message}",
+                                        )
+                                    },
+                                ) {
+                                    android.util.Log.d(
+                                        TAG,
+                                        "Batch $batchIndex/$totalBatches: Categorizing ${batch.size} apps with ${provider.name}",
+                                    )
+                                    try {
+                                        val result = provider.categorizeAppBatch(batchInfo, tabNames)
+                                        circuitBreaker.recordSuccess(provider.name)
+                                        result
+                                    } catch (e: Exception) {
+                                        circuitBreaker.recordFailure(provider.name, e)
+                                        throw e
+                                    }
                                 }
+                            } catch (e: Exception) {
+                                null
                             }
                             val batchDuration = System.currentTimeMillis() - batchStartTime
 
@@ -494,42 +539,6 @@ class LLMCategorizer(
         val remainingBatches = totalBatches - currentBatch
 
         return avgTimePerBatch * remainingBatches
-    }
-
-    /**
-     * Retries an operation with exponential backoff.
-     *
-     * @param maxRetries Maximum number of retry attempts
-     * @param initialDelayMs Initial delay in milliseconds (doubles each retry)
-     * @param operation The operation to retry
-     * @return Result of the operation, or null if all retries failed
-     */
-    private suspend fun <T> retryWithBackoff(
-        maxRetries: Int,
-        initialDelayMs: Long,
-        operation: suspend () -> T,
-    ): T? {
-        var lastException: Exception? = null
-
-        repeat(maxRetries) { attempt ->
-            try {
-                return operation()
-            } catch (e: Exception) {
-                lastException = e
-                if (attempt < maxRetries - 1) {
-                    // True exponential backoff: delay = initialDelay * 2^attempt
-                    val currentDelay = (initialDelayMs * 2.0.pow(attempt.toDouble())).toLong()
-                    android.util.Log.w(
-                        TAG,
-                        "Attempt ${attempt + 1}/$maxRetries failed, retrying in ${currentDelay}ms: ${e.message}",
-                    )
-                    delay(currentDelay)
-                }
-            }
-        }
-
-        android.util.Log.e(TAG, "All $maxRetries retry attempts failed", lastException)
-        return null
     }
 
     /**

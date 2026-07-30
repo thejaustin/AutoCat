@@ -68,12 +68,25 @@ class AutoCatSemanticSearchAlgorithm(context: Context) : AutoCatSearchAlgorithm(
         normalResults.forEach { searchTargets.add(searchTargetFactory.createAppSearchTarget(it)) }
 
         // 2. Semantic/Category-based search (Medium priority)
-        // Find apps whose category matches the query
+        // Find apps whose category matches the query directly or via keyword/synonym expansion
+        val queryLower = query.lowercase(java.util.Locale.getDefault())
+        val mappedCategories = app.lawnchair.categorization.stages.MLCategorizer.KEYWORD_RULES
+            .filter { (category, keywords) ->
+                category.contains(queryLower, ignoreCase = true) ||
+                    keywords.any { it.contains(queryLower) || queryLower.contains(it) } ||
+                    (category.equals("Finance", ignoreCase = true) && (queryLower == "money" || queryLower == "cash" || queryLower == "wallet")) ||
+                    (category.equals("Health", ignoreCase = true) && (queryLower == "relax" || queryLower == "sleep" || queryLower == "exercise" || queryLower == "run" || queryLower == "heart")) ||
+                    (category.equals("Games", ignoreCase = true) && (queryLower == "play" || queryLower == "fun" || queryLower == "toy")) ||
+                    (category.equals("Music", ignoreCase = true) && (queryLower == "song" || queryLower == "audio" || queryLower == "sing" || queryLower == "tune")) ||
+                    (category.equals("Shopping", ignoreCase = true) && (queryLower == "buy" || queryLower == "store" || queryLower == "deal"))
+            }.keys
+
         val appTabs = tabDao.getAllAppTabs()
         val semanticPackages = appTabs.filter {
             it.tabName.contains(query, ignoreCase = true) ||
                 it.subCategory?.contains(query, ignoreCase = true) == true ||
-                it.reasoning?.contains(query, ignoreCase = true) == true
+                it.reasoning?.contains(query, ignoreCase = true) == true ||
+                mappedCategories.any { cat -> it.tabName.contains(cat, ignoreCase = true) }
         }.map { it.packageName }.toSet()
 
         if (semanticPackages.isNotEmpty()) {

@@ -103,7 +103,7 @@ fun SelectAppsForDrawerFolder(
                     componentName = item.targetComponent
                     user = item.user
                 }
-            } ?: emptyList()
+            } ?: emptyList(),
         )
     }
 

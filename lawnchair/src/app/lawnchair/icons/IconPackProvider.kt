@@ -7,12 +7,12 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Process
 import android.os.UserHandle
-import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.dagger.LauncherAppComponent
-import com.android.launcher3.dagger.LauncherAppSingleton
 import app.lawnchair.icons.iconpack.CustomIconPack
 import app.lawnchair.icons.iconpack.IconPack
 import app.lawnchair.icons.iconpack.SystemIconPack
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppComponent
+import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.icons.ClockDrawableWrapper
 import com.android.launcher3.icons.IconProvider
 import com.android.launcher3.util.DaggerSingletonObject

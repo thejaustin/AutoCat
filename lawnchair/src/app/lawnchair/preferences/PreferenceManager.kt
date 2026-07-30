@@ -24,18 +24,17 @@ import app.lawnchair.font.FontCache
 import app.lawnchair.util.isOnePlusStock
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.model.DeviceGridState
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-
-import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.dagger.LauncherAppSingleton
-import javax.inject.Inject
 
 @LauncherAppSingleton
 class PreferenceManager @Inject constructor(@ApplicationContext private val context: Context) :
@@ -155,6 +154,7 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     val llmPromptLanguage = StringPref("pref_llmPromptLanguage", "en", {})
     val llmOnlyOnWifi = BoolPref("pref_llmOnlyOnWifi", false, {})
     val llmOnlyWhileCharging = BoolPref("pref_llmOnlyWhileCharging", false, {})
+    val llmMinBatteryLevel = IntPref("pref_llmMinBatteryLevel", 20, {})
     val llmAutoSelectBestModel = BoolPref("pref_llmAutoSelectBestModel", false, {})
     val forceIconMonochrome = BoolPref("pref_forceIconMonochrome", false, recreate)
     val enableGnc = BoolPref("pref_enableGnc", true, recreate)
@@ -181,6 +181,9 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
 
     // AutoCat: App tabs in app drawer
     val autoCatUseTabs = BoolPref("pref_autoCatUseTabs", false, recreate)
+
+    // AutoCat: Default drawer launch tab name ("" means All Apps)
+    val autoCatDefaultDrawerTab = StringPref("pref_autoCatDefaultDrawerTab", "", {})
 
     // AutoCat: Developer mode
     val autoCatDevMode = BoolPref("pref_autoCatDevMode", false, {})

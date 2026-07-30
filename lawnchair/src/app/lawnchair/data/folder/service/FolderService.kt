@@ -10,20 +10,19 @@ import app.lawnchair.data.Converters
 import app.lawnchair.data.folder.FolderInfoEntity
 import app.lawnchair.data.toEntity
 import com.android.launcher3.AppFilter
+import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-
-import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.dagger.LauncherAppSingleton
-import javax.inject.Inject
 
 @LauncherAppSingleton
 class FolderService @Inject constructor(@ApplicationContext val context: Context) : SafeCloseable {

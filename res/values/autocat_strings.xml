@@ -68,4 +68,9 @@
     <string name="folder_result_failed">%1$d failed</string>
     <string name="folder_result_pending">%1$d pending</string>
     <string name="folder_result_nothing">Nothing changed</string>
+
+    <!-- AutoCat: Default drawer launch tab -->
+    <string name="default_drawer_tab_title">Default Drawer Tab</string>
+    <string name="default_drawer_tab_summary">Which category tab opens when you open the app drawer</string>
+    <string name="default_drawer_tab_all_apps">All Apps</string>
 </resources>

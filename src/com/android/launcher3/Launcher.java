@@ -2934,9 +2934,9 @@ public class Launcher extends StatefulActivity<LauncherState>
     public Stream<SystemShortcut.Factory> getSupportedShortcuts(int container) {
         if (enableLongPressRemoveShortcut()
                 && (container == CONTAINER_DESKTOP || container == CONTAINER_HOTSEAT)) {
-            return Stream.of(APP_INFO, WIDGETS, SystemShortcut.FOLDER_COVER, INSTALL, REMOVE);
+            return Stream.of(APP_INFO, WIDGETS, SystemShortcut.FOLDER_COVER, SystemShortcut.CHANGE_CATEGORY, SystemShortcut.HIDE_APP, SystemShortcut.SHOW_IN_DRAWER, INSTALL, REMOVE);
         }
-        return Stream.of(APP_INFO, WIDGETS, SystemShortcut.FOLDER_COVER, INSTALL);
+        return Stream.of(APP_INFO, WIDGETS, SystemShortcut.FOLDER_COVER, SystemShortcut.CHANGE_CATEGORY, SystemShortcut.HIDE_APP, INSTALL);
     }
 
     /**

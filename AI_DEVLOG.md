@@ -27,6 +27,12 @@ Living document — update at start of every AI session.
 
 ## Session History (newest first)
 
+### 2026-07-19 — Antigravity CLI — AutoCat fixes & enhancements
+- **Fixed ClassCastException in FloatingHeaderView (Issue #84)** — Updated `mTabLayout` and `getTabLayout()` in `FloatingHeaderView.java` to type `View` to safely support Jetpack Compose-based `AppTabsHeaderView`.
+- **Implemented Battery Saver & Wi-Fi logic for LLM categorization (Issue #79)** — Created `llmMinBatteryLevel` preference, `LLMUtils.getBatteryLevel()`, and `LLMCategorizer.checkConstraints()` to enforce Wi-Fi, charging, and battery level thresholds before calling LLMs. Added battery threshold slider to `LLMSettingsPreferences.kt`.
+- **Added PWA / Web Shortcut categorization toggle in onboarding** — Added PWA toggle control to `SmartFeaturesStep` in `SmartCategoriesOnboardingPreferences.kt`.
+- **Spotless check** — Ran `./gradlew spotlessApply` and confirmed `./gradlew spotlessCheck` passes.
+
 ### 2026-07-12 — Claude Code (Fable 5) — dev-environment setup
 - Added `CLAUDE.md` (build commands, branch/submodule/signing rules) and `scripts/dev/` (`ci-status.sh`, `ci-build.sh`, `fetch-apk.sh` — all GH-Actions-based, no local SDK). Uncommitted — review and commit.
 

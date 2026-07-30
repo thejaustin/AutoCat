@@ -344,6 +344,13 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         mFolderName.setOnBackKeyListener(this);
         mFolderName.setOnEditorActionListener(this);
         mFolderName.setSelectAllOnFocus(true);
+        mFolderName.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                showFolderColorPickerDialog();
+                return true;
+            }
+        });
         mFolderName.setInputType(mFolderName.getInputType()
                 & ~InputType.TYPE_TEXT_FLAG_AUTO_CORRECT
                 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
@@ -657,6 +664,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
 
     void bind(FolderInfo info) {
         mInfo = info;
+        mBackground.setFolderInfo(info);
         mFromTitle = info.title;
         mFromLabelState = info.getFromLabelState();
         updateItemLocationsInDatabaseBatch(true);
@@ -686,6 +694,103 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             mFolderName.setText("");
             mFolderName.setHint(R.string.folder_hint_text);
         }
+
+        int customColor = mInfo.options & 0x00FFFFFF;
+        if (customColor != 0) {
+            int alpha = app.lawnchair.util.LawnchairUtilsKt.getFolderBackgroundAlpha(getContext());
+            int tintedColor = androidx.core.graphics.ColorUtils.setAlphaComponent(customColor | 0xFF000000, alpha);
+            mBackground.setTint(tintedColor);
+        } else {
+            mBackground.setTintList(null);
+        }
+    }
+
+    private void showFolderColorPickerDialog() {
+        final Context context = getContext();
+        final String[] colorNames = {
+            "Default Theme", "Crimson Red", "Sunset Orange", "Amber Yellow",
+            "Forest Green", "Ocean Blue", "Royal Indigo", "Amethyst Purple",
+            "Rose Pink", "Slate Gray"
+        };
+        final int[] colors = {
+            0, // Default theme color
+            0xFFD32F2F, // Red
+            0xFFF57C00, // Orange
+            0xFFFFB300, // Amber
+            0xFF388E3C, // Green
+            0xFF1976D2, // Blue
+            0xFF3F51B5, // Indigo
+            0xFF7B1FA2, // Purple
+            0xFFC2185B, // Pink
+            0xFF455A64  // Gray
+        };
+
+        float density = context.getResources().getDisplayMetrics().density;
+        int padding = (int) (16 * density);
+        
+        android.widget.TableLayout tableLayout = new android.widget.TableLayout(context);
+        tableLayout.setPadding(padding, padding, padding, padding);
+        tableLayout.setGravity(android.view.Gravity.CENTER);
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(context);
+        builder.setTitle("Choose Folder Color");
+        builder.setView(tableLayout);
+        
+        final android.app.AlertDialog dialog = builder.create();
+
+        int index = 0;
+        for (int r = 0; r < 2; r++) {
+            android.widget.TableRow row = new android.widget.TableRow(context);
+            row.setGravity(android.view.Gravity.CENTER);
+            for (int c = 0; c < 5; c++) {
+                final int colorIndex = index++;
+                final int color = colors[colorIndex];
+                
+                android.widget.ImageView circle = new android.widget.ImageView(context);
+                android.widget.TableRow.LayoutParams lp = new android.widget.TableRow.LayoutParams(
+                    (int) (48 * density), (int) (48 * density)
+                );
+                lp.setMargins((int) (8 * density), (int) (8 * density), (int) (8 * density), (int) (8 * density));
+                circle.setLayoutParams(lp);
+                
+                android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
+                gd.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+                if (color == 0) {
+                    // Default theme color: gray ring outline
+                    gd.setStroke((int) (2 * density), 0xFF888888);
+                    gd.setColor(0x00000000);
+                } else {
+                    gd.setColor(color);
+                }
+                circle.setImageDrawable(gd);
+                circle.setClickable(true);
+                circle.setFocusable(true);
+                circle.setContentDescription(colorNames[colorIndex]);
+                
+                circle.setOnClickListener(v -> {
+                    mInfo.options = mInfo.options & ~0x00FFFFFF;
+                    if (color != 0) {
+                        mInfo.options = mInfo.options | (color & 0x00FFFFFF);
+                    }
+                    mActivityContext.getModelWriter().updateItemInDatabase(mInfo);
+                    
+                    mBackground.setFolderInfo(mInfo);
+                    mBackground.setup(getContext(), mActivityContext, this, mContent.getMeasuredWidth(), getPaddingTop());
+                    if (mFolderIcon != null) {
+                        mFolderIcon.mBackground.setFolderInfo(mInfo);
+                        mFolderIcon.mBackground.setup(getContext(), mActivityContext, mFolderIcon, mFolderIcon.getMeasuredWidth(), mFolderIcon.getPaddingTop());
+                        mFolderIcon.invalidate();
+                    }
+                    
+                    reapplyItemInfo();
+                    invalidate();
+                    dialog.dismiss();
+                });
+                row.addView(circle);
+            }
+            tableLayout.addView(row);
+        }
+        dialog.show();
     }
 
     /**

@@ -108,6 +108,7 @@ class AutoCatBackup(
         private const val PREFS_FILE_NAME = "${LauncherFiles.SHARED_PREFERENCES_KEY}.xml"
         private const val PREFS_DB_FILE_NAME = "preferences"
         private const val PREFS_DATASTORE_FILE_NAME = "preferences.preferences_pb"
+        private const val LIVE_INFO_DATASTORE_FILE_NAME = "live-information.preferences_pb"
 
         const val INFO_FILE_NAME = "info.pb"
         const val WALLPAPER_FILE_NAME = "wallpaper.png"
@@ -118,8 +119,8 @@ class AutoCatBackup(
         const val INCLUDE_LAYOUT_AND_SETTINGS = 1 shl 0
         const val INCLUDE_WALLPAPER = 1 shl 1
 
-        const val MIME_TYPE = "application/zip"
-        val EXTRA_MIME_TYPES = arrayOf(MIME_TYPE, "application/x-zip", "application/octet-stream")
+        const val MIME_TYPE = "application/octet-stream"
+        val EXTRA_MIME_TYPES = arrayOf(MIME_TYPE, "application/zip", "application/x-zip")
 
         val contentOptions = listOf(
             INCLUDE_LAYOUT_AND_SETTINGS to R.string.backup_content_layout_and_settings,
@@ -127,17 +128,31 @@ class AutoCatBackup(
         )
 
         fun generateBackupFileName(): String {
-            val fileName = "Lawnchair_Backup ${SimpleDateFormat.getDateTimeInstance().format(Date())}"
-            return "$fileName.lawnchairbackup"
+            val fileName = "AutoCat_Backup ${SimpleDateFormat.getDateTimeInstance().format(Date())}"
+            return "$fileName.autocatbackup"
         }
 
+        const val CATEGORY_DB_FILE_NAME = "category_database"
+        const val CATEGORY_DB_WAL_FILE_NAME = "category_database-wal"
+        const val CATEGORY_DB_SHM_FILE_NAME = "category_database-shm"
+
         fun getFiles(context: Context, forRestore: Boolean): Map<String, File> {
-            return mapOf(
+            val map = mutableMapOf(
                 LAUNCHER_DB_FILE_NAME to launcherDbFile(context, forRestore),
                 PREFS_FILE_NAME to prefsFile(context),
                 PREFS_DB_FILE_NAME to prefsDbFile(context),
                 PREFS_DATASTORE_FILE_NAME to prefsDataStoreFile(context),
+                LIVE_INFO_DATASTORE_FILE_NAME to liveInfoDataStoreFile(context),
             )
+            map[CATEGORY_DB_FILE_NAME] = categoryDbFile(context, forRestore, CATEGORY_DB_FILE_NAME)
+            map[CATEGORY_DB_WAL_FILE_NAME] = categoryDbFile(context, forRestore, CATEGORY_DB_WAL_FILE_NAME)
+            map[CATEGORY_DB_SHM_FILE_NAME] = categoryDbFile(context, forRestore, CATEGORY_DB_SHM_FILE_NAME)
+            return map
+        }
+
+        private fun categoryDbFile(context: Context, forRestore: Boolean, name: String): File {
+            val dbName = if (forRestore) "restored_$name" else name
+            return context.getDatabasePath(dbName)
         }
 
         @SuppressLint("MissingPermission")
@@ -204,6 +219,10 @@ class AutoCatBackup(
 
         private fun prefsDataStoreFile(context: Context): File {
             return File(context.filesDir, "datastore/${PREFS_DATASTORE_FILE_NAME}")
+        }
+
+        private fun liveInfoDataStoreFile(context: Context): File {
+            return File(context.filesDir, "datastore/${LIVE_INFO_DATASTORE_FILE_NAME}")
         }
     }
 }

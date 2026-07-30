@@ -143,6 +143,9 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                     }
                     activitiesLists.put(packages[i],
                             appsList.addPackage(context, packages[i], mUser));
+                    
+                    // AutoCat: Automatically categorize newly installed app in background
+                    app.lawnchair.util.AutoCatUtilsKt.categorizeNewAppInBackground(context, packages[i]);
                 }
                 flagOp = FlagOp.NO_OP.removeFlag(WorkspaceItemInfo.FLAG_DISABLED_NOT_AVAILABLE);
                 break;

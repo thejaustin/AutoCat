@@ -156,6 +156,23 @@ class AutoCatLauncher :
         }
     }
 
+    // AutoCat: jump to the user-configured default tab when the drawer opens
+    private val defaultDrawerTabStateListener = object : StateManager.StateListener<LauncherState> {
+        override fun onStateTransitionStart(toState: LauncherState) {
+            if (toState !is AllAppsState) return
+            val tabName = prefs.autoCatDefaultDrawerTab.get()
+            if (tabName.isEmpty()) return
+            val tabNames = app.lawnchair.categorization.AppTabsController
+                .getInstance(this@AutoCatLauncher).tabNames.value
+            val tabIndex = tabNames.indexOf(tabName)
+            if (tabIndex >= 0) {
+                mAppsView.switchToTab(tabIndex)
+            }
+        }
+
+        override fun onStateTransitionComplete(finalState: LauncherState) {}
+    }
+
     private lateinit var colorScheme: ColorScheme
     private var hasBackGesture = false
 
@@ -176,6 +193,7 @@ class AutoCatLauncher :
             defaultOverlay.setEnableFeed(enable)
         }.launchIn(scope = lifecycleScope)
         this.stateManager.addStateListener(clearSearchStateListener)
+        this.stateManager.addStateListener(defaultDrawerTabStateListener)
 
         if (prefs.autoLaunchRoot.get()) {
             lifecycleScope.launch {

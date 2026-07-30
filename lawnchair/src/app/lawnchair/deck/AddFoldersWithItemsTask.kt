@@ -60,6 +60,27 @@ class AddFoldersWithItemsTask(
 
             folders.forEach { folderInfo ->
                 try {
+                    val isAutoCatFolder = (folderInfo.options and -0x80000000) != 0
+                    val folderContents = ArrayList(folderInfo.getContents())
+
+                    val matchingItems = if (isAutoCatFolder) {
+                        folderContents.filterIsInstance<WorkspaceItemInfo>().mapNotNull { item ->
+                            findExistingWorkspaceItem(dataModel, item.intent, item.user)
+                        }
+                    } else {
+                        folderContents.filterIsInstance<WorkspaceItemInfo>().filter { item ->
+                            !shortcutExists(dataModel, item.intent, item.user)
+                        }
+                    }
+
+                    if (matchingItems.isEmpty()) {
+                        Log.d(TAG, "Skipping empty folder '${folderInfo.title}' - no matching workspace items")
+                        return@forEach
+                    }
+
+                    // Clear original contents to populate with matching items
+                    folderInfo.getContents().clear()
+
                     // Find space for the folder using automatic placement
                     val coords = itemSpaceFinder.findSpaceForItem(
                         workspaceScreens,
@@ -85,28 +106,25 @@ class AddFoldersWithItemsTask(
                     )
 
                     // Now add items to the folder
-                    // Items need to be added with proper rank/position
-                    val folderContents = folderInfo.getContents()
-                    folderContents.forEachIndexed { index, item ->
-                        if (item is WorkspaceItemInfo) {
-                            // Check if item already exists on workspace
-                            if (shortcutExists(dataModel, item.intent, item.user)) {
-                                Log.d(TAG, "Skipping duplicate item: ${item.title}")
-                                return@forEachIndexed
-                            }
+                    matchingItems.forEachIndexed { index, item ->
+                        // Add item to folder object
+                        folderInfo.add(item, false)
 
-                            // Add item to folder using folder's ID as container
-                            // Use rank as position - folder will arrange items
-                            modelWriter.addOrMoveItemInDatabase(
-                                item,
-                                folderInfo.id,
-                                0, // screenId is 0 for items in folders
-                                index % 4, // cellX - approximate grid position
-                                index / 4, // cellY - approximate grid position
-                            )
-                            itemsAdded++
-                            Log.d(TAG, "Added '${item.title}' to folder at rank $index")
+                        // If it's an existing workspace item, remove it from direct workspace items list
+                        if (isAutoCatFolder) {
+                            dataModel.workspaceItems.remove(item)
                         }
+
+                        // Add or move item in database
+                        modelWriter.addOrMoveItemInDatabase(
+                            item,
+                            folderInfo.id,
+                            0, // screenId is 0 for items in folders
+                            index % 4, // cellX
+                            index / 4, // cellY
+                        )
+                        itemsAdded++
+                        Log.d(TAG, "Added/Moved '${item.title}' into folder '${folderInfo.title}' at rank $index")
                     }
 
                     addedItemsFinal.add(folderInfo)
@@ -122,9 +140,7 @@ class AddFoldersWithItemsTask(
         // Schedule callback to bind items
         if (addedItemsFinal.isNotEmpty()) {
             taskController.scheduleCallbackTask { callbacks ->
-
                 callbacks.bindItemsAdded(addedItemsFinal)
-
                 // Notify completion after items are bound
                 onComplete?.invoke()
             }
@@ -133,6 +149,66 @@ class AddFoldersWithItemsTask(
             // No items to add, notify completion immediately
             onComplete?.invoke()
         }
+    }
+
+    /**
+     * Finds an existing workspace item on the desktop with the same intent and user.
+     */
+    private fun findExistingWorkspaceItem(
+        dataModel: BgDataModel,
+        intent: Intent?,
+        user: UserHandle,
+    ): WorkspaceItemInfo? {
+        if (intent == null) return null
+
+        val compPkgName: String?
+        val intentWithPkg: String
+        val intentWithoutPkg: String
+
+        if (intent.component != null) {
+            compPkgName = intent.component!!.packageName
+            if (intent.`package` != null) {
+                intentWithPkg = intent.toUri(0)
+                intentWithoutPkg = Intent(intent).apply { `package` = null }.toUri(0)
+            } else {
+                intentWithPkg = Intent(intent).apply { `package` = compPkgName }.toUri(0)
+                intentWithoutPkg = intent.toUri(0)
+            }
+        } else {
+            compPkgName = null
+            intentWithPkg = intent.toUri(0)
+            intentWithoutPkg = intent.toUri(0)
+        }
+
+        val isLauncherAppTarget = PackageManagerHelper.isLauncherAppTarget(intent)
+
+        synchronized(dataModel) {
+            dataModel.itemsIdMap.forEach { existingItem ->
+                if (existingItem is WorkspaceItemInfo && existingItem.container == LauncherSettings.Favorites.CONTAINER_DESKTOP) {
+                    val existingIntent = existingItem.intent
+                    if (existingIntent != null && existingItem.user == user) {
+                        val copyIntent = Intent(existingIntent)
+                        copyIntent.sourceBounds = intent.sourceBounds
+                        val s = copyIntent.toUri(0)
+                        if (intentWithPkg == s || intentWithoutPkg == s) {
+                            return existingItem
+                        }
+
+                        // Check for existing promise icon with same package name
+                        if (isLauncherAppTarget &&
+                            existingItem.isPromise() &&
+                            existingItem.hasStatusFlag(WorkspaceItemInfo.FLAG_AUTOINSTALL_ICON) &&
+                            existingItem.targetComponent != null &&
+                            compPkgName != null &&
+                            compPkgName == existingItem.targetComponent!!.packageName
+                        ) {
+                            return existingItem
+                        }
+                    }
+                }
+            }
+        }
+        return null
     }
 
     /**

@@ -209,6 +209,14 @@ fun LLMSettingsPreferences(
                         label = "Only while Charging",
                         description = "Perform heavy AI analysis only when the device is plugged in.",
                     )
+
+                    SliderPreference(
+                        label = "Minimum Battery Level",
+                        adapter = prefs.llmMinBatteryLevel.getAdapter(),
+                        valueRange = 0..100,
+                        step = 5,
+                        showAsPercentage = true,
+                    )
                 }
             }
 

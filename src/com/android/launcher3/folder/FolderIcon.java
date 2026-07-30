@@ -220,6 +220,7 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
         icon.setTag(folderInfo);
         icon.setOnClickListener(activity.getItemOnClickListener());
         icon.mInfo = folderInfo;
+        icon.mBackground.setFolderInfo(folderInfo);
         icon.mActivity = activity;
         icon.mDotRenderer = grid.mDotRendererWorkSpace;
 

@@ -72,14 +72,16 @@ fun DiagnosticsPreferences(
     var tabCount by remember { mutableIntStateOf(0) }
     var overrideCount by remember { mutableIntStateOf(0) }
     val crashLogs = remember { mutableStateListOf<File>() }
+    var logsVersion by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             val db = TabDatabase.getInstance(context)
             val dao = db.categoryDao()
-            appCount = dao.getAllAppCategories().size
+            val allAppCategories = dao.getAllAppCategories()
+            appCount = allAppCategories.size
             tabCount = dao.getAllCustomCategories().size
-            overrideCount = dao.getAllAppCategories().count { it.isUserOverride }
+            overrideCount = allAppCategories.count { it.isUserOverride }
             crashLogs.clear()
             crashLogs.addAll(app.lawnchair.bugreport.AutoCatBugReporter.INSTANCE.get(context).getLogs())
         }
@@ -128,7 +130,7 @@ fun DiagnosticsPreferences(
 
             item {
                 PreferenceGroup(heading = "LLM Live Logs") {
-                    LogViewer()
+                    LogViewer(logsVersion = logsVersion)
                 }
             }
 
@@ -146,7 +148,8 @@ fun DiagnosticsPreferences(
                         label = "Clear All Logs",
                         subtitle = "Reset the in-memory log buffer",
                         onClick = {
-                            LLMLogger.cleanup()
+                            LLMLogger.clearLogs()
+                            logsVersion++
                         },
                     )
 
@@ -190,10 +193,13 @@ fun StatRow(
 }
 
 @Composable
-fun LogViewer(modifier: Modifier = Modifier) {
-    val logs = remember { mutableStateListOf<LLMLogger.LogEntry>() }
+fun LogViewer(
+    logsVersion: Int,
+    modifier: Modifier = Modifier,
+) {
+    val logs = remember(logsVersion) { mutableStateListOf<LLMLogger.LogEntry>() }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(logsVersion) {
         LLMLogger.logFlow.collect { log ->
             logs.add(log)
             if (logs.size > 100) logs.removeFirst()
@@ -282,11 +288,20 @@ fun CrashLogItem(
                     )
                 }
                 IconButton(onClick = {
-                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(android.content.Intent.EXTRA_TEXT, file.readText())
+                    scope.launch(Dispatchers.IO) {
+                        val text = try {
+                            file.readText()
+                        } catch (e: Exception) {
+                            "Failed to read crash log: ${e.message}"
+                        }
+                        withContext(Dispatchers.Main) {
+                            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(android.content.Intent.EXTRA_TEXT, text)
+                            }
+                            context.startActivity(android.content.Intent.createChooser(intent, "Share Crash Log"))
+                        }
                     }
-                    context.startActivity(android.content.Intent.createChooser(intent, "Share Crash Log"))
                 }) {
                     Icon(Icons.Rounded.BugReport, null)
                 }

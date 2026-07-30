@@ -91,7 +91,7 @@ public class FloatingHeaderView extends LinearLayout implements
     private final int mTabsAdditionalPaddingTop;
     private final int mTabsAdditionalPaddingBottom;
 
-    protected PersonalWorkSlidingTabStrip mTabLayout;
+    protected View mTabLayout;
     private AllAppsRecyclerView mMainRV;
     private AllAppsRecyclerView mWorkRV;
     private SearchRecyclerView mSearchRV;
@@ -419,7 +419,7 @@ public class FloatingHeaderView extends LinearLayout implements
         return !mTabsHidden;
     }
 
-    PersonalWorkSlidingTabStrip getTabLayout() {
+    View getTabLayout() {
         return mTabLayout;
     }
 

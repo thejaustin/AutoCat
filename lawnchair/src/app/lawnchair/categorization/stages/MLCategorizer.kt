@@ -233,7 +233,7 @@ class MLCategorizer(
          * Keyword rules: category → list of substrings to match against
          * "label packageName" combined string (lowercase).
          */
-        private val KEYWORD_RULES: Map<String, List<String>> = linkedMapOf(
+        val KEYWORD_RULES: Map<String, List<String>> = linkedMapOf(
             "Social" to listOf(
                 "instagram", "facebook", "twitter", "tiktok", "snapchat",
                 "pinterest", "reddit", "tumblr", "linkedin", "discord",

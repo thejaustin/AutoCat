@@ -558,4 +558,104 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
             }
         }
     }
+
+    public static final Factory<ActivityContext> CHANGE_CATEGORY =
+            (activity, itemInfo, originalView) -> {
+                if (!(itemInfo instanceof com.android.launcher3.model.data.WorkspaceItemInfo)
+                        && !(itemInfo instanceof com.android.launcher3.model.data.AppInfo)) {
+                    return null;
+                }
+                String packageName = getPackageNameForShortcut(itemInfo);
+                if (packageName == null || packageName.isEmpty()) {
+                    return null;
+                }
+                return new ChangeCategory<>(activity, itemInfo, originalView);
+            };
+
+    private static String getPackageNameForShortcut(ItemInfo itemInfo) {
+        if (itemInfo instanceof com.android.launcher3.model.data.WorkspaceItemInfo) {
+            com.android.launcher3.model.data.WorkspaceItemInfo wii = (com.android.launcher3.model.data.WorkspaceItemInfo) itemInfo;
+            if (wii.getTargetComponent() != null) {
+                return wii.getTargetComponent().getPackageName();
+            }
+            if (wii.getIntent() != null && wii.getIntent().getComponent() != null) {
+                return wii.getIntent().getComponent().getPackageName();
+            }
+        } else if (itemInfo instanceof com.android.launcher3.model.data.AppInfo) {
+            com.android.launcher3.model.data.AppInfo ai = (com.android.launcher3.model.data.AppInfo) itemInfo;
+            if (ai.componentName != null) {
+                return ai.componentName.getPackageName();
+            }
+        }
+        return null;
+    }
+
+    public static class ChangeCategory<T extends ActivityContext> extends SystemShortcut<T> {
+        public ChangeCategory(T target, ItemInfo itemInfo, View originalView) {
+            super(R.drawable.ic_folder, R.string.change_category, target, itemInfo, originalView);
+        }
+
+        @Override
+        public void onClick(View v) {
+            dismissTaskMenuView();
+            app.lawnchair.util.AutoCatUtilsKt.showCategoryPickerDialog(v.getContext(), mItemInfo);
+        }
+    }
+
+    public static final Factory<ActivityContext> HIDE_APP =
+            (activity, itemInfo, originalView) -> {
+                if (!(itemInfo instanceof com.android.launcher3.model.data.WorkspaceItemInfo)
+                        && !(itemInfo instanceof com.android.launcher3.model.data.AppInfo)) {
+                    return null;
+                }
+                String packageName = getPackageNameForShortcut(itemInfo);
+                if (packageName == null || packageName.isEmpty()) {
+                    return null;
+                }
+                return new HideApp<>(activity, itemInfo, originalView);
+            };
+
+    public static class HideApp<T extends ActivityContext> extends SystemShortcut<T> {
+        public HideApp(T target, ItemInfo itemInfo, View originalView) {
+            super(R.drawable.ic_remove, R.string.hide_app, target, itemInfo, originalView);
+        }
+
+        @Override
+        public void onClick(View v) {
+            dismissTaskMenuView();
+            app.lawnchair.util.AutoCatUtilsKt.hideApp(v.getContext(), mItemInfo);
+            com.android.launcher3.views.Snackbar.show(
+                mTarget,
+                v.getContext().getString(R.string.app_hidden_message),
+                null,
+                null,
+                null
+            );
+        }
+    }
+
+    public static final Factory<ActivityContext> SHOW_IN_DRAWER =
+            (activity, itemInfo, originalView) -> {
+                if (!(itemInfo instanceof com.android.launcher3.model.data.WorkspaceItemInfo)
+                        && !(itemInfo instanceof com.android.launcher3.model.data.AppInfo)) {
+                    return null;
+                }
+                String packageName = getPackageNameForShortcut(itemInfo);
+                if (packageName == null || packageName.isEmpty()) {
+                    return null;
+                }
+                return new ShowInDrawer<>(activity, itemInfo, originalView);
+            };
+
+    public static class ShowInDrawer<T extends ActivityContext> extends SystemShortcut<T> {
+        public ShowInDrawer(T target, ItemInfo itemInfo, View originalView) {
+            super(R.drawable.ic_allapps_search, R.string.show_in_drawer, target, itemInfo, originalView);
+        }
+
+        @Override
+        public void onClick(View v) {
+            dismissTaskMenuView();
+            app.lawnchair.util.AutoCatUtilsKt.showCategoryTabInDrawer(v.getContext(), mItemInfo);
+        }
+    }
 }
