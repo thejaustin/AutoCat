@@ -64,6 +64,7 @@ import java.util.concurrent.ExecutionException
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
+import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import org.json.JSONArray
 
@@ -448,7 +449,8 @@ fun showCategoryPickerDialog(context: Context, itemInfo: com.android.launcher3.m
                         val syncService = app.lawnchair.categorization.CategoryFolderSyncService(context)
                         if (syncService.isSyncEnabled()) {
                             val allCategories = dao.getAllAppCategories()
-                            syncService.syncCategoriesToFolders(allCategories)
+                            val categorizationMap = allCategories.associate { it.packageName to it.tabName }
+                            syncService.syncCategoriesToFolders(categorizationMap)
                         }
                     }
                     dialog.dismiss()
