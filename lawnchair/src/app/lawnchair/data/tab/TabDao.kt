@@ -110,6 +110,12 @@ interface TabDao {
     suspend fun deleteNonUserOverrides()
 
     /**
+     * Deletes all app tab assignments.
+     */
+    @Query("DELETE FROM app_categories")
+    suspend fun deleteAllAppTabs()
+
+    /**
      * Deletes tab assignments for apps that no longer exist (cleanup operation).
      */
     @Query("DELETE FROM app_categories WHERE package_name IN (:packageNames)")

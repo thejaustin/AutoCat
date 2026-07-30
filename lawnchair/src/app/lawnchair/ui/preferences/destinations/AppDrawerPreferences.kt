@@ -186,20 +186,18 @@ fun AppDrawerPreferences(
                 icon = Icons.Rounded.Label,
             )
             ExpandAndShrink(visible = showDrawerLabels.state.value) {
-                DividerColumn {
-                    SliderPreference(
-                        label = stringResource(id = R.string.label_size),
-                        adapter = prefs2.drawerIconLabelSizeFactor.getAdapter(),
-                        step = 0.1F,
-                        valueRange = 0.5F..1.5F,
-                        showAsPercentage = true,
-                    )
-                    SwitchPreference(
-                        adapter = prefs2.twoLineAllApps.getAdapter(),
-                        label = stringResource(R.string.twoline_label),
-                        icon = Icons.Rounded.Notes,
-                    )
-                }
+                SliderPreference(
+                    label = stringResource(id = R.string.label_size),
+                    adapter = prefs2.drawerIconLabelSizeFactor.getAdapter(),
+                    step = 0.1F,
+                    valueRange = 0.5F..1.5F,
+                    showAsPercentage = true,
+                )
+                SwitchPreference(
+                    adapter = prefs2.twoLineAllApps.getAdapter(),
+                    label = stringResource(R.string.twoline_label),
+                    icon = Icons.Rounded.Notes,
+                )
             }
         }
         PreferenceGroup(heading = stringResource(id = R.string.advanced)) {

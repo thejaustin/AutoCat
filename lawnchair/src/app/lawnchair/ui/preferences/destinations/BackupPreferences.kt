@@ -47,8 +47,7 @@ fun BackupPreferences(
                     is SmartLauncherImporter.ImportResult.Success -> {
                         haptics.success()
                         val sortResult = app.lawnchair.categorization.FolderAutoSortService.getInstance(context).autoSortAll()
-                        val wsMsg = if (result.workspaceImported) " & Workspace" else ""
-                        Toast.makeText(context, "✅ Imported ${result.count} apps$wsMsg. Created ${sortResult.foldersCreated} folders.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "✅ Imported ${result.count} apps. Created ${sortResult.foldersCreated} folders.", Toast.LENGTH_LONG).show()
                     }
 
                     is SmartLauncherImporter.ImportResult.Error -> {

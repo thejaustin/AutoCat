@@ -463,7 +463,7 @@ fun CategorizationSettingsPreferences(
                                 prefs.llmBatchSize.set(0)
                                 prefs.llmAutoSelectBestModel.set(true)
                                 prefs.circuitBreakerEnabled.set(true)
-                                database?.tabDao()?.deleteAllAppTabs()
+                                database?.categoryDao()?.deleteAllAppTabs()
                                 withContext(Dispatchers.Main) {
                                     Toast.makeText(context, "Settings reset to defaults", Toast.LENGTH_SHORT).show()
                                 }
