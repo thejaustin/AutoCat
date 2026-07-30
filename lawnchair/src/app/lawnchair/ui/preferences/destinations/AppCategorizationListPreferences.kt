@@ -138,8 +138,8 @@ fun AppCategorizationListPreferences(
                 Log.d("AppCategorization", "Accuracy tracker initialized")
 
                 Log.d("AppCategorization", "Loading tabs...")
-                appTabs = database?.tabDao()?.getAllAppCategories() ?: emptyList()
-                availableCustomTabs = database?.tabDao()?.getAllCustomTabs() ?: emptyList()
+                appTabs = database?.categoryDao()?.getAllAppCategories() ?: emptyList()
+                availableCustomTabs = database?.categoryDao()?.getAllCustomCategories() ?: emptyList()
                 Log.d("AppCategorization", "Loaded ${appTabs.size} app tabs and ${availableCustomTabs.size} custom tabs")
             } catch (e: Exception) {
                 Log.e("AppCategorization", "Error initializing screen: ${e.message}", e)
@@ -410,7 +410,7 @@ fun AppCategorizationListPreferences(
 
     // Edit dialog
     editingApp?.let { app ->
-        val tabDao = database?.tabDao()
+        val tabDao = database?.categoryDao()
         if (tabDao != null) {
             TabOverrideDialog(
                 appTab = app,
