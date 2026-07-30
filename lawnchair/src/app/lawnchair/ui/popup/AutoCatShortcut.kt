@@ -692,6 +692,7 @@ fun AppSummaryDialog(
     appName: String,
     packageName: String,
     onClose: () -> Unit,
+    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var summaryText by remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
