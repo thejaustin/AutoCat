@@ -259,7 +259,7 @@ fun LLMSettingsPreferences(
                                         )
                                     }.getOrNull()
                                     if (sampleResult != null) {
-                                        "✅ $model · $latency · Spotify → ${sampleResult.category}"
+                                        "✅ $model · $latency · Spotify → ${sampleResult.tabName}"
                                     } else {
                                         "✅ $model · $latency (reachable, categorization test skipped)"
                                     }
@@ -334,7 +334,7 @@ fun LLMSettingsPreferences(
                                                     )
                                                 }.getOrNull()
                                                 if (sampleResult != null) {
-                                                    "✅ $model · $latency · Spotify → ${sampleResult.category}"
+                                                    "✅ $model · $latency · Spotify → ${sampleResult.tabName}"
                                                 } else {
                                                     "✅ $model · $latency (reachable, categorization test skipped)"
                                                 }

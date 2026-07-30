@@ -257,6 +257,7 @@ fun CrashLogItem(
     var expanded by remember { mutableStateOf(false) }
     val content = remember { mutableStateOf("") }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(expanded) {
         if (expanded && content.value.isEmpty()) {
