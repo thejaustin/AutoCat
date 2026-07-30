@@ -300,6 +300,7 @@ class AutoCatLauncher :
                 AutoCatShortcut.CUSTOMIZE,
                 AutoCatShortcut.APP_INFO,
                 AutoCatShortcut.STORE_PAGE,
+                AutoCatShortcut.AI_SUMMARY,
             ),
             if (AutoCatApp.isRecentsEnabled) Stream.of(AutoCatShortcut.PAUSE_APPS) else Stream.empty(),
         ),

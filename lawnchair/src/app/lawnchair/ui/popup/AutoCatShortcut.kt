@@ -190,6 +190,14 @@ class AutoCatShortcut {
                 StorePage(activity, itemInfo, view, installerPackage)
             }
 
+        val AI_SUMMARY =
+            SystemShortcut.Factory { activity: AutoCatLauncher, itemInfo: ItemInfo, view: View ->
+                if (itemInfo.targetComponent == null) {
+                    return@Factory null
+                }
+                AISummary(activity, itemInfo, view)
+            }
+
         private val KNOWN_STORES = setOf(
             "com.android.vending", // Google Play Store
             "com.sec.android.app.samsungapps", // Galaxy Store
@@ -644,4 +652,180 @@ class AutoCatShortcut {
             AbstractFloatingView.closeAllOpenViews(target)
         }
     }
+
+    class AISummary(
+        private val launcher: AutoCatLauncher,
+        private var itemInfo: ItemInfo?,
+        originalView: View?,
+    ) : SystemShortcut<AutoCatLauncher>(
+        R.drawable.ic_autocat,
+        R.string.ai_summary_label,
+        launcher,
+        itemInfo,
+        originalView,
+    ) {
+        override fun onClick(view: View) {
+            val packageName = itemInfo?.targetComponent?.packageName ?: return
+            val appLabel = ApplicationInfoWrapper(
+                view.context,
+                packageName,
+                itemInfo?.user,
+            ).toString()
+
+            AbstractFloatingView.closeAllOpenViews(launcher)
+            ComposeBottomSheet.show(
+                context = launcher,
+                contentPaddings = PaddingValues(bottom = 32.dp),
+            ) {
+                AppSummaryDialog(
+                    appName = appLabel,
+                    packageName = packageName,
+                    onClose = { close(true) },
+                )
+            }
+        }
+    }
 }
+
+@Composable
+fun AppSummaryDialog(
+    appName: String,
+    packageName: String,
+    onClose: () -> Unit,
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var summaryText by remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+    var isLoading by remember { androidx.compose.runtime.mutableStateOf(true) }
+    var errorMessage by remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+
+    androidx.compose.runtime.LaunchedEffect(packageName) {
+        withContext(Dispatchers.IO) {
+            try {
+                val prefs = app.lawnchair.preferences.PreferenceManager.getInstance(context)
+                val googleKey = prefs.llmGoogleAIKey.get()
+                val claudeKey = prefs.llmClaudeKey.get()
+                val openAIKey = prefs.llmOpenAIKey.get()
+                val perplexityKey = prefs.llmPerplexityKey.get()
+
+                val activeProviderId = prefs.llmProviderPreference.get()
+                val provider = when (activeProviderId) {
+                    "google_ai" -> if (googleKey.isNotBlank()) app.lawnchair.categorization.llm.GoogleAIProvider(context) else null
+                    "claude" -> if (claudeKey.isNotBlank()) app.lawnchair.categorization.llm.ClaudeProvider(context) else null
+                    "openai" -> if (openAIKey.isNotBlank()) app.lawnchair.categorization.llm.OpenAIProvider(context) else null
+                    "perplexity" -> if (perplexityKey.isNotBlank()) app.lawnchair.categorization.llm.PerplexityProvider(context) else null
+                    else -> null
+                } ?: run {
+                    when {
+                        googleKey.isNotBlank() -> app.lawnchair.categorization.llm.GoogleAIProvider(context)
+                        claudeKey.isNotBlank() -> app.lawnchair.categorization.llm.ClaudeProvider(context)
+                        openAIKey.isNotBlank() -> app.lawnchair.categorization.llm.OpenAIProvider(context)
+                        perplexityKey.isNotBlank() -> app.lawnchair.categorization.llm.PerplexityProvider(context)
+                        else -> null
+                    }
+                }
+
+                if (provider == null) {
+                    errorMessage = "No AI provider configured. Add an API key in AutoCat Settings."
+                    isLoading = false
+                    return@withContext
+                }
+
+                val prompt = "Provide a concise 2-sentence summary of what the Android application '$appName' (package: $packageName) is used for, its primary feature set, and category/genre."
+                val result = provider.categorizeApp(appName, packageName, prompt, listOf("Summary"))
+                summaryText = result.reasoning?.takeIf { it.isNotBlank() }
+                    ?: "$appName is a mobile application. Categorized under: ${result.category}."
+                isLoading = false
+            } catch (e: Exception) {
+                errorMessage = "Failed to generate summary: ${e.message}"
+                isLoading = false
+            }
+        }
+    }
+
+    androidx.compose.material3.Surface(
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+        color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+        modifier = androidx.compose.ui.Modifier.fillMaxWidth().padding(16.dp),
+    ) {
+        androidx.compose.foundation.layout.Column(
+            modifier = androidx.compose.ui.Modifier.padding(20.dp),
+        ) {
+            androidx.compose.foundation.layout.Row(
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+            ) {
+                androidx.compose.material3.Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Rounded.AutoAwesome,
+                    contentDescription = null,
+                    tint = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                    modifier = androidx.compose.ui.Modifier.size(24.dp),
+                )
+                androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.width(12.dp))
+                androidx.compose.material3.Text(
+                    text = "$appName Summary",
+                    style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                    modifier = androidx.compose.ui.Modifier.weight(1f),
+                )
+            }
+
+            androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
+
+            if (isLoading) {
+                androidx.compose.foundation.layout.Row(
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                    modifier = androidx.compose.ui.Modifier.fillMaxWidth().padding(24.dp),
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = androidx.compose.ui.Modifier.size(28.dp),
+                        strokeWidth = 3.dp,
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.width(12.dp))
+                    androidx.compose.material3.Text(
+                        text = "Generating AI Summary...",
+                        style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else if (errorMessage != null) {
+                androidx.compose.material3.Text(
+                    text = errorMessage!!,
+                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                )
+            } else {
+                androidx.compose.material3.Text(
+                    text = summaryText ?: "No summary available.",
+                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                )
+            }
+
+            androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(20.dp))
+
+            androidx.compose.foundation.layout.Row(
+                modifier = androidx.compose.ui.Modifier.fillMaxWidth(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End,
+            ) {
+                if (summaryText != null) {
+                    androidx.compose.material3.TextButton(
+                        onClick = {
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+                            val clip = android.content.ClipData.newPlainText("App Summary", summaryText)
+                            clipboard?.setPrimaryClip(clip)
+                            android.widget.Toast.makeText(context, "Copied summary to clipboard", android.widget.Toast.LENGTH_SHORT).show()
+                        },
+                    ) {
+                        androidx.compose.material3.Text("Copy")
+                    }
+                }
+                androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.width(8.dp))
+                androidx.compose.material3.Button(onClick = onClose) {
+                    androidx.compose.material3.Text("Close")
+                }
+            }
+        }
+    }
+}
+

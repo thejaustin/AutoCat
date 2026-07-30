@@ -975,4 +975,5 @@
     <string name="search_settings">Search Settings</string>
     <string name="settings_debug_warning">Debug builds may contain bugs and breaking changes. Use at your own risk.</string>
     <string name="debug_label">Debug Menu</string>
+    <string name="ai_summary_label">AI Summary</string>
 </resources>
