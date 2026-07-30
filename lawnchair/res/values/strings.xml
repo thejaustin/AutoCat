@@ -977,6 +977,7 @@
     <string name="debug_label">Debug Menu</string>
     <string name="ai_summary_label">AI Summary</string>
     <string name="smart_categories_label">Smart Categories</string>
+    <string name="smart_categories_subtitle">AI app categorization &amp; folder sync</string>
     <string name="folder_sync_mode_drawer">App Drawer</string>
     <string name="folder_sync_mode_home">Home Screen</string>
     <string name="folder_sync_mode_both">Both Drawer &amp; Home</string>
