@@ -214,10 +214,10 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     val settingsCardRadius = IntPref("pref_settingsCardRadius", 24, recreate)
 
     // AutoCat: LLM model selection
-    val llmGoogleAIModel = StringPref("pref_llmGoogleAIModel", "gemini-2.0-flash-exp", {})
-    val llmClaudeModel = StringPref("pref_llmClaudeModel", "claude-3-5-haiku-20241022", {})
-    val llmOpenAIModel = StringPref("pref_llmOpenAIModel", "gpt-4o-mini", {})
-    val llmPerplexityModel = StringPref("pref_llmPerplexityModel", "llama-3.1-sonar-small-128k-online", {}) // Updated to 2025 API
+    val llmGoogleAIModel = StringPref("pref_llmGoogleAIModel", "gemini-3.5-flash-lite", {})
+    val llmClaudeModel = StringPref("pref_llmClaudeModel", "claude-haiku-5-5", {})
+    val llmOpenAIModel = StringPref("pref_llmOpenAIModel", "gpt-6-luna", {})
+    val llmPerplexityModel = StringPref("pref_llmPerplexityModel", "sonar", {})
 
     // AutoCat: Batch processing settings
     val llmEnableBatching = BoolPref("pref_llmEnableBatching", true, {})
@@ -288,11 +288,16 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
 
     /** AutoCat: rewrite stored LLM model ids that providers have retired. */
     private fun migrateDeprecatedLlmModels() {
-        if (llmGoogleAIModel.get() == "gemini-1.5-flash" ||
-            llmGoogleAIModel.get() == "gemini-1.5-pro"
-        ) {
-            llmGoogleAIModel.set("gemini-2.0-flash-exp")
+        fun StringPref.replaceIf(retired: (String) -> Boolean, replacement: String) {
+            if (retired(get())) set(replacement)
         }
+        llmGoogleAIModel.replaceIf({ it.startsWith("gemini-1.") || it.startsWith("gemini-2.") }, "gemini-3.5-flash-lite")
+        llmClaudeModel.replaceIf({ it.startsWith("claude-3") }, "claude-haiku-5-5")
+        llmOpenAIModel.replaceIf(
+            { it.startsWith("gpt-4") || it.startsWith("gpt-3.5") || it.startsWith("o1-") || it.startsWith("o3-") },
+            "gpt-6-luna",
+        )
+        llmPerplexityModel.replaceIf({ it.startsWith("llama-") }, "sonar")
     }
 
     private fun normalizeVibrationFeedbackLevel() {

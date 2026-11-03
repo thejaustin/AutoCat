@@ -187,7 +187,7 @@ class ClaudeProvider(
 
     companion object {
         private const val TAG = "ClaudeProvider"
-        private const val DEFAULT_MODEL = "claude-3-5-haiku-20241022"
+        private const val DEFAULT_MODEL = "claude-haiku-5-5"
     }
 
     override suspend fun categorizeApp(
@@ -702,6 +702,10 @@ Respond ONLY in this JSON format:
             val requestBody = JSONObject().apply {
                 put("model", model)
                 put("max_tokens", 4096)
+                // Categorization is a short classification task; keep thinking cheap on current models
+                if (!model.startsWith("claude-3")) {
+                    put("output_config", JSONObject().apply { put("effort", "low") })
+                }
                 put(
                     "messages",
                     JSONArray().apply {
@@ -776,9 +780,7 @@ Respond ONLY in this JSON format:
     ): CategorizationResult {
         try {
             val response = JSONObject(responseJson)
-            val content = response.getJSONArray("content")
-                .getJSONObject(0)
-                .getString("text")
+            val content = response.firstTextBlock()
 
             // Extract JSON from markdown code blocks if present
             val jsonText = content
@@ -812,9 +814,7 @@ Respond ONLY in this JSON format:
     private fun parseSuggestionResponse(responseJson: String): List<SuggestedCategory> {
         try {
             val response = JSONObject(responseJson)
-            val content = response.getJSONArray("content")
-                .getJSONObject(0)
-                .getString("text")
+            val content = response.firstTextBlock()
 
             // Extract JSON from markdown code blocks if present
             var jsonText = content
@@ -850,9 +850,7 @@ Respond ONLY in this JSON format:
     private fun parseFolderSuggestionResponse(responseJson: String): List<SuggestedFolder> {
         try {
             val response = JSONObject(responseJson)
-            val content = response.getJSONArray("content")
-                .getJSONObject(0)
-                .getString("text")
+            val content = response.firstTextBlock()
 
             // Extract JSON from markdown code blocks if present
             var jsonText = content
@@ -892,9 +890,7 @@ Respond ONLY in this JSON format:
     ): Map<String, CategorizationResult> {
         try {
             val response = JSONObject(responseJson)
-            val content = response.getJSONArray("content")
-                .getJSONObject(0)
-                .getString("text")
+            val content = response.firstTextBlock()
 
             // Extract JSON from markdown code blocks if present
             var jsonText = content
@@ -938,4 +934,17 @@ Respond ONLY in this JSON format:
             throw LLMException("Failed to parse Claude batch response: ${e.message}", e)
         }
     }
+}
+
+/**
+ * Returns the first `text` block of a Messages API response. Current models may emit
+ * `thinking` blocks before the answer, so `content[0]` is not necessarily text.
+ */
+private fun JSONObject.firstTextBlock(): String {
+    val blocks = getJSONArray("content")
+    for (i in 0 until blocks.length()) {
+        val block = blocks.getJSONObject(i)
+        if (block.optString("type") == "text") return block.getString("text")
+    }
+    throw org.json.JSONException("No text block in response")
 }

@@ -12,7 +12,7 @@ import androidx.room.PrimaryKey
  *
  * @property id Auto-generated primary key
  * @property provider The LLM provider (e.g., "google_ai", "claude", "openai")
- * @property model The specific model used (e.g., "gemini-2.0-flash-exp", "claude-3-5-haiku")
+ * @property model The specific model used (e.g., "gemini-3.5-flash-lite", "claude-haiku-5-5")
  * @property category The category that was predicted
  * @property wasCorrect True if user kept the prediction, false if they overrode it
  * @property confidence The model's confidence score (0.0 - 1.0)

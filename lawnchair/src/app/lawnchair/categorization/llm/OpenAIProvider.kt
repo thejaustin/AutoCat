@@ -116,7 +116,7 @@ class OpenAIProvider(
 
     companion object {
         private const val TAG = "OpenAIProvider"
-        private const val DEFAULT_MODEL = "gpt-4o-mini"
+        private const val DEFAULT_MODEL = "gpt-6-luna"
     }
 
     override suspend fun testConnection(): TestResult = withContext(Dispatchers.IO) {
@@ -702,13 +702,12 @@ Respond ONLY in this JSON format:
                         )
                     },
                 )
-                // o1 and o3 models use max_completion_tokens instead of max_tokens, and don't support custom temperature
-                if (model.startsWith("o1-") || model.startsWith("o3-")) {
-                    put("max_completion_tokens", 8192)
-                    // Temperature not allowed for o1/o3 models
-                } else {
-                    put("temperature", 0.2)
-                    put("max_tokens", 4096)
+                // Only legacy GPT-4-era chat models accept a custom temperature; reasoning-era models
+                // (o-series, GPT-5 and later) reject it. max_completion_tokens works for all of them.
+                val isLegacyChatModel = model.startsWith("gpt-4") || model.startsWith("gpt-3.5")
+                put("max_completion_tokens", if (isLegacyChatModel) 4096 else 8192)
+                if (isLegacyChatModel) put("temperature", 0.2)
+                if (model.startsWith("gpt-")) {
                     put("response_format", JSONObject().apply { put("type", "json_object") })
                 }
             }
