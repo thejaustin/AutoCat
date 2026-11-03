@@ -27,6 +27,24 @@ Living document — update at start of every AI session.
 
 ## Session History (newest first)
 
+### 2026-11-03 — Claude Code (Opus 5.5) — upstream sync + model refresh
+Branch `feat/upstream-sync-2026-11`. Commits: merge `d665f5b810`, `462e8e1226` (models), `275e31128c` (LLM budgets).
+
+- **Merged upstream Lawnchair 16-dev** (422 commits, merge base `00bb0d82`, 2026-04-09). Local clone is shallow and on FUSE (git can't rewrite `.git/shallow` there), so the merge base was supplied with a local-only graft: `git replace --graft 5024fa11 00bb0d82` (+ `2499c19b` grafted parentless) with `.git/shallow` moved aside during the merge. Replace refs are never pushed; keep them until the push lands, then `git replace -d`.
+- **Duplicate classes consolidated.** The fork had live `AutoCat*` classes plus stale `Lawnchair*` copies that upstream keeps editing. Removed `LawnchairApp`/`LawnchairLauncher`/`LawnchairShortcut`/`LawnchairSearchAdapterProvider` and the unwired `AutoCatAlphabeticalAppsList`; ported upstream changes into the AutoCat copies. `LawnchairAlphabeticalAppsList` and both widget holders are still live — watch them on future syncs.
+- `AutoCatApp` now extends `LauncherApplication` (upstream #6629). Quickstep code used to read `LawnchairApp.instance`, which was never initialised.
+- Settings screens follow upstream's SegmentedListItem layout; AutoCat entries and leading icons were re-added (`~/autocat-tools/icons.py` re-applies icons by label).
+- FolderService follows upstream's `FolderEntry`; AutoCat sync/auto-sort use `getAllFolders()` + the `AppInfo` overload of `updateFolderWithItems()` (folderInfoId 0 creates).
+- Quickstep range is now API 35–36 (upstream choice); recents integration is gone on Android 10–14.
+- LLM catalog: Claude Haiku/Sonnet/Opus 5.5, Gemini 3.5 Flash-Lite/3.8 Flash/4 Argon, GPT-6 Luna/6.1 Sol/6 Astra; saved retired IDs migrate automatically.
+
+**Open:**
+- [ ] CI was red for 100+ runs before this merge; expect several fix rounds on the feature branch.
+- [ ] `FolderInfo` has no `coverMode`/`coverApp`/`icon`; the folder-cover feature is only half-implemented (DB columns + DAO exist).
+- [ ] After green: bump TFLite (check LiteRT rename) and MediaPipe GenAI one CI round at a time.
+- [ ] Verify Perplexity model ids (`sonar`, `sonar-pro`, `sonar-reasoning`) against current docs.
+
+
 ### 2026-07-19 — Antigravity CLI — AutoCat fixes & enhancements
 - **Fixed ClassCastException in FloatingHeaderView (Issue #84)** — Updated `mTabLayout` and `getTabLayout()` in `FloatingHeaderView.java` to type `View` to safely support Jetpack Compose-based `AppTabsHeaderView`.
 - **Implemented Battery Saver & Wi-Fi logic for LLM categorization (Issue #79)** — Created `llmMinBatteryLevel` preference, `LLMUtils.getBatteryLevel()`, and `LLMCategorizer.checkConstraints()` to enforce Wi-Fi, charging, and battery level thresholds before calling LLMs. Added battery threshold slider to `LLMSettingsPreferences.kt`.
