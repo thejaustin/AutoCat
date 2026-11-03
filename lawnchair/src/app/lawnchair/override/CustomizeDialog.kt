@@ -26,6 +26,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import app.lawnchair.BlankActivity
 import app.lawnchair.gestures.type.GestureType
 import app.lawnchair.launcher
 import app.lawnchair.preferences.getAdapter
@@ -53,6 +55,7 @@ import com.android.launcher3.LauncherState
 import com.android.launcher3.R
 import com.android.launcher3.util.ComponentKey
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import kotlinx.coroutines.launch
 
 @Composable
 fun CustomizeDialog(
@@ -159,8 +162,16 @@ fun CustomizeAppDialog(
 
     Log.d("TEST", route.toString())
 
+    val scope = rememberCoroutineScope()
     val openIconPicker = {
-        request.launch(PreferenceActivity.createIntent(context, route))
+        val intent = PreferenceActivity.createIntent(context, route)
+        scope.launch {
+            val result = BlankActivity.startBlankActivityForResult(context as Activity, intent)
+            if (result.resultCode == Activity.RESULT_OK) {
+                onClose()
+            }
+        }
+        Unit
     }
 
     DisposableEffect(Unit) {
@@ -197,8 +208,7 @@ fun CustomizeAppDialog(
                 },
             )
         }
-
-        if (preferenceManager2.iconSwipeGestures.asState().value && context.launcher.stateManager.state != LauncherState.ALL_APPS) {
+        if (context.launcher.stateManager.state != LauncherState.ALL_APPS) {
             PreferenceGroup(heading = stringResource(R.string.gestures_label)) {
                 listOf(
                     GestureType.SWIPE_UP,

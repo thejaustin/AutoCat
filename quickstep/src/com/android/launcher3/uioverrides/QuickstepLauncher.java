@@ -19,7 +19,6 @@ import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.WindowManager.LayoutParams.PRIVATE_FLAG_OPTIMIZE_MEASURE;
 import static android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED;
-import static android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY;
 
 import static com.android.app.animation.Interpolators.EMPHASIZED;
 import static com.android.internal.jank.Cuj.CUJ_LAUNCHER_LAUNCH_APP_PAIR_FROM_WORKSPACE;
@@ -239,7 +238,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.AutoCatApp;
 import app.lawnchair.compat.LawnchairQuickstepCompat;
 
 public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
@@ -252,6 +251,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     protected static final String RING_APPEAR_ANIMATION_PREFIX = "RingAppearAnimation\t";
 
     private PredictedContainerInfo mAllAppsPredictions;
+    // LC-Note: Lawnchair Prediction
+    private PredictedContainerInfo mHotseatPredictions;
     private HotseatPredictionController mHotseatPredictionController;
     private DepthController mDepthController;
     private QuickstepTransitionManager mAppTransitionManager;
@@ -329,9 +330,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                         getDepthController(), getStatsLogManager(),
                         systemUiProxy, RecentsModel.INSTANCE.get(this),
                         () -> onStateBack());
-        if (DesktopModeStatus.canEnterDesktopMode(this) && LawnchairApp.isRecentsEnabled()) {
+        if (DesktopModeStatus.canEnterDesktopMode(this) && AutoCatApp.isRecentsEnabled()) {
             mDesktopRecentsTransitionController = new DesktopRecentsTransitionController(
-                    getStateManager(), systemUiProxy, LawnchairApp.getInstance().getIApplicationThread(),
+                    getStateManager(), systemUiProxy, AutoCatApp.getInstance().getIApplicationThread(),
                     getDepthController());
         }
         overviewPanel.init(mActionsView, mSplitSelectStateController,
@@ -343,7 +344,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         mActionsView.updateDimension(getDeviceProfile(), overviewPanel.getLastComputedTaskSize());
         mActionsView.updateVerticalMargin(DisplayController.getNavigationMode(this));
 
-        if (LawnchairApp.isRecentsEnabled()) {
+        if (AutoCatApp.isRecentsEnabled()) {
             mAppTransitionManager = buildAppTransitionManager();
             mAppTransitionManager.registerRemoteAnimations();
             mAppTransitionManager.registerRemoteTransitions();
@@ -356,7 +357,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
         mHotseatPredictionController = new HotseatPredictionController(this);
 
-        mEnableWidgetDepth = LawnchairApp.isRecentsEnabled() ? SystemProperties.getBoolean("ro.launcher.depth.widget", true) : false;
+        mEnableWidgetDepth = AutoCatApp.isRecentsEnabled() ? SystemProperties.getBoolean("ro.launcher.depth.widget", true) : false;
         getWorkspace().addOverlayCallback(progress ->
                 onTaskbarInAppDisplayProgressUpdate(progress, MINUS_ONE_PAGE_PROGRESS_INDEX));
         if (Utilities.ATLEAST_U) {
@@ -438,17 +439,42 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public RunnableList startActivitySafely(View v, Intent intent, ItemInfo item) {
-        PredictionRowView<?> predictionRowView =
-                getAppsView().getFloatingHeaderView().findFixedRowByType(PredictionRowView.class);
+        // LC-Note: There are Lawnchair Prediction changes here.
+        
+        PredictionRowView<?> predictionRowView = getPredictionRowView();
         // Pause the prediction row updates until the transition (if it exists) ends.
-        predictionRowView.setPredictionUiUpdatePaused(true);
+        if (predictionRowView != null) {
+            predictionRowView.setPredictionUiUpdatePaused(true);
+        }
         RunnableList result = super.startActivitySafely(v, intent, item);
         if (result == null) {
-            predictionRowView.setPredictionUiUpdatePaused(false);
+            reapplyPredictionUi();
         } else {
-            result.add(() -> predictionRowView.setPredictionUiUpdatePaused(false));
+            result.add(this::reapplyPredictionUi);
         }
         return result;
+    }
+
+    // LC-Note: Lawnchair Prediction
+    @Nullable
+    private PredictionRowView<?> getPredictionRowView() {
+        return getAppsView() == null
+                ? null
+                : getAppsView().getFloatingHeaderView().findFixedRowByType(PredictionRowView.class);
+    }
+
+    // LC-Note: Lawnchair Prediction
+    private void reapplyPredictionUi() {
+        PredictionRowView<?> predictionRowView = getPredictionRowView();
+        if (predictionRowView != null) {
+            predictionRowView.setPredictionUiUpdatePaused(false);
+            if (mAllAppsPredictions != null) {
+                predictionRowView.setPredictedApps(mAllAppsPredictions.getContents());
+            }
+        }
+        if (mHotseatPredictionController != null && mHotseatPredictions != null) {
+            mHotseatPredictionController.setPredictedItems(mHotseatPredictions);
+        }
     }
 
     @Override
@@ -518,7 +544,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         List<SystemShortcut.Factory> shortcuts = new ArrayList(Arrays.asList(
                 APP_INFO, WellbeingModel.SHORTCUT_FACTORY, mHotseatPredictionController));
 
-        shortcuts.addAll(getSplitShortcuts());
+        if (AutoCatApp.isRecentsEnabled()) {
+            shortcuts.addAll(getSplitShortcuts());
+        }
         shortcuts.add(WIDGETS);
         shortcuts.add(INSTALL);
         if (Flags.enableLongPressRemoveShortcut()
@@ -583,15 +611,21 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public void bindPredictedContainerInfo(PredictedContainerInfo info) {
+        // LC-Note: There are Lawnchair Prediction changes here.
         super.bindPredictedContainerInfo(info);
         switch (info.id) {
             case Favorites.CONTAINER_ALL_APPS_PREDICTION:
                 mAllAppsPredictions = info;
-                getAppsView().getFloatingHeaderView().findFixedRowByType(
-                        PredictionRowView.class).setPredictedApps(info.getContents());
+                PredictionRowView<?> predictionRowView = getPredictionRowView();
+                if (predictionRowView != null) {
+                    predictionRowView.setPredictedApps(info.getContents());
+                }
                 break;
             case Favorites.CONTAINER_HOTSEAT_PREDICTION:
-                mHotseatPredictionController.setPredictedItems(info);
+                mHotseatPredictions = info;
+                if (mHotseatPredictionController != null) {
+                    mHotseatPredictionController.setPredictedItems(info);
+                }
                 break;
             case Favorites.CONTAINER_WIDGETS_PREDICTION:
                 getWidgetPickerDataProvider().setWidgetRecommendations(info.getContents());
@@ -676,7 +710,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                     TaskView taskToLaunch = currentPageTask;
                     if (currentPageTask == null) {
                         taskToLaunch = fallbackTask;
-                        ActiveGestureProtoLogProxy.logQuickSwitchFromHomeFallback(
+                        if (Utilities.ATLEAST_S) ActiveGestureProtoLogProxy.logQuickSwitchFromHomeFallback(
                                 rv.getCurrentPage());
                     }
                     taskToLaunch.launchWithoutAnimation(success -> {
@@ -688,7 +722,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                         return Unit.INSTANCE;
                     });
                 } else {
-                    ActiveGestureProtoLogProxy.logQuickSwitchFromHomeFailed(rv.getCurrentPage());
+                    if (Utilities.ATLEAST_S) ActiveGestureProtoLogProxy.logQuickSwitchFromHomeFailed(rv.getCurrentPage());
                     getStateManager().goToState(NORMAL);
                 }
                 break;
@@ -882,6 +916,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     protected void onResume() {
         super.onResume();
 
+        reapplyPredictionUi();
+
         if (mLauncherUnfoldAnimationController != null) {
             mLauncherUnfoldAnimationController.onResume();
         }
@@ -941,8 +977,6 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     @Override
     protected void logOnNewIntent(boolean alreadyOnHome, boolean shouldMoveToDefaultScreen,
             String action, boolean internalStateHandled) {
-        // LC-Note: This is workaround for skipping Android 11 Release 41. 
-        //          Not the best solutions but this is not significant enough to Lawnchair.
         if (!Utilities.ATLEAST_S) return;
         OverviewCommandHelperProtoLogProxy.logOnNewIntent(alreadyOnHome, shouldMoveToDefaultScreen,
                 action, internalStateHandled);
@@ -1018,8 +1052,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             return false;
         }
 
-        // Lawnchair-TODO-Merge: LC disabled this, 16r2 enabled it.
-//        getOnBackAnimationCallback().onBackInvoked();
+        if (Utilities.ATLEAST_U) getOnBackAnimationCallback().onBackInvoked();
         return true;
     }
 
@@ -1077,6 +1110,18 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                             mActiveOnBackAnimationCallback = null;
                         }
                     });
+        } else if (Utilities.ATLEAST_T) {
+            // On Android 13 the API 34 OnBackAnimationCallback interface used by
+            // FlingOnBackAnimationCallback cannot be instantiated, but a plain
+            // OnBackInvokedCallback works. Registering it is required because
+            // android:enableOnBackInvokedCallback="true" disables legacy key dispatch
+            // on Android 13+; without a callback the system would finish the Launcher.
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                    () -> {
+                        onBackPressed();
+                        TestLogging.recordEvent(TestProtocol.SEQUENCE_MAIN, "onBackInvoked");
+                    });
         }
     }
 
@@ -1127,7 +1172,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         DesktopVisibilityController desktopVisibilityController =
                 DesktopVisibilityController.INSTANCE.get(this);
         if (ATLEAST_BAKLAVA) {
-            if (!ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue()
+            if (!false
                 && desktopVisibilityController.isInDesktopModeAndNotInOverview(getDisplayId())
                 && !desktopVisibilityController.isRecentsGestureInProgress()) {
                 // Return early to skip setting activity to appear as resumed
@@ -1290,6 +1335,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         out.add(new RecentsViewStateController(this));
     }
 
+    @Override
     public DepthController getDepthController() {
         return mDepthController;
     }
@@ -1607,18 +1653,33 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         predictionRowView.dump(prefix, writer);
     }
 
+    /**
+     * Creates a TextClock or AnalogClock with an asynchronous ClockEventDelegate on Android V
+     * (API 35) and newer;
+     * on older platforms delegates to the framework's view creation.
+     *
+     * @return the created View for the given name when handled (TextClock or AnalogClock with delegate),
+     *         or the view returned by the superclass when not handled
+     */
     @Override
     public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
-        switch (name) {
-            case "TextClock", "android.widget.TextClock" -> {
-                TextClock tc = new TextClock(context, attrs);
-                tc.setClockEventDelegate(AsyncClockEventDelegate.INSTANCE.get(this));
-                return tc;
-            }
-            case "AnalogClock", "android.widget.AnalogClock" -> {
-                AnalogClock ac = new AnalogClock(context, attrs);
-                ac.setClockEventDelegate(AsyncClockEventDelegate.INSTANCE.get(this));
-                return ac;
+        // ClockEventDelegate / setClockEventDelegate were added in Android 15 (API 35); on older
+        // platforms we must fall back to the framework default to avoid loading classes that do
+        // not exist on the device (b/353166316, lawnchair issue #6781).
+        if (Utilities.ATLEAST_V) {
+            switch (name) {
+                case "TextClock", "android.widget.TextClock" -> {
+                    TextClock tc = new TextClock(context, attrs);
+                    tc.setClockEventDelegate(
+                            AsyncClockEventDelegate.INSTANCE.get(this).asClockEventDelegate());
+                    return tc;
+                }
+                case "AnalogClock", "android.widget.AnalogClock" -> {
+                    AnalogClock ac = new AnalogClock(context, attrs);
+                    ac.setClockEventDelegate(
+                            AsyncClockEventDelegate.INSTANCE.get(this).asClockEventDelegate());
+                    return ac;
+                }
             }
         }
         return super.onCreateView(parent, name, context, attrs);

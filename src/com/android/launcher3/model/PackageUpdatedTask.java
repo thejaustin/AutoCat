@@ -41,6 +41,7 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.R;
+import com.android.launcher3.Utilities;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.logging.FileLog;
@@ -71,7 +72,7 @@ import java.util.stream.Collectors;
 import app.lawnchair.deck.LawndeckManager;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
-import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
+import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
 
 /**
  * Handles updates due to changes in package manager (app installed/updated/removed)
@@ -353,7 +354,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
                             // In case an app is archived, we need to make sure that archived state
                             // in WorkspaceItemInfo is refreshed.
                             try {
-                                if (Flags.enableSupportForArchiving() && !activities.isEmpty()) {
+                                if (Utilities.ATLEAST_V && (Flags.enableSupportForArchiving() && !activities.isEmpty())) {
                                 boolean newArchivalState = activities.get(0)
                                         .getActivityInfo().isArchived;
                                 if (newArchivalState != itemInfo.isArchived()) {
@@ -467,7 +468,7 @@ public class PackageUpdatedTask implements ModelUpdateTask {
             
             // If deck layout is enabled, add newly installed apps to workspace with categorization
             PreferenceManager2 pref2 = PreferenceManager2.INSTANCE.get(context);
-            if (PreferenceExtensionsKt.firstBlocking(pref2.getDeckLayout())) {
+            if (PreferenceCacheExtensionsKt.firstCached(pref2.getDeckLayout())) {
                 LawndeckManager deckManager = new LawndeckManager(context);
                 ModelWriter modelWriter = taskController.getModelWriter();
                 for (int i = 0; i < packageCount; i++) {

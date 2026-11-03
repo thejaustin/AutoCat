@@ -343,11 +343,17 @@ public class InvariantDeviceProfile {
     }
 
     public InvariantDeviceProfile(Context context, DeviceProfileOverrides.DBGridInfo dbGridInfo) {
+        this(context, dbGridInfo, null);
+    }
+
+    public InvariantDeviceProfile(Context context, DeviceProfileOverrides.DBGridInfo dbGridInfo,
+            DeviceProfileOverrides.PreviewOverrides previewOverrides) {
         this.mPrefs = LauncherPrefs.get(context.getApplicationContext());
         this.mThemeManager = ThemeManager.INSTANCE.get(context.getApplicationContext());
         this.mDisplayController = DisplayController.INSTANCE.get(context.getApplicationContext());
+        this.mWMProxy = WindowManagerProxy.INSTANCE.get(context.getApplicationContext());
         String gridName = DeviceProfileOverrides.INSTANCE.get(context).getGridName(dbGridInfo);
-        initGrid(context, gridName, dbGridInfo);
+        initGrid(context, gridName, dbGridInfo, previewOverrides);
     }
 
     private String initGrid(Context context, String gridName) {
@@ -376,7 +382,7 @@ public class InvariantDeviceProfile {
         }
         DeviceProfileOverrides.DBGridInfo dbGridInfo = DeviceProfileOverrides.INSTANCE.get(context)
             .getGridInfo();
-        initGrid(context, displayInfo, displayOption, dbGridInfo);
+        initGrid(context, displayInfo, displayOption, dbGridInfo, null);
         FileLog.d(TAG, "After initGrid:"
                 + "gridName:" + gridName
                 + ", dbFile:" + dbFile
@@ -386,6 +392,11 @@ public class InvariantDeviceProfile {
     }
 
     private String initGrid(Context context, String gridName, DeviceProfileOverrides.DBGridInfo dbGridInfo) {
+        return initGrid(context, gridName, dbGridInfo, null);
+    }
+
+    private String initGrid(Context context, String gridName, DeviceProfileOverrides.DBGridInfo dbGridInfo,
+            DeviceProfileOverrides.PreviewOverrides previewOverrides) {
         Info displayInfo = mDisplayController.getInfo();
         List<DisplayOption> allOptions = getPredefinedDeviceProfiles(
                 context,
@@ -407,7 +418,7 @@ public class InvariantDeviceProfile {
         if (!displayOption.grid.name.equals(gridName)) {
             mPrefs.put(GRID_NAME, displayOption.grid.name);
         }
-        initGrid(context, displayInfo, displayOption, dbGridInfo);
+        initGrid(context, displayInfo, displayOption, dbGridInfo, previewOverrides);
         return displayOption.grid.name;
     }
 
@@ -427,16 +438,19 @@ public class InvariantDeviceProfile {
         initGrid(context, getCurrentGridName(context));
     }
 
-    private void initGrid(Context context, Info displayInfo, DisplayOption displayOption, DeviceProfileOverrides.DBGridInfo dbGridInfo) {
+    private void initGrid(Context context, Info displayInfo, DisplayOption displayOption,
+            DeviceProfileOverrides.DBGridInfo dbGridInfo,
+            DeviceProfileOverrides.PreviewOverrides previewOverrides) {
         this.closestProfile = displayOption.grid;
         
+        // LC-Note: Not only in English. Lawnchair shows the toggle in every language, and labels
+        // break at spaces or between words, which also works for other scripts.
         enableTwoLinesInAllApps = Flags.enableTwolineToggle()
-                && Utilities.isEnglishLanguage(context)
                 && mPrefs.get(ENABLE_TWOLINE_ALLAPPS_TOGGLE);
         mLocale = context.getResources().getConfiguration().locale.toString();
 
-        DeviceProfileOverrides.Options overrideOptions = DeviceProfileOverrides.INSTANCE.get(context)
-            .getOverrides(displayOption.grid);
+         DeviceProfileOverrides.Options overrideOptions = DeviceProfileOverrides.INSTANCE.get(context)
+                 .getOverrides(displayOption.grid, displayInfo.getDeviceType(), previewOverrides);
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         GridOption closestProfile = displayOption.grid;
         numRows = dbGridInfo.getNumRows();
@@ -448,8 +462,10 @@ public class InvariantDeviceProfile {
         gridType = closestProfile.gridType;
         defaultLayoutId = closestProfile.defaultLayoutId;
 
-        numFolderRows = closestProfile.numFolderRows;
-        numFolderColumns = closestProfile.numFolderColumns;
+        // LC-Note: copies, because DeviceProfileOverrides writes the folder settings into these
+        // arrays and the settings take their defaults from closestProfile's (the grid option's).
+        numFolderRows = closestProfile.numFolderRows.clone();
+        numFolderColumns = closestProfile.numFolderColumns.clone();
         folderStyle = closestProfile.folderStyle;
 
         cellStyle = closestProfile.cellStyle;
@@ -489,7 +505,7 @@ public class InvariantDeviceProfile {
         horizontalMargin = displayOption.horizontalMargin;
 
                 numShownHotseatIcons = deviceType == TYPE_MULTI_DISPLAY 
-                        ? closestProfile.numDatabaseHotseatIcons : dbGridInfo.getNumHotseatColumns();
+                        ? closestProfile.numHotseatIcons : dbGridInfo.getNumHotseatColumns();
         numDatabaseHotseatIcons = deviceType == TYPE_MULTI_DISPLAY
                         ? closestProfile.numDatabaseHotseatIcons : numShownHotseatIcons;
         hotseatBarBottomSpace = displayOption.hotseatBarBottomSpace;

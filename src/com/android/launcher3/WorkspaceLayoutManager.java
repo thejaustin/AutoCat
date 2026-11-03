@@ -26,6 +26,9 @@ import com.android.launcher3.folder.Folder;
 import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.touch.ItemLongClickListener;
+
+import app.lawnchair.preferences2.PreferenceManager2;
+import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
 import com.android.launcher3.util.IntSet;
 
 public interface WorkspaceLayoutManager {
@@ -51,16 +54,18 @@ public interface WorkspaceLayoutManager {
         CellPos presenterPos = getCellPosMapper().mapModelToPresenter(info);
         int x = presenterPos.cellX;
         int y = presenterPos.cellY;
+        int screenId = presenterPos.screenId;
         if (info.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT
                 || info.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION) {
-            int screenId = presenterPos.screenId;
-            x = getHotseat().getCellXFromOrder(screenId);
-            y = getHotseat().getCellYFromOrder(screenId);
-            // TODO(b/335141365): Remove this log after the bug is fixed.
+            // Model screenId is a flat rank; presenter screenId is the dock page.
+            int rank = info.screenId;
+            x = getHotseat().getCellXFromOrder(rank);
+            y = getHotseat().getCellYFromOrder(rank);
+            screenId = getHotseat().getPageFromOrder(rank);
             Log.d(TAG, "addInScreenFromBind: hotseat inflation with x = " + x
-                    + " and y = " + y);
+                    + " and y = " + y + " page = " + screenId);
         }
-        addInScreen(child, info.container, presenterPos.screenId, x, y, info.spanX, info.spanY);
+        addInScreen(child, info.container, screenId, x, y, info.spanX, info.spanY);
     }
 
     /**
@@ -100,14 +105,25 @@ public interface WorkspaceLayoutManager {
             throw new RuntimeException("Screen id should not be extra empty screen: " + screenId);
         }
 
-        final CellLayout layout;
+        CellLayout layout;
         if (container == LauncherSettings.Favorites.CONTAINER_HOTSEAT
                 || container == LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION) {
-            layout = getHotseat();
+            Hotseat hotseat = getHotseat();
+            layout = hotseat.getPageAt(screenId);
+            if (layout == null) {
+                layout = hotseat.getCurrentPageLayout();
+            }
+            if (layout == null) {
+                Log.e(TAG, "Skipping child, hotseat page " + screenId + " not found");
+                return;
+            }
 
             // Hide folder title in the hotseat
             if (child instanceof FolderIcon) {
-                ((FolderIcon) child).setTextVisible(false);
+                PreferenceManager2 prefs = PreferenceManager2.getInstance(child.getContext());
+                ((FolderIcon) child).setTextVisible(
+                        PreferenceCacheExtensionsKt.firstCached(
+                                prefs.getEnableLabelInDock()));
             }
         } else {
             // Show folder title if not in the hotseat

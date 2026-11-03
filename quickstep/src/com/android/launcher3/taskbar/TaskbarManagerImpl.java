@@ -127,7 +127,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.IntConsumer;
 
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.AutoCatApp;
 
 /**
  * Class to manage taskbar lifecycle
@@ -1177,7 +1177,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
 
         removeRecreationListener(mPrimaryDisplayId);
 
-        if (LawnchairApp.isRecentsEnabled()) {
+        if (AutoCatApp.isRecentsEnabled()) {
             SettingsCache.INSTANCE.get(mPrimaryWindowContext)
                 .unregister(USER_SETUP_COMPLETE_URI, mOnSettingsChangeListener);
             SettingsCache.INSTANCE.get(mPrimaryWindowContext)
@@ -1822,7 +1822,9 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     }
 
     private boolean isExternalDisplay(int displayId) {
-        return DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue() && (
+        // LC-Ignored: Intentional, all Android desktop flags are disabled
+        //DesktopExperienceFlags.ENABLE_TASKBAR_CONNECTED_DISPLAYS.isTrue()
+        return false && (
                 mPrimaryDisplayId != displayId);
     }
 

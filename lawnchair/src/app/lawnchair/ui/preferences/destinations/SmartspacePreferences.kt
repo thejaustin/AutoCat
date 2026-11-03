@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022, Lawnchair
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package app.lawnchair.ui.preferences.destinations
 
 import android.app.Activity
@@ -6,7 +22,9 @@ import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -34,9 +52,11 @@ import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
 import app.lawnchair.ui.preferences.components.controls.MainSwitchPreference
 import app.lawnchair.ui.preferences.components.controls.SliderPreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
+import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.theme.isSelectedThemeDark
+import app.lawnchair.ui.theme.preferenceGroupColor
 import com.android.launcher3.R
 import com.kieronquinn.app.smartspacer.sdk.SmartspacerConstants
 
@@ -69,11 +89,9 @@ fun SmartspacePreferences(
                     SmartspacePreview()
                 }
                 PreferenceGroup {
-                    Item {
-                        SmartspaceProviderPreference(
-                            adapter = smartspaceModeAdapter,
-                        )
-                    }
+                    SmartspaceProviderPreference(
+                        adapter = smartspaceModeAdapter,
+                    )
                 }
 
                 Crossfade(
@@ -114,12 +132,10 @@ private fun AutoCatSmartspaceSettings(
                 .filter { it.isAvailable }
                 .forEach {
                     key(it.providerName) {
-                        Item { _ ->
-                            SwitchPreference(
-                                adapter = it.enabledPref.getAdapter(),
-                                label = stringResource(id = it.providerName),
-                            )
-                        }
+                        SwitchPreference(
+                            adapter = it.enabledPref.getAdapter(),
+                            label = stringResource(id = it.providerName),
+                        )
                     }
                 }
         }
@@ -164,20 +180,27 @@ fun SmartspacePreview(
         heading = stringResource(id = R.string.preview_label),
         modifier = modifier,
     ) {
-        CompositionLocalProvider(LocalContext provides themedContext) {
-            AndroidView(
-                factory = {
-                    val view = SmartspaceViewContainer(it, previewMode = true)
-                    val height = it.resources
-                        .getDimensionPixelSize(R.dimen.enhanced_smartspace_height)
-                    view.layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, height)
-                    view
-                },
-                modifier = Modifier.padding(
-                    top = 8.dp,
-                    bottom = 16.dp,
-                ),
-            )
+        Surface(
+            color = preferenceGroupColor(),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            CompositionLocalProvider(LocalContext provides themedContext) {
+                AndroidView(
+                    factory = {
+                        val view = SmartspaceViewContainer(it, previewMode = true)
+                        val height = it.resources
+                            .getDimensionPixelSize(R.dimen.enhanced_smartspace_height)
+                        view.layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, height)
+                        view
+                    },
+                    modifier = Modifier.padding(
+                        start = 8.dp,
+                        end = 8.dp,
+                        top = 8.dp,
+                        bottom = 8.dp,
+                    ),
+                )
+            }
         }
         LaunchedEffect(key1 = null) {
             SmartspaceProvider.INSTANCE.get(context).startSetup(context as Activity)
@@ -203,34 +226,26 @@ fun SmartspaceDateAndTimePreferences(
         modifier = modifier.padding(top = 8.dp),
     ) {
         val supportCustomizationFormat = calendar.formatCustomizationSupport
-        Item(
-            key = "smartspace_date",
-            visible = supportCustomizationFormat,
-        ) {
+        ExpandAndShrink(visible = supportCustomizationFormat) {
             SwitchPreference(
                 adapter = showDateAdapter,
                 label = stringResource(id = R.string.smartspace_date),
                 enabled = if (showDateAdapter.state.value) !calendarHasMinimumContent else true,
             )
         }
-        Item(
-            "smartspace_calendar",
-            supportCustomizationFormat && showDateAdapter.state.value,
-        ) { SmartspaceCalendarPreference() }
-        Item(
-            "smartspace_time",
-            supportCustomizationFormat,
-        ) {
+        ExpandAndShrink(visible = supportCustomizationFormat && showDateAdapter.state.value) {
+            SmartspaceCalendarPreference()
+        }
+        ExpandAndShrink(visible = supportCustomizationFormat) {
             SwitchPreference(
                 adapter = showTimeAdapter,
                 label = stringResource(id = R.string.smartspace_time),
                 enabled = if (showTimeAdapter.state.value) !calendarHasMinimumContent else true,
             )
         }
-        Item(
-            "smartspace_time_format",
-            supportCustomizationFormat && showTimeAdapter.state.value,
-        ) { SmartspaceTimeFormatPreference() }
+        ExpandAndShrink(visible = supportCustomizationFormat && showTimeAdapter.state.value) {
+            SmartspaceTimeFormatPreference()
+        }
     }
 }
 
@@ -285,21 +300,17 @@ fun SmartspacerSettings(
         PreferenceGroup(
             heading = stringResource(id = R.string.smartspacer_settings),
         ) {
-            Item {
-                SliderPreference(
-                    label = stringResource(R.string.maximum_number_of_targets),
-                    adapter = prefs2.smartspacerMaxCount.getAdapter(),
-                    valueRange = 5..15,
-                    step = 1,
+            SliderPreference(
+                label = stringResource(R.string.maximum_number_of_targets),
+                adapter = prefs2.smartspacerMaxCount.getAdapter(),
+                valueRange = 5..15,
+                step = 1,
+            )
+            ClickablePreference(label = stringResource(R.string.open_smartspacer_settings)) {
+                val intent = context.packageManager.getLaunchIntentForPackage(
+                    SmartspacerConstants.SMARTSPACER_PACKAGE_NAME,
                 )
-            }
-            Item {
-                ClickablePreference(label = stringResource(R.string.open_smartspacer_settings)) {
-                    val intent = context.packageManager.getLaunchIntentForPackage(
-                        SmartspacerConstants.SMARTSPACER_PACKAGE_NAME,
-                    )
-                    context.startActivity(intent)
-                }
+                context.startActivity(intent)
             }
         }
     }

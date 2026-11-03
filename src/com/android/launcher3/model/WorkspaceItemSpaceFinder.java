@@ -31,7 +31,8 @@ import com.android.launcher3.util.GridOccupancy;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
 
-import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
+import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
+import app.lawnchair.preferences2.PreferenceManager2;
 import java.util.ArrayList;
 
 import javax.inject.Inject;
@@ -127,7 +128,7 @@ public class WorkspaceItemSpaceFinder {
 
         // LC-Note: Reserve space for Smartspace on the first screen
         if (screenId == FIRST_SCREEN_ID) {
-            boolean smartspaceEnabled = PreferenceExtensionsKt.firstBlocking(
+            boolean smartspaceEnabled = PreferenceCacheExtensionsKt.firstCached(
                     PreferenceManager2.INSTANCE.get(context).getEnableSmartspace());
             if (smartspaceEnabled) {
                 // Reserve the first row for smartspace to prevent overlapping

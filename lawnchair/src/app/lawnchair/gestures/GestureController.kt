@@ -23,9 +23,9 @@ import app.lawnchair.gestures.config.GestureHandlerConfig
 import app.lawnchair.gestures.handlers.GestureHandler
 import app.lawnchair.gestures.handlers.NoOpGestureHandler
 import app.lawnchair.preferences2.PreferenceManager2
-import com.android.launcher3.util.VibratorWrapper
+import com.android.launcher3.util.MSDLPlayerWrapper
+import com.google.android.msdl.data.model.MSDLToken
 import com.patrykmichalik.opto.domain.Preference
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -36,13 +36,16 @@ import kotlinx.coroutines.launch
 
 class GestureController(private val launcher: AutoCatLauncher) {
     private val prefs = PreferenceManager2.getInstance(launcher)
-    private val scope = MainScope()
+    private val scope = launcher.lifecycleScope
 
     private val doubleTapHandler = handler(prefs.doubleTapGestureHandler)
     private val swipeUpHandler = handler(prefs.swipeUpGestureHandler)
     private val swipeDownHandler = handler(prefs.swipeDownGestureHandler)
+    private val twoFingerSwipeUpHandler = handler(prefs.twoFingerSwipeUpGestureHandler)
+    private val twoFingerSwipeDownHandler = handler(prefs.twoFingerSwipeDownGestureHandler)
     private val homePressHandler = handler(prefs.homePressGestureHandler)
     private val backPressHandler = handler(prefs.backPressGestureHandler)
+    private val mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(launcher)
 
     fun onDoubleTap() {
         triggerHandler(doubleTapHandler)
@@ -56,12 +59,27 @@ class GestureController(private val launcher: AutoCatLauncher) {
         triggerHandler(swipeDownHandler)
     }
 
+    fun onTwoFingerSwipeUp() {
+        triggerHandler(twoFingerSwipeUpHandler)
+    }
+
+    fun onTwoFingerSwipeDown() {
+        triggerHandler(twoFingerSwipeDownHandler)
+    }
+
     fun onHomePressed() {
         triggerHandler(homePressHandler, AutoCatApp.isRecentsEnabled)
     }
 
     fun onBackPressed() {
         triggerHandler(backPressHandler, false)
+    }
+
+    fun handle(handler: GestureHandlerConfig) {
+        launcher.lifecycleScope.launch {
+            val handler = handler.createHandler(launcher)
+            handler.onTrigger(launcher)
+        }
     }
 
     private fun triggerHandler(handlerFlow: Flow<GestureHandler>, withHaptic: Boolean = true) {
@@ -72,7 +90,7 @@ class GestureController(private val launcher: AutoCatLauncher) {
             }
             handler.onTrigger(launcher)
             if (withHaptic) {
-                VibratorWrapper.INSTANCE.get(launcher).vibrate(VibratorWrapper.OVERVIEW_HAPTIC)
+                mMSDLPlayerWrapper.playToken(MSDLToken.SWIPE_THRESHOLD_INDICATOR)
             }
         }
     }

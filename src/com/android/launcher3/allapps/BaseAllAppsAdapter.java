@@ -264,9 +264,9 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
             case VIEW_TYPE_FOLDER:
                 // LC-Feature: Folder support in All Apps
                 FrameLayout fl = new FrameLayout(mActivityContext);
-                ViewGroup.MarginLayoutParams lp = new ViewGroup.MarginLayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT);
+                fl.setLayoutParams(new RecyclerView.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        mActivityContext.getDeviceProfile().getAllAppsProfile().getCellHeightPx()));
                 return new ViewHolder(fl);
             default:
                 if (mAdapterProvider.isViewSupported(viewType)) {
@@ -284,9 +284,16 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                 AdapterItem adapterItem = mApps.getAdapterItems().get(position);
                 BubbleTextView icon = (BubbleTextView) holder.itemView;
                 icon.reset();
+                // Work/Private contexts already imply the profile; skip redundant user badges.
+                // Keep badges on home, search, and personal icons (including clones).
+                PrivateProfileManager privateProfileManager = mApps.getPrivateProfileManager();
+                boolean skipUserBadge = !mApps.hasSearchResults()
+                        && (mApps.isWorkAppsList()
+                                || (privateProfileManager != null
+                                        && privateProfileManager.isPrivateSpaceItem(adapterItem)));
+                icon.setSkipUserBadge(skipUserBadge);
                 icon.applyFromApplicationInfo(adapterItem.itemInfo);
                 icon.setOnFocusChangeListener(mIconFocusListener);
-                PrivateProfileManager privateProfileManager = mApps.getPrivateProfileManager();
                 if (privateProfileManager != null) {
                     // Set the alpha of the private space icon to 0 upon expanding the header so the
                     // alpha can animate -> 1. This should only be in effect when doing a
@@ -357,9 +364,11 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                 FolderInfo folderInfo = mApps.getAdapterItems().get(position).folderInfo;
                 ViewGroup container = (ViewGroup) holder.itemView;
                 container.removeAllViews();
-                container.addView(
-                    FolderIcon.inflateFolderAndIcon(R.layout.all_apps_folder_icon, mActivityContext,
-                    container, folderInfo));
+                // LC-Note: Implement long-press support for folder type for purposes like showing popup
+                FolderIcon folderIcon = FolderIcon.inflateFolderAndIcon(
+                        R.layout.all_apps_folder_icon, mActivityContext, container, folderInfo);
+                folderIcon.setOnLongClickListener(mOnIconLongClickListener);
+                container.addView(folderIcon);
                 break;
             default:
                 if (mAdapterProvider.isViewSupported(holder.getItemViewType())) {

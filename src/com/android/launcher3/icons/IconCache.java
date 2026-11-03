@@ -49,6 +49,7 @@ import androidx.core.util.Pair;
 
 import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
+import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
@@ -69,6 +70,7 @@ import com.android.launcher3.shortcuts.ShortcutRequest;
 import com.android.launcher3.util.CancellableTask;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.DaggerSingletonTracker;
+import com.android.launcher3.util.FlagOp;
 import com.android.launcher3.util.InstantAppResolver;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.widget.WidgetSections;
@@ -86,6 +88,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import app.lawnchair.LawnchairActivityCachingLogic;
+import app.lawnchair.gestures.ui.LawnchairShortcutActivity;
 import app.lawnchair.icons.AutoCatIconProvider;
 
 /**
@@ -281,8 +284,8 @@ public class IconCache extends BaseIconCache {
     @SuppressWarnings("NewApi")
     public synchronized void getTitleAndIcon(ItemInfoWithIcon info,
             LauncherActivityInfo activityInfo, @NonNull CacheLookupFlag lookupFlag) {
-        boolean isAppArchived = Flags.enableSupportForArchiving() && activityInfo != null
-                && activityInfo.getActivityInfo().isArchived;
+        boolean isAppArchived = Utilities.ATLEAST_V && (Flags.enableSupportForArchiving() && activityInfo != null
+                && activityInfo.getActivityInfo().isArchived);
         // If we already have activity info, no need to use package icon
         getTitleAndIcon(info, () -> activityInfo, lookupFlag.withUsePackageIcon(isAppArchived));
     }
@@ -322,7 +325,10 @@ public class IconCache extends BaseIconCache {
         if (isDefaultIcon(bitmapInfo, user) && fallbackIconCheck.test(info)) {
             return;
         }
-        info.bitmap = bitmapInfo.withBadgeInfo(getShortcutInfoBadge(si.getShortcutInfo()));
+
+        info.bitmap = LawnchairShortcutActivity.Companion.shouldSkipShortcutBadge(context, si.getShortcutInfo())
+            ? bitmapInfo.withFlags(FlagOp.NO_OP)
+            : bitmapInfo.withBadgeInfo(getShortcutInfoBadge(si.getShortcutInfo()));
     }
 
     /**
@@ -330,6 +336,15 @@ public class IconCache extends BaseIconCache {
      */
     public BitmapInfo getShortcutInfoBadge(ShortcutInfo shortcutInfo) {
         return getShortcutInfoBadgeItem(shortcutInfo).bitmap;
+    }
+
+    /**
+     * LC-Note: Returns the package icon to use as the badge for a shortcut.
+     */
+    public BitmapInfo getShortcutInfoBadge(String packageName, UserHandle user) {
+        PackageItemInfo pkgInfo = new PackageItemInfo(packageName, user);
+        getTitleAndIconForApp(pkgInfo, DEFAULT_LOOKUP_FLAG);
+        return pkgInfo.bitmap;
     }
 
     @VisibleForTesting
@@ -368,6 +383,9 @@ public class IconCache extends BaseIconCache {
     public synchronized void getTitleAndIcon(
             @NonNull ItemInfoWithIcon info,
             @NonNull CacheLookupFlag lookupFlag) {
+        if (info.itemType == Favorites.ITEM_TYPE_SHORTCUT) {
+            return;
+        }
         // null info means not installed, but if we have a component from the intent then
         // we should still look in the cache for restored app icons.
         if (info.getTargetComponent() == null) {
@@ -386,7 +404,10 @@ public class IconCache extends BaseIconCache {
                     CacheableShortcutCachingLogic.INSTANCE,
                     lookupFlag.withSkipAddToMemCache());
             applyCacheEntry(entry, info);
-            info.bitmap = info.bitmap.withBadgeInfo(getShortcutInfoBadge(si));
+
+            if (!LawnchairShortcutActivity.Companion.shouldSkipShortcutBadge(context, si)) {
+                info.bitmap = info.bitmap.withBadgeInfo(getShortcutInfoBadge(si));
+            }
         } else {
             Intent intent = info.getIntent();
             getTitleAndIcon(info, () -> mLauncherApps.resolveActivity(intent, info.user),
@@ -452,6 +473,12 @@ public class IconCache extends BaseIconCache {
         Map<Pair<UserHandle, CacheLookupFlag>, List<IconRequestInfo<T>>> iconLoadSubsectionsMap =
                 iconRequestInfos.stream()
                         .filter(iconRequest -> {
+                            // LC-Note:
+                            // Legacy shortcuts have custom icons and must not be replaced by
+                            // the icon of the launch target.
+                            if (iconRequest.itemInfo.itemType == Favorites.ITEM_TYPE_SHORTCUT) {
+                                return false;
+                            }
                             if (iconRequest.itemInfo.getTargetComponent() == null) {
                                 Log.i(TAG,
                                         "Skipping Item info with null component name: "

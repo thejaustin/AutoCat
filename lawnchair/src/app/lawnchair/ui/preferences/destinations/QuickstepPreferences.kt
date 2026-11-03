@@ -5,8 +5,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Opacity
 import androidx.compose.material.icons.rounded.RoundedCorner
 import androidx.compose.material.icons.rounded.ViewAgenda
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -27,6 +27,7 @@ import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
+import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.preview.PreviewAutoCat
 import app.lawnchair.util.isOnePlusStock
 import com.android.launcher3.R
@@ -77,13 +78,13 @@ fun QuickstepPreferences(
         modifier = modifier,
     ) {
         if (!AutoCatApp.isRecentsEnabled) QuickSwitchIgnoredWarning()
+        val recentsTranslucentBackground by prefs.recentsTranslucentBackground.observeAsState()
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
             SwitchPreference(
                 adapter = prefs.recentsTranslucentBackground.getAdapter(),
                 label = stringResource(id = R.string.translucent_background),
                 icon = Icons.Rounded.Opacity,
             )
-            val recentsTranslucentBackground by prefs.recentsTranslucentBackground.observeAsState()
             ExpandAndShrink(visible = recentsTranslucentBackground) {
                 SliderPreference(
                     adapter = prefs.recentsTranslucentBackgroundAlpha.getAdapter(),
@@ -140,13 +141,14 @@ fun QuickstepPreferences(
 private fun QuickSwitchIgnoredWarning(
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.padding(horizontal = 16.dp),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.errorContainer,
-    ) {
+    AutoCatTheme {
         WarningPreference(
             text = stringResource(id = R.string.quickswitch_ignored_warning),
+            modifier = modifier.padding(horizontal = 16.dp),
+            standalone = true,
+            colors = ListItemDefaults.segmentedColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+            ),
         )
     }
 }

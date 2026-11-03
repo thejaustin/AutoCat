@@ -1,22 +1,20 @@
 package app.lawnchair.allapps
 
-import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.viewModels
+import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import app.lawnchair.categorization.AutoCatAppProvider
 import app.lawnchair.categorization.CategoryTabsController
-import app.lawnchair.data.folder.model.FolderOrderUtils
+import app.lawnchair.data.folder.FolderEntry
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.flowerpot.Flowerpot
 import app.lawnchair.launcher
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
-import app.lawnchair.util.categorizeAppsWithSystemAndGoogle
+import app.lawnchair.util.observeOnce
 import com.android.launcher3.InvariantDeviceProfile.OnIDPChangeListener
 import com.android.launcher3.allapps.AllAppsStore
 import com.android.launcher3.allapps.AlphabeticalAppsList
@@ -26,6 +24,7 @@ import com.android.launcher3.allapps.WorkProfileManager
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.views.ActivityContext
 import com.patrykmichalik.opto.core.onEach
 import java.util.function.Predicate
@@ -37,7 +36,8 @@ class LawnchairAlphabeticalAppsList<T>(
     workProfileManager: WorkProfileManager?,
     privateProfileManager: PrivateProfileManager?,
 ) : AlphabeticalAppsList<T>(context, appsStore, workProfileManager, privateProfileManager),
-    OnIDPChangeListener
+    OnIDPChangeListener,
+    DefaultLifecycleObserver
     where T : Context, T : ActivityContext {
 
     companion object {
@@ -48,11 +48,12 @@ class LawnchairAlphabeticalAppsList<T>(
     private val prefs2 = PreferenceManager2.getInstance(context)
     private val prefs = PreferenceManager.getInstance(context)
 
-    private val viewModel: FolderViewModel by (context as ComponentActivity).viewModels()
+    private val viewModel = FolderViewModel(
+        (context as? ComponentActivity)?.application ?: context.launcher.application,
+    )
     private var folderList = mutableListOf<FolderInfo>()
     private val filteredList = mutableListOf<AppInfo>()
 
-    private val folderOrder = FolderOrderUtils.stringToIntList(prefs.drawerListOrder.get())
     private val potsManager = Flowerpot.Manager.getInstance(context)
     private val autoCatProvider = AutoCatAppProvider.getInstance(context)
     private val categoryTabsController = CategoryTabsController.getInstance(context)
@@ -92,7 +93,6 @@ class LawnchairAlphabeticalAppsList<T>(
             // Explicitly mark as app drawer folder
             container = ItemInfo.NO_ID
             title = sourceFolder.title
-            icon = sourceFolder.icon
 
             // Load contents with proper icons from the current app list
             sourceFolder.getContents().forEach { item ->
@@ -128,6 +128,7 @@ class LawnchairAlphabeticalAppsList<T>(
 
     init {
         context.launcher.deviceProfile.inv.addOnChangeListener(this)
+        (context as? LifecycleOwner)?.lifecycle?.addObserver(this)
         try {
             prefs2.hiddenApps.onEach(launchIn = context.launcher.lifecycleScope) {
                 hiddenApps = it
@@ -159,12 +160,28 @@ class LawnchairAlphabeticalAppsList<T>(
         }
     }
 
+    override fun onDestroy(owner: LifecycleOwner) {
+        context.launcher.deviceProfile.inv.removeOnChangeListener(this)
+    }
+
     private fun observeFolders() {
-        viewModel.foldersLiveData.observe(context as LifecycleOwner) { folders ->
-            folderList = folders
-                .sortedBy { folderOrder.indexOf(it.id) }
-                .toMutableList()
-            updateAdapterItems()
+        viewModel.folders.observeOnce(context as LifecycleOwner) { folders ->
+            if (folders != null) {
+                folderList.clear()
+                folderList.addAll(folders.map { it.toFolderInfo() })
+                updateAdapterItems()
+            }
+        }
+    }
+
+    /** AutoCat: resolve a persisted drawer folder into a displayable [FolderInfo]. */
+    private fun FolderEntry.toFolderInfo(): FolderInfo = FolderInfo().apply {
+        id = this@toFolderInfo.id
+        container = ItemInfo.NO_ID
+        title = this@toFolderInfo.title
+        itemComponentKeys.forEach { keyString ->
+            val componentKey = ComponentKey.fromString(keyString) ?: return@forEach
+            (appsStore.getApp(componentKey) as? AppInfo)?.let { add(it) }
         }
     }
 

@@ -20,6 +20,7 @@ import static com.android.app.animation.Interpolators.ACCELERATE_DECELERATE;
 import static com.android.app.animation.Interpolators.EMPHASIZED_DECELERATE;
 import static com.android.launcher3.folder.ClippedFolderIconLayoutRule.ICON_OVERLAP_FACTOR;
 import static com.android.launcher3.icons.GraphicsUtils.setColorAlphaBound;
+import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTOR;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -31,7 +32,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RadialGradient;
@@ -42,21 +42,21 @@ import android.util.Property;
 import android.view.View;
 import android.view.animation.Interpolator;
 
-import androidx.annotation.VisibleForTesting;
-
 import androidx.core.graphics.ColorUtils;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.celllayout.DelegatedCellDrawing;
+import com.android.launcher3.graphics.PathWrapper;
 import com.android.launcher3.graphics.ShapeDelegate;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.model.data.FolderInfo;
-import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
+import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
 
 import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.theme.color.ColorOption;
@@ -87,7 +87,7 @@ public class PreviewBackground extends DelegatedCellDrawing {
     private RadialGradient mShadowShader = null;
 
     private final Matrix mShaderMatrix = new Matrix();
-    private final Path mPath = new Path();
+    private final PathWrapper mPath = new PathWrapper();
 
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -197,34 +197,34 @@ public class PreviewBackground extends DelegatedCellDrawing {
 
         PreferenceManager2 preferenceManager2 = PreferenceManager2.INSTANCE.get(context);
 
-        // Load folder color
-        ColorOption colorOption = PreferenceExtensionsKt.firstBlocking(preferenceManager2.getFolderColor());
-        int folderColor = colorOption.getColorPreferenceEntry().getLightColor().invoke(context);
-
         TypedArray ta = context.getTheme().obtainStyledAttributes(R.styleable.FolderIconPreview);
-        mDotColor = ColorTokens.FolderDotColor.resolveColor(context);
+        ColorOption dotColorOption = PreferenceCacheExtensionsKt.firstCached(preferenceManager2.getNotificationDotColor());
+        mDotColor = dotColorOption.getColorPreferenceEntry().getLightColor().invoke(context);
         mStrokeColor = ColorTokens.FolderIconBorderColor.resolveColor(context);
 
-        int customColor = 0;
-        if (mFolderInfo != null) {
-            customColor = mFolderInfo.options & 0x00FFFFFF;
-        }
-
+        // AutoCat: per-folder custom colour takes priority over the global folder colour
+        int customColor = mFolderInfo != null ? (mFolderInfo.options & 0x00FFFFFF) : 0;
         if (customColor != 0) {
-            mBgColor = customColor | 0xFF000000;
-        } else if (folderColor != 0) {
-            mBgColor = folderColor;
+            mBgColor = ColorUtils.setAlphaComponent(customColor | 0xFF000000,
+                    AutoCatUtilsKt.getFolderPreviewAlpha(context));
         } else {
-            mBgColor = ColorTokens.FolderPreviewColor.resolveColor(context);
+            mBgColor = AutoCatUtilsKt.resolveFolderPreviewColor(context);
         }
-        mBgColor = ColorUtils.setAlphaComponent(mBgColor, AutoCatUtilsKt.getFolderPreviewAlpha(context));
         ta.recycle();
 
         DeviceProfile grid = activity.getDeviceProfile();
-        previewSize = grid.folderIconSizePx;
+        // Lawnchair: Find the correct icon size depending on which parent owned them
+        if (invalidateDelegate instanceof FolderIcon && ((FolderIcon) invalidateDelegate).isInAppDrawer()) {
+            int allAppsIconSize = grid.getAllAppsProfile().getIconSizePx();
+            previewSize = Math.round(allAppsIconSize * ICON_VISIBLE_AREA_FACTOR);
+            basePreviewOffsetX = (availableSpaceX - previewSize) / 2;
+            basePreviewOffsetY = topPadding + (allAppsIconSize - previewSize) / 2;
+        } else {
+            previewSize = grid.folderIconSizePx;
 
-        basePreviewOffsetX = (availableSpaceX - previewSize) / 2;
-        basePreviewOffsetY = topPadding + grid.folderIconOffsetYPx;
+            basePreviewOffsetX = (availableSpaceX - previewSize) / 2;
+            basePreviewOffsetY = topPadding + grid.folderIconOffsetYPx;
+        }
 
         // Stroke width is 1dp
         mStrokeWidth = context.getResources().getDisplayMetrics().density;
@@ -332,7 +332,7 @@ public class PreviewBackground extends DelegatedCellDrawing {
 
         } else {
             saveCount = canvas.save();
-            canvas.clipPath(getClipPath(), Region.Op.DIFFERENCE);
+            canvas.clipPath(getClipPath().getPath(), Region.Op.DIFFERENCE);
         }
 
         mShaderMatrix.setScale(shadowRadius, shadowRadius);
@@ -418,7 +418,7 @@ public class PreviewBackground extends DelegatedCellDrawing {
         mScale = originalScale;
     }
 
-    public Path getClipPath() {
+    public PathWrapper getClipPath() {
         mPath.reset();
         float radius = getScaledRadius();
         if (!Flags.enableLauncherIconShapes()) {

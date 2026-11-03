@@ -75,7 +75,7 @@ import java.util.function.Predicate;
 
 import javax.inject.Inject;
 
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.AutoCatApp;
 import app.lawnchair.compat.LawnchairQuickstepCompat;
 
 /**
@@ -183,7 +183,7 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
             tracker.addCloseable(() -> context.unregisterComponentCallbacks(componentCallbacks));
         }
 
-        if (LawnchairApp.isRecentsEnabled()) {
+        if (AutoCatApp.isRecentsEnabled()) {
             TaskStackChangeListeners.getInstance().registerTaskStackListener(this);
         }
         SafeCloseable iconChangeCloseable = iconProvider.registerIconChangeListener(
@@ -193,7 +193,7 @@ public class RecentsModel implements RecentTasksDataSource, TaskStackChangeListe
         lockedUserState.runOnUserUnlocked(unlockCallback);
 
         tracker.addCloseable(() -> {
-            if (LawnchairApp.isRecentsEnabled()) {
+            if (AutoCatApp.isRecentsEnabled()) {
                 TaskStackChangeListeners.getInstance().unregisterTaskStackListener(this);
                 mTaskList.unregisterRecentTasksChangedListener();
             }

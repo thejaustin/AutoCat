@@ -42,6 +42,10 @@
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="af.shizuku.plus.permission.API_V23" />
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+
+    <!-- Support non-cellular enabled devices -->
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
     <!--override minSdk declared in it-->
     <uses-sdk tools:overrideLibrary="com.kieronquinn.app.smartspacer.sdk" />
@@ -66,6 +70,7 @@
             android:autoRemoveFromRecents="true"
             android:exported="true"
             android:label="@string/settings_button_text"
+            android:icon="@mipmap/ic_settings"
             android:theme="@style/Theme.AutoCat"
             android:windowSoftInputMode="adjustResize"
             android:enableOnBackInvokedCallback="true">
@@ -73,11 +78,51 @@
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="lawnchair" android:host="settings" android:pathPrefix="/" />
+            </intent-filter>
         </activity>
+
+        <activity
+            android:label="@string/lawnchair_actions"
+            android:icon="@mipmap/ic_launcher_home"
+            android:name="app.lawnchair.gestures.ui.LawnchairShortcutActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Lawnchair">
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="app.lawnchair.gestures.ui.RunHandlerActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Lawnchair">
+            <intent-filter>
+                <action android:name="app.lawnchair.START_ACTION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
 
         <activity
             android:name="com.android.launcher3.secondarydisplay.SecondaryDisplayLauncher"
             tools:node="remove" />
+
+        <activity
+            android:name="app.lawnchair.ui.ApplyIconPackActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Transparent">
+            <intent-filter>
+                <action android:name="app.lawnchair.APPLY_ICONS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name="app.lawnchair.BlankActivity"

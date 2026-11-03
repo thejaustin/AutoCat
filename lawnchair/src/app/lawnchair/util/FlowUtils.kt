@@ -4,8 +4,15 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.annotation.Discouraged
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import app.lawnchair.AutoCatApp
+import app.lawnchair.preferences2.PreferenceManager2
+import com.patrykmichalik.opto.core.PreferenceImpl
+import com.patrykmichalik.opto.core.getFromPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -17,12 +24,18 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+@Discouraged("This is a blocking read, use firstCached() for non-blocking reads or equivalent where possible")
 fun <T> Flow<T>.firstBlocking() = runBlocking { first() }
 
 @Composable
 fun <T> Flow<T>.collectAsStateBlocking() = collectAsStateWithLifecycle(initialValue = firstBlocking())
+
+fun <C, S> PreferenceImpl<C, S>.firstCached(
+    prefs2: PreferenceManager2 = PreferenceManager2.getInstance(AutoCatApp.instance),
+): C = getFromPreferences(prefs2.getCachedPreferences())
 
 fun broadcastReceiverFlow(context: Context, filter: IntentFilter) = callbackFlow {
     val receiver = object : BroadcastReceiver() {
@@ -48,4 +61,13 @@ fun <T> Flow<T>.subscribeBlocking(
         .drop(1)
         .distinctUntilChanged()
         .launchIn(scope = scope)
+}
+
+fun <T> Flow<T>.observeOnce(
+    lifecycleOwner: LifecycleOwner,
+    collector: kotlinx.coroutines.flow.FlowCollector<T>,
+) {
+    lifecycleOwner.lifecycleScope.launch {
+        collect(collector = collector)
+    }
 }

@@ -4,25 +4,16 @@ import android.content.Context
 import android.content.pm.LauncherApps
 import app.lawnchair.categorization.llm.AppBatchInfo
 import app.lawnchair.categorization.llm.GoogleAIProvider
-import app.lawnchair.categorization.llm.LLMException
-import app.lawnchair.categorization.llm.LLMProvider
 import app.lawnchair.categorization.llm.SuggestedFolder
 import app.lawnchair.data.Converters
-import app.lawnchair.data.folder.FolderInfoEntity
-import app.lawnchair.data.folder.FolderItemEntity
-import app.lawnchair.data.folder.service.FolderDao
 import app.lawnchair.data.folder.service.FolderService
-import app.lawnchair.data.tab.TabDao
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.preferences.PreferenceManager
 import com.android.launcher3.AppFilter
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.pm.UserCache
-import com.android.launcher3.util.ComponentKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import org.json.JSONObject
 
 /**
  * Service for automatically sorting apps with tab assignments into folders.
@@ -85,14 +76,7 @@ class FolderAutoSortService(private val context: Context) {
             val appsInFolders = mutableSetOf<String>()
 
             existingFolders.forEach { folder ->
-                folder.getContents().forEach { item ->
-                    if (item is AppInfo) {
-                        val componentKey = converters.fromComponentKey(item.toComponentKey())
-                        if (componentKey != null) {
-                            appsInFolders.add(componentKey)
-                        }
-                    }
-                }
+                appsInFolders.addAll(folder.itemComponentKeys)
             }
 
             // Build map of all installed apps

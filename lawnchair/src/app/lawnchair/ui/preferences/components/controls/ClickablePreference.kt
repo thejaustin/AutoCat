@@ -1,5 +1,5 @@
 /*
- * Copyright 2021, AutoCat
+ * Copyright 2021, Lawnchair
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,21 @@
 
 package app.lawnchair.ui.preferences.components.controls
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemColors
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.ui.ModalBottomSheetContent
@@ -38,19 +39,25 @@ import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.bottomSheetHandler
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
 import app.lawnchair.ui.util.preview.PreviewAutoCat
-import app.lawnchair.ui.util.rememberExpressiveHaptics
+import com.android.launcher3.util.MSDLPlayerWrapper
+import com.google.android.msdl.data.model.MSDLToken
 
 @Composable
 fun ClickablePreference(
     label: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
-    icon: ImageVector? = null,
     confirmationText: String? = null,
+    colors: ListItemColors = ListItemDefaults.segmentedColors(
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        disabledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+    ),
+    hapticToken: MSDLToken? = MSDLToken.TAP_LOW_EMPHASIS,
+    icon: ImageVector? = null,
     onClick: () -> Unit,
 ) {
     val bottomSheetHandler = bottomSheetHandler
-    val haptics = rememberExpressiveHaptics()
+    val mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(LocalContext.current)
     PreferenceTemplate(
         title = { Text(text = label) },
         startWidget = icon?.let {
@@ -63,27 +70,28 @@ fun ClickablePreference(
                 )
             }
         },
-        modifier = modifier
-            .clickable {
-                haptics.click()
-                if (confirmationText != null) {
-                    bottomSheetHandler.show {
-                        PreferenceClickConfirmation(
-                            title = label,
-                            text = confirmationText,
-                            onDismissRequest = { bottomSheetHandler.hide() },
-                            onConfirm = onClick,
-                        )
-                    }
-                } else {
-                    onClick()
+        modifier = modifier,
+        description = subtitle?.let { { Text(text = it) } },
+        onClick = {
+            if (confirmationText != null) {
+                mMSDLPlayerWrapper.playToken(MSDLToken.TAP_MEDIUM_EMPHASIS)
+                bottomSheetHandler.show {
+                    PreferenceClickConfirmation(
+                        title = label,
+                        text = confirmationText,
+                        onDismissRequest = { bottomSheetHandler.hide() },
+                        onConfirm = onClick,
+                    )
                 }
-            },
-        description = { subtitle?.let { Text(text = it) } },
+            } else {
+                hapticToken?.let { mMSDLPlayerWrapper.playToken(it) }
+                onClick()
+            }
+        },
+        colors = colors,
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PreferenceClickConfirmation(
     title: String,
@@ -122,13 +130,11 @@ fun PreferenceClickConfirmation(
 private fun ClickablePreferencePreview() {
     AutoCatTheme {
         PreferenceGroupPreviewContainer {
-            Item {
-                ClickablePreference(
-                    label = "Label",
-                    subtitle = "Subtitle",
-                    onClick = {},
-                )
-            }
+            ClickablePreference(
+                label = "Label",
+                subtitle = "Subtitle",
+                onClick = {},
+            )
         }
     }
 }

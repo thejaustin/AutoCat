@@ -22,7 +22,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.lawnchair.icons.CustomAdaptiveIconDrawable
-import app.lawnchair.ui.preferences.destinations.IconPackInfo
+import app.lawnchair.ui.preferences.destinations.icons.IconPackInfo
 import app.lawnchair.util.Constants.LAWNICONS_PACKAGE_NAME
 import app.lawnchair.util.getPackageVersionCode
 import com.android.launcher3.R
@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 
-private val iconPackIntents = listOf(
+internal val iconPackIntents = listOf(
     Intent("com.novalauncher.THEME"),
     Intent("org.adw.autoCatLauncher.icons.ACTION_PICK_ICON"),
     Intent("com.dlto.atom.autoCatLauncher.THEME"),
@@ -87,7 +87,7 @@ class PreferenceViewModel(private val app: Application) :
         )
         var defaultIconPack = listOf(
             IconPackInfo(
-                name = app.getString(R.string.system_icons),
+                name = app.getString(R.string.themed_icons_no_fallback),
                 packageName = "",
                 icon = lawnchairIcon,
             ),

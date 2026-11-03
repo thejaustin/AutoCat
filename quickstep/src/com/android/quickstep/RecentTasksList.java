@@ -70,7 +70,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.AutoCatApp;
 import app.lawnchair.compat.LawnchairQuickstepCompat;
 
 /**
@@ -108,7 +108,7 @@ public class RecentTasksList {
         mKeyguardManager = keyguardManager;
         mChangeId = 1;
         mSysUiProxy = sysUiProxy;
-        if (LawnchairApp.isRecentsEnabled()) {
+        if (AutoCatApp.isRecentsEnabled()) {
             if (LawnchairQuickstepCompat.ATLEAST_U) {
                 final IRecentTasksListener recentTasksListener = new IRecentTasksListener.Stub() {
                     @Override

@@ -64,8 +64,8 @@ object GoogleWebSearchProvider : WebSearchProvider {
         }
 
         try {
-            val encodedQuery = Uri.encode(query)
-            val response = service.getSuggestions(query = encodedQuery)
+            // Retrofit percent-encodes @Query values itself; encoding here too sends "%D8%A7…" as text.
+            val response = service.getSuggestions(query = query)
 
             if (response.isSuccessful) {
                 val responseBody = response.body() ?: ""
@@ -149,8 +149,7 @@ object DuckDuckGoWebSearchProvider : WebSearchProvider {
 
         try {
             // 2. Call the Retrofit service.
-            val encodedQuery = Uri.encode(query)
-            val response = service.getSuggestions(query = encodedQuery)
+            val response = service.getSuggestions(query = query)
 
             if (response.isSuccessful) {
                 val responseBody = response.body()?.string() ?: ""
@@ -231,8 +230,7 @@ object StartPageWebSearchProvider : WebSearchProvider {
         }
 
         try {
-            val encodedQuery = Uri.encode(query)
-            val response = service.getSuggestions(query = encodedQuery)
+            val response = service.getSuggestions(query = query)
 
             if (response.isSuccessful) {
                 val responseBody = response.body() ?: ""
@@ -257,7 +255,7 @@ object StartPageWebSearchProvider : WebSearchProvider {
      * Parses the StartPage OpenSearch JSON response.
      * Example: `["query", ["suggestion1", "suggestion2"]]`
      */
-    private fun parseStartPageResponse(responseBody: String): List<String> {
+    internal fun parseStartPageResponse(responseBody: String): List<String> {
         return try {
             val jsonArray = JSONArray(responseBody)
             val suggestionsArray = jsonArray.getJSONArray(1) // Suggestions are the second element
@@ -269,6 +267,70 @@ object StartPageWebSearchProvider : WebSearchProvider {
     }
 
     private const val TAG = "StartPageWebSearchProvider"
+
+    override fun toString(): String = id
+}
+
+/**
+ * Provides web search suggestions from StartPage EU.
+ */
+object StartPageEUWebSearchProvider : WebSearchProvider {
+    override val label = R.string.search_provider_startpage_eu
+
+    override val iconRes = R.drawable.ic_startpage
+
+    override val id: String = "startpage-eu"
+
+    private val retrofit: Retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://eu.startpage.com/")
+            .addConverterFactory(StringConverterFactory.create())
+            .build()
+    }
+
+    private val service: StartPageEUService by lazy {
+        retrofit.create(StartPageEUService::class.java)
+    }
+
+    private interface StartPageEUService {
+        @GET("suggestions")
+        suspend fun getSuggestions(
+            @Query("q") query: String,
+            @Query("segment") segment: String = "startpage.lawnchair",
+            @Query("partner") partner: String = "lawnchair",
+            @Query("format") format: String = "opensearch",
+        ): Response<String>
+    }
+
+    override fun getSuggestions(query: String): Flow<List<String>> = flow {
+        if (query.isBlank()) {
+            emit(emptyList())
+            return@flow
+        }
+
+        try {
+            val response = service.getSuggestions(query = query)
+
+            if (response.isSuccessful) {
+                val responseBody = response.body() ?: ""
+                val suggestions = StartPageWebSearchProvider.parseStartPageResponse(responseBody)
+                emit(suggestions)
+            } else {
+                Log.w(TAG, "Failed to retrieve EU suggestions: ${response.code()}")
+                emit(emptyList())
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during EU suggestion retrieval", e)
+            emit(emptyList())
+        }
+    }.flowOn(Dispatchers.IO)
+
+    override fun getSearchUrl(query: String): String {
+        val encodedQuery = Uri.encode(query)
+        return "https://eu.startpage.com/do/search?query=$encodedQuery&cat=web"
+    }
+
+    private const val TAG = "StartPageEUWebSearchProvider"
 
     override fun toString(): String = id
 }
@@ -313,8 +375,7 @@ object KagiWebSearchProvider : WebSearchProvider {
         }
 
         try {
-            val encodedQuery = Uri.encode(query)
-            val response = service.getSuggestions(query = encodedQuery)
+            val response = service.getSuggestions(query = query)
 
             if (response.isSuccessful) {
                 val responseBody = response.body() ?: ""

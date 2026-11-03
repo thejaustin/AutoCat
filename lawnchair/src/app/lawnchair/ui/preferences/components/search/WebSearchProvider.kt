@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -27,6 +26,7 @@ import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.search.algorithms.engine.provider.web.WebSearchProvider
 import app.lawnchair.ui.preferences.components.controls.ListPreference
 import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
+import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import com.android.launcher3.R
 
@@ -47,7 +47,7 @@ fun WebSearchProvider(
         }
     }
 
-    Column(modifier) {
+    DividerColumn(modifier) {
         ListPreference(
             adapter = adapter,
             entries = entries,
@@ -81,7 +81,6 @@ fun WebSearchProvider(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchPopupPreference(
     title: String,
@@ -144,15 +143,17 @@ fun SearchPopupPreference(
     }
 
     PreferenceTemplate(
-        modifier = modifier.clickable {
+        modifier = modifier,
+        onClick = {
             showPopup = true
         },
         contentModifier = Modifier
-            .fillMaxHeight()
-            .padding(vertical = 16.dp)
-            .padding(start = 16.dp),
+            .fillMaxHeight(),
         title = { Text(text = title) },
-        description = { Text(initialValue) },
-        applyPaddings = false,
+        description = if (value.text.isNotEmpty()) {
+            { Text(initialValue) }
+        } else {
+            null
+        },
     )
 }

@@ -4,24 +4,29 @@ import android.content.Context
 import android.util.Log
 import app.lawnchair.icons.shape.IconShape
 import app.lawnchair.icons.shape.PathShapeDelegate
+import app.lawnchair.preferences.PreferenceChangeListener
+import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
-import com.android.launcher3.EncryptionType
-import com.android.launcher3.LauncherPrefChangeListener
+import app.lawnchair.preferences2.firstCached
+import app.lawnchair.theme.ThemeProvider
 import com.android.launcher3.LauncherPrefs
-import com.android.launcher3.LauncherPrefs.Companion.backedUpItem
 import com.android.launcher3.concurrent.annotations.Ui
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.graphics.ThemeManager
+import com.android.launcher3.icons.mono.MonoIconThemeController
+import com.android.launcher3.icons.mono.ThemedIconDrawable
 import com.android.launcher3.util.DaggerSingletonTracker
+import com.android.launcher3.util.DisplayController
 import com.android.launcher3.util.LooperExecutor
-import com.patrykmichalik.opto.core.firstBlocking
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.plus
 
 @LauncherAppSingleton
 class LawnchairThemeManager
@@ -33,6 +38,8 @@ constructor(
     private val iconControllerFactory: IconControllerFactory,
     private val lifecycle: DaggerSingletonTracker,
     private val prefs2: PreferenceManager2,
+    private val prefs1: PreferenceManager,
+    private val themeProvider: ThemeProvider,
 ) : ThemeManager(
     context,
     uiExecutor,
@@ -40,31 +47,71 @@ constructor(
     iconControllerFactory,
     lifecycle,
 ) {
+    private val statePrefs1 = listOf(
+        prefs1.wrapAdaptiveIcons,
+        prefs1.transparentIconBackground,
+        prefs1.shadowBGIcons,
+        prefs1.coloredBackgroundLightness,
+        prefs1.forceIconMonochrome,
+        prefs1.launcherTheme,
+    )
+
+    private val prefListener = PreferenceChangeListener {
+        uiExecutor.execute { verifyIconState() }
+    }
+
     override var iconState = parseIconStateV2(null)
 
     init {
-        val scope = MainScope()
+        val scope = MainScope() + CoroutineName("LawnchairThemeManager")
         merge(
             prefs2.iconShape.get(),
             prefs2.customIconShape.get(),
+            prefs2.folderShape.get(),
+            prefs2.customFolderShape.get(),
         ).onEach { verifyIconState() }
             .launchIn(scope)
 
-        // Listen for specific Lawnchair SharedPreferences it's easier than trying to make prefs1 work with listener
-        val drawerThemedIcons = backedUpItem("drawer_themed_icons", false, EncryptionType.DEVICE_PROTECTED)
-        val forceMonochrome = backedUpItem("pref_forceIconMonochrome", false, EncryptionType.DEVICE_PROTECTED)
-        val keys = listOf(drawerThemedIcons, forceMonochrome)
-        val keysArray = keys.toTypedArray()
-        val prefKeySet = keys.map { it.sharedPrefKey }
+        val colorSchemeChangeListener = object : ThemeProvider.ColorSchemeChangeListener {
+            @Volatile
+            private var isDestroyed = false
 
-        val prefListener = LauncherPrefChangeListener { key ->
-            if (prefKeySet.contains(key)) verifyIconState()
+            override fun onColorSchemeChanged() {
+                synchronized(this) {
+                    if (isDestroyed) return
+                    uiExecutor.execute {
+                        synchronized(this) {
+                            if (isDestroyed) return@execute
+                            verifyIconState()
+                        }
+                    }
+                }
+            }
+
+            fun destroy() {
+                synchronized(this) {
+                    isDestroyed = true
+                    themeProvider.removeListener(this)
+                }
+            }
         }
-        prefs.addListener(prefListener, *keysArray)
+        themeProvider.addListener(colorSchemeChangeListener)
+
+        val displayController = DisplayController.INSTANCE.get(context)
+        val displayInfoChangeListener = DisplayController.DisplayInfoChangeListener { _, _, flags ->
+            if (flags and DisplayController.CHANGE_NIGHT_MODE != 0) {
+                uiExecutor.execute { verifyIconState() }
+            }
+        }
+        displayController.addChangeListener(displayInfoChangeListener)
+
+        statePrefs1.forEach { it.addListener(prefListener) }
 
         lifecycle.addCloseable {
-            prefs.removeListener(prefListener, *keysArray)
+            colorSchemeChangeListener.destroy()
             scope.cancel()
+            displayController.removeChangeListener(displayInfoChangeListener)
+            statePrefs1.forEach { it.removeListener(prefListener) }
         }
     }
 
@@ -76,47 +123,67 @@ constructor(
         listeners.forEach { it.onThemeChanged() }
     }
 
+    private fun prefs1State(): String = statePrefs1.joinToString(",") { it.get().toString() }
+
     private fun parseIconStateV2(oldState: IconState?): IconState {
         val currentAppShape: IconShape = try {
-            prefs2.iconShape.firstBlocking()
+            prefs2.iconShape.firstCached()
         } catch (e: Exception) {
             Log.d(TAG, "Error getting icon shape", e)
             IconShape.Circle
         }
 
         val currentFolderShape: IconShape = try {
-            prefs2.folderShape.firstBlocking()
+            prefs2.folderShape.firstCached()
         } catch (e: Exception) {
-            Log.d(TAG, "Error getting icon shape", e)
+            Log.d(TAG, "Error getting folder shape", e)
             IconShape.Circle
         }
 
-        val appShapeKey = currentAppShape.getHashString()
-        val folderShapeKey = currentFolderShape.getHashString()
+        val currentPrefs1State = prefs1State()
+        val appShapeKey = currentAppShape.getHashString() + currentPrefs1State
+        val folderShapeKey = currentFolderShape.getHashString() + currentPrefs1State
+        val themeController = iconControllerFactory.createThemeController()?.let {
+            if (prefs1.forceIconMonochrome.get()) {
+                FORCED_MONO_THEME_CONTROLLER
+            } else {
+                MONO_THEME_CONTROLLER
+            }
+        }
+        val themedColorsKey =
+            if (themeController != null) {
+                ThemedIconDrawable.getColors(context).joinToString(",")
+            } else {
+                ""
+            }
+        val combinedKey = "$appShapeKey:$folderShapeKey:$themedColorsKey"
 
         val appShape =
-            if (oldState != null && oldState.iconMask == appShapeKey) {
+            if (oldState != null && (oldState.iconShape as? PathShapeDelegate)?.iconShape == currentAppShape) {
                 oldState.iconShape
             } else {
                 PathShapeDelegate(currentAppShape)
             }
 
         val folderShape =
-            if (oldState != null && oldState.iconMask == folderShapeKey) {
-                oldState.iconShape
+            if (oldState != null && (oldState.folderShape as? PathShapeDelegate)?.iconShape == currentFolderShape) {
+                oldState.folderShape
             } else {
                 PathShapeDelegate(currentFolderShape)
             }
 
         return IconState(
-            iconMask = appShapeKey,
+            iconMask = combinedKey,
             folderRadius = 1f,
             shapeRadius = 1f,
-            themeController = iconControllerFactory.createThemeController(),
+            themeController = themeController,
             iconShape = appShape,
             folderShape = folderShape,
         )
     }
 }
 
+// Reuse controllers to allow the equality check in verifyIconState.
+private val MONO_THEME_CONTROLLER = MonoIconThemeController()
+private val FORCED_MONO_THEME_CONTROLLER = MonoIconThemeController(shouldForceThemeIcon = true)
 private const val TAG = "LawnchairThemeManager"

@@ -1,7 +1,6 @@
 package app.lawnchair.ui.preferences.destinations
 
 import android.util.Log
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,28 +13,29 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.lawnchair.data.folder.model.FolderOrderUtils
+import app.lawnchair.data.folder.FolderEntry
 import app.lawnchair.data.folder.model.FolderViewModel
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
@@ -52,28 +52,29 @@ import app.lawnchair.ui.preferences.components.reorderable.ReorderablePreference
 import app.lawnchair.ui.preferences.navigation.AppDrawerAppListToFolder
 import app.lawnchair.ui.preferences.navigation.AppDrawerFolder
 import app.lawnchair.ui.util.bottomSheetHandler
-import app.lawnchair.util.appsState
 import com.android.launcher3.R
-import com.android.launcher3.model.data.FolderInfo
+import com.android.launcher3.util.MSDLPlayerWrapper
+import com.google.android.msdl.data.model.MSDLToken
 
 @Composable
 fun AppDrawerFolderPreferenceItem(
     modifier: Modifier = Modifier,
 ) {
+    val mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(LocalContext.current)
     val navController = LocalNavController.current
 
     PreferenceGroup(
         modifier = modifier,
     ) {
-        Item {
-            ClickablePreference(
-                label = stringResource(R.string.app_drawer_folder),
-                modifier = Modifier,
-                onClick = {
-                    navController.navigate(route = AppDrawerFolder)
-                },
-            )
-        }
+        ClickablePreference(
+            label = stringResource(R.string.app_drawer_folder),
+            modifier = Modifier,
+            hapticToken = null,
+            onClick = {
+                mMSDLPlayerWrapper.playToken(MSDLToken.TAP_HIGH_EMPHASIS)
+                navController.navigate(route = AppDrawerFolder)
+            },
+        )
     }
 }
 
@@ -88,64 +89,42 @@ fun AppDrawerFoldersPreference(
     AppDrawerFoldersPreference(
         modifier = modifier,
         folders = folders,
-        onCreateFolder = { folderInfo, label ->
-            val newInfo = folderInfo.apply {
-                title = label
-            }
-            viewModel.createFolder(newInfo)
+        onCreateFolder = { label ->
+            viewModel.createFolder(label)
         },
         onEditFolderItems = {
-            viewModel.setFolderInfo(it, false)
             navController.navigate(AppDrawerAppListToFolder(it))
         },
-        onRenameFolder = { folderInfo, it ->
-            folderInfo.apply {
-                title = it
-                viewModel.renameFolder(this, false)
-            }
+        onRenameFolder = { folderId, newTitle ->
+            viewModel.renameFolder(folderId, newTitle)
         },
         onDeleteFolder = {
             viewModel.deleteFolder(it.id)
+        },
+        onOrderChange = {
+            viewModel.updateFolderOrder(it)
         },
     )
 }
 
 @Composable
 fun AppDrawerFoldersPreference(
-    folders: List<FolderInfo>,
-    onCreateFolder: (FolderInfo, String) -> Unit,
+    folders: List<FolderEntry>?,
+    onCreateFolder: (String) -> Unit,
     onEditFolderItems: (Int) -> Unit,
-    onRenameFolder: (FolderInfo, String) -> Unit,
-    onDeleteFolder: (FolderInfo) -> Unit,
+    onRenameFolder: (Int, String) -> Unit,
+    onDeleteFolder: (FolderEntry) -> Unit,
+    onOrderChange: (List<Int>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(LocalContext.current)
     val bottomSheetHandler = bottomSheetHandler
     val prefs = preferenceManager()
-    val folderOrderAdapter = prefs.drawerListOrder.getAdapter()
 
-    val folderOrderString by folderOrderAdapter.state
-
-    var sortedDisplayList = remember(folders, folderOrderString) {
-        Log.d("AppDrawerFolders", "Recalculating sortedDisplayList. Folders count: ${folders.size}")
-        folders.sortedWith(
-            compareBy { folderInfo ->
-                val index = FolderOrderUtils
-                    .stringToIntList(folderOrderString)
-                    .indexOf(folderInfo.id)
-                if (index == -1) {
-                    // New items go to the end
-                    Integer.MAX_VALUE
-                } else {
-                    index
-                }
-            },
-        )
-    }
-
-    val apps by appsState()
+    val sortedDisplayList = folders ?: emptyList()
 
     LoadingScreen(
-        isLoading = apps.isEmpty(),
+        isLoading = folders == null,
         modifier = modifier.fillMaxWidth(),
     ) {
         PreferenceLayout(
@@ -155,67 +134,59 @@ fun AppDrawerFoldersPreference(
             PreferenceGroup(
                 heading = stringResource(R.string.settings),
             ) {
-                Item {
-                    SwitchPreference(
-                        adapter = prefs.folderApps.getAdapter(),
-                        label = stringResource(id = R.string.apps_in_folder_label),
-                        description = stringResource(id = R.string.apps_in_folder_description),
-                    )
-                }
+                SwitchPreference(
+                    adapter = prefs.folderApps.getAdapter(),
+                    label = stringResource(id = R.string.apps_in_folder_label),
+                    description = stringResource(id = R.string.apps_in_folder_description),
+                )
             }
             PreferenceGroup(heading = stringResource(R.string.folders_label)) {
-                Item {
-                    PreferenceTemplate(
-                        title = {},
-                        description = {
-                            Text(
-                                text = stringResource(R.string.add_folder),
-                                color = MaterialTheme.colorScheme.onSurface,
+                PreferenceTemplate(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.add_folder),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    },
+                    startWidget = {
+                        Icon(Icons.Rounded.Add, contentDescription = null)
+                    },
+                    onClick = {
+                        mMSDLPlayerWrapper.playToken(MSDLToken.TAP_MEDIUM_EMPHASIS)
+                        bottomSheetHandler.show {
+                            FolderEditSheet(
+                                folderId = 0,
+                                initialTitle = stringResource(R.string.my_folder_label),
+                                itemCount = 0,
+                                onRename = { _, title -> onCreateFolder(title) },
+                                onNavigate = {},
+                                onDismiss = {
+                                    bottomSheetHandler.hide()
+                                },
+                                hideAppPicker = true,
                             )
-                        },
-                        modifier = Modifier.clickable {
-                            bottomSheetHandler.show {
-                                FolderEditSheet(
-                                    FolderInfo().apply {
-                                        title = stringResource(R.string.my_folder_label)
-                                    },
-                                    onRename = onCreateFolder,
-                                    onNavigate = {},
-                                    onDismiss = {
-                                        bottomSheetHandler.hide()
-                                    },
-                                    hideAppPicker = true,
-                                )
-                            }
-                        },
-                        startWidget = {
-                            Icon(Icons.Rounded.Add, contentDescription = null)
-                        },
-                    )
-                }
+                        }
+                    },
+                )
             }
             ReorderablePreferenceGroup(
                 label = null,
                 items = sortedDisplayList,
                 defaultList = sortedDisplayList,
-                onOrderChange = { folders ->
-                    val newOrder = folders.map { it.id }
-
-                    folderOrderAdapter.onChange(
-                        FolderOrderUtils.intListToString(
-                            newOrder,
-                        ),
-                    )
-                    sortedDisplayList = folders
+                onOrderChange = { updatedFolders ->
+                    onOrderChange(updatedFolders.map { it.id })
                 },
-            ) { folderInfo, _, _, onDraggingChange ->
+            ) { folderEntry, _, _ ->
                 val interactionSource = remember { MutableInteractionSource() }
                 FolderItem(
-                    folderInfo = folderInfo,
+                    folderEntry = folderEntry,
                     onItemClick = {
+                        mMSDLPlayerWrapper.playToken(MSDLToken.TAP_MEDIUM_EMPHASIS)
                         bottomSheetHandler.show {
                             FolderEditSheet(
-                                folderInfo,
+                                folderId = folderEntry.id,
+                                initialTitle = folderEntry.title,
+                                itemCount = folderEntry.itemComponentKeys.size,
                                 onRename = onRenameFolder,
                                 onNavigate = {
                                     onEditFolderItems(it)
@@ -228,24 +199,13 @@ fun AppDrawerFoldersPreference(
                         }
                     },
                     onItemDelete = { folderToDelete ->
-                        val currentOrder =
-                            FolderOrderUtils.stringToIntList(folderOrderAdapter.state.value)
-                        val newOrderAfterDelete =
-                            currentOrder.filter { it != folderToDelete.id }
-                        folderOrderAdapter.onChange(
-                            FolderOrderUtils.intListToString(
-                                newOrderAfterDelete,
-                            ),
-                        )
+                        mMSDLPlayerWrapper.playToken(MSDLToken.SUCCESS)
                         onDeleteFolder(folderToDelete)
                     },
                     dragIndicator = {
                         ReorderableDragHandle(
                             interactionSource = interactionSource,
                             scope = this,
-                            onDragStop = {
-                                onDraggingChange(false)
-                            },
                         )
                     },
                     interactionSource = interactionSource,
@@ -255,18 +215,19 @@ fun AppDrawerFoldersPreference(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FolderEditSheet(
-    folderInfo: FolderInfo,
-    onRename: (FolderInfo, String) -> Unit,
+    folderId: Int,
+    initialTitle: String,
+    itemCount: Int,
+    onRename: (Int, String) -> Unit,
     onNavigate: (Int) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     hideAppPicker: Boolean = false,
 ) {
-    val resources = LocalContext.current.resources
-    var textFieldValue by remember { mutableStateOf(TextFieldValue(folderInfo.title.toString())) }
+    val resources = LocalResources.current
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(initialTitle)) }
 
     ModalBottomSheetContent(
         buttons = {
@@ -279,7 +240,7 @@ fun FolderEditSheet(
             Spacer(Modifier.width(8.dp))
             Button(
                 onClick = {
-                    onRename(folderInfo, textFieldValue.text)
+                    onRename(folderId, textFieldValue.text)
                     onDismiss()
                 },
                 shapes = ButtonDefaults.shapes(),
@@ -304,42 +265,47 @@ fun FolderEditSheet(
             )
             if (!hideAppPicker) {
                 ClickablePreference(
-                    label = "Manage apps",
+                    label = stringResource(R.string.folder_manage_apps),
                     subtitle = resources.getQuantityString(
                         R.plurals.apps_count,
-                        folderInfo.getContents().size,
-                        folderInfo.getContents().size,
+                        itemCount,
+                        itemCount,
                     ),
                     modifier = Modifier
                         .padding(horizontal = 8.dp),
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                 ) {
-                    onNavigate(folderInfo.id)
+                    onNavigate(folderId)
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FolderItem(
-    folderInfo: FolderInfo,
-    onItemClick: (FolderInfo) -> Unit,
-    onItemDelete: (FolderInfo) -> Unit,
+    folderEntry: FolderEntry,
+    onItemClick: (FolderEntry) -> Unit,
+    onItemDelete: (FolderEntry) -> Unit,
     modifier: Modifier = Modifier,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     dragIndicator: @Composable () -> Unit,
 ) {
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     PreferenceTemplate(
         title = {
             Text(
-                text = folderInfo.title.toString(),
+                text = folderEntry.title,
             )
         },
+        modifier = modifier,
         description = {
             Text(
-                text = resources.getQuantityString(R.plurals.apps_count, folderInfo.getContents().size, folderInfo.getContents().size),
+                text = resources.getQuantityString(
+                    R.plurals.apps_count,
+                    folderEntry.itemComponentKeys.size,
+                    folderEntry.itemComponentKeys.size,
+                ),
             )
         },
         startWidget = {
@@ -349,19 +315,21 @@ fun FolderItem(
             Row {
                 IconButton(
                     onClick = {
-                        onItemDelete(folderInfo)
+                        onItemDelete(folderEntry)
                     },
                     shapes = IconButtonDefaults.shapes(),
                 ) {
-                    Icon(Icons.Rounded.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(
+                        Icons.Rounded.Delete,
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         },
-        modifier = modifier.clickable(
-            interactionSource = interactionSource,
-            indication = ripple(),
-        ) {
-            onItemClick(folderInfo)
+        onClick = {
+            onItemClick(folderEntry)
         },
+        interactionSource = interactionSource,
     )
 }

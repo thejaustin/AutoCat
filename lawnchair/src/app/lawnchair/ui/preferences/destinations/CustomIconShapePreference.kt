@@ -18,8 +18,8 @@ import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.ContentPaste
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -35,9 +35,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.lawnchair.icons.shape.IconCornerShape
@@ -52,31 +54,47 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
+import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.LocalBottomSheetHandler
 import app.lawnchair.util.copyToClipboard
 import app.lawnchair.util.getClipboardContent
 import com.android.launcher3.R
+import com.android.launcher3.util.MSDLPlayerWrapper
+import com.google.android.msdl.data.model.MSDLToken
 import kotlin.math.roundToInt
+import kotlin.toString
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CustomIconShapePreference(
     modifier: Modifier = Modifier,
+    currentTab: ShapeRoute = ShapeRoute.APP_SHAPE,
 ) {
     val preferenceManager2 = preferenceManager2()
 
-    val customIconShapeAdapter = preferenceManager2.customIconShape.getAdapter()
+    val customIconShapeAdapter = when (currentTab) {
+        ShapeRoute.APP_SHAPE -> preferenceManager2.customIconShape.getAdapter()
+        ShapeRoute.FOLDER_SHAPE -> preferenceManager2.customFolderShape.getAdapter()
+    }
 
     val appliedIconShape = customIconShapeAdapter.state.value
-    val selectedIconShape = remember { mutableStateOf(appliedIconShape ?: IconShape.Circle) }
+    val selectedIconShape = remember(currentTab) {
+        mutableStateOf(IconShape.CustomCornerBased(appliedIconShape ?: IconShape.Circle))
+    }
+
     val selectedIconShapeApplied = remember {
         derivedStateOf {
-            appliedIconShape.toString() == selectedIconShape.value.toString()
+            // Force recompose here instead of outside
+            customIconShapeAdapter.state.value.toString() == selectedIconShape.value.toString()
         }
     }
 
+    val label = when (currentTab) {
+        ShapeRoute.APP_SHAPE -> stringResource(id = R.string.custom_icon_shape)
+        ShapeRoute.FOLDER_SHAPE -> stringResource(id = R.string.custom_folder_shape)
+    }
+
     PreferenceLayout(
-        label = stringResource(id = R.string.custom_icon_shape),
+        label = label,
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         bottomBar = {
@@ -129,74 +147,66 @@ fun CustomIconShapePreference(
 
 @Composable
 private fun IconShapeCornerPreferenceGroup(
-    selectedIconShape: IconShape,
+    selectedIconShape: IconShape.CustomCornerBased,
     modifier: Modifier = Modifier,
-    onSelectedIconShapeChange: (IconShape) -> Unit,
+    onSelectedIconShapeChange: (IconShape.CustomCornerBased) -> Unit,
 ) {
     PreferenceGroup(
         modifier = modifier,
         heading = stringResource(id = R.string.color_sliders),
     ) {
-        Item {
-            IconShapeCornerPreference(
-                title = stringResource(id = R.string.custom_icon_shape_top_left),
-                scale = selectedIconShape.topLeft.scale.x,
-                onScaleChange = {
-                    onSelectedIconShapeChange(selectedIconShape.copy(topLeftScale = it))
-                },
-                cornerShape = selectedIconShape.topLeft.shape,
-                onCornerShapeChange = {
-                    onSelectedIconShapeChange(selectedIconShape.copy(topLeftShape = it))
-                },
-            )
-        }
-        Item {
-            IconShapeCornerPreference(
-                title = stringResource(id = R.string.custom_icon_shape_top_right),
-                scale = selectedIconShape.topRight.scale.x,
-                onScaleChange = {
-                    onSelectedIconShapeChange(selectedIconShape.copy(topRightScale = it))
-                },
-                cornerShape = selectedIconShape.topRight.shape,
-                onCornerShapeChange = {
-                    onSelectedIconShapeChange(selectedIconShape.copy(topRightShape = it))
-                },
-            )
-        }
-        Item {
-            IconShapeCornerPreference(
-                title = stringResource(id = R.string.custom_icon_shape_bottom_left),
-                scale = selectedIconShape.bottomLeft.scale.x,
-                onScaleChange = {
-                    onSelectedIconShapeChange(selectedIconShape.copy(bottomLeftScale = it))
-                },
-                cornerShape = selectedIconShape.bottomLeft.shape,
-                onCornerShapeChange = {
-                    onSelectedIconShapeChange(selectedIconShape.copy(bottomLeftShape = it))
-                },
-            )
-        }
-        Item {
-            IconShapeCornerPreference(
-                title = stringResource(id = R.string.custom_icon_shape_bottom_right),
-                scale = selectedIconShape.bottomRight.scale.x,
-                onScaleChange = {
-                    onSelectedIconShapeChange(selectedIconShape.copy(bottomRightScale = it))
-                },
-                cornerShape = selectedIconShape.bottomRight.shape,
-                onCornerShapeChange = {
-                    onSelectedIconShapeChange(selectedIconShape.copy(bottomRightShape = it))
-                },
-            )
-        }
+        IconShapeCornerPreference(
+            title = stringResource(id = R.string.custom_icon_shape_top_left),
+            scale = selectedIconShape.topLeft.scale.x,
+            onScaleChange = {
+                onSelectedIconShapeChange(selectedIconShape.copy(topLeftScale = it))
+            },
+            cornerShape = selectedIconShape.topLeft.shape,
+            onCornerShapeChange = {
+                onSelectedIconShapeChange(selectedIconShape.copy(topLeftShape = it))
+            },
+        )
+        IconShapeCornerPreference(
+            title = stringResource(id = R.string.custom_icon_shape_top_right),
+            scale = selectedIconShape.topRight.scale.x,
+            onScaleChange = {
+                onSelectedIconShapeChange(selectedIconShape.copy(topRightScale = it))
+            },
+            cornerShape = selectedIconShape.topRight.shape,
+            onCornerShapeChange = {
+                onSelectedIconShapeChange(selectedIconShape.copy(topRightShape = it))
+            },
+        )
+        IconShapeCornerPreference(
+            title = stringResource(id = R.string.custom_icon_shape_bottom_left),
+            scale = selectedIconShape.bottomLeft.scale.x,
+            onScaleChange = {
+                onSelectedIconShapeChange(selectedIconShape.copy(bottomLeftScale = it))
+            },
+            cornerShape = selectedIconShape.bottomLeft.shape,
+            onCornerShapeChange = {
+                onSelectedIconShapeChange(selectedIconShape.copy(bottomLeftShape = it))
+            },
+        )
+        IconShapeCornerPreference(
+            title = stringResource(id = R.string.custom_icon_shape_bottom_right),
+            scale = selectedIconShape.bottomRight.scale.x,
+            onScaleChange = {
+                onSelectedIconShapeChange(selectedIconShape.copy(bottomRightScale = it))
+            },
+            cornerShape = selectedIconShape.bottomRight.shape,
+            onCornerShapeChange = {
+                onSelectedIconShapeChange(selectedIconShape.copy(bottomRightShape = it))
+            },
+        )
     }
 }
 
 @Composable
 private fun IconShapeClipboardPreferenceGroup(
-    selectedIconShape: IconShape,
+    selectedIconShape: IconShape.CustomCornerBased,
     modifier: Modifier = Modifier,
-    onSelectedIconShapeChange: (IconShape) -> Unit,
+    onSelectedIconShapeChange: (IconShape.CustomCornerBased) -> Unit,
 ) {
     val context = LocalContext.current
     val importErrorMessage = stringResource(id = R.string.icon_shape_clipboard_import_error)
@@ -204,29 +214,25 @@ private fun IconShapeClipboardPreferenceGroup(
         modifier = modifier,
         heading = stringResource(id = R.string.clipboard),
     ) {
-        Item {
-            ClipboardButton(
-                imageVector = Icons.Rounded.ContentCopy,
-                label = stringResource(id = R.string.export_to_clipboard),
-            ) {
-                copyToClipboard(
-                    context = context,
-                    text = selectedIconShape.toString(),
-                )
-            }
+        ClipboardButton(
+            imageVector = Icons.Rounded.ContentCopy,
+            label = stringResource(id = R.string.export_to_clipboard),
+        ) {
+            copyToClipboard(
+                context = context,
+                text = selectedIconShape.toString(),
+            )
         }
-        Item {
-            ClipboardButton(
-                imageVector = Icons.Rounded.ContentPaste,
-                label = stringResource(id = R.string.import_from_clipboard),
-            ) {
-                getClipboardContent(context)?.let {
-                    IconShape.fromString(value = it, context = context)
-                }?.let {
-                    onSelectedIconShapeChange(it)
-                } ?: run {
-                    Toast.makeText(context, importErrorMessage, Toast.LENGTH_SHORT).show()
-                }
+        ClipboardButton(
+            imageVector = Icons.Rounded.ContentPaste,
+            label = stringResource(id = R.string.import_from_clipboard),
+        ) {
+            getClipboardContent(context)?.let {
+                IconShape.CustomCornerBased.fromStringOrNull(it)
+            }?.let {
+                onSelectedIconShapeChange(it)
+            } ?: run {
+                Toast.makeText(context, importErrorMessage, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -242,9 +248,10 @@ private fun ClipboardButton(
     onClick: () -> Unit,
 ) {
     PreferenceTemplate(
-        modifier = modifier.clickable(enabled = enabled, onClick = onClick),
         title = { Text(text = label) },
-        description = { description?.let { Text(text = it) } },
+        modifier = modifier,
+        enabled = enabled,
+        description = description?.let { { Text(text = it) } },
         startWidget = {
             val tint = LocalContentColor.current
             val contentAlpha = if (enabled) tint.alpha else 0.38f
@@ -255,7 +262,7 @@ private fun ClipboardButton(
                 tint = tint.copy(alpha = alpha),
             )
         },
-        enabled = enabled,
+        onClick = onClick,
     )
 }
 
@@ -280,7 +287,6 @@ private fun IconShapeCornerPreference(
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CornerSlider(
     label: String,
@@ -290,6 +296,7 @@ private fun CornerSlider(
     onCornerShapeChange: (IconCornerShape) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(LocalContext.current)
     val bottomSheetHandler = LocalBottomSheetHandler.current
     val options = listOf<IconCornerShape>(
         IconCornerShape.arc,
@@ -301,16 +308,12 @@ private fun CornerSlider(
     val valueRange = 0f..1f
 
     PreferenceTemplate(
-        modifier = modifier
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 12.dp),
+        modifier = modifier,
         title = {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(text = label)
                 CompositionLocalProvider(
@@ -326,30 +329,31 @@ private fun CornerSlider(
         },
         description = {
             Row(
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Slider(
                     value = value,
-                    onValueChange = onValueChange,
+                    onValueChange = { newValue ->
+                        mMSDLPlayerWrapper.playToken(MSDLToken.DRAG_INDICATOR_DISCRETE)
+                        onValueChange(newValue)
+                    },
                     valueRange = valueRange,
                     steps = getSteps(valueRange, step),
                     modifier = Modifier
                         .height(24.dp)
                         .weight(1f)
-                        .padding(horizontal = 3.dp),
+                        .padding(bottom = 8.dp),
                 )
             }
         },
         endWidget = {
             Row(
                 modifier = Modifier
-                    .padding(
-                        start = 16.dp,
-                        top = 12.dp,
-                    )
                     .clip(shape = MaterialTheme.shapes.small)
+                    .padding(top = 2.dp)
                     .clickable {
+                        mMSDLPlayerWrapper.playToken(MSDLToken.TAP_MEDIUM_EMPHASIS)
                         bottomSheetHandler.show {
                             ModalBottomSheetContent(
                                 title = { Text(stringResource(id = R.string.custom_icon_shape_corner)) },
@@ -374,16 +378,18 @@ private fun CornerSlider(
                                                     text = option.getLabel(),
                                                 )
                                             },
-                                            modifier = Modifier.clickable {
-                                                bottomSheetHandler.hide()
-                                                onCornerShapeChange(option)
-                                            },
                                             startWidget = {
                                                 RadioButton(
                                                     selected = selected,
                                                     onClick = null,
                                                 )
                                             },
+                                            onClick = {
+                                                mMSDLPlayerWrapper.playToken(MSDLToken.TAP_LOW_EMPHASIS)
+                                                bottomSheetHandler.hide()
+                                                onCornerShapeChange(option)
+                                            },
+                                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                                         )
                                     }
                                 }
@@ -391,9 +397,7 @@ private fun CornerSlider(
                         }
                     }
                     .padding(
-                        start = 8.dp,
-                        top = 4.dp,
-                        bottom = 4.dp,
+                        vertical = 4.dp,
                     ),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -408,8 +412,21 @@ private fun CornerSlider(
                 )
             }
         },
-        applyPaddings = false,
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CornerSliderPreview() {
+    AutoCatTheme {
+        CornerSlider(
+            label = "Top Left",
+            value = 0.5f,
+            onValueChange = {},
+            cornerShape = IconCornerShape.Squircle,
+            onCornerShapeChange = {},
+        )
+    }
 }
 
 @Composable

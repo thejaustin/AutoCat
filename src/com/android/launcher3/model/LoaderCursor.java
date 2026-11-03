@@ -80,8 +80,8 @@ import dagger.assisted.AssistedInject;
 import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
 
-import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
+import app.lawnchair.AutoCatApp;
 import app.lawnchair.preferences2.PreferenceManager2;
 
 /**
@@ -245,7 +245,8 @@ public class LoaderCursor extends CursorWrapper {
 
     public IconRequestInfo<WorkspaceItemInfo> createIconRequestInfo(
             WorkspaceItemInfo wai, boolean useLowResIcon) {
-        byte[] iconBlob = itemType == Favorites.ITEM_TYPE_DEEP_SHORTCUT || restoreFlag != 0
+        byte[] iconBlob = itemType == Favorites.ITEM_TYPE_SHORTCUT
+                || itemType == Favorites.ITEM_TYPE_DEEP_SHORTCUT || restoreFlag != 0
                 || (wai.isInactiveArchive() && Flags.restoreArchivedAppIconsFromDb())
                 ? getIconBlob() : null;
         return new IconRequestInfo<>(wai, mActivityInfo, iconBlob,
@@ -433,7 +434,7 @@ public class LoaderCursor extends CursorWrapper {
             boolean loadIconFromCache,
             WorkspaceItemInfo info
     ) {
-        boolean isPreArchived = Flags.enableSupportForArchiving()
+        boolean isPreArchived = Utilities.ATLEAST_V && Flags.enableSupportForArchiving()
                 && Flags.restoreArchivedAppIconsFromDb()
                 && info.isInactiveArchive()
                 && LauncherPrefs.get(mContext).get(LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE);
@@ -562,7 +563,8 @@ public class LoaderCursor extends CursorWrapper {
 
     /**
      * Adds the {@param info} to {@param dataModel} if it does not overlap with any other item,
-     * otherwise marks it for deletion.
+     * otherwise marks it for deletion. Hotseat items past the current hotseat size are skipped
+     * but kept.
      */
     public void checkAndAddItem(
             ItemInfo info, IntSparseArrayMap<ItemInfo> loadedItems, LoaderMemoryLogger logger) {
@@ -582,7 +584,8 @@ public class LoaderCursor extends CursorWrapper {
             loadedItems.put(info.id, info);
             if ((info.itemType == ITEM_TYPE_APP_PAIR
                     || info.itemType == ITEM_TYPE_DEEP_SHORTCUT
-                    || info.itemType == ITEM_TYPE_APPLICATION)
+                    || info.itemType == ITEM_TYPE_APPLICATION
+                    || info.itemType == Favorites.ITEM_TYPE_SHORTCUT)
                     && info.container != CONTAINER_DESKTOP
                     && info.container != CONTAINER_HOTSEAT) {
                 findOrMakeFolder(info.container, loadedItems).add(info);
@@ -590,9 +593,24 @@ public class LoaderCursor extends CursorWrapper {
             if (mRestoreEventLogger != null) {
                 mRestoreEventLogger.logSingleFavoritesItemRestored(itemType);
             }
+        } else if (isHotseatItemOutOfBounds(info)) {
+            // LC-Note: The hotseat can be smaller for a while (e.g. while a foldable is folded, or
+            // after a transient DeviceProfile change), and deleting the item would lose it for
+            // good. Don't bind it, but keep it in the database so it shows up again once the
+            // hotseat is large enough.
+            FileLog.d(TAG, "Keeping hotseat item out of bounds in the database: " + info);
         } else {
             markDeleted("Item position overlap", RestoreError.OVERLAPPING_ITEM);
         }
+    }
+
+    /**
+     * Returns whether {@param item} is in the hotseat, at a position past the hotseat size of the
+     * current grid.
+     */
+    private boolean isHotseatItemOutOfBounds(ItemInfo item) {
+        return item.container == Favorites.CONTAINER_HOTSEAT
+                && item.screenId >= mIDP.numDatabaseHotseatIcons;
     }
 
     /**
@@ -646,7 +664,7 @@ public class LoaderCursor extends CursorWrapper {
 
         if (!mOccupied.containsKey(item.screenId)) {
             GridOccupancy screen = new GridOccupancy(countX + 1, countY + 1);
-            if (item.screenId == Workspace.FIRST_SCREEN_ID && PreferenceExtensionsKt.firstBlocking(preferenceManager2.getEnableSmartspace())) {
+            if (item.screenId == Workspace.FIRST_SCREEN_ID && PreferenceCacheExtensionsKt.firstCached(preferenceManager2.getEnableSmartspace())) {
                 // Mark the first X columns (X is width of the search container) in the first row as
                 // occupied (if the feature is enabled) in order to account for the search
                 // container.
@@ -667,7 +685,7 @@ public class LoaderCursor extends CursorWrapper {
                     + " into cell (" + containerIndex + "-" + item.screenId + ":"
                     + item.cellX + "," + item.cellX + "," + item.spanX + "," + item.spanY
                     + ") already occupied");
-            return PreferenceExtensionsKt.firstBlocking(preferenceManager2.getAllowWidgetOverlap());
+            return PreferenceCacheExtensionsKt.firstCached(preferenceManager2.getAllowWidgetOverlap());
         }
     }
 

@@ -32,11 +32,13 @@ import androidx.datastore.preferences.preferencesDataStore
 import app.lawnchair.data.Converters
 import app.lawnchair.font.FontCache
 import app.lawnchair.gestures.config.GestureHandlerConfig
+import app.lawnchair.gestures.handlers.SleepMode
 import app.lawnchair.gestures.type.GestureType
 import app.lawnchair.hotseat.HotseatMode
 import app.lawnchair.icons.CustomAdaptiveIconDrawable
 import app.lawnchair.icons.shape.IconShape
 import app.lawnchair.icons.shape.IconShapeManager
+import app.lawnchair.predictions.PredictionMode
 import app.lawnchair.preferences.PreferenceManager as LawnchairPreferenceManager
 import app.lawnchair.qsb.providers.QsbSearchProvider
 import app.lawnchair.search.algorithms.AutoCatSearchAlgorithm
@@ -72,7 +74,10 @@ import com.patrykmichalik.opto.core.PreferenceManager
 import com.patrykmichalik.opto.core.firstBlocking
 import com.patrykmichalik.opto.core.setBlocking
 import javax.inject.Inject
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -81,6 +86,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @LauncherAppSingleton
 class PreferenceManager2 @Inject constructor(
@@ -88,7 +94,7 @@ class PreferenceManager2 @Inject constructor(
 ) : PreferenceManager,
     SafeCloseable {
 
-    private val scope = MainScope()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val resourceProvider = DynamicResource.provider(context)
     private var liveInformationManager: LiveInformationManager =
         LiveInformationManager.getInstance(context)
@@ -105,6 +111,29 @@ class PreferenceManager2 @Inject constructor(
     )
 
     override val preferencesDataStore = context.preferencesDataStore
+
+    @Volatile
+    private var cachedPreferences: Preferences = runBlocking {
+        preferencesDataStore.data.first()
+    }
+
+    fun getCachedPreferences(): Preferences = cachedPreferences
+
+    /**
+     * Runs [block] on the main thread once the cache has every value written so far. A preference's
+     * onSet runs right after its DataStore write, but the cache is updated by its own collector,
+     * which may not have run yet: refresh it from the DataStore, which already has the new value.
+     * If the collector stores a newer value while the read is suspended, that value is kept.
+     */
+    internal fun withFreshCache(block: () -> Unit) {
+        scope.launch {
+            val cacheBeforeRead = cachedPreferences
+            val freshPreferences = preferencesDataStore.data.first()
+            if (cachedPreferences === cacheBeforeRead) cachedPreferences = freshPreferences
+            block()
+        }
+    }
+
     private val reloadHelper = ReloadHelper(context)
 
     val darkStatusBar = preference(
@@ -117,7 +146,6 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = HotseatMode.fromString(context.getString(R.string.config_default_hotseat_mode)),
         parse = { HotseatMode.fromString(it) },
         save = { it.toString() },
-        onSet = { reloadHelper.restart() },
     )
 
     val iconShape = preference(
@@ -156,11 +184,26 @@ class PreferenceManager2 @Inject constructor(
         key = stringPreferencesKey(name = "custom_icon_shape"),
         defaultValue = null,
         parse = {
-            IconShape.fromString(value = it, context = context)
-                ?: IconShapeManager.getSystemIconShape(context)
+            IconShape.CustomCornerBased.fromStringOrNull(value = it)
+                ?: IconShape.CustomCornerBased(
+                    IconShapeManager.getSystemIconShape(context).findNearestShape(),
+                )
         },
         save = { it.toString() },
         onSet = { it?.let(iconShape::setBlocking) },
+    )
+
+    val customFolderShape = preference(
+        key = stringPreferencesKey(name = "custom_folder_shape"),
+        defaultValue = null,
+        parse = {
+            IconShape.CustomCornerBased.fromStringOrNull(value = it)
+                ?: IconShape.CustomCornerBased(
+                    IconShapeManager.getSystemIconShape(context).findNearestShape(),
+                )
+        },
+        save = { it.toString() },
+        onSet = { it?.let(folderShape::setBlocking) },
     )
 
     val alwaysReloadIcons = preference(
@@ -190,6 +233,13 @@ class PreferenceManager2 @Inject constructor(
         save = ColorOption::toString,
         onSet = { reloadHelper.reloadGrid() },
         defaultValue = ColorOption.fromString(context.getString(R.string.config_default_hotseat_bg_color)),
+    )
+
+    val hotseatBackgroundCornerRadius = preference(
+        key = floatPreferencesKey(name = "hotseat_bg_corner_radius"),
+        defaultValue = context.resources.getDimension(R.dimen.bg_round_rect_radius) /
+            context.resources.displayMetrics.density, // This should hopefully match corner of all devices
+        onSet = { reloadHelper.recreate() },
     )
 
     val appDrawerBackgroundColor = preference(
@@ -258,10 +308,6 @@ class PreferenceManager2 @Inject constructor(
     val isHotseatEnabled = preference(
         key = booleanPreferencesKey(name = "pref_show_hotseat"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_show_hotseat),
-        onSet = {
-            reloadHelper.recreate()
-            reloadHelper.reloadGrid()
-        },
     )
 
     val hotseatQsbProvider = preference(
@@ -271,7 +317,6 @@ class PreferenceManager2 @Inject constructor(
         } ?: QsbSearchProvider.resolveDefault(context),
         parse = { QsbSearchProvider.fromId(it) },
         save = { it.id },
-        onSet = { reloadHelper.recreate() },
     )
 
     val hotseatQsbForceWebsite = preference(
@@ -290,7 +335,6 @@ class PreferenceManager2 @Inject constructor(
     val hiddenApps = preference(
         key = stringSetPreferencesKey(name = "hidden_apps"),
         defaultValue = setOf(),
-        onSet = { reloadHelper.reloadGrid() },
     )
 
     val roundedWidgets = preference(
@@ -393,6 +437,23 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = false,
     )
 
+    val enableGlobalPrediction = preference(
+        key = booleanPreferencesKey(name = "enable_global_prediction"),
+        defaultValue = true,
+    )
+
+    val predictionMode = preference(
+        key = stringPreferencesKey(name = "prediction_mode"),
+        defaultValue = PredictionMode.fromString(context.getString(R.string.config_default_prediction_mode)),
+        parse = { PredictionMode.fromString(it) },
+        save = { it.toString() },
+    )
+
+    val lawnchairPredictorUseWeightedUsageStats = preference(
+        key = booleanPreferencesKey(name = "lawnchair_prediction_use_weighted_usage"),
+        defaultValue = false,
+    )
+
     val launcherPopupOrder = preference(
         key = stringPreferencesKey(name = "launcher_popup_order"),
         defaultValue = LauncherOptionsPopup.DEFAULT_ORDER.toOptionOrderString(),
@@ -460,12 +521,6 @@ class PreferenceManager2 @Inject constructor(
                 LawnchairPreferenceManager.getInstance(context).fontWorkspace.set(newValue = fontCache.uiText)
             }
         },
-    )
-
-    val enableFolderIconShapeCustomization = preference(
-        key = booleanPreferencesKey(name = "enable_folder_icon_shape_customization"),
-        defaultValue = context.resources.getBoolean(R.bool.config_default_enable_folder_icon_shape_customization),
-        onSet = { reloadHelper.reloadIcons() },
     )
 
     val autoShowKeyboardInDrawer = preference(
@@ -562,6 +617,30 @@ class PreferenceManager2 @Inject constructor(
     val hotseatBottomFactor = preference(
         key = floatPreferencesKey(name = "hotseat_bottom_factor"),
         defaultValue = resourceProvider.getFloat(R.dimen.config_default_hotseat_bottom_factor),
+        onSet = { reloadHelper.reloadGrid() },
+    )
+
+    val workspacePaddingHorizontalFactor = preference(
+        key = floatPreferencesKey(name = "workspace_padding_horizontal"),
+        defaultValue = resourceProvider.getFloat(R.dimen.config_default_workspace_padding_horizontal),
+        onSet = { reloadHelper.reloadGrid() },
+    )
+
+    val workspacePaddingVerticalFactor = preference(
+        key = floatPreferencesKey(name = "workspace_padding_vertical"),
+        defaultValue = resourceProvider.getFloat(R.dimen.config_default_workspace_padding_vertical),
+        onSet = { reloadHelper.reloadGrid() },
+    )
+
+    val widgetPaddingFactor = preference(
+        key = floatPreferencesKey(name = "widget_padding_factor"),
+        defaultValue = resourceProvider.getFloat(R.dimen.config_default_widget_padding_factor),
+        onSet = { reloadHelper.reloadGrid() },
+    )
+
+    val drawerPaddingTopFactor = preference(
+        key = floatPreferencesKey(name = "drawer_padding_top"),
+        defaultValue = resourceProvider.getFloat(R.dimen.config_default_drawer_padding_top),
         onSet = { reloadHelper.reloadGrid() },
     )
 
@@ -675,6 +754,12 @@ class PreferenceManager2 @Inject constructor(
         onSet = { reloadHelper.reloadGrid() },
     )
 
+    val drawerColumnsUnfolded = idpPreference(
+        key = intPreferencesKey(name = "drawer_columns_unfolded"),
+        defaultSelector = { numAllAppsColumns + 2 },
+        onSet = { reloadHelper.reloadGrid() },
+    )
+
     val folderColumns = idpPreference(
         key = intPreferencesKey(name = "folder_columns"),
         defaultSelector = { numFolderColumns[INDEX_DEFAULT] },
@@ -711,6 +796,11 @@ class PreferenceManager2 @Inject constructor(
 
     val smartspaceBatteryStatus = preference(
         key = booleanPreferencesKey("enable_smartspace_battery_status"),
+        defaultValue = true,
+    )
+
+    val smartspaceTorch = preference(
+        key = booleanPreferencesKey("enable_smartspace_torch"),
         defaultValue = true,
     )
 
@@ -780,12 +870,6 @@ class PreferenceManager2 @Inject constructor(
     val enableLabelInDock = preference(
         key = booleanPreferencesKey(name = "enable_label_dock"),
         defaultValue = false,
-        onSet = { reloadHelper.reloadGrid() },
-    )
-
-    val iconSwipeGestures = preference(
-        key = booleanPreferencesKey(name = "icon_swipe_gestures"),
-        defaultValue = false,
     )
 
     val doubleTapGestureHandler = serializablePreference<GestureHandlerConfig>(
@@ -793,14 +877,37 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = GestureHandlerConfig.Sleep,
     )
 
+    val sleepMode = preference(
+        key = stringPreferencesKey(name = "sleep_mode"),
+        defaultValue = SleepMode.AUTO,
+        parse = { SleepMode.fromString(it) ?: SleepMode.AUTO },
+        save = { it.toString() },
+    )
+
     val swipeUpGestureHandler = serializablePreference<GestureHandlerConfig>(
         key = stringPreferencesKey("swipe_up_gesture_handler"),
         defaultValue = GestureHandlerConfig.OpenAppDrawer,
     )
 
+    /** Swipe down gesture handler
+     *
+     * Important: It is imperative swipe down gesture handler only passed over to or handled by the native touch controller at [com.android.launcher3.uioverrides.touchcontrollers.StatusBarTouchController]
+     *
+     * This is needed for ease of touch slop implementation and smooth notifications panel pulling for rooted device via SystemUI Proxy.
+     * */
     val swipeDownGestureHandler = serializablePreference<GestureHandlerConfig>(
         key = stringPreferencesKey("swipe_down_gesture_handler"),
         defaultValue = GestureHandlerConfig.OpenNotifications,
+    )
+
+    val twoFingerSwipeUpGestureHandler = serializablePreference<GestureHandlerConfig>(
+        key = stringPreferencesKey("two_finger_swipe_up_gesture_handler"),
+        defaultValue = GestureHandlerConfig.NoOp,
+    )
+
+    val twoFingerSwipeDownGestureHandler = serializablePreference<GestureHandlerConfig>(
+        key = stringPreferencesKey("two_finger_swipe_down_gesture_handler"),
+        defaultValue = GestureHandlerConfig.OpenQuickSettings,
     )
 
     val homePressGestureHandler = serializablePreference<GestureHandlerConfig>(
@@ -816,9 +923,9 @@ class PreferenceManager2 @Inject constructor(
     val autoUpdaterNightly = preference(
         key = booleanPreferencesKey(name = "enable_nightly_auto_updater"),
         defaultValue = if (BuildConfig.APPLICATION_ID.contains("nightly")) {
-            false
-        } else {
             context.resources.getBoolean(R.bool.config_default_enable_nightly_auto_updater)
+        } else {
+            false
         },
     )
 
@@ -835,11 +942,11 @@ class PreferenceManager2 @Inject constructor(
     )
 
     init {
-        // Initialize icon shape asynchronously to avoid blocking the main thread
-        scope.launch {
-            val shape = iconShape.get().first()
-            initializeIconShape(shape)
-        }
+        preferencesDataStore.data
+            .onEach { cachedPreferences = it }
+            .launchIn(scope)
+
+        initializeIconShape(iconShape.firstCached(this))
         iconShape.get()
             .drop(1)
             .distinctUntilChanged()
@@ -848,6 +955,33 @@ class PreferenceManager2 @Inject constructor(
                 L3ThemeManager.INSTANCE.get(context)
                 LauncherAppState.getInstance(context).model.reloadIfActive()
             }
+            .launchIn(scope)
+
+        hotseatMode.get()
+            .drop(1)
+            .distinctUntilChanged()
+            .onEach { reloadHelper.restart() }
+            .launchIn(scope)
+
+        isHotseatEnabled.get()
+            .drop(1)
+            .distinctUntilChanged()
+            .onEach {
+                reloadHelper.recreate()
+                reloadHelper.reloadGrid()
+            }
+            .launchIn(scope)
+
+        hotseatQsbProvider.get()
+            .drop(1)
+            .distinctUntilChanged()
+            .onEach { reloadHelper.recreate() }
+            .launchIn(scope)
+
+        enableLabelInDock.get()
+            .drop(1)
+            .distinctUntilChanged()
+            .onEach { reloadHelper.reloadGrid() }
             .launchIn(scope)
     }
 
@@ -874,6 +1008,16 @@ class PreferenceManager2 @Inject constructor(
         }
     }
 
+    fun getGestureForAppCached(key: ComponentKey, gestureType: GestureType): GestureHandlerConfig {
+        val cmp = Converters().fromComponentKey(key)
+        val key = stringPreferencesKey("$cmp:${gestureType.name}")
+        val prefs = getCachedPreferences()
+        return prefs[key]?.let {
+            runCatching { kotlinxJson.decodeFromString<GestureHandlerConfig>(it) }
+                .getOrDefault(GestureHandlerConfig.NoOp)
+        } ?: GestureHandlerConfig.NoOp
+    }
+
     private fun initializeIconShape(shape: IconShape) {
         CustomAdaptiveIconDrawable.sInitialized = true
         CustomAdaptiveIconDrawable.sMaskId = shape.getHashString()
@@ -881,6 +1025,7 @@ class PreferenceManager2 @Inject constructor(
     }
 
     override fun close() {
+        scope.cancel()
     }
 
     private fun getRemoteDefault(key: String): String? = liveInformationManager.liveInformation

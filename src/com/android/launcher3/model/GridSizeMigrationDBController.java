@@ -55,7 +55,7 @@ import com.android.launcher3.util.IntArray;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 import com.android.launcher3.widget.WidgetManagerHelper;
 
-import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
+import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -400,7 +400,7 @@ public class GridSizeMigrationDBController {
             @NonNull final List<DbEntry> sortedItemsToPlace, List<Integer> idsInUse, Context context) {
         PreferenceManager2 prefs2 = PreferenceManager2.INSTANCE.get(context);
         
-        boolean smartspaceEnabled = PreferenceExtensionsKt.firstBlocking(prefs2.getEnableSmartspace());
+        boolean smartspaceEnabled = PreferenceCacheExtensionsKt.firstCached(prefs2.getEnableSmartspace());
         
         final GridOccupancy occupied = new GridOccupancy(trgX, trgY);
         final Point trg = new Point(trgX, trgY);
@@ -467,7 +467,12 @@ public class GridSizeMigrationDBController {
 
         final boolean[] occupied = new boolean[dstHotseatSize];
         for (DbEntry entry : placedHotseatItems) {
-            occupied[entry.screenId] = true;
+            // LC-Note: the target may still hold dock items past this dock size (it was last
+            // used with a larger dock), and a corrupt database a negative rank. They take no slot;
+            // marking one would throw ArrayIndexOutOfBoundsException.
+            if (entry.screenId >= 0 && entry.screenId < occupied.length) {
+                occupied[entry.screenId] = true;
+            }
         }
 
         for (int i = 0; i < occupied.length; i++) {

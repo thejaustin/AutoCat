@@ -16,8 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
-import androidx.compose.material3.ContainedLoadingIndicator
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -74,7 +74,6 @@ fun NavGraphBuilder.restoreBackupGraph() {
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RestoreBackupScreen(
     modifier: Modifier = Modifier,
@@ -95,7 +94,7 @@ fun RestoreBackupScreen(
 
             is RestoreBackupUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    ContainedLoadingIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
             }
 
@@ -206,6 +205,7 @@ fun ColumnScope.RestoreBackupOptions(
                 .align(Alignment.CenterEnd)
                 .fillMaxWidth(),
             enabled = contents != 0 && !restoringBackup,
+            shapes = ButtonDefaults.shapes(),
         ) {
             Text(text = stringResource(id = R.string.action_restore))
         }

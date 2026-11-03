@@ -1,7 +1,11 @@
 package app.lawnchair.backup.ui
 
 import android.app.Activity
+import android.app.WallpaperManager
 import android.content.Intent
+import android.content.res.Configuration
+import android.provider.DocumentsContract
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -10,11 +14,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,18 +31,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import app.lawnchair.backup.AutoCatBackup
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.DummyLauncherBox
+import app.lawnchair.ui.preferences.components.WallpaperAccessPermissionDialog
+import app.lawnchair.ui.preferences.components.WallpaperPreview
+import app.lawnchair.ui.preferences.components.WithWallpaper
 import app.lawnchair.ui.preferences.components.controls.FlagSwitchPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
+import app.lawnchair.util.BackHandler
+import app.lawnchair.util.FileAccessState
+import app.lawnchair.util.hasFlag
+import app.lawnchair.util.removeFlag
 import com.android.launcher3.R
 import kotlinx.coroutines.launch
 
@@ -45,69 +58,100 @@ fun CreateBackupScreen(
     viewModel: CreateBackupViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val screenshot by viewModel.screenshot.collectAsStateWithLifecycle()
     val contents by viewModel.backupContents.collectAsStateWithLifecycle()
+    val screenshot by viewModel.screenshot.collectAsStateWithLifecycle()
+    val screenshotDone by viewModel.screenshotDone.collectAsStateWithLifecycle()
+
+    val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
+    val scrollState = rememberScrollState()
 
     val context = LocalContext.current
+    val hasLiveWallpaper = remember { WallpaperManager.getInstance(context).wallpaperInfo != null }
+    val allFilesAccessState by viewModel.allFilesAccessState.collectAsStateWithLifecycle()
+    val wallpaperAccessState by viewModel.wallpaperAccessState.collectAsStateWithLifecycle()
+    val hasWallpaperPermission = wallpaperAccessState == FileAccessState.Full
+
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
     val scope = rememberCoroutineScope()
-    val navController = LocalNavController.current
     var creatingBackup by remember { mutableStateOf(false) }
+    if (creatingBackup) {
+        BackHandler {}
+    }
 
-    val createDocumentLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult(),
-    ) { result ->
-        if (result.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
-        val uri = result.data?.data ?: return@rememberLauncherForActivityResult
-
+    val navController = LocalNavController.current
+    val request = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode != Activity.RESULT_OK) return@rememberLauncherForActivityResult
+        val uri = it.data?.data ?: return@rememberLauncherForActivityResult
+        if (creatingBackup) return@rememberLauncherForActivityResult
         scope.launch {
             creatingBackup = true
             try {
                 AutoCatBackup.create(context, contents, screenshot, uri)
-                Toast.makeText(context, R.string.backup_create_success, Toast.LENGTH_SHORT).show()
                 navController.popBackStack()
+                Toast.makeText(context, R.string.backup_create_success, Toast.LENGTH_SHORT).show()
             } catch (t: Throwable) {
-                android.util.Log.e("CreateBackupScreen", "Failed to create backup", t)
+                Log.e("CreateBackupScreen", "failed to create backup", t)
                 Toast.makeText(context, R.string.backup_create_error, Toast.LENGTH_SHORT).show()
-            } finally {
-                creatingBackup = false
+                runCatching { DocumentsContract.deleteDocument(context.contentResolver, uri) }
             }
+            creatingBackup = false
         }
     }
 
-    fun startCreateBackup() {
-        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = AutoCatBackup.MIME_TYPE
-            putExtra(Intent.EXTRA_TITLE, AutoCatBackup.generateBackupFileName())
-        }
-        createDocumentLauncher.launch(intent)
+    fun launchPicker() {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.type = "*/*"
+        intent.putExtra(Intent.EXTRA_TITLE, AutoCatBackup.generateBackupFileName())
+        request.launch(intent)
     }
 
     PreferenceLayout(
         label = stringResource(id = R.string.create_backup),
         modifier = modifier,
+        isExpandedScreen = true,
         backArrowVisible = !LocalIsExpandedScreen.current,
+        scrollState = if (isPortrait) null else scrollState,
     ) {
-        DummyLauncherBox(
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .fillMaxWidth(0.6f)
-                .weight(1f)
-                .align(Alignment.CenterHorizontally)
-                .clip(MaterialTheme.shapes.large),
-            darkText = false,
-        ) {
-            Image(
-                bitmap = screenshot.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillHeight,
-            )
+        DisposableEffect(contents, hasLiveWallpaper, hasWallpaperPermission) {
+            val canBackupWallpaper = hasLiveWallpaper || !hasWallpaperPermission
+            if (contents.hasFlag(AutoCatBackup.INCLUDE_WALLPAPER) && canBackupWallpaper) {
+                viewModel.setBackupContents(contents.removeFlag(AutoCatBackup.INCLUDE_WALLPAPER))
+            }
+            onDispose { }
         }
 
-        PreferenceGroup(
-            heading = stringResource(id = R.string.what_to_backup),
-        ) {
+        if (isPortrait) {
+            WithWallpaper(
+                displayWallpaperButton = false,
+            ) { wallpaper ->
+                DummyLauncherBox(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .weight(1f)
+                        .align(Alignment.CenterHorizontally)
+                        .clip(MaterialTheme.shapes.large),
+                ) {
+                    if (contents.hasFlag(AutoCatBackup.INCLUDE_WALLPAPER)) {
+                        WallpaperPreview(
+                            wallpaper = wallpaper,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                    if (contents.hasFlag(AutoCatBackup.INCLUDE_LAYOUT_AND_SETTINGS)) {
+                        Image(
+                            bitmap = screenshot.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.FillHeight,
+                        )
+                    }
+                }
+            }
+        }
+
+        PreferenceGroup(heading = stringResource(id = R.string.what_to_backup)) {
             FlagSwitchPreference(
                 flags = contents,
                 setFlags = viewModel::setBackupContents,
@@ -116,12 +160,18 @@ fun CreateBackupScreen(
             )
             FlagSwitchPreference(
                 flags = contents,
-                setFlags = viewModel::setBackupContents,
+                setFlags = {
+                    if (it.hasFlag(AutoCatBackup.INCLUDE_WALLPAPER) && !hasWallpaperPermission) {
+                        showPermissionDialog = true
+                    } else {
+                        viewModel.setBackupContents(it)
+                    }
+                },
                 mask = AutoCatBackup.INCLUDE_WALLPAPER,
                 label = stringResource(id = R.string.backup_content_wallpaper),
+                enabled = !hasLiveWallpaper,
             )
         }
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -129,14 +179,27 @@ fun CreateBackupScreen(
                 .padding(horizontal = 16.dp),
         ) {
             Button(
-                onClick = { startCreateBackup() },
+                onClick = { launchPicker() },
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .fillMaxWidth(),
-                enabled = contents != 0 && !creatingBackup,
+                enabled = contents != 0 && screenshotDone && !creatingBackup,
+                shapes = ButtonDefaults.shapes(),
             ) {
-                Text(text = stringResource(id = R.string.create_backup))
+                Text(text = stringResource(id = R.string.action_create))
             }
+        }
+
+        if (showPermissionDialog) {
+            WallpaperAccessPermissionDialog(
+                managedFilesChecked = allFilesAccessState == FileAccessState.Full,
+                onDismiss = {
+                    showPermissionDialog = false
+                },
+                onPermissionRequest = {
+                    viewModel.refreshFilePermissionStates()
+                },
+            )
         }
     }
 }

@@ -1,17 +1,17 @@
 package app.lawnchair.gestures.handlers
 
 import android.content.Context
-import app.lawnchair.LawnchairLauncher
+import app.lawnchair.AutoCatLauncher
 import com.android.launcher3.folder.FolderIcon
 import com.android.launcher3.model.data.FolderInfo
 
 class OpenFolderGestureHandler(context: Context) : GestureHandler(context) {
 
-    override suspend fun onTrigger(launcher: LawnchairLauncher) {
+    override suspend fun onTrigger(launcher: AutoCatLauncher) {
         // Fallback or do nothing if no item info
     }
 
-    override suspend fun onTrigger(launcher: LawnchairLauncher, itemInfo: Any?) {
+    override suspend fun onTrigger(launcher: AutoCatLauncher, itemInfo: Any?) {
         if (!launcher.isStarted || itemInfo !is FolderInfo) return
 
         val workspace = launcher.workspace

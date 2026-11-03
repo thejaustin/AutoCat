@@ -1,15 +1,15 @@
 [versions]
 jdkRelease = "21"
 
-agp = "9.1.0"
-kotlin = "2.3.20"
-androidx-room = "2.8.4"
-androidx-lifecycle = "2.10.0"
+agp = "9.5.0"
+kotlin = "2.4.21"
+androidx-room = "2.8.5"
+androidx-lifecycle = "2.11.0"
 accompanist = "0.37.3"
 opto = "1.0.18"
-protobuf = "4.34.1"
+protobuf = "4.36.2"
 retrofit = "3.0.0"
-dagger = "2.59.2"
+dagger = "2.60.1"
 libsu = "6.0.0"
 refine = "4.4.0"
 sentry = "6.1.0"
@@ -18,10 +18,10 @@ tensorflowLite = "2.14.0"
 mediapipeTasksGenai = "0.10.14"
 exifinterface = "1.4.2"
 
-guava = "33.5.0-android"
+guava = "33.7.2-jre"
 junitVersion = "4.13.2"
-mockito = "5.23.0"
-mockitoKotlin = "6.3.0"
+mockito = "5.24.0"
+mockitoKotlin = "6.4.0"
 truth = "1.4.5"
 testRules = "1.7.0"
 testRunner = "1.7.0"
@@ -30,45 +30,45 @@ testRunner = "1.7.0"
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 android-test = { id = "com.android.test", version.ref = "agp" }
-androidx-baselineprofile = "androidx.baselineprofile:1.4.1"
+androidx-baselineprofile = "androidx.baselineprofile:1.5.0"
 
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-google-ksp = "com.google.devtools.ksp:2.3.4"
-google-protobuf = "com.google.protobuf:0.9.6"
+google-ksp = "com.google.devtools.ksp:2.3.13"
+google-protobuf = "com.google.protobuf:0.10.0"
 cash-licensee = "app.cash.licensee:1.14.1"
 rikka-refine = { id = "dev.rikka.tools.refine", version.ref = "refine" }
-diffplug-spotless = "com.diffplug.spotless:8.4.0"
+diffplug-spotless = "com.diffplug.spotless:8.11.0"
 sentry = { id = "io.sentry.android.gradle", version.ref = "sentry" }
 
 [libraries]
 # AndroidX
 androidx-activity-compose = "androidx.activity:activity-compose:1.13.0"
-androidx-benchmark-macro-junit4 = "androidx.benchmark:benchmark-macro-junit4:1.4.1"
+androidx-benchmark-macro-junit4 = "androidx.benchmark:benchmark-macro-junit4:1.5.0"
 androidx-concurrent-futures = "androidx.concurrent:concurrent-futures:1.3.0"
-androidx-constraintlayout = "androidx.constraintlayout:constraintlayout:2.2.1"
+androidx-constraintlayout = "androidx.constraintlayout:constraintlayout:2.2.2"
 androidx-core-animation = "androidx.core:core-animation:1.0.0"
-androidx-core-ktx = "androidx.core:core-ktx:1.18.0"
-androidx-datastore-preferences = "androidx.datastore:datastore-preferences:1.2.1"
+androidx-core-ktx = "androidx.core:core-ktx:1.19.1"
+androidx-datastore-preferences = "androidx.datastore:datastore-preferences:1.3.0"
 sentry-android = "io.sentry:sentry-android:8.33.0"
 androidx-dynamicanimation = "androidx.dynamicanimation:dynamicanimation:1.1.0"
 androidx-espresso-core = "androidx.test.espresso:espresso-core:3.7.0"
 androidx-graphics-core = "androidx.graphics:graphics-core:1.0.4"
-androidx-graphics-path = "androidx.graphics:graphics-path:1.0.1"
+androidx-graphics-path = "androidx.graphics:graphics-path:1.1.0"
 androidx-graphics-shapes = "androidx.graphics:graphics-shapes:1.1.0"
 androidx-junit = "androidx.test.ext:junit:1.3.0"
 androidx-lifecycle-common = { module = "androidx.lifecycle:lifecycle-common", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
-androidx-navigation-compose = "androidx.navigation:navigation-compose:2.9.7"
-androidx-palette-ktx = "androidx.palette:palette-ktx:1.0.0"
+androidx-navigation-compose = "androidx.navigation:navigation-compose:2.10.2"
+androidx-palette-ktx = "androidx.palette:palette-ktx:1.1.0"
 androidx-preference-ktx = "androidx.preference:preference-ktx:1.2.1"
 androidx-profileinstaller = "androidx.profileinstaller:profileinstaller:1.4.1"
 androidx-recyclerview = "androidx.recyclerview:recyclerview:1.4.0"
 androidx-slice-core = "androidx.slice:slice-core:1.1.0-alpha02"
 androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "testRules" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
-androidx-uiautomator = "androidx.test.uiautomator:uiautomator:2.3.0"
+androidx-uiautomator = "androidx.test.uiautomator:uiautomator:2.4.0"
 androidx-window = "androidx.window:window:1.5.1"
 
 # Shizuku
@@ -76,16 +76,15 @@ rikka-shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "
 rikka-shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 
 # Smartspacer & AI
-smartspacer-sdk = "com.kieronquinn.smartspacer:sdk-client:1.1.2"
 tensorflow-lite = { group = "org.tensorflow", name = "tensorflow-lite", version.ref = "tensorflowLite" }
 mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipeTasksGenai" }
 
 # Compose
-compose-bom = "androidx.compose:compose-bom:2026.03.01"
+compose-bom = "androidx.compose:compose-bom:2026.09.00"
 compose-foundation = { module = "androidx.compose.foundation:foundation" }
 compose-foundation-layout = { module = "androidx.compose.foundation:foundation-layout" }
 compose-material-icons = "androidx.compose.material:material-icons-extended:1.7.8"
-compose-material3 = "androidx.compose.material3:material3:1.5.0-alpha17"
+compose-material3 = "androidx.compose.material3:material3:1.5.0-beta02"
 compose-material3-windowSizeClass = { module = "androidx.compose.material3:material3-window-size-class" }
 compose-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata" }
 compose-ui = { module = "androidx.compose.ui:ui" }
@@ -117,7 +116,7 @@ opto-domain = { group = "com.patrykmichalik.opto", name = "domain", version.ref 
 # Retrofit & OkHttp
 retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-converter-kotlinx = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
-okhttp = "com.squareup.okhttp3:okhttp:5.3.2"
+okhttp = "com.squareup.okhttp3:okhttp:5.5.1"
 
 # Room
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "androidx-room" }
@@ -125,9 +124,9 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "androidx
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "androidx-room" }
 
 # KotlinX
-kotlinx-coroutines-android = "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
-kotlinx-coroutines-test = "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2"
-kotlinx-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0"
+kotlinx-coroutines-android = "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0"
+kotlinx-coroutines-test = "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0"
+kotlinx-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0"
 
 protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
@@ -140,24 +139,25 @@ airbnb-lottie = "com.airbnb.android:lottie:6.7.1"
 # LC-Note: This specific commit is needed because of 16kb compatibility
 chickenhook-restrictionbypass = "com.github.ChickenHook:RestrictionBypass:c59bd6a680"
 coil-compose = "io.coil-kt:coil-compose:2.7.0"
-google-material = "com.google.android.material:material:1.13.0"
+google-material = "com.google.android.material:material:1.14.0"
 hoko-blur = "io.github.hokofly:hoko-blur:1.5.5"
 javax-inject = "javax.inject:javax.inject:1"
 kdrag0n-colorkt = "dev.kdrag0n:colorkt:1.0.5"
 leakcanary-android = "com.squareup.leakcanary:leakcanary-android:2.14"
+leakcanary-androidstudio = "com.android.tools.studio.leakcanary:leakcanary:1.0.0"
 libsu-core = { group = "com.github.topjohnwu.libsu", name = "core", version.ref = "libsu" }
 libsu-service = { group = "com.github.topjohnwu.libsu", name = "service", version.ref = "libsu" }
 material-motion-compose = "io.github.fornewid:material-motion-compose-core:2.0.1"
-reorderable = "sh.calvin.reorderable:reorderable:3.0.0"
+reorderable = "sh.calvin.reorderable:reorderable:3.1.0"
 rikka-annotation = { module = "dev.rikka.tools.refine:annotation", version.ref = "refine" }
 rikka-annotation-processor = { module = "dev.rikka.tools.refine:annotation-processor", version.ref = "refine" }
 rikka-refine-runtime = { group = "dev.rikka.tools.refine", name = "runtime", version.ref = "refine" }
+smartspacer-sdk = "com.kieronquinn.smartspacer:sdk-client:1.2"
 xdrop-fuzzywuzzy = "me.xdrop:fuzzywuzzy:1.4.0"
-kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
-errorprone-annotations = "com.google.errorprone:error_prone_annotations:2.49.0"
+errorprone-annotations = "com.google.errorprone:error_prone_annotations:2.52.0"
 # Dummy to get renovate updates, the version is used in rootProject build.gradle with spotless.
 ktlint = "com.pinterest.ktlint:ktlint-cli:1.8.0"
-composeRules = "io.nlopez.compose.rules:ktlint:0.5.7"
+composeRules = "io.nlopez.compose.rules:ktlint:0.6.8"
 google-guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterface" }
 
@@ -166,8 +166,8 @@ google-truth = { group = "com.google.truth", name = "truth", version.ref = "trut
 junit = { group = "junit", name = "junit", version.ref = "junitVersion" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
 mockito-robolectric = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
-mockito-robolectric-bytebuddy = "net.bytebuddy:byte-buddy:1.18.8"
-mockito-robolectric-bytebuddy-agent = "net.bytebuddy:byte-buddy-agent:1.18.8"
+mockito-robolectric-bytebuddy = "net.bytebuddy:byte-buddy:1.18.17-jdk5"
+mockito-robolectric-bytebuddy-agent = "net.bytebuddy:byte-buddy-agent:1.18.17-jdk5"
 
 [bundles]
 accompanist = ["accompanist-adaptive", "accompanist-drawablepainter", "accompanist-permissions"]

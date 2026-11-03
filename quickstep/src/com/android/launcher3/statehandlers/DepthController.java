@@ -39,19 +39,19 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
 import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
-import com.android.quickstep.util.BaseDepthController;
+import com.android.quickstep.util.BaseDepthControllerImpl;
 
 import java.io.PrintWriter;
 import java.util.function.Consumer;
 
-import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
+import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
 import app.lawnchair.compat.LawnchairQuickstepCompat;
 import app.lawnchair.preferences2.PreferenceManager2;
 
 /**
  * Controls blur and wallpaper zoom, for the Launcher surface only.
  */
-public class DepthController extends BaseDepthController implements StateHandler<LauncherState>,
+public class DepthController extends BaseDepthControllerImpl implements StateHandler<LauncherState>,
         BaseActivity.MultiWindowModeChangedListener {
     @VisibleForTesting
     final ViewTreeObserver.OnDrawListener mOnDrawListener = this::onLauncherDraw;
@@ -74,8 +74,9 @@ public class DepthController extends BaseDepthController implements StateHandler
 
     public DepthController(QuickstepLauncher launcher) {
         super(launcher);
-        var pref = PreferenceManager2.getInstance(launcher).getWallpaperDepthEffect();
-        mEnableDepth = PreferenceExtensionsKt.firstBlocking(pref);
+        var prefs = PreferenceManager2.getInstance(launcher);
+        var pref = prefs.getWallpaperDepthEffect();
+        mEnableDepth = PreferenceCacheExtensionsKt.firstCached(pref);
     }
 
     private void onLauncherDraw() {
@@ -183,6 +184,12 @@ public class DepthController extends BaseDepthController implements StateHandler
         if (toState == LauncherState.BACKGROUND_APP) {
             addOnDrawListener();
         }
+        // Re-apply even when depth is already 0 so an interrupted All Apps / depth transition
+        // cannot leave workspace RenderEffect or surface blur stuck until the next resume.
+        if (toState == LauncherState.NORMAL) {
+            clearWorkspaceRenderEffects();
+            applyDepthAndBlur();
+        }
     }
 
     @Override
@@ -190,12 +197,34 @@ public class DepthController extends BaseDepthController implements StateHandler
             PendingAnimation animation) {
         if (config.hasAnimationFlag(SKIP_DEPTH_CONTROLLER)
                 || mIgnoreStateChangesDuringMultiWindowAnimation) {
+            if (toState == LauncherState.NORMAL) {
+                clearWorkspaceRenderEffects();
+            }
             return;
         }
 
         float toDepth = toState.getDepth(mLauncher);
         animation.setFloat(stateDepth, MULTI_PROPERTY_VALUE, toDepth,
                 config.getInterpolator(ANIM_DEPTH, LINEAR));
+        if (toState == LauncherState.NORMAL) {
+            animation.addEndListener(success -> {
+                if (mLauncher.getStateManager().getState() == LauncherState.NORMAL) {
+                    clearWorkspaceRenderEffects();
+                    applyDepthAndBlur();
+                }
+            });
+        }
+    }
+
+    /**
+     * Clears a stuck workspace icon blur after resume when settled on home.
+     */
+    public void clearStuckBlurOnResumeIfHome() {
+        if (mLauncher.getStateManager().getState() == LauncherState.NORMAL
+                && !mLauncher.getStateManager().isInTransition()) {
+            clearWorkspaceRenderEffects();
+            applyDepthAndBlur();
+        }
     }
 
     @Override
@@ -204,9 +233,19 @@ public class DepthController extends BaseDepthController implements StateHandler
             if (LawnchairQuickstepCompat.ATLEAST_R && mEnableDepth) {
                 ensureDependencies();
                 super.applyDepthAndBlur();
+            } else if (mLauncher.getStateManager().getState() == LauncherState.NORMAL
+                    && !mLauncher.getStateManager().isInTransition()) {
+                clearWorkspaceRenderEffects();
             }
         } catch (Throwable t) {
             // LC-Ignored
+            if (mLauncher.getStateManager().getState() == LauncherState.NORMAL) {
+                try {
+                    clearWorkspaceRenderEffects();
+                } catch (Throwable ignored) {
+                    // LC-Ignored
+                }
+            }
         }
     }
 

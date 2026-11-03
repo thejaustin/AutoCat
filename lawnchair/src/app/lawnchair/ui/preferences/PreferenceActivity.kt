@@ -54,6 +54,7 @@ class PreferenceActivity : ComponentActivity() {
                     windowSizeClass = calculateWindowSizeClass(this),
                     displayFeatures = calculateDisplayFeatures(this),
                     startDestination = initialRoute,
+                    intent = intent,
                 )
             }
         }
@@ -69,6 +70,7 @@ class PreferenceActivity : ComponentActivity() {
 
         private const val EXTRA_DESTINATION_ROUTE = "app.lawnchair.ui.preferences.DESTINATION_ROUTE"
 
+        @JvmStatic
         fun createIntent(context: Context, destination: PreferenceRoute): Intent {
             val intent = Intent(context, PreferenceActivity::class.java)
             val routeString = Json.encodeToString(destination)

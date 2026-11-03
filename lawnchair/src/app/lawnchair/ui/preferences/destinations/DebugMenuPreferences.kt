@@ -94,6 +94,14 @@ fun DebugMenuPreferences(
                     label = "Crash launcher",
                     onClick = { throw RuntimeException("User triggered crash") },
                 )
+                SwitchPreference(
+                    adapter = liveInfoManager.enabled.getAdapter(),
+                    label = "Enable live information",
+                )
+                TextPreference(
+                    adapter = liveInfoManager.endpoint.getAdapter(),
+                    label = "Live information endpoint",
+                )
                 ClickablePreference(
                     label = "Reset live information",
                     onClick = {
@@ -107,45 +115,47 @@ fun DebugMenuPreferences(
 
             PreferenceGroup(heading = "Debug flags") {
                 flags2.forEach {
-                    Item { _ ->
-                        SwitchPreference(
-                            adapter = it.getAdapter(),
-                            label = it.key.name,
-                        )
-                    }
-                }
-                flags.forEach {
-                    Item { _ ->
-                        SwitchPreference(
-                            adapter = it.getAdapter(),
-                            label = it.key,
-                        )
-                    }
-                }
-                textFlags.forEach {
-                    Item { _ ->
-                        TextPreference(
-                            adapter = it.getAdapter(),
-                            label = it.key.name,
-                        )
-                    }
-                }
-                Item {
-                    // Codename for Lawnchair to intentionally omit version number from the public,
-                    // Crash log will continue to show them normally.
-                    TextPreference(
-                        label = "Custom version info",
-                        adapter = prefs.pseudonymVersion.getAdapter(),
+                    SwitchPreference(
+                        adapter = it.getAdapter(),
+                        label = it.key.name,
                     )
                 }
+                flags.forEach {
+                    SwitchPreference(
+                        adapter = it.getAdapter(),
+                        label = it.key,
+                    )
+                }
+                textFlags.forEach {
+                    TextPreference(
+                        adapter = it.getAdapter(),
+                        label = it.key.name,
+                    )
+                }
+                // Codename for Lawnchair to intentionally omit version number from the public,
+                // Crash log will continue to show them normally.
                 TextPreference(
                     label = "Custom version info",
                     adapter = prefs.pseudonymVersion.getAdapter(),
                 )
             }
 
+            val hasOpenedSettings = prefs.hasOpenedSettings.getAdapter()
+            PreferenceGroup(heading = "Smartspace Onboarding") {
+                ClickablePreference(
+                    label = "Reset All Apps Bounce",
+                    subtitle = "Reset it in Feature Flags page",
+                ) { }
+                ClickablePreference(
+                    label = "Reset open lawn settings",
+                    subtitle = hasOpenedSettings.state.value.toString(),
+                ) {
+                    hasOpenedSettings.onChange(false)
+                }
+            }
+
+            val apmSupport = context.checkCallingOrSelfPermission(Manifest.permission.PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED
             PreferenceGroup(heading = "Supported features") {
-                val apmSupport = context.checkCallingOrSelfPermission(Manifest.permission.PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED
                 ClickablePreference(
                     label = "Window blurs",
                     subtitle = BlurUtils.supportsBlursOnWindows().toString(),
@@ -154,40 +164,6 @@ fun DebugMenuPreferences(
                     label = "App prediction",
                     subtitle = apmSupport.toString(),
                 ) {}
-            }
-
-            val hasOpenedSettings = prefs.hasOpenedSettings.getAdapter()
-            PreferenceGroup(heading = "Smartspace Onboarding") {
-                Item {
-                    ClickablePreference(
-                        label = "Reset All Apps Bounce",
-                        subtitle = "Reset it in Feature Flags page",
-                    ) { }
-                }
-                Item {
-                    ClickablePreference(
-                        label = "Reset open lawn settings",
-                        subtitle = hasOpenedSettings.state.value.toString(),
-                    ) {
-                        hasOpenedSettings.onChange(false)
-                    }
-                }
-            }
-
-            val apmSupport = context.checkCallingOrSelfPermission(Manifest.permission.PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED
-            PreferenceGroup(heading = "Supported features") {
-                Item {
-                    ClickablePreference(
-                        label = "Window blurs",
-                        subtitle = BlurUtils.supportsBlursOnWindows().toString(),
-                    ) { }
-                }
-                Item {
-                    ClickablePreference(
-                        label = "App prediction",
-                        subtitle = apmSupport.toString(),
-                    ) {}
-                }
             }
         }
     }

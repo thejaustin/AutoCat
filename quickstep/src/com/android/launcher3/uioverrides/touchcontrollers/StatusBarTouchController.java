@@ -39,6 +39,7 @@ import android.view.WindowManager;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.BaseActivity;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Launcher;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.launcher3.util.TouchController;
@@ -51,6 +52,8 @@ import java.util.function.Supplier;
 import java.lang.reflect.InvocationTargetException;
 
 import app.lawnchair.LawnchairAppKt;
+import app.lawnchair.AutoCatLauncher;
+import app.lawnchair.gestures.config.GestureHandlerConfig;
 import app.lawnchair.util.CompatibilityKt;
 
 /**
@@ -94,10 +97,11 @@ public class StatusBarTouchController implements TouchController {
 
     private void dispatchTouchEvent(MotionEvent ev) {
         if (mSystemUiProxy.isActive()) {
+            // LC-Note: If a proxy is active, pass the motion over to the proxy
             mLastAction = ev.getActionMasked();
             mSystemUiProxy.onStatusBarTouchEvent(ev);
         } else if (!mExpanded) {
-            // LC-Note: For pulling down on notification panel (default gesture config)
+            // LC-Note: If not, call the notification panel via reflection (no animations)
             mExpanded = true;
             expand();
         }
@@ -109,13 +113,18 @@ public class StatusBarTouchController implements TouchController {
 
     @SuppressLint({"WrongConstant", "PrivateApi"})
     private void expand() {
-        // LC-Note: For pulling down on notification panel (default gesture config)
-        try {
-            Class.forName("android.app.StatusBarManager")
-                .getMethod("expandNotificationsPanel")
-                .invoke(mLauncher.getSystemService("statusbar"));
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
-            e.printStackTrace();
+        // LC-Note: For pulling down on notification panel
+        if (mLauncher instanceof AutoCatLauncher launcher) {
+            launcher.getGestureController().handle(GestureHandlerConfig.OpenNotifications.INSTANCE);
+        } else {
+            // LC-Note: Fallback using older style for expanding the notifications panel
+            try {
+                Class.forName("android.app.StatusBarManager")
+                    .getMethod("expandNotificationsPanel")
+                    .invoke(mLauncher.getSystemService("statusbar"));
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -209,6 +218,17 @@ public class StatusBarTouchController implements TouchController {
     }
 
     private boolean canInterceptTouch(MotionEvent ev) {
+        // Lawnchair: Icon Swipe Gestures (For vertical down gestures)
+        if (mLauncher instanceof Launcher launcher) {
+            if (launcher.getWorkspace() != null && launcher.getDragLayer() != null) {
+                float[] coord = new float[]{ev.getX(), ev.getY()};
+                launcher.getDragLayer().mapCoordInSelfToDescendant(launcher.getWorkspace(), coord);
+                if (launcher.getWorkspace()
+                        .isTouchOnIconWithSwipeGesture(coord[0], coord[1], true)) {
+                    return false;
+                }
+            }
+        }
         if (isTrackpadScroll(ev) || !mIsEnabledCheck.get()
                 || AbstractFloatingView.getTopOpenViewWithType(mLauncher,
                 AbstractFloatingView.TYPE_STATUS_BAR_SWIPE_DOWN_DISALLOW) != null || (
@@ -223,6 +243,7 @@ public class StatusBarTouchController implements TouchController {
             }
         }
         return true;
-        // LC-Ignored: return SystemUiProxy.INSTANCE.get(mLauncher).isActive();
+        // LC-Ignored: Always intercept downward swipes on all devices regardless if a proxy is active or not.
+        // return SystemUiProxy.INSTANCE.get(mLauncher).isActive();
     }
 }

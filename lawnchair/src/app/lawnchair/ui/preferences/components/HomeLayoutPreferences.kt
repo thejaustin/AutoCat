@@ -56,7 +56,6 @@ fun HomeLayoutSettings(
 
     val deskLayout = prefs2.deckLayout.getAdapter()
     val addNewAppToHome = prefs.addIconToHome.getAdapter()
-    val swipeUpGesture = prefs2.swipeUpGestureHandler.getAdapter()
 
     val deckManager = remember { LawndeckManager(context) }
     val coroutineScope = rememberCoroutineScope()
@@ -99,7 +98,7 @@ fun HomeLayoutSettings(
                         )
                     } else {
                         Text(
-                            text = "Please wait...",
+                            text = stringResource(R.string.please_wait),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodyMedium,
                         )
@@ -117,10 +116,10 @@ fun HomeLayoutSettings(
         onCheckedChange = { newValue ->
             isLoading = true
             loadingMessage = ""
-            deskLayout.onChange(newValue)
             if (newValue) {
                 coroutineScope.launch {
-                    swipeUpGesture.onChange(GestureHandlerConfig.NoOp)
+                    prefs2.swipeUpGestureHandler.set(GestureHandlerConfig.NoOp)
+                    prefs2.deckLayout.set(true)
                     addNewAppToHome.onChange(true)
                     withContext(Dispatchers.IO) {
                         deckManager.enableLawndeck { message ->
@@ -135,12 +134,13 @@ fun HomeLayoutSettings(
                 }
             } else {
                 coroutineScope.launch {
-                    swipeUpGesture.onChange(GestureHandlerConfig.OpenAppDrawer)
+                    prefs2.swipeUpGestureHandler.set(GestureHandlerConfig.OpenAppDrawer)
+                    prefs2.deckLayout.set(false)
                     withContext(Dispatchers.IO) {
                         deckManager.disableLawndeck()
-                        isLoading = false
-                        loadingMessage = ""
                     }
+                    isLoading = false
+                    loadingMessage = ""
                 }
             }
         },

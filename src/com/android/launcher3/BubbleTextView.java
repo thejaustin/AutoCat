@@ -62,6 +62,7 @@ import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
 import android.text.style.ImageSpan;
 import android.util.AttributeSet;
+import android.util.FloatProperty;
 import android.util.Log;
 import android.util.Property;
 import android.util.TypedValue;
@@ -112,13 +113,13 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Objects;
 
-import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
 import app.lawnchair.font.FontManager;
 import app.lawnchair.gestures.IconGestureListener;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
-import app.lawnchair.util.LawnchairUtilsKt;
+import app.lawnchair.util.AutoCatUtilsKt;
+import app.lawnchair.animation.PhysicsAnimator;
 
 /**
  * TextView that draws a bubble behind the text. We cannot use a LineBackgroundSpan
@@ -171,15 +172,15 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         }
     };
 
-    public static final Property<BubbleTextView, Float> TEXT_ALPHA_PROPERTY
-            = new Property<BubbleTextView, Float>(Float.class, "textAlpha") {
+    public static final FloatProperty<BubbleTextView> TEXT_ALPHA_PROPERTY
+            = new FloatProperty<BubbleTextView>("textAlpha") {
         @Override
         public Float get(BubbleTextView bubbleTextView) {
             return bubbleTextView.mTextAlpha;
         }
 
         @Override
-        public void set(BubbleTextView bubbleTextView, Float alpha) {
+        public void setValue(BubbleTextView bubbleTextView, float alpha) {
             bubbleTextView.setTextAlpha(alpha);
         }
     };
@@ -258,6 +259,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     private IconGestureListener mGestureListener;
     private final SquishAnimation mSquishAnimation;
     private final TypographyAnimation mTypographyAnimation;
+    private boolean mShouldHandleIconSwipeTouch; // Lawnchair: Icon swipe gesture feature
 
     public BubbleTextView(Context context) {
         this(context, null, 0);
@@ -299,7 +301,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             setCompoundDrawablePadding(
                     mDeviceProfile.getAllAppsProfile().getIconDrawablePaddingPx());
             defaultIconSize = mDeviceProfile.getAllAppsProfile().getIconSizePx();
-            LawnchairUtilsKt.overrideAllAppsTextColor(this);
+            AutoCatUtilsKt.overrideAllAppsTextColor(this);
         } else if (mDisplay == DISPLAY_FOLDER) {
             setTextSize(TypedValue.COMPLEX_UNIT_PX, mDeviceProfile.folderChildTextSizePx);
             setCompoundDrawablePadding(mDeviceProfile.folderChildDrawablePaddingPx);
@@ -401,6 +403,10 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         setTranslationY(0);
         setMaxLines(1);
         setVisibility(VISIBLE);
+
+        // Lawnchair: Icon swipe gesture feature
+        mGestureListener = null;
+        mShouldHandleIconSwipeTouch = false;
     }
 
     private void cancelDotScaleAnim() {
@@ -520,6 +526,10 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
 
     protected void setItemInfo(ItemInfoWithIcon itemInfo) {
         setTag(itemInfo);
+        // Lawnchair: Icon swipe gesture feature
+        mGestureListener = shouldSupportIconSwipeGestures()
+                ? new IconGestureListener(this, pref2, itemInfo.getComponentKey())
+                : null;
     }
 
     @VisibleForTesting
@@ -580,7 +590,10 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         if (mSkipUserBadge) {
             flags |= FLAG_SKIP_USER_BADGE;
         }
-        FastBitmapDrawable iconDrawable = info.newIcon(getContext(), flags);
+        // LC-Note: Open drawer-folder children must use the same preference as their preview.
+        FastBitmapDrawable iconDrawable = mDisplay == DISPLAY_DRAWER_FOLDER
+                ? info.newIcon(getContext(), flags, shouldUseTheme())
+                : info.newIcon(getContext(), flags);
         mDotParams.appColor = iconDrawable.getIconColor();
         mDotParams.dotColor = Themes.getAttrColor(getContext(), R.attr.notificationDotColor);
         if (isPrivateSpaceIcon) {
@@ -590,7 +603,8 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
     }
 
     public boolean shouldUseTheme() {
-        if (mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_DRAWER_FOLDER) {
+        if (mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_DRAWER_FOLDER
+                || mDisplay == DISPLAY_PREDICTION_ROW) {
             return PreferenceManager.getInstance(getContext()).getDrawerThemedIcons().get();
         }
         return mDisplay == DISPLAY_WORKSPACE || mDisplay == DISPLAY_FOLDER
@@ -717,6 +731,10 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                 && shouldIgnoreTouchDown(event.getX(), event.getY())) {
             return false;
         }
+        // Lawnchair: Icon swipe gesture feature
+        if (handleIconSwipeTouchEvent(event)) {
+            return true;
+        }
         if (isLongClickable()) {
             super.onTouchEvent(event);
             mLongPressHelper.onTouchEvent(event);
@@ -739,6 +757,80 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
                 || x < getPaddingLeft()
                 || y > getHeight() - getPaddingBottom()
                 || x > getWidth() - getPaddingRight();
+    }
+
+    /** Lawnchair: Handle icon swipe gesture feature, self-explanatory. 
+     * Only do horizontal gesture at the moment
+     * @param event The type of MotionEvent to handle */
+    private boolean handleIconSwipeTouchEvent(MotionEvent event) {
+        if (!shouldSupportIconSwipeGestures()) {
+            return false;
+        }
+
+        int action = event.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) {
+            mShouldHandleIconSwipeTouch = hasConfiguredIconSwipeGesture();
+        }
+
+        if (!mShouldHandleIconSwipeTouch || mGestureListener == null) {
+            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                mShouldHandleIconSwipeTouch = false;
+            }
+            return false;
+        }
+
+        boolean handled = mGestureListener.onTouchEvent(event);
+        if (handled) {
+            cancelLongPress();
+            MotionEvent cancelEvent = MotionEvent.obtain(event);
+            cancelEvent.setAction(MotionEvent.ACTION_CANCEL);
+            super.onTouchEvent(cancelEvent);
+            mLongPressHelper.onTouchEvent(cancelEvent);
+            cancelEvent.recycle();
+            setPressed(false);
+            refreshDrawableState();
+            mShouldHandleIconSwipeTouch = false;
+            return true;
+        }
+
+        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            mShouldHandleIconSwipeTouch = false;
+        }
+        return false;
+    }
+
+    /** Lawnchair: Check eligibility for icon swipe gesture to be greenlit */
+    private boolean isIconSwipeGestureEnabledForCurrentState() {
+        return !(mActivity instanceof Launcher launcher 
+            && launcher.isInState(LauncherState.EDIT_MODE));
+    }
+
+    /** Lawnchair: Check if icon swipe feature is enabled, and has a gesture configured for it */
+    public boolean hasConfiguredIconSwipeGesture() {
+        return mGestureListener != null
+                && isIconSwipeGestureEnabledForCurrentState()
+                && mGestureListener.hasAnyGestureConfigured();
+    }
+
+    /** Lawnchair: Check if icon swipe feature is enabled, 
+     * and has a horizontal gesture configured for it */
+    public boolean hasConfiguredHorizontalIconSwipeGesture() {
+        return mGestureListener != null
+                && isIconSwipeGestureEnabledForCurrentState()
+                && mGestureListener.hasHorizontalGestureConfigured();
+    }
+
+    /** Lawnchair: Check if icon swipe feature is enabled, 
+     * and has a vertical gesture configured for it */
+    public boolean hasConfiguredVerticalIconSwipeGesture() {
+        return mGestureListener != null
+            && isIconSwipeGestureEnabledForCurrentState()
+            && mGestureListener.hasVerticalGestureConfigured();
+    }
+
+    /** Lawnchair: Get supported swipe target which are within workspace or within folder */
+    private boolean shouldSupportIconSwipeGestures() {
+        return mDisplay == DISPLAY_WORKSPACE || mDisplay == DISPLAY_FOLDER;
     }
 
     void setStayPressed(boolean stayPressed) {
@@ -1137,7 +1229,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         ItemInfo info = tag instanceof ItemInfo ? (ItemInfo) tag : null;
         return info == null || info.container != LauncherSettings.Favorites.CONTAINER_HOTSEAT
                 && info.container != LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION
-                || PreferenceExtensionsKt.firstBlocking(pref2.getEnableLabelInDock());
+                || PreferenceCacheExtensionsKt.firstCached(pref2.getEnableLabelInDock());
     }
 
     /**
@@ -1321,7 +1413,7 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
             mDotInfo = mActivity.getDotInfoForItem(itemInfo);
             boolean isDotted = mDotInfo != null;
             float newDotScale = isDotted ? 1f : 0;
-            if (mDisplay == DISPLAY_ALL_APPS) {
+            if (mDisplay == DISPLAY_ALL_APPS || mDisplay == DISPLAY_PREDICTION_ROW) {
                 mDotRenderer = mActivity.getDeviceProfile().mDotRendererAllApps;
             } else {
                 mDotRenderer = mActivity.getDeviceProfile().mDotRendererWorkSpace;
@@ -1549,6 +1641,10 @@ public class BubbleTextView extends TextView implements ItemInfoUpdateReceiver,
         if (mIcon != null) {
             mIcon.resetScale();
         }
+        // LC-Note: Cancel physics animator for icon swipe gesture
+        PhysicsAnimator.getInstance(this).cancel();
+        setTranslationX(0);
+        setTranslationY(0);
     }
 
     private void updateIcon(Drawable newIcon) {

@@ -29,16 +29,14 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
-import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.ScrimColors;
-import com.android.quickstep.util.BaseDepthController;
+import com.android.quickstep.util.BaseDepthControllerImpl;
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper;
 
 import java.util.concurrent.TimeUnit;
 
-import app.lawnchair.LawnchairLauncher;
-import app.lawnchair.util.LawnchairUtilsKt;
+import app.lawnchair.util.AutoCatUtilsKt;
 
 /**
  * Definition for AllApps state
@@ -146,7 +144,7 @@ public class AllAppsState extends LauncherState {
             if (enableScalingRevealHomeAnimation()) {
                 // This means that the depth should be twice of what we want, in order to fully zoom
                 // out during the visible portion of the animation.
-                return BaseDepthController.DEPTH_60_PERCENT;
+                return BaseDepthControllerImpl.DEPTH_60_PERCENT;
             } else {
                 // This means that the depth should be greater than 1, in order to fully zoom out.
                 return 2f;
@@ -213,12 +211,13 @@ public class AllAppsState extends LauncherState {
         int backgroundColor;
         if (!launcher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
             // Always use an opaque scrim if there's no sheet.
-            backgroundColor = ColorTokens.SurfaceDimColor.resolveColor(launcher);
+            backgroundColor = ColorTokens.AllAppsScrimColor.resolveColor(launcher);
         } else if (!Flags.allAppsBlur()) {
             // If there's a sheet but no blur, use the old scrim color.
-            backgroundColor = ColorTokens.WidgetsPickerScrim.resolveColor(launcher);
+            backgroundColor = AutoCatUtilsKt.getAllAppsBackgroundColor(launcher, 
+                ColorTokens.WidgetsPickerScrim.resolveColor(launcher));
         } else {
-            backgroundColor = LawnchairUtilsKt.getAllAppsScrimColor(launcher);
+            backgroundColor = ColorTokens.AllAppsScrimColor.resolveColor(launcher);
         }
         return new ScrimColors(backgroundColor, /* foregroundColor */ Color.TRANSPARENT);
     }

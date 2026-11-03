@@ -45,7 +45,7 @@ import com.android.launcher3.provider.LauncherDbUtils.shiftWorkspaceByXCells
 import com.android.launcher3.util.CellAndSpan
 import com.android.launcher3.util.GridOccupancy
 import com.android.launcher3.util.IntArray
-import com.patrykmichalik.opto.core.firstBlocking
+import app.lawnchair.preferences2.firstCached
 
 class GridSizeMigrationLogic {
     /**
@@ -319,9 +319,15 @@ class GridSizeMigrationLogic {
 
         workspaceToBeAdded.sort()
 
-        // First we create a collection of the screens
+        // First we create a collection of the screens. We extend the range to cover the source
+        // items' original screens so each item can be re-placed on its own screen (preserving the
+        // user's layout) instead of being packed onto the first available screens.
+        val lastScreen = maxOf(
+            destReader.mLastScreenId,
+            workspaceToBeAdded.maxOfOrNull { it.screenId } ?: 0,
+        )
         val screens: MutableList<Int> = ArrayList()
-        for (screenId in 0..destReader.mLastScreenId) {
+        for (screenId in 0..lastScreen) {
             screens.add(screenId)
         }
 
@@ -339,6 +345,7 @@ class GridSizeMigrationLogic {
                     trgY,
                     itemsToPlace.mRemainingItemsToPlace,
                     destReader.mWorkspaceEntriesByScreenId[screenId],
+                    preserveOriginal = true,
                 )
             placeItems(itemsToPlace, helper, srcReader, destReader, idsInUse)
             while (itemsToPlace.mPlacementSolution.isNotEmpty()) {
@@ -473,7 +480,12 @@ class GridSizeMigrationLogic {
         val remainingItemsToPlace: MutableList<DbEntry> = ArrayList(itemsToPlace)
         val occupied = BooleanArray(hotseatSize)
         for (entry in placedHotseatItems) {
-            occupied[entry.screenId] = true
+            // LC-Note: the target may still hold dock items past this dock size (it was last
+            // used with a larger dock), and a corrupt database a negative rank. They take no slot;
+            // marking one would throw ArrayIndexOutOfBoundsException.
+            if (entry.screenId >= 0 && entry.screenId < occupied.size) {
+                occupied[entry.screenId] = true
+            }
         }
 
         for (i in occupied.indices) {
@@ -500,6 +512,7 @@ class GridSizeMigrationLogic {
         trgY: Int,
         sortedItemsToPlace: MutableList<DbEntry>,
         existedEntries: MutableList<DbEntry>?,
+        preserveOriginal: Boolean = false,
     ): WorkspaceItemsToPlace {
         val itemsToPlace = WorkspaceItemsToPlace(sortedItemsToPlace, mutableListOf())
         val occupied = GridOccupancy(trgX, trgY)
@@ -508,7 +521,7 @@ class GridSizeMigrationLogic {
         val prefs2 = PreferenceManager2.INSTANCE.get(context)
 
         val next: Point =
-            if (screenId == 0 && prefs2.enableSmartspace.firstBlocking()) {
+            if (screenId == 0 && prefs2.enableSmartspace.firstCached()) {
                 Point(0, 1 /* smartspace */)
             } else {
                 Point(0, 0)
@@ -524,6 +537,23 @@ class GridSizeMigrationLogic {
             if (entry.minSpanX > trgX || entry.minSpanY > trgY) {
                 iterator.remove()
                 continue
+            }
+            // Lawnchair: keep the user's existing layout when possible. Items are deferred to
+            // their original screen and kept at their original cell and size if it still fits and
+            // the spot is free; only items that no longer fit fall back to automatic placement.
+            if (preserveOriginal) {
+                if (entry.screenId > screenId) {
+                    // This item belongs to a later screen; leave it for that screen's pass.
+                    continue
+                }
+                if (entry.screenId == screenId &&
+                    canKeepOriginalPlacement(entry, next.y, trg, occupied)
+                ) {
+                    occupied.markCells(entry, true)
+                    itemsToPlace.mPlacementSolution.add(entry)
+                    iterator.remove()
+                    continue
+                }
             }
             findPlacementForEntry(entry, next.x, next.y, trg, occupied)?.let {
                 entry.screenId = screenId
@@ -564,6 +594,24 @@ class GridSizeMigrationLogic {
             newStartPosX = 0
         }
         return null
+    }
+
+    /**
+     * Lawnchair: returns true if [entry] can stay at its original cell with its original size in
+     * the target grid — i.e. it fits within the grid bounds, sits below the reserved top rows
+     * (e.g. the smartspace on the first screen), and its region is currently free.
+     */
+    private fun canKeepOriginalPlacement(
+        entry: DbEntry,
+        reservedTopRows: Int,
+        trg: Point,
+        occupied: GridOccupancy,
+    ): Boolean {
+        if (entry.cellX < 0 || entry.cellY < reservedTopRows) return false
+        if (entry.spanX < 1 || entry.spanY < 1) return false
+        if (entry.cellX + entry.spanX > trg.x) return false
+        if (entry.cellY + entry.spanY > trg.y) return false
+        return occupied.isRegionVacant(entry.cellX, entry.cellY, entry.spanX, entry.spanY)
     }
 
     private data class WorkspaceItemsToPlace(

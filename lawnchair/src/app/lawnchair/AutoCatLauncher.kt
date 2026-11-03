@@ -38,9 +38,11 @@ import app.lawnchair.data.wallpaper.service.WallpaperService
 import app.lawnchair.gestures.GestureController
 import app.lawnchair.gestures.VerticalSwipeTouchController
 import app.lawnchair.gestures.config.GestureHandlerConfig
+import app.lawnchair.gestures.ui.LawnchairShortcutActivity
 import app.lawnchair.nexuslauncher.OverlayCallbackImpl
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
+import app.lawnchair.preferences2.firstCached
 import app.lawnchair.root.RootHelperManager
 import app.lawnchair.root.RootNotAvailableException
 import app.lawnchair.theme.DynamicThemeContextWrapper
@@ -57,12 +59,17 @@ import com.android.launcher3.BaseActivity
 import com.android.launcher3.BubbleTextView
 import com.android.launcher3.GestureNavContract
 import com.android.launcher3.LauncherAppState
+import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION
+import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION
+import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_PREDICTION
 import com.android.launcher3.LauncherState
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.dragndrop.DragOptions
+import com.android.launcher3.folder.FolderIcon
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.model.data.ItemInfo
+import com.android.launcher3.model.data.PredictedContainerInfo
 import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.shortcuts.DeepShortcutView
 import com.android.launcher3.statemanager.StateManager
@@ -79,7 +86,6 @@ import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.SystemUiController.UI_STATE_BASE_WINDOW
 import com.android.launcher3.util.Themes
 import com.android.launcher3.util.TouchController
-import com.android.launcher3.util.WallpaperThemeManager
 import com.android.launcher3.views.ActivityContext
 import com.android.launcher3.views.OptionsPopupView
 import com.android.launcher3.views.OptionsPopupView.OptionItem
@@ -88,7 +94,6 @@ import com.android.launcher3.widget.RoundedCornerEnforcement
 import com.android.systemui.plugins.shared.LauncherOverlayManager
 import com.android.systemui.shared.system.QuickStepContract
 import com.kieronquinn.app.smartspacer.sdk.client.SmartspacerClient
-import com.patrykmichalik.opto.core.firstBlocking
 import com.patrykmichalik.opto.core.onEach
 import dev.kdrag0n.monet.theme.ColorScheme
 import java.util.stream.Stream
@@ -221,7 +226,7 @@ class AutoCatLauncher :
             }
         }.launchIn(scope = lifecycleScope)
 
-        preferenceManager2.statusBarClock.get().onEach {
+        preferenceManager2.statusBarClock.get().distinctUntilChanged().onEach {
             with(this@AutoCatLauncher.stateManager) {
                 if (it) {
                     addStateListener(statusBarClockListener)
@@ -231,7 +236,7 @@ class AutoCatLauncher :
                     AutoCatApp.instance.restoreClockInStatusBar()
                 }
             }
-        }
+        }.launchIn(scope = lifecycleScope)
         preferenceManager2.rememberPosition.get().onEach {
             with(this@AutoCatLauncher.stateManager) {
                 if (it) {
@@ -283,13 +288,35 @@ class AutoCatLauncher :
         }
     }
 
+    override fun onNewIntent(intent: Intent?) {
+        if (intent != null && intent.action == LawnchairShortcutActivity.START_ACTION) {
+            val handlerString = intent.getStringExtra(LawnchairShortcutActivity.EXTRA_HANDLER)
+            val config = handlerString?.let { GestureHandlerConfig.fromString(it) }
+            if (config != null && config.isExternallyInvokable()) {
+                gestureController.handle(config)
+            }
+        }
+
+        super.onNewIntent(intent)
+    }
+
     override fun collectStateHandlers(out: MutableList<StateHandler<LauncherState>>) {
         super.collectStateHandlers(out)
         out.add(SearchBarStateHandler(this))
     }
 
-    override fun getSupportedShortcuts(): Stream<SystemShortcut.Factory<*>> = Stream.concat(
-        super.getSupportedShortcuts(),
+    override fun getAllAppsItemLongClickListener(): View.OnLongClickListener {
+        return View.OnLongClickListener { view ->
+            if (view is FolderIcon && view.mInfo.id != ItemInfo.NO_ID) {
+                AutoCatShortcut.showAppDrawerFolderPopup(this, view)
+            } else {
+                super.getAllAppsItemLongClickListener().onLongClick(view)
+            }
+        }
+    }
+
+    override fun getSupportedShortcuts(container: Int): Stream<SystemShortcut.Factory<*>> = Stream.concat(
+        super.getSupportedShortcuts(container),
         Stream.concat(
             Stream.of(
                 AutoCatShortcut.UNINSTALL,
@@ -302,7 +329,7 @@ class AutoCatLauncher :
                 AutoCatShortcut.STORE_PAGE,
                 AutoCatShortcut.AI_SUMMARY,
             ),
-            if (AutoCatApp.isRecentsEnabled) Stream.of(AutoCatShortcut.PAUSE_APPS) else Stream.empty(),
+            Stream.of(AutoCatShortcut.PAUSE_APPS),
         ),
     )
 
@@ -336,7 +363,18 @@ class AutoCatLauncher :
         if (themeProvider.colorScheme != colorScheme) {
             recreate()
         } else {
-            WallpaperThemeManager(this).updateTheme()
+            mWallpaperThemeManager.updateTheme()
+        }
+    }
+
+    override fun onStateBack() {
+        val searchInput = mAppsView?.searchUiManager?.editText
+        val isSearching = mAppsView?.isSearching == true || searchInput?.hasFocus() == true
+        if (isSearching) {
+            mAppsView?.searchUiManager?.resetSearch()
+            allAppsController.animateAllAppsToNoScale()
+        } else {
+            super.onStateBack()
         }
     }
 
@@ -347,12 +385,6 @@ class AutoCatLauncher :
 
     override fun handleHomeTap() {
         gestureController.onHomePressed()
-    }
-
-    override fun registerBackDispatcher() {
-        if (AutoCatApp.isAtleastT) {
-            super.registerBackDispatcher()
-        }
     }
 
     override fun bindItems(items: List<ItemInfo>, forceAnimateIcons: Boolean) {
@@ -389,7 +421,7 @@ class AutoCatLauncher :
     }
 
     override fun showDefaultOptions(x: Float, y: Float) {
-        val showWallpaperCarousel = "+carousel" in preferenceManager2.launcherPopupOrder.firstBlocking()
+        val showWallpaperCarousel = "+carousel" in preferenceManager2.launcherPopupOrder.firstCached()
 
         if (showWallpaperCarousel) {
             this.show<AutoCatLauncher>(
@@ -509,6 +541,7 @@ class AutoCatLauncher :
     override fun onResume() {
         super.onResume()
         restartIfPending()
+        refreshPredictionContainersFromModel()
 
         dragLayer.viewTreeObserver.addOnDrawListener(
             object : ViewTreeObserver.OnDrawListener {
@@ -522,11 +555,17 @@ class AutoCatLauncher :
 
                     dragLayer.post {
                         dragLayer.viewTreeObserver.removeOnDrawListener(this)
+                        // Drop stuck All Apps RenderEffect on icons after returning home.
+                        depthController.clearStuckBlurOnResumeIfHome()
                     }
-                    depthController
                 }
             },
         )
+    }
+
+    override fun onStateSetEnd(state: LauncherState) {
+        super.onStateSetEnd(state)
+        refreshPredictionContainersFromModel()
     }
 
     override fun onDestroy() {
@@ -550,6 +589,25 @@ class AutoCatLauncher :
             sRestartFlags and FLAG_RECREATE != 0 -> {
                 sRestartFlags = 0
                 recreate()
+            }
+        }
+    }
+
+    private fun refreshPredictionContainersFromModel() {
+        LauncherAppState.getInstance(this).model.loadAsync { dataModel ->
+            if (dataModel == null || isDestroyed) return@loadAsync
+
+            val predictedContainers = synchronized(dataModel) {
+                listOf(
+                    dataModel.itemsIdMap[CONTAINER_ALL_APPS_PREDICTION] as? PredictedContainerInfo,
+                    dataModel.itemsIdMap[CONTAINER_HOTSEAT_PREDICTION] as? PredictedContainerInfo,
+                    dataModel.itemsIdMap[CONTAINER_WIDGETS_PREDICTION] as? PredictedContainerInfo,
+                ).filterNotNull()
+            }
+
+            Executors.MAIN_EXECUTOR.execute {
+                if (isDestroyed) return@execute
+                predictedContainers.forEach(::bindPredictedContainerInfo)
             }
         }
     }
@@ -586,3 +644,7 @@ val Context.autoCatLauncherNullable: AutoCatLauncher? get() = try {
 }
 // Force git detection by adding a comment
 // This line was added to ensure git detects a change.
+
+// Upstream Lawnchair code refers to the launcher through these extensions.
+val Context.launcher: AutoCatLauncher get() = autoCatLauncher
+val Context.launcherNullable: AutoCatLauncher? get() = autoCatLauncherNullable

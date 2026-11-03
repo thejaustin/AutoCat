@@ -12,7 +12,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -26,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.theme.color.ColorOption
+import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.colorpreference.pickers.CustomColorPicker
 import app.lawnchair.ui.preferences.components.colorpreference.pickers.PresetsList
 import app.lawnchair.ui.preferences.components.colorpreference.pickers.SwatchGrid
@@ -33,10 +33,11 @@ import app.lawnchair.ui.preferences.components.layout.BottomSpacer
 import app.lawnchair.ui.preferences.components.layout.Chip
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import com.android.launcher3.R
+import com.android.launcher3.util.MSDLPlayerWrapper
+import com.google.android.msdl.data.model.MSDLToken
 import com.patrykmichalik.opto.domain.Preference
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ColorSelection(
     label: String,
@@ -48,6 +49,8 @@ fun ColorSelection(
     val adapter = preference.getAdapter()
     val appliedColor = adapter.state.value
     val context = LocalContext.current
+    val mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(context)
+    val navController = LocalNavController.current
     val selectedColor = remember { mutableIntStateOf(appliedColor.forCustomPicker(context)) }
     val selectedColorApplied = remember {
         derivedStateOf {
@@ -83,7 +86,10 @@ fun ColorSelection(
             ) {
                 Button(
                     enabled = !selectedColorApplied.value,
-                    onClick = { adapter.onChange(newValue = ColorOption.CustomColor(selectedColor.intValue)) },
+                    onClick = {
+                        adapter.onChange(newValue = ColorOption.CustomColor(selectedColor.intValue))
+                        navController.popBackStack()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(all = 16.dp),
@@ -106,13 +112,19 @@ fun ColorSelection(
             ) {
                 Chip(
                     label = stringResource(id = R.string.presets),
-                    onClick = { scrollToPage(0) },
+                    onClick = {
+                        mMSDLPlayerWrapper.playToken(MSDLToken.TAP_LOW_EMPHASIS)
+                        scrollToPage(0)
+                    },
                     currentOffset = pagerState.currentPage + pagerState.currentPageOffsetFraction,
                     page = 0,
                 )
                 Chip(
                     label = stringResource(id = R.string.custom),
-                    onClick = { scrollToPage(1) },
+                    onClick = {
+                        mMSDLPlayerWrapper.playToken(MSDLToken.TAP_LOW_EMPHASIS)
+                        scrollToPage(1)
+                    },
                     currentOffset = pagerState.currentPage + pagerState.currentPageOffsetFraction,
                     page = 1,
                 )

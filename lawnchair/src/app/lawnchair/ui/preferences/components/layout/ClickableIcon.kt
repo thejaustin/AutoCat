@@ -1,7 +1,6 @@
 package app.lawnchair.ui.preferences.components.layout
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -14,8 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
+import com.android.launcher3.util.MSDLPlayerWrapper
+import com.google.android.msdl.data.model.MSDLToken
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ClickableIcon(
     painter: Painter,
@@ -24,8 +25,12 @@ fun ClickableIcon(
     enabled: Boolean = true,
     tint: Color = LocalContentColor.current,
 ) {
+    val mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(LocalContext.current)
     FilledTonalIconButton(
-        onClick = onClick,
+        onClick = {
+            mMSDLPlayerWrapper.playToken(MSDLToken.TAP_MEDIUM_EMPHASIS)
+            onClick()
+        },
         modifier = modifier,
         enabled = enabled,
         shapes = IconButtonDefaults.shapes(),

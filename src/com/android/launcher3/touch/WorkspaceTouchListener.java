@@ -54,7 +54,7 @@ import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.util.TouchUtil;
 
-import app.lawnchair.LawnchairLauncher;
+import app.lawnchair.AutoCatLauncher;
 
 /**
  * Helper class to handle touch on empty space in workspace and show options popup on long press
@@ -82,6 +82,7 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
     private int mLongPressState = STATE_CANCELLED;
 
     private final GestureDetector mGestureDetector;
+    private boolean mDoubleTapPending = false;
 
     DevicePolicyManager mDpm;
 
@@ -97,9 +98,20 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public boolean onTouch(View view, MotionEvent ev) {
+        int action = ev.getActionMasked();
+        if (action == ACTION_DOWN) {
+            mDoubleTapPending = false;
+        }
+
         mGestureDetector.onTouchEvent(ev);
 
-        int action = ev.getActionMasked();
+        if (mDoubleTapPending) {
+            if (action == ACTION_UP || action == ACTION_CANCEL) {
+                mDoubleTapPending = false;
+            }
+            return true;
+        }
+
         if (action == ACTION_DOWN) {
             // Check if we can handle long press.
             boolean handleLongPress = canHandleLongPress();
@@ -186,6 +198,10 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
             cancelLongPress();
         }
         if (action == ACTION_UP && isInAllAppsBottomSheet) {
+            // NORMAL has no FLAG_CLOSE_POPUPS, so drawer folders (Lawnchair) would stay open
+            // on the workspace after dismissing All Apps via the sheet's upper edge.
+            AbstractFloatingView.closeOpenViews(
+                    mLauncher, true /* animate */, AbstractFloatingView.TYPE_FOLDER);
             mLauncher.getStateManager().goToState(NORMAL);
             mLauncher.getStatsLogManager().logger()
                     .withSrcState(ALL_APPS.statsLogOrdinal)
@@ -243,8 +259,9 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public boolean onDoubleTap(MotionEvent event) {
+        mDoubleTapPending = true;
         Context context = mWorkspace.getContext();
-        LawnchairLauncher launcher = Launcher.fromContext(context);
+        AutoCatLauncher launcher = Launcher.fromContext(context);
         launcher.getGestureController().onDoubleTap();
         return true;
     }

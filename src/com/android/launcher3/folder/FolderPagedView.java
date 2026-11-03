@@ -24,12 +24,12 @@ import static com.android.launcher3.folder.FolderGridOrganizer.createFolderGridO
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Path;
 import android.graphics.Point;
 import android.util.ArrayMap;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewDebug;
 
@@ -45,7 +45,9 @@ import com.android.launcher3.ShortcutAndWidgetContainer;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.apppairs.AppPairIcon;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
+import com.android.launcher3.graphics.PathWrapper;
 import com.android.launcher3.keyboard.ViewGroupFocusHelper;
+import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
@@ -97,13 +99,14 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
 
     private Folder mFolder;
 
-    private Path mClipPath;
+    private PathWrapper mClipPath;
 
     // If the views are attached to the folder or not. A folder should be bound when its
     // animating or is open.
     private boolean mViewsBound = false;
 
     private boolean mCanAnnouncePageDescription;
+    private boolean mDisallowPagedViewInterceptForIconSwipe; // Lawnchair: Icon swipe gesture feature
 
     public FolderPagedView(Context context, AttributeSet attrs) {
         this(
@@ -154,7 +157,7 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
     protected void dispatchDraw(Canvas canvas) {
         if (mClipPath != null) {
             int count = canvas.save();
-            canvas.clipPath(mClipPath);
+            canvas.clipPath(mClipPath.getPath());
             mFocusIndicatorHelper.draw(canvas);
             super.dispatchDraw(canvas);
             canvas.restoreToCount(count);
@@ -162,6 +165,91 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
             mFocusIndicatorHelper.draw(canvas);
             super.dispatchDraw(canvas);
         }
+    }
+
+    // Lawnchair: Icon swipe gesture feature
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if (shouldSkipPagedViewInterceptionForIconSwipe(ev)) {
+            return false;
+        }
+        return super.onInterceptTouchEvent(ev);
+    }
+
+    // Lawnchair: Icon swipe gesture feature
+    private boolean shouldSkipPagedViewInterceptionForIconSwipe(MotionEvent ev) {
+        switch (ev.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                mDisallowPagedViewInterceptForIconSwipe = isTouchOnIconWithHorizontalSwipeGesture(
+                        ev.getX(), ev.getY());
+                if (mDisallowPagedViewInterceptForIconSwipe) {
+                    resetTouchState();
+                    return true;
+                }
+                return false;
+
+            case MotionEvent.ACTION_MOVE:
+                return mDisallowPagedViewInterceptForIconSwipe;
+
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                boolean shouldSkip = mDisallowPagedViewInterceptForIconSwipe;
+                mDisallowPagedViewInterceptForIconSwipe = false;
+                if (shouldSkip) {
+                    resetTouchState();
+                }
+                return shouldSkip;
+
+            default:
+                return false;
+        }
+    }
+
+    // Lawnchair: Icon swipe gesture feature
+    private boolean isTouchOnIconWithHorizontalSwipeGesture(float x, float y) {
+        BubbleTextView touchedIcon = findIconAtPosition(x, y);
+        return touchedIcon != null && touchedIcon.hasConfiguredHorizontalIconSwipeGesture();
+    }
+
+    /** Lawnchair: Find icon at specific position */
+    private BubbleTextView findIconAtPosition(float x, float y) {
+        for (int i = getChildCount() - 1; i >= 0; i--) {
+            View page = getChildAt(i);
+            if (!(page instanceof CellLayout cellLayout)) {
+                continue;
+            }
+            float localX = x - page.getLeft();
+            float localY = y - page.getTop();
+            if (!Utilities.pointInView(cellLayout, localX, localY, 0)) {
+                continue;
+            }
+            BubbleTextView foundView = findIconInCellLayout(cellLayout, localX, localY);
+            if (foundView != null) {
+                return foundView;
+            }
+        }
+        return null;
+    }
+
+    /** Lawnchair: Find icon in cell layout */
+    private BubbleTextView findIconInCellLayout(CellLayout cellLayout, float x, float y) {
+        ShortcutAndWidgetContainer container = cellLayout.getShortcutsAndWidgets();
+        float containerX = x - container.getLeft();
+        float containerY = y - container.getTop();
+        for (int i = container.getChildCount() - 1; i >= 0; i--) {
+            View child = container.getChildAt(i);
+            if (!(child instanceof BubbleTextView bubbleTextView)
+                    || child.getVisibility() != View.VISIBLE) {
+                continue;
+            }
+            if (Utilities.pointInView(child,
+                    containerX - child.getLeft(),
+                    containerY - child.getTop(),
+                    0)) {
+                return bubbleTextView;
+            }
+        }
+        return null;
     }
 
     /**
@@ -260,7 +348,14 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
                 ((BubbleTextView) icon).applyFromItemInfoWithIcon((ItemInfoWithIcon) item);
             } else {
                 icon = mViewCache.getView(R.layout.folder_application, getContext(), null);
-                ((BubbleTextView) icon).applyFromWorkspaceItem((WorkspaceItemInfo) item);
+                // LC-Note: Allow creation of item from workspace and from other places
+                if (item instanceof WorkspaceItemInfo workspaceItemInfo) {
+                    ((BubbleTextView) icon).applyFromWorkspaceItem(workspaceItemInfo);
+                } else if (item instanceof AppInfo appInfo) {
+                    ((BubbleTextView) icon).applyFromApplicationInfo(appInfo);
+                } else {
+                    ((BubbleTextView) icon).applyFromItemInfoWithIcon((ItemInfoWithIcon) item);
+                }
             }
         }
 
@@ -294,7 +389,12 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
     private CellLayout createAndAddNewPage() {
         DeviceProfile grid = mFolder.mActivityContext.getDeviceProfile();
         CellLayout page = mViewCache.getView(R.layout.folder_page, getContext(), this);
-        page.setCellDimensions(grid.folderCellWidthPx, grid.folderCellHeightPx);
+        // Lawnchair: Find the correct folder size depending on which parent owned them
+        if (mFolder.isInAppDrawer()) {
+            page.setCellDimensions(grid.getAllAppsProfile().getCellWidthPx(), grid.getAllAppsProfile().getCellHeightPx());
+        } else {
+            page.setCellDimensions(grid.folderCellWidthPx, grid.folderCellHeightPx);
+        }
         page.getShortcutsAndWidgets().setMotionEventSplittingEnabled(false);
         page.setInvertIfRtl(true);
         page.setGridSize(mGridCountX, mGridCountY);
@@ -663,7 +763,7 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
             if (v != null) {
                 if (pageToAnimate != p) {
                     page.removeView(v);
-                    addViewForRank(v, (WorkspaceItemInfo) v.getTag(), moveStart);
+                    addViewForRank(v, (ItemInfo) v.getTag(), moveStart);
                 } else {
                     // Do a fake animation before removing it.
                     final int newRank = moveStart;
@@ -676,7 +776,7 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
                             mPendingAnimations.remove(v);
                             v.setTranslationX(oldTranslateX);
                             ((CellLayout) v.getParent().getParent()).removeView(v);
-                            addViewForRank(v, (WorkspaceItemInfo) v.getTag(), newRank);
+                            addViewForRank(v, (ItemInfo) v.getTag(), newRank);
                         }
                     };
                     v.animate()
@@ -718,7 +818,7 @@ public class FolderPagedView extends PagedView<PageIndicatorDots> implements Cli
     }
 
     @Override
-    public void setClipPath(Path clipPath) {
+    public void setClipPath(PathWrapper clipPath) {
         mClipPath = clipPath;
         invalidate();
     }

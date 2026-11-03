@@ -2,6 +2,7 @@ package app.lawnchair.categorization
 
 import android.content.Context
 import app.lawnchair.categorization.llm.LLMLogger
+import app.lawnchair.data.folder.FolderEntry
 import app.lawnchair.data.folder.service.FolderService
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.deck.AddFoldersWithItemsTask
@@ -237,7 +238,7 @@ class CategoryFolderSyncService(
     private suspend fun syncToDrawer(
         appsByTab: Map<String, List<String>>,
         appsByPackage: Map<String, List<AppInfo>>,
-        existingFolderMap: Map<String, FolderInfo>,
+        existingFolderMap: Map<String, FolderEntry>,
         tabIconMap: Map<String, String?>,
     ): Pair<Int, Int> {
         var foldersCreated = 0
@@ -283,34 +284,15 @@ class CategoryFolderSyncService(
                     )
                     android.util.Log.d(TAG, "Updated drawer folder: $folderName (${apps.size} apps)")
                 } else {
-                    // Create new folder with ID
-                    val newFolder = FolderInfo().apply {
-                        title = folderName
-                        // Launcher3 auto-generates ID if not set
-                    }
-                    drawerFolderService.saveFolderInfo(newFolder)
-
-                    // Use database query instead of timeout-based getAllFolders() - much faster
-                    kotlinx.coroutines.delay(100) // Small delay for DB write
-                    val folderId = try {
-                        // Get folder ID from Room directly (no timeout)
-                        val allFolders = drawerFolderService.getAllFolders()
-                        allFolders.find { it.title.toString() == folderName }?.id
-                    } catch (e: Exception) {
-                        android.util.Log.w(TAG, "Failed to get folder ID for $folderName", e)
-                        null
-                    }
-
-                    if (folderId != null) {
-                        drawerFolderService.updateFolderWithItems(
-                            folderInfoId = folderId,
-                            title = folderName,
-                            appInfos = apps,
-                            icon = folderIcon,
-                        )
-                        android.util.Log.d(TAG, "Created drawer folder: $folderName (${apps.size} apps)")
-                        foldersCreated++
-                    }
+                    // Create the folder and fill it in one step (folderInfoId = 0 creates it)
+                    drawerFolderService.updateFolderWithItems(
+                        folderInfoId = 0,
+                        title = folderName,
+                        appInfos = apps,
+                        icon = folderIcon,
+                    )
+                    android.util.Log.d(TAG, "Created drawer folder: $folderName (${apps.size} apps)")
+                    foldersCreated++
                 }
 
                 appsMovedToFolders += apps.size

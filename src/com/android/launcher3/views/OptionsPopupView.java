@@ -54,10 +54,12 @@ import com.android.launcher3.shortcuts.DeepShortcutView;
 import com.android.launcher3.testing.TestLogging;
 import com.android.launcher3.testing.shared.TestProtocol;
 
+import com.android.launcher3.util.MSDLPlayerWrapper;
+import com.google.android.msdl.data.model.MSDLToken;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
+import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
 import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.ui.popup.LauncherOptionsPopup;
 
@@ -273,9 +275,15 @@ public class OptionsPopupView<T extends Context & ActivityContext> extends Arrow
 
     private static boolean toggleHomeScreenLock(View v) {
         Context context = v.getContext();
+        MSDLPlayerWrapper mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(context);
         PreferenceManager2 preferenceManager2 = PreferenceManager2.getInstance(context);
-        boolean oldValue = PreferenceExtensionsKt.firstBlocking(preferenceManager2.getLockHomeScreen());
-        PreferenceExtensionsKt.setBlocking(preferenceManager2.getLockHomeScreen(), !oldValue);
+        boolean oldValue = PreferenceCacheExtensionsKt.firstCached(preferenceManager2.getLockHomeScreen());
+        com.patrykmichalik.opto.core.PreferenceExtensionsKt.setBlocking(preferenceManager2.getLockHomeScreen(), !oldValue);
+        if (oldValue) {
+            mMSDLPlayerWrapper.playToken(MSDLToken.UNLOCK);
+        } else {
+            mMSDLPlayerWrapper.playToken(MSDLToken.LOCK);
+        }
         return true;
     }
 

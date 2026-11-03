@@ -1,48 +1,43 @@
 package app.lawnchair.qsb
 
-import android.app.PendingIntent
-import android.appwidget.AppWidgetHostView
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.drawable.LayerDrawable
-import android.graphics.drawable.PaintDrawable
+import android.graphics.Rect
+import android.graphics.RectF
 import android.util.AttributeSet
+import android.view.View
 import android.widget.FrameLayout
-import android.widget.ImageView
-import androidx.core.view.ViewCompat
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.children
-import androidx.core.view.descendants
-import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import app.lawnchair.HeadlessWidgetsManager
+import app.lawnchair.AutoCatLauncher
 import app.lawnchair.animateToAllApps
-import app.lawnchair.autoCatLauncher
-import app.lawnchair.autoCatLauncherNullable
-import app.lawnchair.preferences.PreferenceManager
+import app.lawnchair.launcher
+import app.lawnchair.preferences.observeAsState
+import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.PreferenceManager2
-import app.lawnchair.preferences2.subscribeBlocking
+import app.lawnchair.preferences2.asState
+import app.lawnchair.preferences2.firstCached
 import app.lawnchair.qsb.providers.AppSearch
 import app.lawnchair.qsb.providers.Google
-import app.lawnchair.qsb.providers.GoogleGo
 import app.lawnchair.qsb.providers.PixelSearch
 import app.lawnchair.qsb.providers.QsbSearchProvider
-import app.lawnchair.theme.color.ColorOption
-import app.lawnchair.util.pendingIntent
+import app.lawnchair.ui.preferences.PreferenceActivity
+import app.lawnchair.ui.preferences.navigation.Search
+import app.lawnchair.ui.theme.AutoCatTheme
+import app.lawnchair.util.ProvideLifecycleState
 import app.lawnchair.util.repeatOnAttached
-import app.lawnchair.util.viewAttachedScope
 import com.android.launcher3.BaseActivity
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.R
-import com.android.launcher3.qsb.QsbContainerView
-import com.android.launcher3.util.Themes
+import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.views.ActivityContext
-import com.patrykmichalik.opto.core.firstBlocking
-import com.patrykmichalik.opto.core.onEach
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.android.launcher3.views.OptionsPopupView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flatMapLatest
@@ -52,71 +47,114 @@ import kotlinx.coroutines.launch
 class LawnQsbLayout(context: Context, attrs: AttributeSet?) : FrameLayout(context, attrs) {
 
     private val activity: ActivityContext = ActivityContext.lookupContext<BaseActivity>(context)
-    private lateinit var gIcon: ImageView
-    private lateinit var micIcon: AssistantIconView
-    private lateinit var lensIcon: ImageView
-    private lateinit var inner: FrameLayout
-    private lateinit var preferenceManager: PreferenceManager
+    private val composeView = ComposeView(context)
     private lateinit var preferenceManager2: PreferenceManager2
-    private var searchPendingIntent: PendingIntent? = null
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
-    private var strokeColor: ColorOption? = null
+    private lateinit var searchProvider: QsbSearchProvider
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun onFinishInflate() {
         super.onFinishInflate()
 
-        gIcon = ViewCompat.requireViewById(this, R.id.g_icon)
-        micIcon = ViewCompat.requireViewById(this, R.id.mic_icon)
-        lensIcon = ViewCompat.requireViewById(this, R.id.lens_icon)
-        inner = ViewCompat.requireViewById(this, R.id.inner)
-        preferenceManager = PreferenceManager.getInstance(context)
         preferenceManager2 = PreferenceManager2.getInstance(context)
+        searchProvider = getSearchProvider(context, preferenceManager2)
 
-        preferenceManager2.strokeColorStyle.onEach(launchIn = coroutineScope) {
-            strokeColor = it
-            setUpBackground()
-        }
+        composeView.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                AutoCatTheme {
+                    ProvideLifecycleState {
+                        val context = LocalContext.current
 
-        setUpBackground()
-        clipIconRipples()
+                        val prefs = preferenceManager()
+                        val prefs2 = preferenceManager2
 
-        val searchProvider = getSearchProvider(context, preferenceManager2)
-        val isGoogle = searchProvider == Google || searchProvider == GoogleGo || searchProvider == PixelSearch
-        val supportsLens = searchProvider == Google || searchProvider == PixelSearch
+                        val searchProviderPref by prefs2.hotseatQsbProvider.asState()
+                        val searchProvider = remember(searchProviderPref, context) {
+                            getSearchProvider(context, searchProviderPref)
+                        }
+                        val themed by prefs2.themedHotseatQsb.asState()
 
-        preferenceManager2.themedHotseatQsb.subscribeBlocking(scope = viewAttachedScope) { themed ->
-            setUpBackground(themed)
+                        val supportsLens = searchProvider == Google || searchProvider == PixelSearch
+                        val voiceIntent = remember(searchProvider, context) {
+                            getVoiceIntent(searchProvider, context)
+                        }
+                        val lensIntent = remember(supportsLens, context) {
+                            if (supportsLens) getLensIntent(context) else null
+                        }
 
-            val iconRes = if (themed) searchProvider.themedIcon else searchProvider.icon
+                        val state = rememberHotseatQsbState(
+                            searchProvider = searchProvider,
+                            themed = themed,
+                            showMic = voiceIntent != null,
+                            showLens = lensIntent != null,
+                        )
 
-            // The default search icon should always be themed
-            gIcon.setThemedIconResource(
-                resId = iconRes,
-                themed = themed || iconRes == R.drawable.ic_qsb_search,
-                method = searchProvider.themingMethod,
-            )
+                        val style = buildQsbStyle(
+                            context = LocalContext.current,
+                            themed = themed,
+                            backgroundColor = getHotseatBackgroundColor(context, themed),
+                            backgroundAlpha = prefs.hotseatQsbAlpha.observeAsState().value,
+                            cornerRadius = prefs.hotseatQsbCornerRadius.observeAsState().value,
+                            // Use light color as strokeColor is a static color that doesn't use darkColor
+                            strokeColor = prefs2.strokeColorStyle.asState().value.colorPreferenceEntry.lightColor.invoke(context),
+                            strokeWidth = prefs.hotseatQsbStrokeWidth.observeAsState().value,
+                        )
 
-            micIcon.setIcon(isGoogle, themed)
-            if (supportsLens) {
-                lensIcon.setThemedIconResource(R.drawable.ic_lens_color, themed)
-            }
-        }
+                        val actions = QsbActions(
+                            onQsbClick = {
+                                val launcher = context.launcher
+                                launcher.lifecycleScope.launch {
+                                    if (prefs2.matchHotseatQsbStyle.firstCached()) {
+                                        val searchUiManager = launcher.appsView.searchUiManager
+                                        searchUiManager.setDirectFocus(true)
+                                        searchUiManager.editText?.showKeyboard()
+                                        launcher.animateToAllApps()
+                                    } else {
+                                        searchProvider.launch(launcher)
+                                    }
+                                }
+                            },
+                            onQsbLongClick = ::openOptions,
+                            onStartIconClick = null,
+                            onEndIconClick = { id ->
+                                runCatching {
+                                    when (id) {
+                                        QsbIconId.MIC -> voiceIntent?.let { context.startActivity(it) }
+                                        QsbIconId.LENS -> lensIntent?.let { context.startActivity(it) }
+                                        else -> null
+                                    }
+                                }
+                            },
+                        )
 
-        if (supportsLens) setUpLensIcon()
-
-        setOnClickListener {
-            val launcher = context.autoCatLauncher
-            launcher.lifecycleScope.launch {
-                if (preferenceManager2.matchHotseatQsbStyle.firstBlocking()) {
-                    launcher.appsView.searchUiManager.editText?.showKeyboard()
-                    launcher.animateToAllApps()
-                } else {
-                    searchProvider.launch(launcher)
+                        LawnQsbUi(
+                            state = state,
+                            style = style,
+                            actions = actions,
+                        )
+                    }
                 }
             }
         }
+
+        // Stop Compose QSB from disappearing
+        // https://stackoverflow.com/questions/72781705/jetpack-compose-view-not-drawing-when-coming-back-to-fragment/77496737#77496737
+        composeView.addOnAttachStateChangeListener(object : OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) {
+                requestLayout()
+                composeView.disposeComposition()
+            }
+            override fun onViewDetachedFromWindow(v: View) {
+                composeView.disposeComposition()
+            }
+        })
+
+        addView(
+            composeView,
+            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
+        )
+
         if (searchProvider == Google) {
             repeatOnAttached {
                 val forceWebsite = preferenceManager2.hotseatQsbForceWebsite.get()
@@ -126,18 +164,42 @@ class LawnQsbLayout(context: Context, attrs: AttributeSet?) : FrameLayout(contex
                     }
                     .collect()
             }
-            subscribeGoogleSearchWidget()
         }
+    }
 
-        preferenceManager.hotseatQsbAlpha.subscribeChanges(this::setUpBackground)
-        preferenceManager.hotseatQsbStrokeWidth.subscribeChanges(this::setUpBackground)
+    private fun openOptions() {
+        val launcher = context.launcher
+        val pos = Rect()
+        launcher.dragLayer.getDescendantRectRelativeToSelf(composeView, pos)
+        OptionsPopupView.show<AutoCatLauncher>(launcher, RectF(pos), listOf(getCustomizeOption()), true)
+    }
+
+    private fun getCustomizeOption() = OptionsPopupView.OptionItem(
+        context,
+        R.string.action_customize,
+        R.drawable.ic_setting,
+        StatsLogManager.LauncherEvent.IGNORE,
+    ) {
+        context.startActivity(PreferenceActivity.createIntent(context, Search()))
+        true
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val dp = activity.deviceProfile
+        // Unlike Phone, for Foldable/Tablet we let the original onMeasure do that instead since it
+        // matched what we need. It perfectly fit the QSB with the grid.
+        if (!dp.deviceProperties.isPhone) {
+            if (!composeView.isAttachedToWindow) {
+                setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.getSize(heightMeasureSpec))
+                return
+            }
+
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+            return
+        }
+
         val requestedWidth = MeasureSpec.getSize(widthMeasureSpec)
         val height = MeasureSpec.getSize(heightMeasureSpec)
-
-        val dp = activity.deviceProfile
         val cellWidth = DeviceProfile.calculateCellWidth(
             requestedWidth,
             dp.cellLayoutBorderSpacePx.x,
@@ -148,86 +210,32 @@ class LawnQsbLayout(context: Context, attrs: AttributeSet?) : FrameLayout(contex
         val width = requestedWidth - widthReduction
         setMeasuredDimension(width, height)
 
+        if (!composeView.isAttachedToWindow) {
+            // Ignore to prevent crash on preview contexts
+            return
+        }
+
         children.forEach { child ->
             measureChildWithMargins(child, widthMeasureSpec, widthReduction, heightMeasureSpec, 0)
-        }
-    }
-
-    private fun subscribeGoogleSearchWidget() {
-        val info = QsbContainerView.getSearchWidgetProviderInfo(context, Google.packageName) ?: return
-        context.autoCatLauncherNullable?.lifecycleScope?.launch {
-            val headlessWidgetsManager = HeadlessWidgetsManager.INSTANCE.get(context)
-            headlessWidgetsManager.subscribeUpdates(info, "hotseatWidgetId")
-                .collect { findSearchIntent(it) }
-        }
-    }
-
-    private fun findSearchIntent(view: AppWidgetHostView) {
-        view.measure(
-            MeasureSpec.makeMeasureSpec(1000, MeasureSpec.EXACTLY),
-            MeasureSpec.makeMeasureSpec(100, MeasureSpec.EXACTLY),
-        )
-        searchPendingIntent = view.descendants
-            .filter { it.pendingIntent != null }
-            .sortedByDescending { it.measuredWidth * it.measuredHeight }
-            .firstOrNull()
-            ?.pendingIntent
-    }
-
-    private fun setUpLensIcon() {
-        val lensIntent = getLensIntent(context) ?: return
-
-        with(lensIcon) {
-            isVisible = true
-            setOnClickListener {
-                runCatching { context.startActivity(lensIntent) }
-            }
-        }
-    }
-
-    private fun clipIconRipples() {
-        val cornerRadius = getCornerRadius(context, preferenceManager)
-        listOf(lensIcon, micIcon).forEach {
-            it.clipToOutline = cornerRadius > 0
-            it.background = PaintDrawable(Color.TRANSPARENT).apply {
-                setCornerRadius(cornerRadius)
-            }
-        }
-    }
-
-    private fun setUpBackground(themed: Boolean = false) {
-        val transparency = preferenceManager.hotseatQsbAlpha.get()
-        val cornerRadius = getCornerRadius(context, preferenceManager)
-        val baseColor = if (themed) Themes.getColorBackgroundFloating(context) else Themes.getAttrColor(context, R.attr.qsbFillColor)
-        val alphaValue = (transparency * 255) / 100
-        val color = Color.argb(alphaValue, Color.red(baseColor), Color.green(baseColor), Color.blue(baseColor))
-        val strokeColor = strokeColor
-        val strokeWidth = preferenceManager.hotseatQsbStrokeWidth.get()
-
-        val backgroundDrawable = PaintDrawable(color).apply {
-            setCornerRadius(cornerRadius)
-        }
-
-        val strokeDrawable = PaintDrawable().apply {
-            paint.style = Paint.Style.STROKE
-            paint.color = strokeColor?.colorPreferenceEntry?.lightColor?.invoke(context) ?: Themes.getColorAccent(context)
-            paint.strokeWidth = strokeWidth
-            setCornerRadius(cornerRadius)
-        }
-
-        val combinedDrawable = LayerDrawable(arrayOf(backgroundDrawable, strokeDrawable))
-
-        val qsbBackground = if (strokeWidth != 0f) combinedDrawable else backgroundDrawable
-
-        with(inner) {
-            clipToOutline = cornerRadius > 0
-            background = qsbBackground
         }
     }
 
     companion object {
         private const val LENS_PACKAGE = "com.google.ar.lens"
         private const val LENS_ACTIVITY = "com.google.vr.apps.ornament.app.lens.LensLauncherActivity"
+
+        fun getVoiceIntent(
+            provider: QsbSearchProvider,
+            context: Context,
+        ): Intent? {
+            val intent = if (provider.supportVoiceIntent) provider.createVoiceIntent() else null
+
+            return if (intent == null || !resolveIntent(context, intent)) {
+                null
+            } else {
+                intent
+            }
+        }
 
         fun getLensIntent(context: Context): Intent? {
             val lensIntent = Intent.makeMainActivity(ComponentName(LENS_PACKAGE, LENS_ACTIVITY))
@@ -239,10 +247,8 @@ class LawnQsbLayout(context: Context, attrs: AttributeSet?) : FrameLayout(contex
 
         fun getSearchProvider(
             context: Context,
-            preferenceManager: PreferenceManager2,
+            provider: QsbSearchProvider,
         ): QsbSearchProvider {
-            val provider = preferenceManager.hotseatQsbProvider.firstBlocking()
-
             return if (provider == AppSearch ||
                 resolveIntent(context, provider.createSearchIntent()) ||
                 resolveIntent(context, provider.createWebsiteIntent())
@@ -253,17 +259,13 @@ class LawnQsbLayout(context: Context, attrs: AttributeSet?) : FrameLayout(contex
             }
         }
 
-        fun resolveIntent(context: Context, intent: Intent): Boolean = context.packageManager.resolveActivity(intent, 0) != null
-
-        private fun getCornerRadius(
+        fun getSearchProvider(
             context: Context,
-            preferenceManager: PreferenceManager,
-        ): Float {
-            val resources = context.resources
-            val qsbWidgetHeight = resources.getDimension(R.dimen.qsb_widget_height)
-            val qsbWidgetPadding = resources.getDimension(R.dimen.qsb_widget_vertical_padding)
-            val innerHeight = qsbWidgetHeight - 2 * qsbWidgetPadding
-            return innerHeight / 2 * preferenceManager.hotseatQsbCornerRadius.get()
+            preferenceManager: PreferenceManager2,
+        ): QsbSearchProvider {
+            return getSearchProvider(context, preferenceManager.hotseatQsbProvider.firstCached())
         }
+
+        fun resolveIntent(context: Context, intent: Intent): Boolean = context.packageManager.resolveActivity(intent, 0) != null
     }
 }

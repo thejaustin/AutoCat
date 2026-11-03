@@ -31,6 +31,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,9 +48,15 @@ import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
 import app.lawnchair.ui.util.preview.PreviewAutoCat
 import com.android.launcher3.R
+import com.android.launcher3.Utilities
 import com.android.launcher3.util.MSDLPlayerWrapper
 import com.google.android.msdl.data.model.MSDLToken
 import kotlin.math.roundToInt
+
+private enum class SliderThreshold {
+    START,
+    END,
+}
 
 @Composable
 fun SliderPreference(
@@ -59,6 +66,7 @@ fun SliderPreference(
     step: Int,
     showAsPercentage: Boolean = false,
     showUnit: String = "",
+    enabled: Boolean = true,
 ) {
     val transformedAdapter = rememberTransformAdapter(
         adapter = adapter,
@@ -74,6 +82,7 @@ fun SliderPreference(
         step = step.toFloat(),
         showAsPercentage = showAsPercentage,
         showUnit = showUnit,
+        enabled = enabled,
     )
 }
 
@@ -86,6 +95,7 @@ fun SliderPreference(
     modifier: Modifier = Modifier,
     showAsPercentage: Boolean = false,
     showUnit: String = "",
+    enabled: Boolean = true,
 ) {
     var adapterValue by adapter
 
@@ -100,6 +110,7 @@ fun SliderPreference(
         modifier = modifier,
         showAsPercentage = showAsPercentage,
         showUnit = showUnit,
+        enabled = enabled,
     )
 }
 
@@ -113,8 +124,10 @@ private fun SliderPreference(
     modifier: Modifier = Modifier,
     showAsPercentage: Boolean = false,
     showUnit: String = "",
+    enabled: Boolean = true,
 ) {
     var sliderValue by remember { mutableFloatStateOf(value) }
+    var thresholdReached by remember { mutableStateOf<SliderThreshold?>(null) }
     val mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(LocalContext.current)
     val getAppropriateHaptic = if (step == 0f) {
         MSDLToken.DRAG_INDICATOR_CONTINUOUS
@@ -124,6 +137,7 @@ private fun SliderPreference(
 
     DisposableEffect(value) {
         sliderValue = value
+        thresholdReached = null
         onDispose { }
     }
 
@@ -132,10 +146,7 @@ private fun SliderPreference(
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-                    .padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
                     text = label,
@@ -162,24 +173,52 @@ private fun SliderPreference(
                 }
             }
         },
+        modifier = modifier,
         description = {
             Slider(
                 value = sliderValue,
                 onValueChange = { newValue ->
                     sliderValue = newValue
-                    mMSDLPlayerWrapper.playToken(getAppropriateHaptic)
+                    val threshold = when {
+                        newValue <= valueRange.start -> SliderThreshold.START
+                        newValue >= valueRange.endInclusive -> SliderThreshold.END
+                        else -> null
+                    }
+                    if (threshold != null) {
+                        if (threshold != thresholdReached) {
+                            thresholdReached = threshold
+                            mMSDLPlayerWrapper.playToken(
+                                MSDLToken.DRAG_THRESHOLD_INDICATOR_LIMIT,
+                            )
+                        }
+                    } else {
+                        thresholdReached = null
+                        val range = valueRange.endInclusive - valueRange.start
+                        val scale = if (range == 0f) {
+                            1f
+                        } else {
+                            ((newValue - valueRange.start) / range).coerceIn(0f, 1f)
+                        }
+                        if (Utilities.ATLEAST_S) {
+                            playScaledSliderHaptic(
+                                mMSDLPlayerWrapper,
+                                getAppropriateHaptic,
+                                scale,
+                            )
+                        } else {
+                            mMSDLPlayerWrapper.playToken(getAppropriateHaptic)
+                        }
+                    }
                 },
                 onValueChangeFinished = { onValueChangeFinished(sliderValue) },
                 valueRange = valueRange,
                 steps = getSteps(valueRange, step),
                 modifier = Modifier
-                    .padding(top = 2.dp, bottom = 12.dp)
-                    .padding(horizontal = 14.dp)
+                    .padding(top = 2.dp, bottom = 8.dp)
                     .height(24.dp),
+                enabled = enabled,
             )
         },
-        modifier = modifier,
-        applyPaddings = false,
     )
 }
 
@@ -210,16 +249,14 @@ private fun SliderPreferencePreview(
 ) {
     AutoCatTheme {
         PreferenceGroupPreviewContainer {
-            Item {
-                SliderPreference(
-                    label = "Label",
-                    value = sliderValue,
-                    onValueChangeFinished = {},
-                    valueRange = 0f..1f,
-                    step = 0.1f,
-                    showAsPercentage = true,
-                )
-            }
+            SliderPreference(
+                label = "Label",
+                value = sliderValue,
+                onValueChangeFinished = {},
+                valueRange = 0f..1f,
+                step = 0.1f,
+                showAsPercentage = true,
+            )
         }
     }
 }

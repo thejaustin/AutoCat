@@ -18,7 +18,6 @@ package app.lawnchair.ui.preferences.about
 
 import android.content.Intent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -94,8 +93,8 @@ fun ContributorRow(
 ) {
     PreferenceTemplate(
         title = { Text(text = name) },
-        modifier = modifier
-            .clickable(onClick = onClick),
+        modifier = modifier,
+        onClick = onClick,
         description = {
             Text(
                 text = description,

@@ -1258,7 +1258,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         homeCheck.mRequirements[1].mModes = new int[]{TRANSIT_CLOSE, TRANSIT_TO_BACK};
 
         homeCheck.mRequirements[2].mNot = true;
-        homeCheck.mRequirements[2].mCustomAnimation = true;
+        if (Utilities.ATLEAST_BAKLAVA) { // LC-Note: QuickSwitch compatibility!
+            homeCheck.mRequirements[2].mCustomAnimation = true;
+        }
         homeCheck.mRequirements[2].mMustBeTask = true;
         homeCheck.mRequirements[2].mMustBeIndependent = true;
 
@@ -1360,7 +1362,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
     private static int getRotationChange(RemoteAnimationTarget[] appTargets) {
         int rotationChange = 0;
         for (RemoteAnimationTarget target : appTargets) {
-            // LC: https://github.com/LawnchairLauncher/lawnchair/pull/3776
+            // LC: https://github.com/AutoCatLauncher/lawnchair/pull/3776
             try {
                 if (Math.abs(target.rotationChange) > Math.abs(rotationChange)) {
                     rotationChange = target.rotationChange;

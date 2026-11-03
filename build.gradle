@@ -34,15 +34,15 @@ sentry {
 allprojects {
     plugins.withType(AndroidBasePlugin).configureEach {
         android {
-            buildToolsVersion "36.1.0"
+            buildToolsVersion "37.0.0"
             compileSdk {
-                version = release(36) {
-                    minorApiLevel = 1
+                version = release(37) {
+                    minorApiLevel = 2
                 }
             }
             defaultConfig {
                 minSdk = 26
-                targetSdk = 36
+                targetSdk = 37
                 vectorDrawables.useSupportLibrary = true
             }
             lint {
@@ -150,7 +150,7 @@ final def baseVersion = "16-dev"
 final def versionDisplayName = "${baseVersion} (#${ciRunNumber})"
 final def majorVersion = "16"
 
-final def quickstepMinSdk = "29"
+final def quickstepMinSdk = "35"
 final def quickstepMaxSdk = "36"
 
 android {
@@ -170,13 +170,6 @@ android {
         manifestPlaceholders.quickstepMaxSdk = quickstepMaxSdk
         buildConfigField "int", "QUICKSTEP_MIN_SDK", quickstepMinSdk
         buildConfigField "int", "QUICKSTEP_MAX_SDK", quickstepMaxSdk
-    }
-
-    applicationVariants.configureEach { variant ->
-        variant.outputs.configureEach {
-            def channel = variant.productFlavors.last().name
-            outputFileName = "AutoCat.${variant.versionName}.$channel.${variant.buildType.name}.apk"
-        }
     }
 
     androidResources {
@@ -213,10 +206,13 @@ android {
     }
 
     // Load all proguard configs from AOSP
-    def proguardFilesFromAosp = allprojects
-        .collect { it.file("proguard.flags") }
-        .findAll { it.exists() }
-        .toArray()
+    def proguardFilesFromAosp = allprojects.collect { proj ->
+        [
+            'proguard.flags',
+            'proguard_flags.flags',
+            'proguard_plugins.flags'
+        ].collect { proj.file(it) }
+    }.flatten().findAll { it.exists() }.toArray()
 
     def releaseSigning
     try {
@@ -235,16 +231,6 @@ android {
     buildTypes {
         all {
             signingConfig = releaseSigning
-
-            applicationVariants.configureEach { variant ->
-                variant.outputs.configureEach {
-                    def channel = variant.productFlavors.last().name
-                    // Override signingConfig to debug if the "nightly" flavor is selected
-                    if (channel.any { it == "nightly" }) {
-                        signingConfig = signingConfigs.debug
-                    }
-                }
-            }
             pseudoLocalesEnabled = true
         }
 
@@ -344,6 +330,7 @@ android {
 
         nightly {
             manifest.srcFile "nightly/AndroidManifest.xml"
+            res.srcDirs = ["nightly/res"]
         }
 
         lawnWithQuickstepGithub {
@@ -364,6 +351,28 @@ android {
             kotlin.directories.addAll('quickstep/src', 'quickstep/dagger', 'quickstep/recents_ui_overrides/src', 'quickstep/src_protolog')
             manifest.srcFile "quickstep/AndroidManifest.xml"
         }
+    }
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        def channel = variant.productFlavors.last().second
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("AutoCat.${output.versionName.get()}.$channel.${variant.buildType}.apk")
+        }
+
+        // AutoCat: nightly builds are always signed with the debug key
+        if (channel == "nightly") {
+            variant.signingConfig?.setConfig(android.signingConfigs.debug)
+        }
+
+        // Lawnchair-TODO: A better way to sync proto file to the IDE preventing missing or outdated result. Please remove if this is the best solution we have right now
+        def capitalizedVariantName = variant.name.substring(0, 1).toUpperCase(java.util.Locale.ROOT) + variant.name.substring(1)
+        def generatedProtoJavaDir = layout.buildDirectory
+            .dir("generated/java/generate${capitalizedVariantName}Proto/java")
+            .get()
+            .asFile
+        variant.sources.java.addStaticSourceDirectory(generatedProtoJavaDir.absolutePath)
     }
 }
 
@@ -515,6 +524,7 @@ dependencies {
     implementation libs.androidx.exifinterface
 
     debugImplementation libs.leakcanary.android
+    debugImplementation libs.leakcanary.androidstudio
 }
 
 ksp {

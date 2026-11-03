@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    buildToolsVersion "36.1.0"
+    buildToolsVersion "37.0.0"
     namespace "com.android.wm.shell"
     buildFeatures {
         aidl true
@@ -32,6 +32,7 @@ dependencies {
     compileOnly projects.msdllib
     compileOnly projects.flags
     compileOnly projects.utils
+    compileOnly libs.chickenhook.restrictionbypass
 }
 
 ksp {

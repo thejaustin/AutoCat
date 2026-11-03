@@ -5,6 +5,7 @@ import app.lawnchair.AutoCatApp
 import app.lawnchair.allapps.views.SearchItemBackground
 import app.lawnchair.allapps.views.SearchResultView.Companion.EXTRA_QUICK_LAUNCH
 import app.lawnchair.preferences2.PreferenceManager2
+import app.lawnchair.preferences2.firstCached
 import app.lawnchair.search.AutoCatSearchAdapterProvider
 import app.lawnchair.search.adapter.SearchAdapterItem
 import app.lawnchair.search.adapter.SearchTargetCompat
@@ -28,7 +29,6 @@ import com.android.launcher3.Utilities
 import com.android.launcher3.allapps.BaseAllAppsAdapter
 import com.android.launcher3.search.SearchAlgorithm
 import com.android.launcher3.search.SearchCallback
-import com.patrykmichalik.opto.core.firstBlocking
 
 sealed class AutoCatSearchAlgorithm(
     protected val context: Context,
@@ -219,7 +219,7 @@ sealed class AutoCatSearchAlgorithm(
 
         fun create(context: Context): AutoCatSearchAlgorithm {
             val prefs = PreferenceManager2.getInstance(context)
-            val searchAlgorithm = prefs.searchAlgorithm.firstBlocking()
+            val searchAlgorithm = prefs.searchAlgorithm.firstCached()
 
             return when {
                 searchAlgorithm == ASI_SEARCH && isASISearchEnabled(context) -> AutoCatASISearchAlgorithm(

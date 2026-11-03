@@ -1,18 +1,15 @@
 package app.lawnchair.theme.drawable
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
-import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.RippleDrawable
 import android.graphics.drawable.StateListDrawable
 import androidx.appcompat.content.res.AppCompatResources
-import app.lawnchair.preferences2.PreferenceManager2
+import app.lawnchair.theme.color.tokens.AllAppsTabColors
 import app.lawnchair.theme.color.tokens.ColorTokens
 import com.android.launcher3.R
-import com.patrykmichalik.opto.core.firstBlocking
 
 object DrawableTokens {
 
@@ -60,13 +57,6 @@ object DrawableTokens {
     @JvmField
     val RoundRectPrimary = ResourceDrawableToken<GradientDrawable>(R.drawable.round_rect_primary)
         .setColor(ColorTokens.ColorPrimary)
-
-    @JvmField
-    val SearchInputFg = ResourceDrawableToken<LayerDrawable>(R.drawable.search_input_fg)
-        .mutate { context, scheme, darkTheme ->
-            val shape = getDrawable(0) as GradientDrawable
-            shape.setColor(ColorTokens.SearchboxHighlight.resolveColor(context, scheme, darkTheme))
-        }
 
     @JvmField
     val SingleItemPrimary = ResourceDrawableToken<GradientDrawable>(R.drawable.single_item_primary)
@@ -150,16 +140,8 @@ object DrawableTokens {
             R.drawable.all_apps_tabs_background,
         )
 
-        // Get custom color from preferences
-        val prefs2 = PreferenceManager2.getInstance(context)
-        val colorOption = prefs2.workProfileTabBackgroundColor.firstBlocking()
-        val customColor = colorOption.colorPreferenceEntry.lightColor.invoke(context)
-
-        val selectedColor = if (customColor != 0) {
-            customColor
-        } else {
-            ColorTokens.AllAppsTabBackgroundSelected.resolveColor(context, scheme, uiColorMode)
-        }
+        // Prefer the user-selected tab color when set; otherwise the themed default.
+        val selectedColor = AllAppsTabColors.selectedBackground(context, scheme, uiColorMode)
 
         selected?.setTint(selectedColor)
 
@@ -203,6 +185,29 @@ object DrawableTokens {
     @JvmField
     val WorkCard = ResourceDrawableToken<GradientDrawable>(R.drawable.work_card)
         .setColor(ColorTokens.SurfaceContainerHighest)
+
+    @JvmField
+    val WorkFabBackground = ResourceDrawableToken<RippleDrawable>(R.drawable.work_mode_fab_background)
+        .mutate { context, scheme, uiColorMode ->
+            val background = getDrawable(0) as? GradientDrawable
+            background?.setColor(ColorTokens.PrimaryButton.resolveColor(context, scheme, uiColorMode))
+        }
+
+    @JvmField
+    val WorkSchedulerBackground = ResourceDrawableToken<RippleDrawable>(R.drawable.work_scheduler_background)
+        .mutate { context, scheme, uiColorMode ->
+            val background = getDrawable(0) as? GradientDrawable
+            background?.setColor(ColorTokens.PrimaryButton.resolveColor(context, scheme, uiColorMode))
+        }
+
+    @JvmField
+    val WorkAppsPausedActionButton = ResourceDrawableToken<RippleDrawable>(R.drawable.bg_work_apps_paused_action_button)
+        .mutate { context, scheme, uiColorMode ->
+            val strokeWidth = context.resources.getDimensionPixelSize(R.dimen.work_apps_paused_button_stroke)
+            val strokeColor = ColorTokens.PrimaryButton.resolveColor(context, scheme, uiColorMode)
+            val background = findDrawableByLayerId(android.R.id.background) as? GradientDrawable
+            background?.setStroke(strokeWidth, strokeColor)
+        }
 
     @JvmField
     val WidgetAddButtonBackground = ResourceDrawableToken<InsetDrawable>(R.drawable.widget_cell_add_button_background)

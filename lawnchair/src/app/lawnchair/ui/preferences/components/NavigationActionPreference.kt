@@ -16,16 +16,21 @@
 
 package app.lawnchair.ui.preferences.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import app.lawnchair.ui.preferences.LocalNavController
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
+import app.lawnchair.ui.theme.AutoCatTheme
+import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
+import app.lawnchair.ui.util.preview.PreviewAutoCat
+import com.android.launcher3.util.MSDLPlayerWrapper
+import com.google.android.msdl.data.model.MSDLToken
 
 @Composable
 fun NavigationActionPreference(
@@ -36,29 +41,48 @@ fun NavigationActionPreference(
     icon: ImageVector? = null,
     endWidget: (@Composable () -> Unit)? = null,
 ) {
-    val navController = LocalNavController.current
+    val navController = if (destination != null) LocalNavController.current else null
+    val mMSDLPlayerWrapper = MSDLPlayerWrapper.INSTANCE.get(LocalContext.current)
 
     PreferenceTemplate(
-        modifier = modifier.then(
-            if (destination != null) {
-                Modifier.clickable { navController.navigate(route = destination) }
-            } else {
-                Modifier
-            },
-        ),
         title = { Text(text = label) },
-        description = { subtitle?.let { Text(text = it) } },
-        startWidget = if (icon != null) {
+        modifier = modifier,
+        description = subtitle?.let { { Text(text = it) } },
+        startWidget = icon?.let {
             {
                 Icon(
-                    imageVector = icon,
+                    imageVector = it,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        endWidget = endWidget,
+        onClick = if (destination != null) {
+            {
+                mMSDLPlayerWrapper.playToken(MSDLToken.TAP_MEDIUM_EMPHASIS)
+                navController?.navigate(
+                    route = destination,
                 )
             }
         } else {
             null
         },
-        endWidget = endWidget,
     )
+}
+
+@PreviewAutoCat
+@Composable
+private fun SliderPreferencePreview() {
+    AutoCatTheme {
+        PreferenceGroupPreviewContainer {
+            NavigationActionPreference(
+                label = "Label",
+                modifier = Modifier,
+                destination = null,
+                subtitle = "Subtitle",
+                endWidget = { Text("End") },
+            )
+        }
+    }
 }

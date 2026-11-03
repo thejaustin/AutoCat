@@ -397,7 +397,7 @@ class AutoCatFloatingSurfaceView @JvmOverloads constructor(
          */
         fun show(launcher: AutoCatLauncher, contract: GestureNavContract?) {
             val view: AutoCatFloatingSurfaceView =
-                launcher.viewCache.getView<AutoCatFloatingSurfaceView?>(
+                launcher.viewCache.getView(
                     R.layout.floating_surface_view,
                     launcher,
                     launcher.dragLayer,

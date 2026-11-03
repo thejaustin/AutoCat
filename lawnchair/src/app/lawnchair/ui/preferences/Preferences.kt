@@ -16,6 +16,7 @@
 
 package app.lawnchair.ui.preferences
 
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -86,6 +87,7 @@ fun Preferences(
     displayFeatures: List<DisplayFeature>,
     modifier: Modifier = Modifier,
     startDestination: PreferenceRoute? = null,
+    intent: Intent? = null,
     interactor: PreferenceInteractor = viewModel<PreferenceViewModel>(),
 ) {
     val navController = rememberNavController()
@@ -124,6 +126,7 @@ fun Preferences(
                     PreferenceNavigation(
                         navController = navController,
                         startDestination = startingRoute,
+                        intent = intent,
                     )
                 }
             }

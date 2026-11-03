@@ -11,9 +11,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
-import app.lawnchair.ui.theme.LawnchairTheme
+import app.lawnchair.ui.theme.AutoCatTheme
 import app.lawnchair.ui.util.preview.PreferenceGroupPreviewContainer
-import app.lawnchair.ui.util.preview.PreviewLawnchair
+import app.lawnchair.ui.util.preview.PreviewAutoCat
 
 /**
  * Error preference component with optional retry action.
@@ -66,7 +66,7 @@ fun ErrorPreference(
     )
 }
 
-@PreviewLawnchair
+@PreviewAutoCat
 @Composable
 private fun ErrorPreferencePreview() {
     AutoCatTheme {

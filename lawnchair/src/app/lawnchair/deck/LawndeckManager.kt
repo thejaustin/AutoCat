@@ -3,24 +3,21 @@ package app.lawnchair.deck
 import android.content.Context
 import android.util.Log
 import app.lawnchair.AutoCatLauncher
-import app.lawnchair.autoCatLauncher
 import app.lawnchair.autoCatLauncherNullable
 import app.lawnchair.flowerpot.Flowerpot
-import app.lawnchair.util.restartLauncher
+import app.lawnchair.launcher
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
-import com.android.launcher3.LauncherSettings
 import com.android.launcher3.model.ItemInstallQueue
 import com.android.launcher3.model.ModelDbController
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
-import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.provider.RestoreDbTask
-import com.android.launcher3.util.ComponentKey
 import java.io.File
-import java.util.Locale
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class LawndeckManager(private val context: Context) {
@@ -86,7 +83,9 @@ class LawndeckManager(private val context: Context) {
 
     private fun postRestoreActions() {
         ModelDbController(context).let { RestoreDbTask.performRestore(context, it) }
-        restartLauncher(context)
+        MainScope().launch(Dispatchers.Main) {
+            LauncherAppState.getInstance(context).model.forceReload()
+        }
     }
 
     private fun addAllAppsToWorkspace(

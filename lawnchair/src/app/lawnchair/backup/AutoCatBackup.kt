@@ -66,7 +66,7 @@ class AutoCatBackup(
                     {
                         val file = entry.value
                         file.parentFile?.mkdirs()
-                        it.copyTo(file.outputStream())
+                        file.outputStream().use { out -> it.copyTo(out) }
                     }
                 },
             )
@@ -78,10 +78,12 @@ class AutoCatBackup(
             }
         }
         context.getDatabasePath(LAUNCHER_DB_FILE_NAME).parentFile?.deleteRecursively()
-        DeviceGridState(info.gridState).writeToPrefs(context, true)
         readZip(handlers)
+        // Written after the zip has been extracted: the backed up preferences file is one of
+        // the restored entries, so writing the grid state first would let it be overwritten.
+        DeviceGridState(info.gridState).writeToPrefs(context, true)
 
-        var dbController = ModelDbController(context)
+        val dbController = ModelDbController(context)
         RestoreDbTask.performRestore(context, dbController)
     }
 
@@ -196,7 +198,7 @@ class AutoCatBackup(
                         getFiles(context, forRestore = false).entries.forEach {
                             if (!it.value.exists()) return@forEach
                             out.putNextEntry(ZipEntry(it.key))
-                            it.value.inputStream().copyTo(out)
+                            it.value.inputStream().use { input -> input.copyTo(out) }
                         }
                     }
                 }

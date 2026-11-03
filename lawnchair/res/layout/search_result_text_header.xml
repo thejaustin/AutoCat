@@ -2,9 +2,10 @@
 <app.lawnchair.allapps.views.SearchResultText xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/search_result_text"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/search_result_text_height"
-    android:orientation="horizontal"
-    android:paddingStart="8dp">
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/search_result_text_height"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
 
     <LinearLayout
         android:id="@+id/text_rows"
@@ -14,10 +15,8 @@
         android:layout_gravity="center_vertical"
         android:layout_weight="1.0"
         android:orientation="horizontal"
-        android:paddingStart="@dimen/dynamic_grid_edge_margin"
-        android:paddingTop="@dimen/dynamic_grid_edge_margin"
-        android:paddingEnd="@dimen/dynamic_grid_edge_margin"
-        android:paddingBottom="@dimen/dynamic_grid_edge_margin"
+        android:paddingTop="@dimen/search_result_text_padding"
+        android:paddingBottom="@dimen/search_result_text_padding"
         android:singleLine="true">
         <TextView
             android:id="@+id/title"
@@ -26,6 +25,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:gravity="start|center"
+            android:includeFontPadding="true"
             android:maxLines="1"
             android:paddingEnd="4dp"
             android:singleLine="true"

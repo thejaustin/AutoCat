@@ -128,6 +128,7 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.os.Process;
 import android.os.SystemClock;
 import android.os.Trace;
 import android.os.UserHandle;
@@ -201,6 +202,7 @@ import com.android.launcher3.logging.StartupLatencyLogger;
 import com.android.launcher3.logging.StatsLogManager;
 import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.ItemInstallQueue;
+import com.android.launcher3.model.ModelUtils;
 import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.model.StringCache;
 import com.android.launcher3.model.data.AppInfo;
@@ -235,6 +237,7 @@ import com.android.launcher3.util.ItemInflater;
 import com.android.launcher3.util.KeyboardShortcutsDelegate;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.OnboardingPrefs;
+import com.android.launcher3.util.PackageManagerHelper;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.PendingRequestArgs;
 import com.android.launcher3.util.PluginManagerWrapper;
@@ -252,6 +255,7 @@ import com.android.launcher3.util.WallpaperThemeManager;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.views.FloatingSurfaceView;
 import com.android.launcher3.views.OptionsPopupView;
+import app.lawnchair.views.EditModePageStrip;
 import com.android.launcher3.views.ScrimView;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
@@ -287,7 +291,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import app.lawnchair.LawnchairApp;
+import app.lawnchair.AutoCatApp;
 
 /**
  * Default launcher application.
@@ -364,6 +368,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     // UI and state for the overview panel
     private View mOverviewPanel;
+    private EditModePageStrip mEditModePageStrip;
 
     // Used to notify when an activity launch has been deferred because launcher is not yet resumed
     // TODO: See if we can remove this later
@@ -746,7 +751,8 @@ public class Launcher extends StatefulActivity<LauncherState>
             mCellPosMapper = new TwoPanelCellPosMapper(mDeviceProfile.inv.numColumns);
         } else {
             mCellPosMapper = new CellPosMapper(mDeviceProfile.isVerticalBarLayout(),
-                    mDeviceProfile.numShownHotseatIcons);
+                    mDeviceProfile.numShownHotseatIcons, mDeviceProfile.numHotseatRows,
+                    mDeviceProfile.numHotseatPages);
         }
         mModelWriter = mModel.getWriter(true, mCellPosMapper, this);
         updateFixedLandscape();
@@ -1307,6 +1313,28 @@ public class Launcher extends StatefulActivity<LauncherState>
         mDragLayer = findViewById(R.id.drag_layer);
         mFocusHandler = mDragLayer.getFocusIndicatorHelper();
         mWorkspace = mDragLayer.findViewById(R.id.workspace);
+        mEditModePageStrip = mDragLayer.findViewById(R.id.edit_mode_page_strip);
+        if (mEditModePageStrip != null) {
+            mStateManager.addStateListener(new StateManager.StateListener<LauncherState>() {
+                @Override
+                public void onStateTransitionStart(LauncherState toState) {
+                    if (toState == EDIT_MODE) {
+                        long duration = EDIT_MODE.getTransitionDuration(Launcher.this, true);
+                        mEditModePageStrip.showForEditMode(mWorkspace, duration);
+                    } else if (mStateManager.getCurrentStableState() == EDIT_MODE) {
+                        long duration = EDIT_MODE.getTransitionDuration(Launcher.this, false);
+                        mEditModePageStrip.hideForEditMode(duration);
+                    }
+                }
+
+                @Override
+                public void onStateTransitionComplete(LauncherState finalState) {
+                    if (finalState == EDIT_MODE) {
+                        mEditModePageStrip.maybeShowEducationTip(Launcher.this);
+                    }
+                }
+            });
+        }
         mWorkspace.initParentViews(mDragLayer);
         mOverviewPanel = findViewById(R.id.overview_panel);
         mHotseat = findViewById(R.id.hotseat);
@@ -1350,7 +1378,9 @@ public class Launcher extends StatefulActivity<LauncherState>
      */
     protected void completeAddShortcut(Intent data, int container, int screenId, int cellX,
             int cellY, PendingRequestArgs args) {
-        if (args.getRequestCode() != REQUEST_CREATE_SHORTCUT) {
+        if (args.getRequestCode() != REQUEST_CREATE_SHORTCUT
+                || args.getPendingIntent() == null
+                || args.getPendingIntent().getComponent() == null) {
             return;
         }
 
@@ -1360,8 +1390,20 @@ public class Launcher extends StatefulActivity<LauncherState>
         WorkspaceItemInfo info = PinRequestHelper.createWorkspaceItemFromPinItemRequest(
                     this, PinRequestHelper.getPinItemRequest(data), 0);
         if (info == null) {
-            Log.e(TAG, "Unable to parse a valid shortcut result");
-            return;
+            // Legacy shortcuts are only supported for the primary profile.
+            info = Process.myUserHandle().equals(args.user)
+                    ? ModelUtils.fromLegacyShortcutIntent(this, data) : null;
+
+            if (info == null) {
+                Log.e(TAG, "Unable to parse a valid shortcut result");
+                return;
+            }
+
+            if (!new PackageManagerHelper(this).hasPermissionForActivity(
+                    info.intent, args.getPendingIntent().getComponent().getPackageName())) {
+                Log.e(TAG, "Ignoring shortcut intent failing activity permission validation");
+                return;
+            }
         }
 
         if (container < 0) {
@@ -1589,7 +1631,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                     // Only change state, if not already the same. This prevents cancelling any
                     // animations running as part of resume
                     boolean animate = mStateManager.shouldAnimateStateChange();
-                    if (!LawnchairApp.isRecentsEnabled()) {
+                    if (!AutoCatApp.isRecentsEnabled()) {
                         animate &= alreadyOnHome;
                     }
                     mStateManager.goToState(NORMAL, animate);
@@ -2127,7 +2169,7 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     boolean isHotseatLayout(View layout) {
         // TODO: Remove this method
-        return mHotseat != null && (layout == mHotseat);
+        return mHotseat != null && (layout == mHotseat || mHotseat.isHotseatPage(layout));
     }
 
     @Override
@@ -2347,7 +2389,13 @@ public class Launcher extends StatefulActivity<LauncherState>
         }
 
         List<CellLayout> containers = new ArrayList<>(mWorkspace.getPanelCount() + 1);
-        containers.add(mWorkspace.getHotseat());
+        Hotseat hotseat = mWorkspace.getHotseat();
+        if (hotseat != null) {
+            CellLayout currentPage = hotseat.getCurrentPageLayout();
+            if (currentPage != null) {
+                containers.add(currentPage);
+            }
+        }
         mWorkspace.forEachVisiblePage(page -> containers.add((CellLayout) page));
         CellLayout[] containerArray = containers.toArray(new CellLayout[0]);
         LauncherBindableItemsContainer visibleContainer =
@@ -2477,11 +2525,18 @@ public class Launcher extends StatefulActivity<LauncherState>
 
             writer.println(prefix + "  Hotseat");
             mHotseat.dump(prefix, writer);
-            ViewGroup layout = mHotseat.getShortcutsAndWidgets();
-            for (int j = 0; j < layout.getChildCount(); j++) {
-                Object tag = layout.getChildAt(j).getTag();
-                if (tag != null) {
-                    writer.println(prefix + "    " + tag);
+            CellLayout[] hotseatPages = mHotseat.getPageLayouts();
+            for (int p = 0; p < hotseatPages.length; p++) {
+                ViewGroup layout = hotseatPages[p].getShortcutsAndWidgets();
+                if (layout == null) {
+                    continue;
+                }
+                writer.println(prefix + "    Dock page " + p);
+                for (int j = 0; j < layout.getChildCount(); j++) {
+                    Object tag = layout.getChildAt(j).getTag();
+                    if (tag != null) {
+                        writer.println(prefix + "      " + tag);
+                    }
                 }
             }
         }
@@ -2904,8 +2959,15 @@ public class Launcher extends StatefulActivity<LauncherState>
      * @param screenId must be presenterPos and not modelPos.
      */
     public CellLayout getCellLayout(int container, int screenId) {
-        return (container == LauncherSettings.Favorites.CONTAINER_HOTSEAT)
-                ? mHotseat : mWorkspace.getScreenWithId(screenId);
+        if (container == LauncherSettings.Favorites.CONTAINER_HOTSEAT
+                || container == LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION) {
+            if (mHotseat == null) {
+                return null;
+            }
+            CellLayout page = mHotseat.getPageAt(screenId);
+            return page != null ? page : mHotseat.getCurrentPageLayout();
+        }
+        return mWorkspace.getScreenWithId(screenId);
     }
 
     @Override

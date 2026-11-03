@@ -48,7 +48,6 @@ import app.lawnchair.ui.preferences.components.reorderable.ReorderableSwitchPref
 import app.lawnchair.ui.preferences.navigation.HomeScreenPopupEditor
 import app.lawnchair.ui.theme.isSelectedThemeDark
 import com.android.launcher3.R
-import sh.calvin.reorderable.ReorderableListItemScope
 
 @Composable
 fun LauncherPopupPreferenceItem(
@@ -94,7 +93,7 @@ fun LauncherPopupPreference(
                 optionsList = it
                 optionsPref.onChange(it.toOptionOrderString())
             },
-        ) { item, index, _, onDraggingChange ->
+        ) { item, index, _ ->
             val metadata = LauncherOptionsPopup.getMetadataForOption(item.identifier)
 
             val enabled = when (item.identifier) {
@@ -118,9 +117,6 @@ fun LauncherPopupPreference(
                         scope = this,
                         interactionSource = if (!metadata.isCarousel) interactionSource else remember { MutableInteractionSource() },
                         isDraggable = !metadata.isCarousel,
-                        onDragStop = {
-                            onDraggingChange(false)
-                        },
                     )
                 },
                 enabled = enabled,
