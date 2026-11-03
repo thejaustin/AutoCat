@@ -701,7 +701,8 @@ Respond ONLY in this JSON format:
         try {
             val requestBody = JSONObject().apply {
                 put("model", model)
-                put("max_tokens", 4096)
+                // Current models think by default and thinking counts toward max_tokens
+                put("max_tokens", 16000)
                 // Categorization is a short classification task; keep thinking cheap on current models
                 if (!model.startsWith("claude-3")) {
                     put("output_config", JSONObject().apply { put("effort", "low") })
@@ -751,6 +752,11 @@ Respond ONLY in this JSON format:
 
                 if (!response.isSuccessful) {
                     throw LLMException("Claude API error: ${response.code} - $responseBody")
+                }
+
+                // A truncated or refused answer can't be parsed; let the caller's fallback handle it
+                when (val stopReason = JSONObject(responseBody).optString("stop_reason")) {
+                    "max_tokens", "refusal" -> throw LLMException("Claude response stopped early: $stopReason")
                 }
 
                 return responseBody

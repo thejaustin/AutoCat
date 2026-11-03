@@ -707,8 +707,12 @@ Respond ONLY in this JSON format:
                 put(
                     "generationConfig",
                     JSONObject().apply {
-                        put("temperature", 0.2) // Lower temperature for more consistent categorization
-                        put("maxOutputTokens", 8192)
+                        // Gemini 3+ is tuned for the default temperature; lowering it can cause loops
+                        if (model.startsWith("gemini-1.") || model.startsWith("gemini-2.")) {
+                            put("temperature", 0.2)
+                        }
+                        // Thinking tokens count toward the output budget on current models
+                        put("maxOutputTokens", 16000)
                         put("responseMimeType", "application/json")
                     },
                 )
