@@ -455,8 +455,8 @@ dependencies {
     implementation libs.androidx.datastore.preferences
     implementation libs.sentry.android
 
-    // TensorFlow Lite for on-device ML categorization
-    implementation(libs.tensorflow.lite)
+    // LiteRT (formerly TensorFlow Lite) for on-device ML categorization
+    implementation(libs.litert)
 
     // MediaPipe Tasks GenAI — on-device LLM (Gemma via AICore or downloaded .bin)
     implementation(libs.mediapipe.tasks.genai) {
