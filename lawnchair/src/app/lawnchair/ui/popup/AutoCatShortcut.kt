@@ -22,6 +22,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.lawnchair.AutoCatLauncher
 import app.lawnchair.appops.AppBatchOperationService
@@ -781,7 +782,7 @@ fun AppSummaryDialog(
     appName: String,
     packageName: String,
     onClose: () -> Unit,
-    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
+    modifier: Modifier = Modifier,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var summaryText by remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
@@ -845,7 +846,7 @@ fun AppSummaryDialog(
     androidx.compose.material3.Surface(
         shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
         color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
-        modifier = androidx.compose.ui.Modifier.fillMaxWidth().padding(16.dp),
+        modifier = modifier.fillMaxWidth().padding(16.dp),
     ) {
         androidx.compose.foundation.layout.Column(
             modifier = androidx.compose.ui.Modifier.padding(20.dp),

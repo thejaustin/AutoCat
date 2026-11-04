@@ -612,12 +612,12 @@ private fun AppTabItem(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onEditClick)
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .shadow(
                 elevation = 2.dp,
                 shape = RoundedCornerShape(16.dp),
-            ),
+            )
+            .clickable(onClick = onEditClick),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 1.dp,
