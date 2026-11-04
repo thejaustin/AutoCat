@@ -14,7 +14,7 @@ libsu = "6.0.0"
 refine = "4.4.0"
 sentry = "6.1.0"
 shizuku = "13.1.5"
-litert = "2.3.2"
+litert = "1.4.2"
 mediapipeTasksGenai = "0.10.14"
 exifinterface = "1.4.2"
 
