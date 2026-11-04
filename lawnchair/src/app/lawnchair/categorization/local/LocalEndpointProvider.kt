@@ -47,7 +47,7 @@ class LocalEndpointProvider(
     override val requiresApiKey: Boolean = false
 
     private val learner by lazy {
-        val dao = TabDatabase.getInstance(context).tabDao()
+        val dao = TabDatabase.getInstance(context).categoryDao()
         UserCorrectionLearner.getInstance(context, dao)
     }
 
@@ -106,6 +106,13 @@ class LocalEndpointProvider(
         appPackage: String,
         appDescription: String?,
         availableTabs: List<String>,
+    ): CategorizationResult = categorizeWithHints(appName, appPackage, appDescription, availableTabs, hints = "")
+
+    private suspend fun categorizeWithHints(
+        appName: String,
+        appPackage: String,
+        appDescription: String?,
+        availableTabs: List<String>,
         hints: String,
     ): CategorizationResult = withContext(Dispatchers.IO) {
         val modelId = resolveModelId() ?: throw LLMException("No model available at $baseUrl")
@@ -118,14 +125,13 @@ class LocalEndpointProvider(
     override suspend fun categorizeAppBatch(
         apps: List<AppBatchInfo>,
         availableTabs: List<String>,
-        hints: String,
     ): Map<String, CategorizationResult> = coroutineScope {
-        val effectiveHints = hints.ifBlank { withContext(Dispatchers.IO) { learner.generateLLMHintText() } }
+        val effectiveHints = withContext(Dispatchers.IO) { learner.generateLLMHintText() }
         apps.chunked(PARALLEL_BATCH_LIMIT).flatMap { chunk ->
             chunk.map { app ->
                 async(Dispatchers.IO) {
                     try {
-                        app.packageName to categorizeApp(
+                        app.packageName to categorizeWithHints(
                             appName = app.appName,
                             appPackage = app.packageName,
                             appDescription = app.appDescription,
@@ -139,6 +145,11 @@ class LocalEndpointProvider(
                 }
             }.awaitAll().filterNotNull()
         }.toMap()
+    }
+
+    override suspend fun generateText(prompt: String): String = withContext(Dispatchers.IO) {
+        val modelId = resolveModelId() ?: throw LLMException("No model available at $baseUrl")
+        callChatCompletions(modelId, "You are a helpful assistant.", prompt)
     }
 
     override suspend fun suggestCategories(

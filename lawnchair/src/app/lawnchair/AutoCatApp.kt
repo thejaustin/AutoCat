@@ -196,10 +196,12 @@ class AutoCatApp : LauncherApplication() {
             }
 
             // Check for app updates
-            try {
-                checkForUpdates()
-            } catch (e: Exception) {
-                Log.w(TAG, "Error during update check", e)
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    checkForUpdates()
+                } catch (e: Exception) {
+                    Log.w(TAG, "Error during update check", e)
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error in background initialization", e)

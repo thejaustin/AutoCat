@@ -325,7 +325,7 @@ class CategoryFolderSyncService(
 
                 apps.forEach { appInfo ->
                     val workspaceItem = WorkspaceItemInfo(appInfo)
-                    folderInfo.add(workspaceItem, false)
+                    folderInfo.add(workspaceItem)
                     appsAdded++
                 }
 

@@ -130,6 +130,13 @@ class CategoryTabsManager(private val context: Context) {
         return 0
     }
 
+    /**
+     * Reloads the drawer tabs after their visibility changed.
+     */
+    fun refreshTabs() {
+        AppTabsController.getInstance(context).refresh()
+    }
+
     companion object {
         private const val TAG = "CategoryTabsManager"
 

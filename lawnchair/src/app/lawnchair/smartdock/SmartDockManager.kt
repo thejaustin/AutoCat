@@ -1,34 +1,29 @@
 package app.lawnchair.smartdock
 
-import android.content.Context
-import androidx.lifecycle.lifecycleScope
+import app.lawnchair.preferences.PreferenceChangeListener
 import app.lawnchair.preferences.PreferenceManager
 import com.android.launcher3.Launcher
-import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings.Favorites
-import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.PredictedContainerInfo
-import com.android.launcher3.model.data.WorkspaceItemInfo
 import java.util.Calendar
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 
 class SmartDockManager(private val launcher: Launcher) {
     private val prefs = PreferenceManager.getInstance(launcher)
+    private val enabledListener = PreferenceChangeListener { updatePredictions() }
 
     fun start() {
-        prefs.autoCatSmartDockEnabled.getAdapter().onEach { enabled ->
-            if (enabled) {
-                updatePredictions()
-            }
-        }.launchIn(launcher.lifecycleScope)
+        prefs.autoCatSmartDockEnabled.addListener(enabledListener)
+        updatePredictions()
+    }
+
+    fun stop() {
+        prefs.autoCatSmartDockEnabled.removeListener(enabledListener)
     }
 
     fun updatePredictions() {
         if (!prefs.autoCatSmartDockEnabled.get()) return
 
-        val appState = LauncherAppState.getInstance(launcher)
-        val allApps = appState.model.bgDataModel.appsList.data
+        val allApps = launcher.appsView.appsStore.apps
         if (allApps.isEmpty()) return
 
         val calendar = Calendar.getInstance()
@@ -42,7 +37,7 @@ class SmartDockManager(private val launcher: Launcher) {
         }
 
         // Just pick some apps matching categories or fallback
-        val predictedAppInfos = allApps.shuffled().take(4) // Simulating prediction
+        val predictedAppInfos = allApps.toList().shuffled().take(4) // Simulating prediction
 
         val predictedWorkspaceItems = predictedAppInfos.map { appInfo ->
             appInfo.makeWorkspaceItem(launcher)

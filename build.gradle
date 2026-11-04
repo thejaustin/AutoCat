@@ -456,9 +456,7 @@ dependencies {
     implementation libs.sentry.android
 
     // TensorFlow Lite for on-device ML categorization
-    implementation(libs.tensorflow.lite) {
-        exclude group: "org.tensorflow", module: "tensorflow-lite-api"
-    }
+    implementation(libs.tensorflow.lite)
 
     // MediaPipe Tasks GenAI — on-device LLM (Gemma via AICore or downloaded .bin)
     implementation(libs.mediapipe.tasks.genai) {

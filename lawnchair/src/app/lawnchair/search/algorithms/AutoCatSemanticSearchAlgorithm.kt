@@ -28,7 +28,7 @@ class AutoCatSemanticSearchAlgorithm(context: Context) : AutoCatSearchAlgorithm(
 
     private val appState = LauncherAppState.getInstance(context)
     private val searchTargetFactory = SearchTargetFactory(context)
-    private val tabDao = TabDatabase.getInstance(context).tabDao()
+    private val tabDao = TabDatabase.getInstance(context).categoryDao()
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
@@ -81,7 +81,7 @@ class AutoCatSemanticSearchAlgorithm(context: Context) : AutoCatSearchAlgorithm(
                     (category.equals("Shopping", ignoreCase = true) && (queryLower == "buy" || queryLower == "store" || queryLower == "deal"))
             }.keys
 
-        val appTabs = tabDao.getAllAppTabs()
+        val appTabs = tabDao.getAllAppCategories()
         val semanticPackages = appTabs.filter {
             it.tabName.contains(query, ignoreCase = true) ||
                 it.subCategory?.contains(query, ignoreCase = true) == true ||

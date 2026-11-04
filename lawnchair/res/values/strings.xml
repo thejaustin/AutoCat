@@ -670,6 +670,9 @@
     <string name="gesture_handler_open_app_search">Open app search</string>
     <string name="gesture_handler_open_search">Open search</string>
     <string name="gesture_handler_open_assistant">Open assistant</string>
+    <string name="gesture_handler_open_folder">Open folder</string>
+    <string name="autocat_issues">Issues</string>
+    <string name="check_for_update">Check for update</string>
 
     <string name="pick_app_for_gesture">Pick app</string>
 

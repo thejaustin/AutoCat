@@ -338,7 +338,7 @@ class AutoCatLauncher :
      * Offers "Archive All Apps", "Restore All Apps", and "Move Folder" options.
      */
     override fun onFolderLongClick(folderInfo: FolderInfo, view: View) {
-        val packages = folderInfo.appContents
+        val packages = folderInfo.getAppContents()
             .mapNotNull { it.targetComponent?.packageName }
             .distinct()
         val folderName = folderInfo.title?.toString()
@@ -387,21 +387,21 @@ class AutoCatLauncher :
         gestureController.onHomePressed()
     }
 
-    override fun bindItems(items: List<ItemInfo>, forceAnimateIcons: Boolean) {
+    fun bindItems(items: List<ItemInfo>, forceAnimateIcons: Boolean) {
         val inflatedItems = items.map { i ->
             Pair.create(
                 i,
                 itemInflater?.inflateItem(
                     i,
-                    modelWriter,
+                    null,
                 ),
             )
         }.toList()
         bindInflatedItems(inflatedItems, if (forceAnimateIcons) AnimatorSet() else null)
     }
 
-    override fun handleGestureContract(intent: Intent?) {
-        if (!AutoCatApp.isRecentsEnabled) {
+    override fun handleGestureContract(intent: Intent) {
+        if (!AutoCatApp.isRecentsEnabled && prefs.enableGnc.get()) {
             val gnc = GestureNavContract.fromIntent(intent)
             if (gnc != null) {
                 AbstractFloatingView.closeOpenViews(
@@ -443,7 +443,7 @@ class AutoCatLauncher :
     ): OptionsPopupView<T>? where T : Context?, T : ActivityContext? {
         if (activityContext == null) return null
 
-        val isEmpty = WallpaperService.INSTANCE.get(this).getTopWallpapers().isEmpty()
+        val isEmpty = WallpaperService.INSTANCE.get(this).isWallpaperListEmpty()
         val layout = if (isEmpty) R.layout.longpress_options_menu else R.layout.wallpaper_options_popup
 
         val popup = activityContext.layoutInflater.inflate(layout, activityContext.dragLayer, false) as OptionsPopupView<T>

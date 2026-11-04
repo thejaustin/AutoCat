@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import app.lawnchair.AutoCatLauncher
 import app.lawnchair.font.FontCache
+import app.lawnchair.util.getApkVersionComparison
+import app.lawnchair.util.isGestureNavContractCompatible
 import app.lawnchair.util.isOnePlusStock
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT
@@ -283,6 +285,9 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     )
 
     val forceIconMonochrome = BoolPref("pref_forceIconMonochrome", false)
+
+    val settingsCategoryOrder = StringPref("pref_settingsCategoryOrder", "")
+    val settingsCategoryVisibility = StringPref("pref_settingsCategoryVisibility", "")
 
     override fun close() = Unit
 

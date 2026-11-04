@@ -62,6 +62,8 @@ fun UpdateLink(
         is UpdateState.Downloading -> "Downloading..."
         is UpdateState.Downloaded -> "Ready to Install"
         UpdateState.Failed -> "Update Failed"
+        is UpdateState.MajorUpdate -> "Major Update Available"
+        is UpdateState.Disabled -> "Updates Disabled"
     }
 
     val iconAlpha by animateFloatAsState(
@@ -82,6 +84,8 @@ fun UpdateLink(
                     is UpdateState.Downloading -> { /* progress is shown */ }
                     is UpdateState.Downloaded -> onInstall(updateState.file)
                     UpdateState.Checking -> { /* already checking */ }
+                    is UpdateState.MajorUpdate -> onInstall(updateState.file)
+                    is UpdateState.Disabled -> { /* the user turned updates off */ }
                 }
             },
     ) {

@@ -388,6 +388,13 @@ class CategorizationManager(private val context: Context) {
         llmCategorizer.resetCircuitBreakers()
     }
 
+    /**
+     * Returns the packages assigned to [tabName], or to the "Other" tab when it is null.
+     */
+    suspend fun getPackagesInTab(tabName: String?): List<String> = withContext(Dispatchers.IO) {
+        categoryDao.getAppsByTab(tabName ?: "Other").map { it.packageName }
+    }
+
     companion object {
         private const val TAG = "CategorizationManager"
 

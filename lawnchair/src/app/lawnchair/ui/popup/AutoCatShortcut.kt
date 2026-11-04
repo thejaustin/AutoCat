@@ -22,6 +22,16 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.lawnchair.AutoCatLauncher
@@ -52,6 +62,7 @@ import java.net.URISyntaxException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AutoCatShortcut {
 
@@ -756,11 +767,7 @@ class AutoCatShortcut {
     ) {
         override fun onClick(view: View) {
             val packageName = itemInfo?.targetComponent?.packageName ?: return
-            val appLabel = ApplicationInfoWrapper(
-                view.context,
-                packageName,
-                itemInfo?.user,
-            ).toString()
+            val appLabel = itemInfo?.title?.toString() ?: packageName
 
             AbstractFloatingView.closeAllOpenViews(launcher)
             ComposeBottomSheet.show(
@@ -830,9 +837,7 @@ fun AppSummaryDialog(
                 }
 
                 val prompt = "Provide a concise 2-sentence summary of what the Android application '$appName' (package: $packageName) is used for, its primary feature set, and category/genre."
-                val result = provider.categorizeApp(appName, packageName, prompt, listOf("Summary"))
-                val text = result.reasoning?.takeIf { it.isNotBlank() }
-                    ?: "$appName is a mobile application. Categorized under: ${result.category}."
+                val text = provider.generateText(prompt)
                 summaryText = text
                 cacheSp.edit().putString(packageName, text).apply()
                 isLoading = false

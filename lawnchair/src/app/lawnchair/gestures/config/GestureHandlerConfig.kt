@@ -15,6 +15,7 @@ import app.lawnchair.gestures.handlers.OpenAppSearchGestureHandler
 import app.lawnchair.gestures.handlers.OpenAppTarget
 import app.lawnchair.gestures.handlers.OpenAssistantHandler
 import app.lawnchair.gestures.handlers.OpenNotificationsHandler
+import app.lawnchair.gestures.handlers.OpenQuickSettingsHandler
 import app.lawnchair.gestures.handlers.OpenSearchGestureHandler
 import app.lawnchair.gestures.handlers.RecentsGestureHandler
 import app.lawnchair.gestures.handlers.SleepGestureHandler

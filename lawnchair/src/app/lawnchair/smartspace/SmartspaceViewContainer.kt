@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import app.lawnchair.AutoCatLauncher
+import app.lawnchair.autoCatLauncher
 import app.lawnchair.launcher
 import app.lawnchair.ui.preferences.PreferenceActivity
 import app.lawnchair.ui.preferences.navigation.Smartspace

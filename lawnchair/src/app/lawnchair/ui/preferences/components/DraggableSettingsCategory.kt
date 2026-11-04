@@ -185,7 +185,7 @@ fun DraggableSettingsCategoryGroup(
         }
 
         // Category list with drag support
-        app.lawnchair.ui.preferences.destinations.PreferenceCategoryGroup {
+        Column {
             var draggedItem by remember { mutableStateOf<Int?>(null) }
             var targetItem by remember { mutableStateOf<Int?>(null) }
 

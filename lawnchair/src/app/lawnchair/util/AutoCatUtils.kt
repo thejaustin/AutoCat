@@ -69,6 +69,7 @@ import kotlin.system.exitProcess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -523,7 +524,7 @@ fun hideApp(context: Context, itemInfo: com.android.launcher3.model.data.ItemInf
 
     val prefs = PreferenceManager2.getInstance(context)
     kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-        val currentHidden = prefs.hiddenApps.firstBlocking()
+        val currentHidden = prefs.hiddenApps.get().first()
         val newHidden = currentHidden.toMutableSet()
         newHidden.add(componentKey)
         prefs.hiddenApps.set(newHidden)

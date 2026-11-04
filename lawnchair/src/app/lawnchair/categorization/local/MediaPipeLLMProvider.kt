@@ -44,13 +44,12 @@ class MediaPipeLLMProvider(
     private val inferenceMutex = Mutex()
 
     private val learner by lazy {
-        val dao = TabDatabase.getInstance(context).tabDao()
+        val dao = TabDatabase.getInstance(context).categoryDao()
         UserCorrectionLearner.getInstance(context, dao)
     }
 
     private suspend fun getOrCreateInference(): LlmInference {
         inference?.let { return it }
-        val numThreads = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
         val options = LlmInference.LlmInferenceOptions.builder()
             .apply {
                 if (requiresAiCore) {
@@ -59,7 +58,6 @@ class MediaPipeLLMProvider(
                     setModelPath(modelPath)
                 }
                 setMaxTokens(256)
-                setNumThreads(numThreads)
             }
             .build()
         return LlmInference.createFromOptions(context, options).also { inference = it }
@@ -104,6 +102,13 @@ class MediaPipeLLMProvider(
         appPackage: String,
         appDescription: String?,
         availableTabs: List<String>,
+    ): CategorizationResult = categorizeWithHints(appName, appPackage, appDescription, availableTabs, hints = "")
+
+    private suspend fun categorizeWithHints(
+        appName: String,
+        appPackage: String,
+        appDescription: String?,
+        availableTabs: List<String>,
         hints: String,
     ): CategorizationResult = withContext(Dispatchers.IO) {
         try {
@@ -122,13 +127,12 @@ class MediaPipeLLMProvider(
     override suspend fun categorizeAppBatch(
         apps: List<AppBatchInfo>,
         availableTabs: List<String>,
-        hints: String,
     ): Map<String, CategorizationResult> = withContext(Dispatchers.IO) {
-        val effectiveHints = hints.ifBlank { learner.generateLLMHintText() }
+        val effectiveHints = learner.generateLLMHintText()
         val results = mutableMapOf<String, CategorizationResult>()
         apps.forEach { app ->
             try {
-                results[app.packageName] = categorizeApp(
+                results[app.packageName] = categorizeWithHints(
                     appName = app.appName,
                     appPackage = app.packageName,
                     appDescription = app.appDescription,
@@ -140,6 +144,10 @@ class MediaPipeLLMProvider(
             }
         }
         results
+    }
+
+    override suspend fun generateText(prompt: String): String = withContext(Dispatchers.IO) {
+        inferenceMutex.withLock { getOrCreateInference().generateResponse(prompt) }
     }
 
     override suspend fun suggestCategories(

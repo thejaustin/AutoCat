@@ -74,8 +74,8 @@ object AppDrawerCache {
                 oldValue: Bitmap,
                 newValue: Bitmap?,
             ) {
-                if (evicted && !bitmap.isRecycled) {
-                    bitmap.recycle()
+                if (evicted && !oldValue.isRecycled) {
+                    oldValue.recycle()
                 }
             }
         }

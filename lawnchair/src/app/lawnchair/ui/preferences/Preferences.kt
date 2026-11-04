@@ -17,8 +17,10 @@
 package app.lawnchair.ui.preferences
 
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,7 +53,6 @@ import app.lawnchair.ui.preferences.navigation.PreferenceNavigation
 import app.lawnchair.ui.preferences.navigation.PreferenceRootRoute
 import app.lawnchair.ui.preferences.navigation.PreferenceRoute
 import app.lawnchair.ui.preferences.navigation.Root
-import app.lawnchair.ui.preferences.navigation.SelectApp
 import app.lawnchair.ui.preferences.navigation.SelectIcon
 import app.lawnchair.ui.util.ProvideBottomSheetHandler
 import app.lawnchair.util.ProvideLifecycleState
@@ -77,8 +78,6 @@ val LocalAnimatedVisibilityScope = staticCompositionLocalOf<AnimatedVisibilitySc
 val twoPaneBlacklist = setOf(
     IconPicker::class,
     SelectIcon::class,
-    // SelectFolderIcon::class, // TODO: Implement folder icon selection
-    SelectApp::class,
 )
 
 @Composable
@@ -134,6 +133,7 @@ fun Preferences(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun PreferenceScreen(
     currentTopRoute: PreferenceRootRoute,
@@ -149,16 +149,22 @@ private fun PreferenceScreen(
         useTwoPane -> {
             TwoPane(
                 first = {
-                    PreferencesDashboard(
-                        currentRoute = currentTopRoute,
-                        onNavigate = {
-                            navController.navigate(it) {
-                                launchSingleTop = true
-                                popUpTo(navController.graph.id)
-                            }
-                            onRouteChange(it)
-                        },
-                    )
+                    SharedTransitionLayout {
+                        AnimatedVisibility(visible = true) {
+                            PreferencesDashboard(
+                                currentRoute = currentTopRoute,
+                                onNavigate = {
+                                    navController.navigate(it) {
+                                        launchSingleTop = true
+                                        popUpTo(navController.graph.id)
+                                    }
+                                    onRouteChange(it)
+                                },
+                                sharedTransitionScope = this@SharedTransitionLayout,
+                                animatedVisibilityScope = this,
+                            )
+                        }
+                    }
                 },
                 second = {
                     moveableNavHost()

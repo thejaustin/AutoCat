@@ -108,12 +108,7 @@ class AddFoldersWithItemsTask(
                     // Now add items to the folder
                     matchingItems.forEachIndexed { index, item ->
                         // Add item to folder object
-                        folderInfo.add(item, false)
-
-                        // If it's an existing workspace item, remove it from direct workspace items list
-                        if (isAutoCatFolder) {
-                            dataModel.workspaceItems.remove(item)
-                        }
+                        folderInfo.add(item)
 
                         // Add or move item in database
                         modelWriter.addOrMoveItemInDatabase(

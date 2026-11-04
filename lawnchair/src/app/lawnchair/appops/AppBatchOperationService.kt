@@ -134,7 +134,7 @@ class AppBatchOperationService(private val context: Context) {
         categoryName: String,
         onProgress: (BatchProgress) -> Unit,
     ): Map<String, OperationResult> = withContext(Dispatchers.IO) {
-        val tabDao = app.lawnchair.data.tab.TabDatabase.getInstance(context).tabDao()
+        val tabDao = app.lawnchair.data.tab.TabDatabase.getInstance(context).categoryDao()
         val categoryApps = tabDao.getAppsByTab(categoryName).map { it.packageName }
         archiveApps(categoryApps, onProgress)
     }

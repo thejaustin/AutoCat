@@ -73,7 +73,7 @@ class MLCategorizer(
     // ─── Batch categorize ──────────────────────────────────────────────────
 
     suspend fun categorizeBatch(apps: List<AppInfo>): Int = withContext(Dispatchers.IO) {
-        val customTabs = categoryDao.getVisibleCustomTabs()
+        val customTabs = categoryDao.getVisibleCustomCategories()
         if (customTabs.isEmpty()) return@withContext 0
 
         val tabNames = customTabs.map { it.name }
@@ -93,13 +93,13 @@ class MLCategorizer(
         }
 
         if (appTabs.isNotEmpty()) {
-            categoryDao.insertAppTabs(appTabs)
+            categoryDao.insertAppCategories(appTabs)
         }
         count
     }
 
     suspend fun categorize(appInfo: AppInfo): Boolean = withContext(Dispatchers.IO) {
-        val customTabs = categoryDao.getVisibleCustomTabs()
+        val customTabs = categoryDao.getVisibleCustomCategories()
         if (customTabs.isEmpty()) return@withContext false
 
         val tabNames = customTabs.map { it.name }
@@ -113,7 +113,7 @@ class MLCategorizer(
             isUserOverride = false,
             reasoning = if (interpreter != null) "On-device ML model" else "Keyword classifier",
         )
-        categoryDao.insertAppTab(appTab)
+        categoryDao.insertAppCategory(appTab)
         true
     }
 

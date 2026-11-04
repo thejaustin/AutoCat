@@ -10,6 +10,7 @@ import android.os.UserHandle
 import app.lawnchair.icons.iconpack.CustomIconPack
 import app.lawnchair.icons.iconpack.IconPack
 import app.lawnchair.icons.iconpack.SystemIconPack
+import app.lawnchair.icons.picker.IconEntry
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton

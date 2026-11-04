@@ -37,7 +37,7 @@ class AppTabsController private constructor(private val context: Context) : Safe
     }
 
     private val database by lazy { TabDatabase.getInstance(context) }
-    private val tabDao by lazy { database.tabDao() }
+    private val tabDao by lazy { database.categoryDao() }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _tabs = MutableStateFlow<List<CustomTab>>(emptyList())
@@ -67,7 +67,7 @@ class AppTabsController private constructor(private val context: Context) : Safe
         scope.launch {
             try {
                 val loadedTabs: List<CustomTab> = withContext(Dispatchers.IO) {
-                    tabDao.getAllCustomTabs()
+                    tabDao.getAllCustomCategories()
                         .filter { it.isVisible }
                         .sortedBy { it.sortOrder }
                 }
@@ -206,9 +206,9 @@ class AppTabsController private constructor(private val context: Context) : Safe
         if (oldTabName == TAB_ALL || oldTabName == TAB_WORK) return
 
         scope.launch(Dispatchers.IO) {
-            val tab = tabDao.getCustomTabByName(oldTabName)
+            val tab = tabDao.getCustomCategoryByName(oldTabName)
             if (tab != null) {
-                tabDao.updateCustomTab(tab.copy(name = newTabName))
+                tabDao.updateCustomCategory(tab.copy(name = newTabName))
                 tabDao.updateAppTabName(oldTabName, newTabName)
                 loadTabs()
                 app.lawnchair.categorization.AutoCatAppProvider.getInstance(context).refreshCache()
@@ -223,9 +223,9 @@ class AppTabsController private constructor(private val context: Context) : Safe
         if (tabName == TAB_ALL || tabName == TAB_WORK) return
 
         scope.launch(Dispatchers.IO) {
-            val tab = tabDao.getCustomTabByName(tabName)
+            val tab = tabDao.getCustomCategoryByName(tabName)
             if (tab != null) {
-                tabDao.deleteCustomTab(tab)
+                tabDao.deleteCustomCategory(tab)
                 tabDao.resetAppTabsForDeletedTab(tabName)
                 loadTabs()
                 app.lawnchair.categorization.AutoCatAppProvider.getInstance(context).refreshCache()

@@ -16,7 +16,8 @@ import app.lawnchair.data.tab.entities.ModelAccuracy
  * - Custom tab definitions (user-created tabs with colors and ordering)
  * - Model accuracy tracking (LLM prediction performance metrics)
  *
- * Database version: 7
+ * Database version: 8
+ * - v8: Added show_only_in_zen_mode to CustomTab entity
  * - v7: Added hide_in_zen_mode to CustomTab entity
  * - v6: Added ModelAccuracy entity for accuracy tracking
  * - v5: Added llm_provider and llm_model fields to AppTab entity
@@ -29,7 +30,7 @@ import app.lawnchair.data.tab.entities.ModelAccuracy
         CustomTab::class,
         ModelAccuracy::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 abstract class TabDatabase : RoomDatabase() {
@@ -76,12 +77,18 @@ abstract class TabDatabase : RoomDatabase() {
                 }
             }
 
+            val migration78 = object : androidx.room.migration.Migration(7, 8) {
+                override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE custom_categories ADD COLUMN show_only_in_zen_mode INTEGER NOT NULL DEFAULT 0")
+                }
+            }
+
             return Room.databaseBuilder(
                 context.applicationContext,
                 TabDatabase::class.java,
                 DATABASE_NAME,
             )
-                .addMigrations(migration67)
+                .addMigrations(migration67, migration78)
                 // For development: destroy and rebuild on schema changes
                 // TODO: Replace with proper migrations before production release
                 // dropAllTables = true: all tables will be dropped on migration failure

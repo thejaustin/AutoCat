@@ -106,29 +106,31 @@ fun <T> DraggablePreferenceGroup(
                 },
             ) { index, item, isDragging ->
                 key(item) {
-                    Column {
-                        DraggablePreferenceContainer(
-                            isDragging = isDragging,
-                            modifier = Modifier
-                                .a11yDrag(
-                                    index = index,
-                                    items = items,
-                                    onMoveUp = { localItems = it },
-                                    onMoveDown = { localItems = it },
-                                ),
-                        ) {
-                            itemContent(
-                                item,
-                                index,
-                                isDragging,
+                    ReorderableItem {
+                        Column {
+                            DraggablePreferenceContainer(
+                                isDragging = isDragging,
+                                modifier = Modifier
+                                    .a11yDrag(
+                                        index = index,
+                                        items = items,
+                                        onMoveUp = { localItems = it },
+                                        onMoveDown = { localItems = it },
+                                    ),
                             ) {
-                                isAnyDragging = it
+                                itemContent(
+                                    item,
+                                    index,
+                                    isDragging,
+                                ) {
+                                    isAnyDragging = it
+                                }
                             }
-                        }
-                        AnimatedVisibility(!isAnyDragging && index != localItems.lastIndex) {
-                            HorizontalDivider(
-                                Modifier.padding(start = 50.dp, end = 16.dp),
-                            )
+                            AnimatedVisibility(!isAnyDragging && index != localItems.lastIndex) {
+                                HorizontalDivider(
+                                    Modifier.padding(start = 50.dp, end = 16.dp),
+                                )
+                            }
                         }
                     }
                 }
@@ -227,7 +229,6 @@ fun DraggableSwitchPreference(
             )
         },
         enabled = enabled,
-        applyPaddings = false,
     )
 }
 

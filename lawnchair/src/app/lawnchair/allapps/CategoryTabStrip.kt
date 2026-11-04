@@ -88,7 +88,7 @@ class CategoryTabStrip @JvmOverloads constructor(
         val size = MeasureSpec.getSize(widthMeasureSpec)
         val activityContext = ActivityContext.lookupContext<BaseActivity>(context)
         val grid = activityContext.deviceProfile
-        val iconPadding = size / grid.numShownAllAppsColumns - grid.allAppsIconSizePx
+        val iconPadding = size / grid.numShownAllAppsColumns - grid.allAppsProfile.iconSizePx
         val newWidth = size - iconPadding
 
         val newWidthMeasureSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY)

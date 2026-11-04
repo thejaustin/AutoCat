@@ -117,7 +117,6 @@ fun ButtonPreference(
             }
         },
         modifier = modifier,
-        applyPaddings = true,
     )
 }
 

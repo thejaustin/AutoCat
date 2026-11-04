@@ -54,7 +54,7 @@ class SearchDebouncer(
 
         // Skip empty queries immediately
         if (query.isBlank()) {
-            action("")
+            debounceJob = scope.launch { action("") }
             return
         }
 

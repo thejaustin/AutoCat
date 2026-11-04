@@ -6,11 +6,14 @@ import android.content.Intent
 import android.os.UserHandle
 import android.util.Log
 import app.lawnchair.categorization.CategoryTabsManager
-import app.lawnchair.data.tab.TabDao
 import app.lawnchair.data.tab.TabDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Zen Mode - Links AutoCat categories to Android Focus Mode.
@@ -28,7 +31,8 @@ class ZenModeManager private constructor(
     private val context: Context,
 ) {
     private val tabDatabase by lazy { TabDatabase.getInstance(context) }
-    private val tabDao by lazy { tabDatabase.tabDao() }
+    private val tabDao by lazy { tabDatabase.categoryDao() }
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val usageStatsManager by lazy {
         context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
     }
@@ -89,11 +93,11 @@ class ZenModeManager private constructor(
      * Gets Focus Mode rules for all categories.
      */
     suspend fun getFocusRules(): List<FocusRule> {
-        return tabDao.getAllTabs().map { tab ->
+        return tabDao.getAllCustomCategories().map { tab ->
             FocusRule(
                 categoryName = tab.name,
-                hideDuringFocus = tab.hideDuringFocusMode,
-                showOnlyDuringFocus = tab.showOnlyDuringFocusMode,
+                hideDuringFocus = tab.hideInZenMode,
+                showOnlyDuringFocus = tab.showOnlyInZenMode,
             )
         }
     }
@@ -102,12 +106,14 @@ class ZenModeManager private constructor(
      * Updates Focus Mode rule for a category.
      */
     suspend fun updateFocusRule(rule: FocusRule) {
-        val tab = tabDao.getTabByName(rule.categoryName) ?: return
+        val tab = tabDao.getCustomCategoryByName(rule.categoryName) ?: return
 
-        tab.hideDuringFocusMode = rule.hideDuringFocus
-        tab.showOnlyDuringFocus = rule.showOnlyDuringFocus
-
-        tabDao.update(tab)
+        tabDao.updateCustomCategory(
+            tab.copy(
+                hideInZenMode = rule.hideDuringFocus,
+                showOnlyInZenMode = rule.showOnlyDuringFocus,
+            ),
+        )
         Log.d(TAG, "Updated Focus rule for '${rule.categoryName}': hide=${rule.hideDuringFocus}, showOnly=${rule.showOnlyDuringFocus}")
     }
 
@@ -146,10 +152,9 @@ class ZenModeManager private constructor(
 
         // Hide categories marked for Focus Mode
         categoriesToHide.forEach { categoryName ->
-            tabDao.getTabByName(categoryName)?.let { tab ->
+            tabDao.getCustomCategoryByName(categoryName)?.let { tab ->
                 if (tab.isVisible) {
-                    tab.isVisible = false
-                    tabDao.update(tab)
+                    tabDao.updateCustomCategory(tab.copy(isVisible = false))
                     Log.d(TAG, "Hidden category '$categoryName' during Focus Mode")
                 }
             }
@@ -157,13 +162,10 @@ class ZenModeManager private constructor(
 
         // Show only essential categories if specified
         if (categoriesToShow.isNotEmpty()) {
-            tabDao.getAllTabs().forEach { tab ->
-                if (categoriesToShow.contains(tab.name)) {
-                    if (!tab.isVisible) {
-                        tab.isVisible = true
-                        tabDao.update(tab)
-                        Log.d(TAG, "Shown essential category '${tab.name}' during Focus Mode")
-                    }
+            tabDao.getAllCustomCategories().forEach { tab ->
+                if (categoriesToShow.contains(tab.name) && !tab.isVisible) {
+                    tabDao.updateCustomCategory(tab.copy(isVisible = true))
+                    Log.d(TAG, "Shown essential category '${tab.name}' during Focus Mode")
                 }
             }
         }
@@ -184,10 +186,9 @@ class ZenModeManager private constructor(
 
         // Restore previously hidden categories
         categoriesPreviouslyHidden.forEach { categoryName ->
-            tabDao.getTabByName(categoryName)?.let { tab ->
+            tabDao.getCustomCategoryByName(categoryName)?.let { tab ->
                 if (!tab.isVisible) {
-                    tab.isVisible = true
-                    tabDao.update(tab)
+                    tabDao.updateCustomCategory(tab.copy(isVisible = true))
                     Log.d(TAG, "Restored category '$categoryName' after Focus Mode")
                 }
             }
@@ -250,7 +251,7 @@ class ZenModeManager private constructor(
             "fitness",
         )
 
-        return tabDao.getAllTabs()
+        return tabDao.getAllCustomCategories()
             .filter { tab ->
                 distractingKeywords.any { keyword ->
                     tab.name.contains(keyword, ignoreCase = true)
@@ -274,7 +275,7 @@ class ZenModeManager private constructor(
             "finance",
         )
 
-        return tabDao.getAllTabs()
+        return tabDao.getAllCustomCategories()
             .filter { tab ->
                 essentialKeywords.any { keyword ->
                     tab.name.contains(keyword, ignoreCase = true)

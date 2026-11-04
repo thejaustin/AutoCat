@@ -30,7 +30,7 @@ class PredictiveArchiveService(
     private val metadataProvider: AppMetadataProvider = AppMetadataProvider(context),
     private val batchService: AppBatchOperationService = AppBatchOperationService(context),
     private val prefs: PreferenceManager = PreferenceManager.getInstance(context),
-    private val tabDao: TabDao = TabDatabase.getInstance(context).tabDao(),
+    private val tabDao: TabDao = TabDatabase.getInstance(context).categoryDao(),
 ) {
 
     companion object {

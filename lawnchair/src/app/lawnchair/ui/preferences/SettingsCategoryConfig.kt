@@ -80,7 +80,7 @@ object DefaultSettingsCategories {
             id = "app_drawer",
             labelResId = com.android.launcher3.R.string.app_drawer_label,
             descriptionResId = com.android.launcher3.R.string.app_drawer_description,
-            iconResId = com.android.launcher3.R.drawable.ic_app_drawer,
+            iconResId = com.android.launcher3.R.drawable.ic_apps,
             route = AppDrawer,
             order = 5,
             isConditional = true,
@@ -120,7 +120,7 @@ object DefaultSettingsCategories {
         ),
         SettingsCategory(
             id = "backup",
-            labelResId = com.android.launcher3.R.string.backup_label,
+            labelResId = com.android.launcher3.R.string.backup_and_restore_label,
             descriptionResId = com.android.launcher3.R.string.restore_backup,
             iconResId = com.android.launcher3.R.drawable.ic_upload,
             route = BackupAndRestore,

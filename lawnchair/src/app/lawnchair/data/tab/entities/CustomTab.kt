@@ -43,6 +43,9 @@ data class CustomTab(
 
     @ColumnInfo(name = "hide_in_zen_mode")
     val hideInZenMode: Boolean = false,
+
+    @ColumnInfo(name = "show_only_in_zen_mode", defaultValue = "0")
+    val showOnlyInZenMode: Boolean = false,
 ) {
     companion object {
         // Default tab colors

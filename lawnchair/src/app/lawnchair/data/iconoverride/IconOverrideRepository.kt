@@ -3,14 +3,13 @@ package app.lawnchair.data.iconoverride
 import android.content.Context
 import android.os.UserHandle
 import app.lawnchair.data.AppDatabase
-import app.lawnchair.icons.IconPickerItem
+import app.lawnchair.icons.picker.IconPickerItem
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.dagger.ApplicationContext
+import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
-import com.android.launcher3.pm.PackageInstallInfo
-import com.android.launcher3.pm.PackageInstallInfo.STATUS_INSTALLED
 import com.android.launcher3.util.ComponentKey
-import com.android.launcher3.util.MainThreadInitializedObject
+import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.SafeCloseable
 import java.util.concurrent.ConcurrentLinkedQueue
 import javax.inject.Inject
@@ -22,7 +21,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 
 @LauncherAppSingleton
-class IconOverrideRepository @Inject constructor(@ApplicationContext private val context: Context) : SafeCloseable {
+class IconOverrideRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
+) : SafeCloseable {
 
     private val scope = MainScope() + CoroutineName("IconOverrideRepository")
     private val dao = AppDatabase.INSTANCE.get(context).iconOverrideDao()
@@ -90,14 +91,9 @@ class IconOverrideRepository @Inject constructor(@ApplicationContext private val
     }
 
     private fun updatePackageIcons(target: ComponentKey) {
-        val model = LauncherAppState.getInstance(context).model
-        model.onPackageStateChanged(
-            PackageInstallInfo.fromState(
-                STATUS_INSTALLED,
-                target.componentName.packageName,
-                target.user,
-            ),
-        )
+        val model = LauncherAppState.INSTANCE.get(context).model
+
+        model.onPackageIconsUpdated(hashSetOf(target.componentName.packageName), target.user)
     }
 
     override fun close() {
@@ -106,6 +102,6 @@ class IconOverrideRepository @Inject constructor(@ApplicationContext private val
 
     companion object {
         @JvmField
-        val INSTANCE = MainThreadInitializedObject(::IconOverrideRepository)
+        val INSTANCE = DaggerSingletonObject(LauncherAppComponent::getIconOverrideRepository)
     }
 }
