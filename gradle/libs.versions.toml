@@ -35,7 +35,8 @@ androidx-baselineprofile = "androidx.baselineprofile:1.5.0"
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-google-ksp = "com.google.devtools.ksp:2.3.13"
+# Held below 2.3.13, which randomly drops generated code in parallel builds: https://github.com/google/ksp/issues/3286
+google-ksp = "com.google.devtools.ksp:2.3.12"
 google-protobuf = "com.google.protobuf:0.10.0"
 cash-licensee = "app.cash.licensee:1.14.1"
 rikka-refine = { id = "dev.rikka.tools.refine", version.ref = "refine" }
