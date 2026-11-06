@@ -15,5 +15,12 @@
             ],
             automerge: true,
         },
+        // KSP 2.3.13 randomly drops generated code: https://github.com/google/ksp/issues/3286
+        {
+            matchPackageNames: [
+                'com.google.devtools.ksp',
+            ],
+            allowedVersions: '!/^2\\.3\\.13$/',
+        },
     ],
 }

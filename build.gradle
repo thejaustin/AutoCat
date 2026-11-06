@@ -460,10 +460,7 @@ dependencies {
     implementation(libs.litert)
 
     // MediaPipe Tasks GenAI — on-device LLM (Gemma via AICore or downloaded .bin)
-    implementation(libs.mediapipe.tasks.genai) {
-        // An annotation processor that MediaPipe's POM publishes as a compile dependency
-        exclude group: "com.google.auto.value", module: "auto-value"
-    }
+    implementation(libs.mediapipe.tasks.genai)
 
     implementation platform(libs.compose.bom)
     implementation libs.compose.ui
