@@ -22,7 +22,8 @@ plugins {
 
 sentry {
     includeProguardMapping = true
-    autoUploadProguardMapping = true
+    // Uploading needs a token, so builds without one (forks, local) skip it
+    autoUploadProguardMapping = !(System.getenv("SENTRY_AUTH_TOKEN") ?: "").isBlank()
     uploadNativeSymbols = false
     includeNativeSources = false
     org = "af-developments"
