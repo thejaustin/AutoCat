@@ -33,3 +33,6 @@
 # This shouldn't concern us much
 -dontwarn androidx.window.extensions.**
 -dontwarn androidx.window.sidecar.**
+
+# Compile-time annotations on MediaPipe classes, not needed at runtime
+-dontwarn com.google.auto.value.**
