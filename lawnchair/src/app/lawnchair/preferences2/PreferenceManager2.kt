@@ -62,6 +62,7 @@ import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.ENABLE_TWOLINE_ALLAPPS_TOGGLE
 import com.android.launcher3.R
+import com.android.launcher3.Workspace
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
@@ -492,6 +493,11 @@ class PreferenceManager2 @Inject constructor(
     val enableSmartHide = preference(
         key = booleanPreferencesKey(name = "enable_smart_hide"),
         defaultValue = false,
+    )
+
+    val defaultHomePage = preference(
+        key = intPreferencesKey(name = "default_home_page"),
+        defaultValue = Workspace.DEFAULT_PAGE,
     )
 
     val appDrawerHapticFeedback = preference(

@@ -91,7 +91,6 @@ import java.util.function.Consumer;
 import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
 import app.lawnchair.DeviceProfileOverrides;
 import app.lawnchair.AutoCatApp;
-import app.lawnchair.LawnchairAppKt;
 import app.lawnchair.hotseat.HotseatMode;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;

@@ -689,7 +689,6 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
 
     void bind(FolderInfo info) {
         mInfo = info;
-        mBackground.setFolderInfo(info);
         mFromTitle = info.title;
         mFromLabelState = info.getFromLabelState();
         updateItemLocationsInDatabaseBatch(true);
@@ -799,8 +798,6 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
                     }
                     mActivityContext.getModelWriter().updateItemInDatabase(mInfo);
                     
-                    mBackground.setFolderInfo(mInfo);
-                    mBackground.setup(getContext(), mActivityContext, this, mContent.getMeasuredWidth(), getPaddingTop());
                     if (mFolderIcon != null) {
                         mFolderIcon.mBackground.setFolderInfo(mInfo);
                         mFolderIcon.mBackground.setup(getContext(), mActivityContext, mFolderIcon, mFolderIcon.getMeasuredWidth(), mFolderIcon.getPaddingTop());

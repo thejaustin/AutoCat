@@ -51,7 +51,7 @@ import com.google.android.msdl.data.model.MSDLToken;
 import java.util.function.Supplier;
 import java.lang.reflect.InvocationTargetException;
 
-import app.lawnchair.LawnchairAppKt;
+import app.lawnchair.AutoCatAppKt;
 import app.lawnchair.AutoCatLauncher;
 import app.lawnchair.gestures.config.GestureHandlerConfig;
 import app.lawnchair.util.CompatibilityKt;
@@ -130,7 +130,7 @@ public class StatusBarTouchController implements TouchController {
 
     private void vibrate() {
         // LC-Note: For pulling down on notification panel (default gesture config)
-        if (!LawnchairAppKt.getLawnchairApp(mLauncher).isVibrateOnIconAnimation()) {
+        if (!AutoCatAppKt.getAutoCatApp(mLauncher).isVibrateOnIconAnimation()) {
             if (Flags.msdlFeedback()) {
                 MSDLPlayerWrapper.INSTANCE.get(mLauncher).playToken(MSDLToken.SWIPE_THRESHOLD_INDICATOR);
             } else {

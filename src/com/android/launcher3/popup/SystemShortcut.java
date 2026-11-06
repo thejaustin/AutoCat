@@ -35,6 +35,8 @@ import com.android.launcher3.R;
 import com.android.launcher3.SecondaryDropTarget;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.allapps.PrivateProfileManager;
+import com.android.launcher3.folder.FolderIcon;
+import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.UserCache;
@@ -640,7 +642,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
 
     public static class HideApp<T extends ActivityContext> extends SystemShortcut<T> {
         public HideApp(T target, ItemInfo itemInfo, View originalView) {
-            super(R.drawable.ic_remove, R.string.hide_app, target, itemInfo, originalView);
+            super(R.drawable.ic_remove_no_shadow, R.string.hide_app, target, itemInfo, originalView);
         }
 
         @Override
@@ -650,8 +652,6 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
             com.android.launcher3.views.Snackbar.show(
                 mTarget,
                 v.getContext().getString(R.string.app_hidden_message),
-                null,
-                null,
                 null
             );
         }

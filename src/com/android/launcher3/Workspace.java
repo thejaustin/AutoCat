@@ -111,6 +111,7 @@ import com.android.launcher3.model.data.AppPairInfo;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
+import com.android.launcher3.model.data.WidgetStackInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pageindicators.PageIndicator;
 import com.android.launcher3.statemanager.StateManager;
@@ -133,6 +134,7 @@ import com.android.launcher3.widget.LauncherAppWidgetHostView;
 import com.android.launcher3.widget.NavigableAppWidgetHostView;
 import com.android.launcher3.widget.PendingAddShortcutInfo;
 import com.android.launcher3.widget.PendingAddWidgetInfo;
+import com.android.launcher3.widget.WidgetStackView;
 import com.android.launcher3.widget.util.WidgetSizes;
 import com.android.systemui.plugins.shared.LauncherOverlayManager.LauncherOverlayCallbacks;
 import com.android.systemui.plugins.shared.LauncherOverlayManager.LauncherOverlayTouchProxy;
@@ -150,7 +152,7 @@ import app.lawnchair.hotseat.HotseatPagedView;
 import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
 import static app.lawnchair.util.AutoCatUtilsKt.toBitmap;
 import app.lawnchair.AutoCatApp;
-import app.lawnchair.LawnchairAppKt;
+import app.lawnchair.AutoCatAppKt;
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.preferences2.PreferenceManager2;
 import app.lawnchair.smartspace.DoubleShadowTextView;
@@ -617,9 +619,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
 
     public void updateStatusbarClock() {
         if (mCurrentPage == 0 && PreferenceCacheExtensionsKt.firstCached(mPreferenceManager2.getStatusBarClock())) {
-            LawnchairAppKt.getLawnchairApp(mLauncher).hideClockInStatusBar();
+            AutoCatAppKt.getAutoCatApp(mLauncher).hideClockInStatusBar();
         } else {
-            LawnchairAppKt.getLawnchairApp(mLauncher).restoreClockInStatusBar();
+            AutoCatAppKt.getAutoCatApp(mLauncher).restoreClockInStatusBar();
         }
     }
 
@@ -2281,7 +2283,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         return false;
     }
 
-    private boolean addToExistingFolderIfNecessary(View newView, CellLayout target, int[] targetCell,
+    boolean addToExistingFolderIfNecessary(View newView, CellLayout target, int[] targetCell,
                                                     float distance, DragObject d, boolean external) {
 
         if (distance > target.getFolderCreationRadius(targetCell)) return false;
@@ -2358,7 +2360,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                         distance, d, false)
                         || createWidgetStackIfNecessary(cell, container, dropTargetLayout, mTargetCell,
                         distance, d)
-                        || addToWidgetStackIfNecessary(cell, dropTargetLayout, mTargetCell,
+                        || addToWidgetStackIfNecessary(cell, container, dropTargetLayout, mTargetCell,
                         distance, d)) {
                     if (!mLauncher.isInState(EDIT_MODE)) {
                         mLauncher.getStateManager().goToState(NORMAL, SPRING_LOADED_EXIT_DELAY);
@@ -3007,6 +3009,68 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             }
         }
         return null;
+    }
+
+    private void manageFolderFeedback(float distance, DragObject dragObject) {
+        if (distance > mDragTargetLayout.getFolderCreationRadius(mTargetCell)) {
+            if ((mDragMode == DRAG_MODE_ADD_TO_FOLDER
+                    || mDragMode == DRAG_MODE_CREATE_FOLDER)) {
+                setDragMode(DRAG_MODE_NONE);
+            }
+            return;
+        }
+
+        mDragOverView = mDragTargetLayout.getChildAt(mTargetCell[0], mTargetCell[1]);
+        ItemInfo info = dragObject.dragInfo;
+        boolean userFolderPending = willCreateUserFolder(info, mDragOverView, false);
+        if (mDragMode == DRAG_MODE_NONE && userFolderPending) {
+            if (Flags.msdlFeedback()) {
+                mMSDLPlayerWrapper.playToken(MSDLToken.DRAG_INDICATOR_DISCRETE);
+            }
+            mFolderCreateBg = new PreviewBackground(getContext());
+            mFolderCreateBg.setup(mLauncher, mLauncher, null,
+                    mDragOverView.getMeasuredWidth(), mDragOverView.getPaddingTop());
+
+            // The full preview background should appear behind the icon
+            mFolderCreateBg.isClipping = false;
+
+            if (mDragOverView instanceof AppPairIcon api) {
+                api.getIconDrawableArea().onTemporaryContainerChange(DISPLAY_FOLDER);
+            }
+
+            mFolderCreateBg.animateToAccept(mDragTargetLayout, mTargetCell[0], mTargetCell[1]);
+            mDragTargetLayout.clearDragOutlines();
+            setDragMode(DRAG_MODE_CREATE_FOLDER);
+
+            if (dragObject.stateAnnouncer != null) {
+                dragObject.stateAnnouncer.announce(WorkspaceAccessibilityHelper
+                        .getDescriptionForDropOver(mDragOverView, getContext()));
+            }
+            return;
+        }
+
+        boolean willAddToFolder = willAddToExistingUserFolder(info, mDragOverView);
+        if (willAddToFolder && mDragMode == DRAG_MODE_NONE) {
+            mDragOverFolderIcon = ((FolderIcon) mDragOverView);
+            mDragOverFolderIcon.onDragEnter(info);
+            if (mDragTargetLayout != null) {
+                mDragTargetLayout.clearDragOutlines();
+            }
+            setDragMode(DRAG_MODE_ADD_TO_FOLDER);
+
+            if (dragObject.stateAnnouncer != null) {
+                dragObject.stateAnnouncer.announce(WorkspaceAccessibilityHelper
+                        .getDescriptionForDropOver(mDragOverView, getContext()));
+            }
+            return;
+        }
+
+        if (mDragMode == DRAG_MODE_ADD_TO_FOLDER && !willAddToFolder) {
+            setDragMode(DRAG_MODE_NONE);
+        }
+        if (mDragMode == DRAG_MODE_CREATE_FOLDER && !userFolderPending) {
+            setDragMode(DRAG_MODE_NONE);
+        }
     }
 
     private void manageWidgetStackFeedback(float distance, DragObject dragObject) {

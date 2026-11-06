@@ -73,7 +73,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import app.lawnchair.AutoCatApp;
-import app.lawnchair.LawnchairAppKt;
+import app.lawnchair.AutoCatAppKt;
 
 /**
  * Utility class which maintains an instance of Launcher database and provides utility methods
@@ -137,7 +137,7 @@ public class ModelDbController {
 
         try {
             if (!forMigration && dbName != null) {
-                AutoCatApp app = LawnchairAppKt.getLawnchairApp(mContext);
+                AutoCatApp app = AutoCatAppKt.getAutoCatApp(mContext);
                 app.migrateDbName(dbName);
                 // LC-Note: Restore into the file opened below. A restore changes grid prefs, which
                 // can move the IDP to another grid's dbFile before this runs. Rename after
@@ -625,7 +625,7 @@ public class ModelDbController {
         createDbIfNotExists();
 
         if (!(mContext instanceof PreviewContext)) {
-            LawnchairAppKt.getLawnchairApp(mContext).cleanUpDatabases();
+            AutoCatAppKt.getAutoCatApp(mContext).cleanUpDatabases();
         }
 
         if (mPrefs.get(getEmptyDbCreatedKey())) {

@@ -699,7 +699,7 @@ public class LoaderTask implements Runnable {
                                 com.android.launcher3.model.data.AppInfo pwaAppInfo = new com.android.launcher3.model.data.AppInfo(fakeComponent, shortcutInfo.getShortLabel(), myUserHandle(), intent);
                                 pwaAppInfo.itemType = com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT;
                                 com.android.launcher3.model.data.WorkspaceItemInfo tempInfo = new com.android.launcher3.model.data.WorkspaceItemInfo(shortcutInfo, mContext);
-                                mApp.getIconCache().getShortcutIcon(tempInfo, shortcutInfo);
+                                mIconCache.getShortcutIcon(tempInfo, shortcutInfo);
                                 pwaAppInfo.bitmap = tempInfo.bitmap;
                                 mBgAllAppsList.data.add(pwaAppInfo);
                             }
