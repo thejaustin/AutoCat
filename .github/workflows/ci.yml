@@ -32,6 +32,7 @@ env:
 jobs:
   build-debug-apk:
     strategy:
+      fail-fast: false
       matrix:
         build-variant: [ assembleLawnWithQuickstepNightlyRelease, assembleLawnWithQuickstepGithubDebug, assembleLawnWithQuickstepPlayDebug ]
     runs-on: ubuntu-latest
@@ -58,6 +59,9 @@ jobs:
           fi
       - name: Build APK
         run: ./gradlew ${{ matrix.build-variant }}
+      - name: List displaylib KSP output
+        if: failure()
+        run: find platform_frameworks_libs_systemui/displaylib/build/generated/ksp -type f | sort || true
       - name: Upload artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
