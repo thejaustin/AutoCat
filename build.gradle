@@ -460,7 +460,8 @@ dependencies {
 
     // MediaPipe Tasks GenAI — on-device LLM (Gemma via AICore or downloaded .bin)
     implementation(libs.mediapipe.tasks.genai) {
-        exclude group: "org.tensorflow", module: "tensorflow-lite-api"
+        // An annotation processor that MediaPipe's POM publishes as a compile dependency
+        exclude group: "com.google.auto.value", module: "auto-value"
     }
 
     implementation platform(libs.compose.bom)
