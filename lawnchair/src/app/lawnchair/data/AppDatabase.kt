@@ -20,7 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-@Database(entities = [IconOverride::class, Wallpaper::class, FolderInfoEntity::class, FolderItemEntity::class], version = 4)
+@Database(entities = [IconOverride::class, Wallpaper::class, FolderInfoEntity::class, FolderItemEntity::class], version = 5)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
@@ -103,12 +103,29 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // The folder cover columns first shipped without a migration, so some
+                // version 4 databases already have them
+                val existing = database.query("PRAGMA table_info(Folders)").use { cursor ->
+                    val nameIndex = cursor.getColumnIndexOrThrow("name")
+                    buildSet { while (cursor.moveToNext()) add(cursor.getString(nameIndex)) }
+                }
+                if ("coverMode" !in existing) {
+                    database.execSQL("ALTER TABLE Folders ADD COLUMN coverMode INTEGER NOT NULL DEFAULT 0")
+                }
+                if ("coverAppComponent" !in existing) {
+                    database.execSQL("ALTER TABLE Folders ADD COLUMN coverAppComponent TEXT DEFAULT NULL")
+                }
+            }
+        }
+
         val INSTANCE = MainThreadInitializedObject { context ->
             Room.databaseBuilder(
                 context,
                 AppDatabase::class.java,
                 "preferences",
-            ).addMigrations(MIGRATION_1_3, MIGRATION_2_3, MIGRATION_3_4)
+            ).addMigrations(MIGRATION_1_3, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 // Fixed: Removed allowMainThreadQueries() and will handle database operations properly on background threads
                 .build()
         }

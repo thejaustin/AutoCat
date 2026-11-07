@@ -99,10 +99,16 @@ class UploaderService : Service() {
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .build()
 
-        if (Utilities.ATLEAST_U) {
-            startForeground(101, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            startForeground(101, notification)
+        try {
+            if (Utilities.ATLEAST_U) {
+                startForeground(101, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            } else {
+                startForeground(101, notification)
+            }
+        } catch (e: IllegalStateException) {
+            // A crash usually leaves the app in the background, where Android refuses
+            // foreground services. Upload anyway rather than crash this process too
+            Log.w("DUS", "Uploading without a foreground notification", e)
         }
     }
 
