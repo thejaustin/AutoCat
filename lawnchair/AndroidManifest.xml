@@ -128,6 +128,23 @@
             android:name="app.lawnchair.BlankActivity"
             android:theme="@style/Theme.Transparent" />
 
+        <!-- Exported with a launcher entry so gesture apps such as One Hand Operation+ can open it -->
+        <activity
+            android:name="app.lawnchair.recents.TaskSwitcherActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_home"
+            android:label="@string/task_switcher_label"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Transparent">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name="app.lawnchair.bugreport.BugReportActivity"
             android:exported="false"

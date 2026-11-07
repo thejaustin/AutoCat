@@ -36,3 +36,6 @@
 
 # LiteRT-LM calls into its Kotlin classes from native code and ships no keep rules
 -keep class com.google.ai.edge.litertlm.** { *; }
+
+# Shizuku creates the shell service by reflection from its class name
+-keep class app.lawnchair.shizuku.UserService { <init>(...); }

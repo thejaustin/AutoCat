@@ -13,6 +13,8 @@ import com.android.launcher3.util.DaggerSingletonObject
 import com.topjohnwu.superuser.Shell
 import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.withTimeoutOrNull
 import rikka.shizuku.Shizuku
 
 @LauncherAppSingleton
@@ -22,16 +24,20 @@ class ShizukuManager @Inject constructor(
 ) {
 
     private var userService: IUserService? = null
+    private var serviceReady = CompletableDeferred<IUserService>()
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             if (service != null && service.pingBinder()) {
-                userService = IUserService.Stub.asInterface(service)
+                val connected = IUserService.Stub.asInterface(service)
+                userService = connected
+                serviceReady.complete(connected)
             }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
             userService = null
+            serviceReady = CompletableDeferred()
         }
     }
 
@@ -41,7 +47,7 @@ class ShizukuManager @Inject constructor(
         .daemon(false)
         .processNameSuffix("service")
         .debuggable(true)
-        .version(1)
+        .version(2)
 
     init {
         Shizuku.addBinderReceivedListenerSticky {
@@ -86,6 +92,23 @@ class ShizukuManager @Inject constructor(
             return
         }
         Shizuku.bindUserService(userServiceArgs, serviceConnection)
+    }
+
+    /**
+     * The shell service, binding it first if needed. Returns null when Shizuku isn't running,
+     * permission hasn't been granted, or the service doesn't connect within [timeoutMs].
+     */
+    suspend fun awaitService(timeoutMs: Long = 5_000): IUserService? {
+        userService?.let { return it }
+        if (!isShizukuAvailable() || Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+            return null
+        }
+        bindService()
+        return withTimeoutOrNull(timeoutMs) { serviceReady.await() }
+    }
+
+    fun hasPermission(): Boolean {
+        return isShizukuAvailable() && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
     }
 
     fun unbindService() {
@@ -152,8 +175,7 @@ class ShizukuManager @Inject constructor(
         } ?: return false
 
         return try {
-            service.runCommand(command, null)
-            true
+            service.runCommand(command, null) == 0
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Shizuku command failed: ${command.joinToString(" ")}", e)
             false

@@ -7,6 +7,7 @@ val gestureHandlerOptions = listOf(
     GestureHandlerOption.NoOp,
     GestureHandlerOption.Sleep,
     GestureHandlerOption.Recents,
+    GestureHandlerOption.OpenTaskSwitcher,
     GestureHandlerOption.OpenNotifications,
     GestureHandlerOption.OpenQuickSettings,
     GestureHandlerOption.OpenAppDrawer,

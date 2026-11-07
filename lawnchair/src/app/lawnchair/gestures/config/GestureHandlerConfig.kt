@@ -17,6 +17,7 @@ import app.lawnchair.gestures.handlers.OpenAssistantHandler
 import app.lawnchair.gestures.handlers.OpenNotificationsHandler
 import app.lawnchair.gestures.handlers.OpenQuickSettingsHandler
 import app.lawnchair.gestures.handlers.OpenSearchGestureHandler
+import app.lawnchair.gestures.handlers.OpenTaskSwitcherHandler
 import app.lawnchair.gestures.handlers.RecentsGestureHandler
 import app.lawnchair.gestures.handlers.SleepGestureHandler
 import app.lawnchair.theme.color.tokens.ColorTokens
@@ -80,6 +81,12 @@ sealed class GestureHandlerConfig {
     @Serializable
     @SerialName("recents")
     data object Recents : Simple(R.string.gesture_handler_recents, ::RecentsGestureHandler) {
+        override val iconRes = R.drawable.ic_quickstep
+    }
+
+    @Serializable
+    @SerialName("openTaskSwitcher")
+    data object OpenTaskSwitcher : Simple(R.string.gesture_handler_open_task_switcher, ::OpenTaskSwitcherHandler) {
         override val iconRes = R.drawable.ic_quickstep
     }
 

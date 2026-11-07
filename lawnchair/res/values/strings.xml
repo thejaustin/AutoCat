@@ -662,6 +662,8 @@
     <string name="gesture_handler_no_op">Do nothing</string>
     <string name="gesture_handler_sleep">Sleep</string>
     <string name="gesture_handler_recents">Open Recents screen</string>
+    <string name="gesture_handler_open_task_switcher">Open AutoCat recent apps (Shizuku)</string>
+    <string name="task_switcher_label">Recent apps</string>
     <string name="gesture_handler_open_notifications">Open notification panel</string>
     <string name="gesture_handler_open_quick_settings">Open Quick Settings</string>
     <string name="gesture_handler_open_app_option">Open app</string>
