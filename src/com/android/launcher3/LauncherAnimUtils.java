@@ -31,7 +31,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.launcher3.util.MultiScalePropertyFactory;
-import com.android.launcher3.views.BaseDragLayer;
 import com.android.launcher3.views.ScrimColors;
 import com.android.launcher3.views.ScrimView;
 
@@ -203,19 +202,6 @@ public class LauncherAnimUtils {
                             return view.getAlpha();
                         }
                     };
-
-    public static final FloatProperty<BaseDragLayer<?>> DRAG_LAYER_BLUR =
-            new FloatProperty<BaseDragLayer<?>>("blur") {
-                @Override
-                public Float get(BaseDragLayer<?> layer) {
-                    return layer.getBlurRadius();
-                }
-
-                @Override
-                public void setValue(BaseDragLayer<?> layer, float radius) {
-                    layer.setBlur(radius);
-                }
-            };
 
     public static final IntProperty<View> VIEW_BACKGROUND_COLOR =
             new IntProperty<View>("backgroundColor") {

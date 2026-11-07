@@ -240,11 +240,7 @@ public class AllAppsTransitionController
         // Allow apps panel to shift the full screen if coming from another app.
         float shiftRange = fromBackground ? mLauncher.getDeviceProfile().getDeviceProperties().getHeightPx() : mShiftRange;
         getAppsViewProgressTranslationY().setValue(mProgress * shiftRange);
-        float allAppsAlpha = 1 - progress;
-        mLauncher.onAllAppsTransition(allAppsAlpha);
-
-        // Apply glassmorphism blur to DragLayer
-        mLauncher.getDragLayer().setBlur(allAppsAlpha * 25f);
+        mLauncher.onAllAppsTransition(1 - progress);
 
         boolean hasScrim = progress < NAV_BAR_COLOR_FORCE_UPDATE_THRESHOLD
                 && mLauncher.getAppsView().getNavBarScrimHeight() > 0;
