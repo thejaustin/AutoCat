@@ -212,8 +212,10 @@ public class AllAppsState extends LauncherState {
         if (!launcher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
             // Always use an opaque scrim if there's no sheet.
             backgroundColor = ColorTokens.AllAppsScrimColor.resolveColor(launcher);
-        } else if (!Flags.allAppsBlur()) {
+        } else if (!Flags.allAppsBlur() || !launcher.isAllAppsBackgroundBlurEnabled()) {
             // If there's a sheet but no blur, use the old scrim color.
+            // AutoCat-Note: also when blur is unavailable (battery saver, no window blur support),
+            // otherwise the unblurred home screen shows through the translucent drawer.
             backgroundColor = AutoCatUtilsKt.getAllAppsBackgroundColor(launcher, 
                 ColorTokens.WidgetsPickerScrim.resolveColor(launcher));
         } else {
