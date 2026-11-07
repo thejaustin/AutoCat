@@ -242,7 +242,6 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     val autoCatGenAIFolderNaming = BoolPref("pref_autoCatGenAIFolderNaming", true, {})
 
     // AutoCat: Smart Dock
-    val autoCatSmartDockEnabled = BoolPref("pref_autoCatSmartDockEnabled", false, recreate)
 
     // AutoCat: PWA App Drawer Integration
     val autoCatPwaIntegrationEnabled = BoolPref("pref_autoCatPwaIntegrationEnabled", true, recreate)

@@ -261,7 +261,6 @@ fun SmartCategoriesOnboardingPreferences(
 @Composable
 fun SmartFeaturesStep(modifier: Modifier = Modifier) {
     val prefs = preferenceManager()
-    var smartDockEnabled by remember { mutableStateOf(prefs.autoCatSmartDockEnabled.get()) }
     var genAIFolderNamingEnabled by remember { mutableStateOf(prefs.autoCatGenAIFolderNaming.get()) }
     var pwaIntegrationEnabled by remember { mutableStateOf(prefs.autoCatPwaIntegrationEnabled.get()) }
 
@@ -296,39 +295,6 @@ fun SmartFeaturesStep(modifier: Modifier = Modifier) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 32.dp),
         )
-
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-            ),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column(modifier = Modifier.weight(1f).padding(end = 16.dp)) {
-                    Text(
-                        text = "Smart Dock",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = "Predicts which apps you need in your dock based on time of day.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                androidx.compose.material3.Switch(
-                    checked = smartDockEnabled,
-                    onCheckedChange = {
-                        smartDockEnabled = it
-                        prefs.autoCatSmartDockEnabled.set(it)
-                    },
-                )
-            }
-        }
 
         Card(
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
