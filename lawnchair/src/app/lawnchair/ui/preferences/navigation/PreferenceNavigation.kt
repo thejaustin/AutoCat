@@ -66,6 +66,7 @@ import app.lawnchair.ui.preferences.destinations.ShapePreference
 import app.lawnchair.ui.preferences.destinations.SmartCategoriesOnboardingPreferences
 import app.lawnchair.ui.preferences.destinations.SmartspacePreferences
 import app.lawnchair.ui.preferences.destinations.TabManagementPreferences
+import app.lawnchair.ui.preferences.destinations.ZenModePreferences
 import app.lawnchair.ui.preferences.destinations.icons.AdvancedIconPreferences
 import app.lawnchair.ui.preferences.destinations.icons.IconPackPreferences
 import app.lawnchair.ui.preferences.destinations.icons.ThemedIconsPreferences
@@ -206,6 +207,9 @@ fun PreferenceNavigation(
             composable<AppDrawerAppCategorizations> { AppCategorizationListPreferences() }
             composable<AppDrawerLLMSettings> { LLMSettingsPreferences() }
             composable<AppDrawerDiagnostics> { DiagnosticsPreferences() }
+            composable<AppDrawerZenMode> {
+                ZenModePreferences(onNavigateBack = { navController.popBackStack() })
+            }
             composable<SmartCategoriesOnboarding> {
                 SmartCategoriesOnboardingPreferences(
                     onFinish = { navController.popBackStack() },

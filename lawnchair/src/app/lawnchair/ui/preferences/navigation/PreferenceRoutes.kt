@@ -195,6 +195,9 @@ data object AppDrawerLLMSettings : PreferenceRoute
 data object AppDrawerDiagnostics : PreferenceRoute
 
 @Serializable
+data object AppDrawerZenMode : PreferenceRoute
+
+@Serializable
 data object SmartCategoriesOnboarding : PreferenceRoute
 
 // Search section routes

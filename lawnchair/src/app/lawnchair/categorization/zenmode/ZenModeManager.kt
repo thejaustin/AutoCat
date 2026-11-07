@@ -1,47 +1,42 @@
 package app.lawnchair.categorization.zenmode
 
-import android.app.usage.UsageStatsManager
+import android.app.NotificationManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.UserHandle
+import android.content.IntentFilter
 import android.util.Log
+import androidx.core.content.ContextCompat
 import app.lawnchair.categorization.CategoryTabsManager
 import app.lawnchair.data.tab.TabDatabase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import app.lawnchair.data.tab.entities.CustomTab
+import app.lawnchair.preferences.PreferenceManager
 
 /**
- * Zen Mode - Links AutoCat categories to Android Focus Mode.
+ * Zen Mode - links AutoCat tabs to Do Not Disturb.
  *
- * When Focus Mode is active, hides distracting app categories
- * and surfaces only essential apps for productivity.
- *
- * Features:
- * - Auto-hide categories when Focus Mode activates
- * - Show only "Work", "Productivity", "Essentials" tabs
- * - Restore full app drawer when Focus Mode deactivates
- * - Per-category Focus Mode rules
+ * While Do Not Disturb (or any Android mode that silences interruptions) is on,
+ * tabs marked "hide in Zen" are left out of the app drawer, or only tabs marked
+ * "show only in Zen" are shown when there are any. The filter is applied when tabs
+ * are read, so the saved visibility of each tab is never changed.
  */
 class ZenModeManager private constructor(
     private val context: Context,
 ) {
-    private val tabDatabase by lazy { TabDatabase.getInstance(context) }
-    private val tabDao by lazy { tabDatabase.categoryDao() }
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val usageStatsManager by lazy {
-        context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+    private val tabDao by lazy { TabDatabase.getInstance(context).categoryDao() }
+    private val prefs by lazy { PreferenceManager.getInstance(context) }
+    private val notificationManager by lazy {
+        context.getSystemService(NotificationManager::class.java)
     }
 
-    private val _isFocusModeActive = MutableStateFlow(false)
-    val isFocusModeActive: StateFlow<Boolean> = _isFocusModeActive.asStateFlow()
-
-    private val _activeFocusRules = MutableStateFlow(setOf<String>())
-    val activeFocusRules: StateFlow<Set<String>> = _activeFocusRules.asStateFlow()
+    private var receiverRegistered = false
+    private val interruptionFilterReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (prefs.autoCatEnableZenMode.get()) {
+                CategoryTabsManager.getInstance(context).refreshTabs()
+            }
+        }
+    }
 
     companion object {
         private const val TAG = "ZenModeManager"
@@ -68,25 +63,48 @@ class ZenModeManager private constructor(
     )
 
     /**
-     * Checks if Focus Mode is currently active.
+     * Whether Zen Mode is enabled in settings and the system is currently silencing interruptions.
      */
-    fun isFocusModeEnabled(): Boolean {
-        return try {
-            // Check if any focus-related packages are in foreground
-            val currentTime = System.currentTimeMillis()
-            val usageStats = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY,
-                currentTime - 60000,
-                currentTime,
-            )
+    fun isZenActive(): Boolean {
+        if (!prefs.autoCatEnableZenMode.get()) return false
+        return when (notificationManager?.currentInterruptionFilter) {
+            NotificationManager.INTERRUPTION_FILTER_PRIORITY,
+            NotificationManager.INTERRUPTION_FILTER_ALARMS,
+            NotificationManager.INTERRUPTION_FILTER_NONE,
+            -> true
 
-            // Focus mode typically restricts certain apps
-            // We'll use a heuristic based on app usage patterns
-            usageStats?.isNotEmpty() == true
-        } catch (e: SecurityException) {
-            Log.w(TAG, "No permission to access usage stats", e)
-            false
+            else -> false
         }
+    }
+
+    /**
+     * Applies the Zen rules to [tabs] when Zen Mode is active, otherwise returns them unchanged.
+     */
+    fun filterTabs(tabs: List<CustomTab>): List<CustomTab> {
+        if (!isZenActive()) return tabs
+        val showOnly = tabs.filter { it.showOnlyInZenMode }
+        return showOnly.ifEmpty { tabs.filterNot { it.hideInZenMode } }
+    }
+
+    /**
+     * Refreshes the drawer tabs whenever Do Not Disturb turns on or off.
+     * Call from the launcher's onCreate, paired with [unregister].
+     */
+    fun register() {
+        if (receiverRegistered) return
+        ContextCompat.registerReceiver(
+            context,
+            interruptionFilterReceiver,
+            IntentFilter(NotificationManager.ACTION_INTERRUPTION_FILTER_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+        receiverRegistered = true
+    }
+
+    fun unregister() {
+        if (!receiverRegistered) return
+        context.unregisterReceiver(interruptionFilterReceiver)
+        receiverRegistered = false
     }
 
     /**
@@ -115,125 +133,7 @@ class ZenModeManager private constructor(
             ),
         )
         Log.d(TAG, "Updated Focus rule for '${rule.categoryName}': hide=${rule.hideDuringFocus}, showOnly=${rule.showOnlyDuringFocus}")
-    }
-
-    /**
-     * Applies Focus Mode state to app drawer.
-     *
-     * @param active true if Focus Mode is active
-     */
-    suspend fun applyFocusModeState(active: Boolean) {
-        _isFocusModeActive.value = active
-
-        if (active) {
-            activateFocusMode()
-        } else {
-            deactivateFocusMode()
-        }
-
-        Log.i(TAG, "Focus Mode ${if (active) "activated" else "deactivated"}")
-    }
-
-    /**
-     * Activates Focus Mode - hides distracting categories.
-     */
-    private suspend fun activateFocusMode() {
-        val rules = getFocusRules()
-        val categoriesToHide = rules
-            .filter { it.hideDuringFocus && !it.showOnlyDuringFocus }
-            .map { it.categoryName }
-
-        val categoriesToShow = rules
-            .filter { it.showOnlyDuringFocus }
-            .map { it.categoryName }
-            .toSet()
-
-        _activeFocusRules.value = categoriesToShow
-
-        // Hide categories marked for Focus Mode
-        categoriesToHide.forEach { categoryName ->
-            tabDao.getCustomCategoryByName(categoryName)?.let { tab ->
-                if (tab.isVisible) {
-                    tabDao.updateCustomCategory(tab.copy(isVisible = false))
-                    Log.d(TAG, "Hidden category '$categoryName' during Focus Mode")
-                }
-            }
-        }
-
-        // Show only essential categories if specified
-        if (categoriesToShow.isNotEmpty()) {
-            tabDao.getAllCustomCategories().forEach { tab ->
-                if (categoriesToShow.contains(tab.name) && !tab.isVisible) {
-                    tabDao.updateCustomCategory(tab.copy(isVisible = true))
-                    Log.d(TAG, "Shown essential category '${tab.name}' during Focus Mode")
-                }
-            }
-        }
-
-        // Notify tabs manager to refresh
         CategoryTabsManager.getInstance(context).refreshTabs()
-    }
-
-    /**
-     * Deactivates Focus Mode - restores all categories.
-     */
-    private suspend fun deactivateFocusMode() {
-        val rules = getFocusRules()
-        val categoriesPreviouslyHidden = rules
-            .filter { it.hideDuringFocus && !it.showOnlyDuringFocus }
-            .map { it.categoryName }
-            .toSet()
-
-        // Restore previously hidden categories
-        categoriesPreviouslyHidden.forEach { categoryName ->
-            tabDao.getCustomCategoryByName(categoryName)?.let { tab ->
-                if (!tab.isVisible) {
-                    tabDao.updateCustomCategory(tab.copy(isVisible = true))
-                    Log.d(TAG, "Restored category '$categoryName' after Focus Mode")
-                }
-            }
-        }
-
-        _activeFocusRules.value = emptySet()
-
-        // Notify tabs manager to refresh
-        CategoryTabsManager.getInstance(context).refreshTabs()
-    }
-
-    /**
-     * Sets up Focus Mode listener.
-     * Call this from Application or Launcher onCreate.
-     */
-    fun setupFocusModeListener() {
-        // Listen for Focus Mode changes via broadcast
-        val intentFilter = android.content.IntentFilter().apply {
-            addAction(Intent.ACTION_TIME_TICK)
-            addAction(Intent.ACTION_BATTERY_CHANGED)
-        }
-
-        context.registerReceiver(
-            createFocusModeReceiver(),
-            intentFilter,
-        )
-
-        Log.d(TAG, "Focus Mode listener setup complete")
-    }
-
-    private fun createFocusModeReceiver(): android.content.BroadcastReceiver {
-        return object : android.content.BroadcastReceiver() {
-            private var lastFocusState = false
-
-            override fun onReceive(context: Context, intent: Intent) {
-                val currentFocusState = isFocusModeEnabled()
-
-                if (currentFocusState != lastFocusState) {
-                    lastFocusState = currentFocusState
-                    scope.launch {
-                        applyFocusModeState(currentFocusState)
-                    }
-                }
-            }
-        }
     }
 
     /**

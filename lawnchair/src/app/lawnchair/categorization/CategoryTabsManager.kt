@@ -1,6 +1,7 @@
 package app.lawnchair.categorization
 
 import android.content.Context
+import app.lawnchair.categorization.zenmode.ZenModeManager
 import app.lawnchair.data.tab.TabDatabase
 import app.lawnchair.data.tab.entities.CustomTab
 import app.lawnchair.preferences.PreferenceManager
@@ -50,18 +51,9 @@ class CategoryTabsManager(private val context: Context) {
     suspend fun getTabs(hasWorkApps: Boolean): List<TabInfo> {
         val tabs = mutableListOf<TabInfo>()
 
-        val isZenModeActive = if (prefs.autoCatEnableZenMode.get()) {
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-            notificationManager.currentInterruptionFilter != android.app.NotificationManager.INTERRUPTION_FILTER_ALL
-        } else {
-            false
-        }
-
         // Get visible custom tabs from database (already sorted by sortOrder)
         val customCategoryTabs = withContext(Dispatchers.IO) {
-            categoryDao.getVisibleCustomCategories().filter {
-                !isZenModeActive || !it.hideInZenMode
-            }
+            ZenModeManager.getInstance(context).filterTabs(categoryDao.getVisibleCustomCategories())
         }
 
         android.util.Log.d(TAG, "getTabs: Found ${customCategoryTabs.size} visible custom tabs")

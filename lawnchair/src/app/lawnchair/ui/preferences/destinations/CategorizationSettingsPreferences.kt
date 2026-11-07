@@ -62,6 +62,7 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
 import app.lawnchair.ui.preferences.navigation.AppDrawerAppCategorizations
 import app.lawnchair.ui.preferences.navigation.AppDrawerLLMSettings
 import app.lawnchair.ui.preferences.navigation.AppDrawerTabManagement
+import app.lawnchair.ui.preferences.navigation.AppDrawerZenMode
 import app.lawnchair.ui.preferences.navigation.Search as SearchDestination
 import app.lawnchair.ui.preferences.navigation.SmartCategoriesOnboarding
 import app.lawnchair.ui.util.rememberExpressiveHaptics
@@ -402,6 +403,15 @@ fun CategorizationSettingsPreferences(
                         label = "Zen Mode (DND Awareness)",
                         description = "Automatically hide selected tabs when Do Not Disturb is active.",
                     )
+
+                    val zenModeEnabled by prefs.autoCatEnableZenMode.getAdapter().state
+                    AnimatedVisibility(visible = zenModeEnabled) {
+                        NavigationActionPreference(
+                            label = "Zen Mode Tabs",
+                            subtitle = "Choose which tabs to hide, or show only, during Do Not Disturb.",
+                            destination = AppDrawerZenMode,
+                        )
+                    }
                 }
             }
 

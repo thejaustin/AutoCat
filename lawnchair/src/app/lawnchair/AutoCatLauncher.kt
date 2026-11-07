@@ -32,6 +32,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import app.lawnchair.AutoCatApp.Companion.showQuickstepWarningIfNecessary
+import app.lawnchair.categorization.zenmode.ZenModeManager
 import app.lawnchair.compat.AutoCatQuickstepCompat
 import app.lawnchair.data.AppDatabase
 import app.lawnchair.data.wallpaper.service.WallpaperService
@@ -192,6 +193,7 @@ class AutoCatLauncher :
         layoutInflater.factory2 = AutoCatLayoutFactory(this)
         super.onCreate(savedInstanceState)
 
+        ZenModeManager.getInstance(this).register()
         prefs.launcherTheme.subscribeChanges(this, ::updateTheme)
         prefs.feedProvider.subscribeChanges(this, defaultOverlay::reconnect)
         preferenceManager2.enableFeed.get().distinctUntilChanged().onEach { enable ->
@@ -570,6 +572,7 @@ class AutoCatLauncher :
 
     override fun onDestroy() {
         super.onDestroy()
+        ZenModeManager.getInstance(this).unregister()
         // Only actually closes if required, safe to call if not enabled
         SmartspacerClient.close()
     }
