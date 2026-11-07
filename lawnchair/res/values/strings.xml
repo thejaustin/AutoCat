@@ -224,6 +224,11 @@
     <string name="app_info_drop_target_label">App info</string>
     <string name="debug_restart_launcher">Restart Lawnchair</string>
     <string name="experimental_features_label">Experimental features</string>
+    <string name="settings_icon_style_label">Settings icon style (preview)</string>
+    <string name="settings_icon_style_description">Preview how settings icons look in different styles</string>
+    <string name="settings_icon_style_rounded">Material Rounded</string>
+    <string name="settings_icon_style_outlined">Material Outlined</string>
+    <string name="settings_icon_style_twotone">Two-tone (duotone)</string>
 
     <!-- Experimental features -->
     <string name="workspace_label">Workspace</string>

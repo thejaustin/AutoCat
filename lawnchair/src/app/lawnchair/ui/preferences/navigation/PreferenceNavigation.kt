@@ -52,6 +52,7 @@ import app.lawnchair.ui.preferences.destinations.HiddenAppsPreferences
 import app.lawnchair.ui.preferences.destinations.HomeScreenGridPreferences
 import app.lawnchair.ui.preferences.destinations.HomeScreenPreferences
 import app.lawnchair.ui.preferences.destinations.IconPickerPreference
+import app.lawnchair.ui.preferences.destinations.IconStylePreviewPreferences
 import app.lawnchair.ui.preferences.destinations.LLMSettingsPreferences
 import app.lawnchair.ui.preferences.destinations.LauncherPopupPreference
 import app.lawnchair.ui.preferences.destinations.PickAppForGesture
@@ -270,6 +271,7 @@ fun PreferenceNavigation(
             composable<ExperimentalFeatures>(
                 deepLinks = getDeepLink(ExperimentalFeatures),
             ) { ExperimentalFeaturesPreferences() }
+            composable<ExperimentalIconStylePreview> { IconStylePreviewPreferences() }
             composable<Predictions>(
                 deepLinks = getDeepLink(Predictions),
             ) { PredictionsPreferences() }

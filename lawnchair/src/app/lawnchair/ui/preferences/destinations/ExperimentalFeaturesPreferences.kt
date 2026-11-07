@@ -24,6 +24,7 @@ import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import app.lawnchair.ui.preferences.components.NavigationActionPreference
 import app.lawnchair.ui.preferences.components.WallpaperAccessPermissionDialog
 import app.lawnchair.ui.preferences.components.controls.ListPreference
 import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
@@ -33,6 +34,7 @@ import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
+import app.lawnchair.ui.preferences.navigation.ExperimentalIconStylePreview
 import app.lawnchair.util.FileAccessManager
 import app.lawnchair.util.FileAccessState
 import app.lawnchair.util.isGestureNavContractCompatible
@@ -181,6 +183,11 @@ fun ExperimentalFeaturesPreferences(
             heading = stringResource(R.string.internal_label),
             description = stringResource(R.string.internal_description),
         ) {
+            NavigationActionPreference(
+                label = stringResource(R.string.settings_icon_style_label),
+                destination = ExperimentalIconStylePreview,
+                subtitle = stringResource(R.string.settings_icon_style_description),
+            )
             SwitchPreference(
                 adapter = enableGncAdapter,
                 label = stringResource(id = R.string.gesturenavcontract_label),
