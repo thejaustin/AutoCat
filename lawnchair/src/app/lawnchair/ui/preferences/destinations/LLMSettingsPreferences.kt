@@ -44,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import app.lawnchair.categorization.AccuracyTracker
 import app.lawnchair.categorization.AdaptiveModelSelector
 import app.lawnchair.categorization.CategorizationManager
@@ -71,9 +73,10 @@ import app.lawnchair.categorization.llm.TestResult
 import app.lawnchair.categorization.local.DeviceCapabilityChecker
 import app.lawnchair.categorization.local.LocalEndpointProvider
 import app.lawnchair.categorization.local.LocalModelInfo
+import app.lawnchair.categorization.local.LiteRtLmProvider
 import app.lawnchair.categorization.local.LocalModelRegistry
+import app.lawnchair.categorization.local.LocalModelStore
 import app.lawnchair.categorization.local.LocalModelType
-import app.lawnchair.categorization.local.MediaPipeLLMProvider
 import app.lawnchair.data.tab.entities.ModelAccuracyStats
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
@@ -88,7 +91,6 @@ import app.lawnchair.ui.preferences.components.controls.TextPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLazyColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceScaffold
-import java.io.File
 import kotlinx.coroutines.launch
 
 @Composable
@@ -781,28 +783,25 @@ private fun LocalAiSection(
             modifier = Modifier.padding(bottom = 2.dp),
         )
         Text(
-            text = "Place downloaded .bin files in ${context.filesDir}/local_models/",
+            text = "Runs on your phone with no internet. Downloads go through the system download manager.",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp),
         )
 
-        val mediaPipeModels = LocalModelRegistry.ALL_MODELS.filter {
-            it.type == LocalModelType.MEDIAPIPE || it.type == LocalModelType.AICORE
+        // Re-checked when the screen resumes, so finished downloads show up as ready
+        var downloadCheck by remember { mutableIntStateOf(0) }
+        LifecycleResumeEffect(Unit) {
+            downloadCheck++
+            onPauseOrDispose { }
         }
-        mediaPipeModels.forEach { model ->
+        var downloadMessage by remember { mutableStateOf<String?>(null) }
+
+        val onDeviceModels = LocalModelRegistry.ALL_MODELS.filter { it.type == LocalModelType.LITERT_LM }
+        onDeviceModels.forEach { model ->
             val isCompatible = model.id in compatibleModelIds
             val isSelected = model.id == selectedModelId
-            val isDownloaded = when (model.type) {
-                LocalModelType.AICORE -> isCompatible
-
-                LocalModelType.MEDIAPIPE -> File(
-                    context.filesDir,
-                    "local_models/${model.id}.bin",
-                ).exists()
-
-                else -> false
-            }
+            val isDownloaded = remember(downloadCheck) { LocalModelStore.isDownloaded(context, model) }
             LocalModelCard(
                 model = model,
                 isCompatible = isCompatible,
@@ -814,8 +813,20 @@ private fun LocalAiSection(
                         prefs.selectedLocalModelId.set(if (isSelected) "" else model.id)
                     }
                 },
+                onDownload = {
+                    downloadMessage = LocalModelStore.download(context, model)
+                        ?: "Downloading ${model.displayName}. Check your notifications for progress."
+                },
             )
             Spacer(modifier = Modifier.height(6.dp))
+        }
+        downloadMessage?.let { message ->
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 6.dp),
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -830,7 +841,7 @@ private fun LocalAiSection(
 
         TextPreference(
             adapter = prefs.localCustomModelPath.getAdapter(),
-            label = "Full path to .bin file",
+            label = "Full path to .litertlm file",
         )
 
         Row(
@@ -843,7 +854,9 @@ private fun LocalAiSection(
                     scope.launch {
                         modelTesting = true
                         modelTestStatus = null
-                        val result = MediaPipeLLMProvider(context, customModelPath).testConnection()
+                        val provider = LiteRtLmProvider(context, customModelPath)
+                        val result = provider.testConnection()
+                        provider.release()
                         modelTestStatus = if (result.success) {
                             "✅ Loaded · ${result.latencyMs}ms"
                         } else {
@@ -879,6 +892,7 @@ private fun LocalModelCard(
     isSelected: Boolean,
     isDownloaded: Boolean,
     onSelect: () -> Unit,
+    onDownload: () -> Unit,
 ) {
     val borderColor = when {
         isSelected -> MaterialTheme.colorScheme.primary
@@ -961,13 +975,11 @@ private fun LocalModelCard(
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.error,
                     )
-                } else if (!isDownloaded && model.type == LocalModelType.MEDIAPIPE && model.downloadUrl != null) {
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "Download from: ${model.downloadUrl}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                } else if (!isDownloaded && model.downloadUrl != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    FilledTonalButton(onClick = onDownload) {
+                        Text("Download")
+                    }
                 }
             }
         }

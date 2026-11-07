@@ -14,6 +14,9 @@ import app.lawnchair.categorization.llm.LLMUtils
 import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.categorization.llm.ProviderCircuitBreaker
+import app.lawnchair.categorization.local.LiteRtLmProvider
+import app.lawnchair.categorization.local.LocalEndpointProvider
+import app.lawnchair.categorization.local.LocalModelStore
 import app.lawnchair.data.apps.AppInfo
 import app.lawnchair.data.tab.TabDao
 import app.lawnchair.data.tab.entities.AppTab
@@ -54,6 +57,33 @@ class LLMCategorizer(
             "openai" to OpenAIProvider(context),
             "perplexity" to PerplexityProvider(context),
         )
+    }
+
+    // Kept between calls so the on-device model stays loaded while a batch runs
+    private var onDeviceProvider: LiteRtLmProvider? = null
+
+    /**
+     * Providers in the order to try: local server and on-device model first when
+     * "Local AI Engine" is on, then the preferred cloud provider, then the other cloud providers.
+     */
+    private fun orderedProviders(preferredProviderId: String): List<LLMProvider> {
+        val prefs = PreferenceManager.getInstance(context)
+        val local = buildList {
+            if (prefs.llmUseLocalModel.get()) {
+                val endpointUrl = prefs.localEndpointUrl.get()
+                if (prefs.localEndpointEnabled.get() && endpointUrl.isNotBlank()) {
+                    add(LocalEndpointProvider(context, endpointUrl, prefs.localEndpointModelId.get()))
+                }
+                LocalModelStore.selectedModelPath(context)?.let { path ->
+                    val provider = onDeviceProvider?.takeIf { it.modelPath == path }
+                        ?: LiteRtLmProvider(context, path).also { onDeviceProvider = it }
+                    add(provider)
+                }
+            }
+        }
+        val primary = providers[preferredProviderId] ?: googleProvider
+        val fallbacks = providers.values.filter { it.name != primary.name }
+        return local + primary + fallbacks
     }
 
     // User correction learner for improving accuracy
@@ -148,10 +178,9 @@ class LLMCategorizer(
             prefManager.llmProviderPreference.get()
         }
 
-        // Order providers: Preferred/Auto-selected first, then others as fallback
-        val primary = providers[preferredProviderId] ?: googleProvider
-        val fallbacks = providers.values.filter { it.name != primary.name }
-        val allProviders = listOf(primary) + fallbacks
+        // Order providers: local first when enabled, then preferred/auto-selected, then others
+        val allProviders = orderedProviders(preferredProviderId)
+        val primary = allProviders.first()
 
         for (provider in allProviders) {
             // Check circuit breaker first
@@ -292,10 +321,9 @@ class LLMCategorizer(
             prefManager.llmProviderPreference.get()
         }
 
-        // Order providers: Preferred/Auto-selected first, then others as fallback
-        val primary = providers[preferredProviderId] ?: googleProvider
-        val fallbacks = providers.values.filter { it.name != primary.name }
-        val allProviders = listOf(primary) + fallbacks
+        // Order providers: local first when enabled, then preferred/auto-selected, then others
+        val allProviders = orderedProviders(preferredProviderId)
+        val primary = allProviders.first()
 
         // Get model info to calculate batch size
         val modelInfo = primary.getCurrentModel()
@@ -550,9 +578,9 @@ class LLMCategorizer(
         // Check preference for rate limiting
         val prefManager = PreferenceManager.getInstance(context)
         val preferredProviderId = prefManager.llmProviderPreference.get()
-        val primaryProvider = providers[preferredProviderId] ?: googleProvider
-        // If Google AI is preferred (or default), use the slow rate limit.
-        val isGooglePreferred = preferredProviderId == "google_ai" || preferredProviderId.isEmpty()
+        val primaryProvider = orderedProviders(preferredProviderId).first()
+        // Google AI's free tier needs the slow rate limit; local providers don't
+        val isGooglePreferred = primaryProvider === googleProvider
 
         for (app in apps) {
             // Check circuit breaker for the primary provider before processing the app

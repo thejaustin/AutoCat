@@ -15,7 +15,7 @@ refine = "4.4.0"
 sentry = "6.1.0"
 shizuku = "13.1.5"
 litert = "1.4.2"
-mediapipeTasksGenai = "0.10.35"
+litertlm = "0.19.1"
 exifinterface = "1.4.2"
 
 guava = "33.7.2-jre"
@@ -78,7 +78,7 @@ rikka-shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", versi
 
 # Smartspacer & AI
 litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "litert" }
-mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipeTasksGenai" }
+litertlm-android = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertlm" }
 
 # Compose
 compose-bom = "androidx.compose:compose-bom:2026.09.00"

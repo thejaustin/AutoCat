@@ -16,17 +16,12 @@ data class DeviceCapabilities(
     val availableRamMb: Long,
     val supportedAbis: List<String>,
     val androidVersion: Int,
-    val isAiCoreAvailable: Boolean,
     val gpuFamily: GpuFamily,
 )
 
 enum class GpuFamily { ADRENO, XCLIPSE, MALI, UNKNOWN }
 
 object DeviceCapabilityChecker {
-
-    const val RAM_MB_TINYLLAMA = 3_500L
-    const val RAM_MB_GEMMA_2B = 5_500L
-    const val RAM_MB_GEMMA_7B = 9_000L
 
     private val pingClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
@@ -48,7 +43,6 @@ object DeviceCapabilityChecker {
             availableRamMb = availableRamMb,
             supportedAbis = Build.SUPPORTED_ABIS.toList(),
             androidVersion = Build.VERSION.SDK_INT,
-            isAiCoreAvailable = probeAiCoreAvailable(),
             gpuFamily = detectGpuFamily(),
         )
     }
@@ -68,15 +62,6 @@ object DeviceCapabilityChecker {
             }
         }
         false
-    }
-
-    fun probeAiCoreAvailable(): Boolean {
-        return try {
-            Class.forName("android.app.ondeviceintelligence.OnDeviceIntelligenceManager")
-            Build.VERSION.SDK_INT >= 35
-        } catch (e: ClassNotFoundException) {
-            false
-        }
     }
 
     private fun detectGpuFamily(): GpuFamily {

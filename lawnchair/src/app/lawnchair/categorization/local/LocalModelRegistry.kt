@@ -4,65 +4,40 @@ object LocalModelRegistry {
 
     val ALL_MODELS = listOf(
         LocalModelInfo(
-            id = "aicore_gemini_nano",
-            displayName = "Gemini Nano (On-device)",
-            description = "Google's on-device model via AICore. Requires Pixel 8+ or Galaxy S24+.",
-            type = LocalModelType.AICORE,
-            sizeMb = 0,
+            id = "qwen3_0_6b",
+            displayName = "Qwen3 0.6B",
+            description = "Small and fast. Good enough for sorting apps into tabs on most phones.",
+            type = LocalModelType.LITERT_LM,
+            sizeMb = 585,
             speedTier = LocalSpeedTier.VERY_FAST,
-            qualityTier = LocalQualityTier.HIGH,
+            qualityTier = LocalQualityTier.GOOD,
             minRamMb = 4_000L,
-            downloadUrl = null,
+            downloadUrl = "https://huggingface.co/litert-community/Qwen3-0.6B/resolve/main/Qwen3-0.6B.litertlm",
             sha256 = null,
-            requiresAiCore = true,
-            minSdkVersion = 35,
-            requiresArm64 = true,
         ),
         LocalModelInfo(
-            id = "gemma_2b_int4",
-            displayName = "Gemma 2B INT4",
-            description = "Google's Gemma 2B quantized to INT4 via MediaPipe. Best balance of speed and quality.",
-            type = LocalModelType.MEDIAPIPE,
-            sizeMb = 1_400,
+            id = "qwen2_5_1_5b",
+            displayName = "Qwen2.5 1.5B",
+            description = "More accurate than Qwen3 0.6B, at about two and a half times the size.",
+            type = LocalModelType.LITERT_LM,
+            sizeMb = 1_523,
             speedTier = LocalSpeedTier.FAST,
             qualityTier = LocalQualityTier.HIGH,
-            minRamMb = DeviceCapabilityChecker.RAM_MB_GEMMA_2B,
-            downloadUrl = "https://huggingface.co/litert-community/Gemma2-2B-IT/resolve/main/gemma2-2b-it-gpu-int4.bin",
+            minRamMb = 6_000L,
+            downloadUrl = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct/resolve/main/Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv4096.litertlm",
             sha256 = null,
-            requiresAiCore = false,
-            minSdkVersion = 29,
-            requiresArm64 = true,
-            recommendationBadge = "Best for S22 Ultra",
         ),
         LocalModelInfo(
-            id = "tinyllama_1b_int4",
-            displayName = "TinyLlama 1.1B INT4",
-            description = "Lightweight model for budget devices. Fast but lower quality than Gemma.",
-            type = LocalModelType.MEDIAPIPE,
-            sizeMb = 700,
-            speedTier = LocalSpeedTier.VERY_FAST,
-            qualityTier = LocalQualityTier.BASIC,
-            minRamMb = DeviceCapabilityChecker.RAM_MB_TINYLLAMA,
-            downloadUrl = "https://huggingface.co/litert-community/TinyLlama-1.1B-Chat-v1.0/resolve/main/tinyllama-1.1b-chat-v1.0-gpu-int4.bin",
-            sha256 = null,
-            requiresAiCore = false,
-            minSdkVersion = 26,
-            requiresArm64 = true,
-        ),
-        LocalModelInfo(
-            id = "phi2_int4",
-            displayName = "Phi-2 2.7B INT4",
-            description = "Microsoft's Phi-2 model. Higher quality for devices with enough RAM.",
-            type = LocalModelType.MEDIAPIPE,
-            sizeMb = 1_500,
+            id = "gemma4_e2b",
+            displayName = "Gemma 4 E2B",
+            description = "Google's Gemma 4 for phones. Best quality here, but a large download.",
+            type = LocalModelType.LITERT_LM,
+            sizeMb = 2_468,
             speedTier = LocalSpeedTier.MEDIUM,
             qualityTier = LocalQualityTier.HIGH,
-            minRamMb = 6_000L,
-            downloadUrl = "https://huggingface.co/litert-community/phi-2/resolve/main/phi-2-gpu-int4.bin",
+            minRamMb = 8_000L,
+            downloadUrl = "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm",
             sha256 = null,
-            requiresAiCore = false,
-            minSdkVersion = 29,
-            requiresArm64 = true,
         ),
         LocalModelInfo(
             id = "local_endpoint",
@@ -75,14 +50,12 @@ object LocalModelRegistry {
             minRamMb = 0L,
             downloadUrl = null,
             sha256 = null,
-            requiresAiCore = false,
-            minSdkVersion = 26,
             requiresArm64 = false,
         ),
         LocalModelInfo(
             id = "custom_file",
             displayName = "Custom model file",
-            description = "Use a MediaPipe .bin model file you provided manually.",
+            description = "Use a LiteRT-LM .litertlm model file you provided manually.",
             type = LocalModelType.CUSTOM_FILE,
             sizeMb = 0,
             speedTier = LocalSpeedTier.MEDIUM,
@@ -90,16 +63,14 @@ object LocalModelRegistry {
             minRamMb = 0L,
             downloadUrl = null,
             sha256 = null,
-            requiresAiCore = false,
-            minSdkVersion = 26,
-            requiresArm64 = false,
         ),
     )
+
+    fun findById(id: String): LocalModelInfo? = ALL_MODELS.firstOrNull { it.id == id }
 
     fun getCompatibleModels(caps: DeviceCapabilities): List<LocalModelInfo> {
         return ALL_MODELS.filter { model ->
             when {
-                model.requiresAiCore && !caps.isAiCoreAvailable -> false
                 model.minSdkVersion > caps.androidVersion -> false
                 model.requiresArm64 && !caps.supportedAbis.contains("arm64-v8a") -> false
                 model.minRamMb > 0 && caps.totalRamMb < model.minRamMb -> false
@@ -108,19 +79,10 @@ object LocalModelRegistry {
         }
     }
 
+    /** The smallest compatible downloadable model: categorizing apps doesn't need a big one. */
     fun getRecommendedModel(caps: DeviceCapabilities): LocalModelInfo? {
-        val compatible = getCompatibleModels(caps)
-
-        // Prefer AICore if available
-        compatible.firstOrNull { it.type == LocalModelType.AICORE }?.let { return it }
-
-        // Prefer highest quality MediaPipe model that fits in RAM
-        return compatible
-            .filter { it.type == LocalModelType.MEDIAPIPE }
-            .sortedWith(
-                compareByDescending<LocalModelInfo> { it.qualityTier.ordinal }
-                    .thenBy { it.minRamMb },
-            )
-            .firstOrNull()
+        return getCompatibleModels(caps)
+            .filter { it.type == LocalModelType.LITERT_LM }
+            .minByOrNull { it.sizeMb }
     }
 }

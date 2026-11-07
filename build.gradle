@@ -184,6 +184,10 @@ android {
     }
 
     packaging {
+        jniLibs {
+            // On-device AI only ships for arm64-v8a phones; skip the emulator-only library
+            excludes += ["lib/x86_64/liblitertlm_jni.so"]
+        }
         resources {
             excludes += [
                 "**/*.proto",
@@ -459,8 +463,8 @@ dependencies {
     // LiteRT (formerly TensorFlow Lite) for on-device ML categorization
     implementation(libs.litert)
 
-    // MediaPipe Tasks GenAI — on-device LLM (Gemma via AICore or downloaded .bin)
-    implementation(libs.mediapipe.tasks.genai)
+    // LiteRT-LM — on-device LLM for app categorization (.litertlm models)
+    implementation(libs.litertlm.android)
 
     implementation platform(libs.compose.bom)
     implementation libs.compose.ui

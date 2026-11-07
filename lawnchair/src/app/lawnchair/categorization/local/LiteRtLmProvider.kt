@@ -12,68 +12,92 @@ import app.lawnchair.categorization.llm.SuggestedCategory
 import app.lawnchair.categorization.llm.SuggestedFolder
 import app.lawnchair.categorization.llm.TestResult
 import app.lawnchair.data.tab.TabDatabase
-import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import com.google.ai.edge.litertlm.Backend
+import com.google.ai.edge.litertlm.Content
+import com.google.ai.edge.litertlm.Engine
+import com.google.ai.edge.litertlm.EngineConfig
 import java.io.File
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
- * LLM provider that runs inference on-device via MediaPipe Tasks GenAI.
+ * LLM provider that runs a LiteRT-LM model (.litertlm) on the device's CPU.
  *
- * Supports two backends:
- * - MediaPipe model file (.bin): placed in context.filesDir/local_models/
- * - AICore (Gemini Nano): when requiresAiCore=true, MediaPipe delegates automatically
- *
- * Thread-safe via [inferenceMutex] — MediaPipe LlmInference must be called sequentially.
+ * The engine is loaded on first use and closed again after [IDLE_RELEASE_MS] without
+ * requests, so a model doesn't stay in memory while the launcher is idle.
+ * All engine access goes through [engineMutex]; the engine is not thread-safe.
  */
-class MediaPipeLLMProvider(
+class LiteRtLmProvider(
     private val context: Context,
-    private val modelPath: String,
-    private val requiresAiCore: Boolean = false,
+    val modelPath: String,
 ) : LLMProvider {
 
-    override val name: String = if (requiresAiCore) "Gemini Nano (AICore)" else "Local AI (MediaPipe)"
+    override val name: String = "On-device AI"
 
     override val requiresApiKey: Boolean = false
 
-    private var inference: LlmInference? = null
-
-    /** Guards all LlmInference access — MediaPipe is not thread-safe. */
-    private val inferenceMutex = Mutex()
+    private var engine: Engine? = null
+    private val engineMutex = Mutex()
+    private val releaseScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var releaseJob: Job? = null
 
     private val learner by lazy {
         val dao = TabDatabase.getInstance(context).categoryDao()
         UserCorrectionLearner.getInstance(context, dao)
     }
 
-    private suspend fun getOrCreateInference(): LlmInference {
-        inference?.let { return it }
-        val options = LlmInference.LlmInferenceOptions.builder()
-            .apply {
-                if (requiresAiCore) {
-                    setModelPath("")
-                } else {
-                    setModelPath(modelPath)
-                }
-                setMaxTokens(256)
+    /**
+     * Runs [prompt] in a fresh conversation and returns the model's text reply.
+     */
+    private suspend fun generate(prompt: String): String = engineMutex.withLock {
+        releaseJob?.cancel()
+        try {
+            val activeEngine = engine ?: loadEngine().also { engine = it }
+            activeEngine.createConversation().use { conversation ->
+                val reply = conversation.sendMessage(prompt)
+                reply.contents.contents
+                    .filterIsInstance<Content.Text>()
+                    .joinToString("") { it.text }
+                    .replace(THINKING_BLOCK, "")
+                    .trim()
             }
-            .build()
-        return LlmInference.createFromOptions(context, options).also { inference = it }
+        } finally {
+            scheduleRelease()
+        }
+    }
+
+    private fun loadEngine(): Engine {
+        val config = EngineConfig(modelPath, Backend.CPU())
+        return try {
+            Engine(config).apply { initialize() }
+        } catch (e: UnsatisfiedLinkError) {
+            // The native library only ships for arm64-v8a
+            throw LLMException("On-device AI isn't supported on this device", e)
+        }
+    }
+
+    private fun scheduleRelease() {
+        releaseJob = releaseScope.launch {
+            delay(IDLE_RELEASE_MS)
+            release()
+        }
     }
 
     override suspend fun isAvailable(): Boolean = withContext(Dispatchers.IO) {
-        when {
-            requiresAiCore -> DeviceCapabilityChecker.probeAiCoreAvailable()
-            else -> File(modelPath).exists()
-        }
+        File(modelPath).isFile
     }
 
     override suspend fun getCurrentModel(): ModelInfo? {
         if (!isAvailable()) return null
         return ModelInfo(
-            id = if (requiresAiCore) "aicore_gemini_nano" else File(modelPath).name,
+            id = File(modelPath).name,
             displayName = name,
             provider = "local",
             costTier = ModelInfo.CostTier.FREE,
@@ -86,10 +110,7 @@ class MediaPipeLLMProvider(
     override suspend fun testConnection(): TestResult = withContext(Dispatchers.IO) {
         val start = System.currentTimeMillis()
         return@withContext try {
-            inferenceMutex.withLock {
-                val engine = getOrCreateInference()
-                engine.generateResponse("Reply with: OK")
-            }
+            generate("Reply with: OK")
             val latency = System.currentTimeMillis() - start
             TestResult(success = true, message = "Model loaded and inference OK", latencyMs = latency, modelVersion = name)
         } catch (e: Exception) {
@@ -114,13 +135,10 @@ class MediaPipeLLMProvider(
         try {
             val effectiveHints = hints.ifBlank { learner.generateLLMHintText() }
             val prompt = buildPrompt(appName, appPackage, appDescription, availableTabs, effectiveHints)
-            val raw = inferenceMutex.withLock {
-                getOrCreateInference().generateResponse(prompt)
-            }
-            parseResponse(raw, availableTabs)
+            parseResponse(generate(prompt), availableTabs)
         } catch (e: Exception) {
             LLMLogger.logError(name, "CATEGORIZE_APP", e, mapOf("package" to appPackage))
-            throw LLMException("MediaPipe categorization failed: ${e.message}", e)
+            throw LLMException("On-device categorization failed: ${e.message}", e)
         }
     }
 
@@ -147,7 +165,7 @@ class MediaPipeLLMProvider(
     }
 
     override suspend fun generateText(prompt: String): String = withContext(Dispatchers.IO) {
-        inferenceMutex.withLock { getOrCreateInference().generateResponse(prompt) }
+        generate(prompt)
     }
 
     override suspend fun suggestCategories(
@@ -161,9 +179,7 @@ class MediaPipeLLMProvider(
             val prompt = "Given these Android apps: $appsSample\n" +
                 "Existing categories: $existing\n" +
                 "Suggest $maxSuggestions new useful category names (comma-separated, no descriptions):"
-            val raw = inferenceMutex.withLock {
-                getOrCreateInference().generateResponse(prompt)
-            }
+            val raw = generate(prompt)
             raw.split(",").mapIndexedNotNull { i, name ->
                 val trimmed = name.trim().take(30)
                 if (trimmed.isBlank()) {
@@ -179,7 +195,7 @@ class MediaPipeLLMProvider(
             }.take(maxSuggestions)
         } catch (e: Exception) {
             LLMLogger.logError(name, "SUGGEST_CATEGORIES", e)
-            throw LLMException("MediaPipe suggestion failed: ${e.message}", e)
+            throw LLMException("On-device suggestion failed: ${e.message}", e)
         }
     }
 
@@ -193,9 +209,7 @@ class MediaPipeLLMProvider(
             val prompt = "These apps are all in the '$tabName' category: $appList\n" +
                 "Suggest 2-3 folder names to organize them into subgroups.\n" +
                 "Reply with only folder names separated by commas, nothing else."
-            val raw = inferenceMutex.withLock {
-                getOrCreateInference().generateResponse(prompt)
-            }
+            val raw = generate(prompt)
             val folderNames = raw.split(",").map { it.trim() }.filter { it.isNotBlank() }.take(3)
             folderNames.map { folderName ->
                 // Assign apps to folders by roughly even distribution (LLM gave names only)
@@ -213,9 +227,12 @@ class MediaPipeLLMProvider(
         }
     }
 
-    fun release() {
-        inference?.close()
-        inference = null
+    /** Closes the engine and frees the model's memory. It reloads on the next request. */
+    suspend fun release() {
+        engineMutex.withLock {
+            engine?.close()
+            engine = null
+        }
     }
 
     private fun buildPrompt(
@@ -248,6 +265,10 @@ class MediaPipeLLMProvider(
     }
 
     companion object {
-        private const val TAG = "MediaPipeLLMProvider"
+        private const val TAG = "LiteRtLmProvider"
+        private const val IDLE_RELEASE_MS = 60_000L
+
+        // Reasoning models such as Qwen3 may answer with a <think> block first
+        private val THINKING_BLOCK = Regex("(?s)<think>.*?</think>")
     }
 }

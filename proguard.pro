@@ -34,5 +34,5 @@
 -dontwarn androidx.window.extensions.**
 -dontwarn androidx.window.sidecar.**
 
-# Compile-time annotations on MediaPipe classes, not needed at runtime
--dontwarn com.google.auto.value.**
+# LiteRT-LM calls into its Kotlin classes from native code and ships no keep rules
+-keep class com.google.ai.edge.litertlm.** { *; }

@@ -11,13 +11,15 @@ data class LocalModelInfo(
     val minRamMb: Long,
     val downloadUrl: String?,
     val sha256: String?,
-    val requiresAiCore: Boolean = false,
     val minSdkVersion: Int = 26,
     val requiresArm64: Boolean = true,
     val recommendationBadge: String? = null,
-)
+) {
+    /** File name the model is stored under once downloaded. */
+    val fileName: String? get() = downloadUrl?.substringAfterLast('/')
+}
 
-enum class LocalModelType { AICORE, MEDIAPIPE, ENDPOINT, CUSTOM_FILE }
+enum class LocalModelType { LITERT_LM, ENDPOINT, CUSTOM_FILE }
 
 enum class LocalSpeedTier { VERY_FAST, FAST, MEDIUM, SLOW }
 
