@@ -98,7 +98,7 @@ class UserService(context: Context) : IUserService.Stub() {
                 .invoke(snapshotManager, taskId, 0L, RESOLUTION_HIGH)
         }
         val method = atm.javaClass.methods.firstOrNull { it.name == "getTaskSnapshot" } ?: return null
-        val args = method.parameterTypes.mapIndexed { index, type ->
+        val args: List<Any?> = method.parameterTypes.mapIndexed { index, type ->
             when {
                 index == 0 -> taskId
 

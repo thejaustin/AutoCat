@@ -71,9 +71,9 @@ import app.lawnchair.categorization.llm.OpenAIProvider
 import app.lawnchair.categorization.llm.PerplexityProvider
 import app.lawnchair.categorization.llm.TestResult
 import app.lawnchair.categorization.local.DeviceCapabilityChecker
+import app.lawnchair.categorization.local.LiteRtLmProvider
 import app.lawnchair.categorization.local.LocalEndpointProvider
 import app.lawnchair.categorization.local.LocalModelInfo
-import app.lawnchair.categorization.local.LiteRtLmProvider
 import app.lawnchair.categorization.local.LocalModelRegistry
 import app.lawnchair.categorization.local.LocalModelStore
 import app.lawnchair.categorization.local.LocalModelType
