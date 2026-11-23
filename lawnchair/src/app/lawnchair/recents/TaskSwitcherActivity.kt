@@ -3,10 +3,12 @@ package app.lawnchair.recents
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -182,11 +185,6 @@ private fun TaskSwitcherScreen(
                             tasks.remove(task)
                             scope.launch { repository.remove(task.taskId) }
                         },
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    ActionRow(
-                        repository = repository,
-                        focusedTask = tasks.getOrNull(focused),
                         onClearAll = {
                             val removed = tasks.toList()
                             tasks.clear()
@@ -195,6 +193,11 @@ private fun TaskSwitcherScreen(
                                 onDismiss()
                             }
                         },
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    ActionRow(
+                        repository = repository,
+                        focusedTask = tasks.getOrNull(focused),
                         onDone = onDismiss,
                     )
                 }
@@ -212,13 +215,13 @@ private fun LazyListState.focusedIndex(): Int {
         ?.index ?: 0
 }
 
+// Indices match recentActionOrder; Locked and Clear all have no button in this row
 private enum class SwitcherAction { Screenshot, Share, Lens, Locked, ClearAll }
 
 @Composable
 private fun ActionRow(
     repository: TaskSwitcherRepository,
     focusedTask: RecentTask?,
-    onClearAll: () -> Unit,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -231,8 +234,6 @@ private fun ActionRow(
             if (prefs.recentsActionScreenshot.get()) add(SwitcherAction.Screenshot)
             if (prefs.recentsActionShare.get()) add(SwitcherAction.Share)
             if (prefs.recentsActionLens.get() && repository.isLensAvailable()) add(SwitcherAction.Lens)
-            // Pixel always offers Clear all on the switcher, so it's kept even when the pref is off
-            add(SwitcherAction.ClearAll)
         }
         val order = prefs.recentActionOrder.get().split(",").mapNotNull { it.toIntOrNull() }
         order.mapNotNull { SwitcherAction.entries.getOrNull(it) }.filter { it in enabled }
@@ -251,6 +252,7 @@ private fun ActionRow(
                     else -> R.string.recents_clear_all
                 },
             )
+            val failed = stringResource(R.string.task_switcher_action_failed)
             val icon = when (action) {
                 SwitcherAction.Screenshot -> R.drawable.ic_screenshot
                 SwitcherAction.Share -> R.drawable.ic_share
@@ -258,16 +260,17 @@ private fun ActionRow(
                 else -> R.drawable.ic_clear_all_recents
             }
             FilledTonalButton(
-                enabled = action == SwitcherAction.ClearAll || task != null,
+                enabled = task != null,
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
                 onClick = {
-                    val id = task?.taskId
+                    val id = task?.taskId ?: return@FilledTonalButton
                     scope.launch {
-                        when (action) {
-                            SwitcherAction.Screenshot -> if (id != null && repository.saveScreenshot(id)) onDone()
-                            SwitcherAction.Share -> if (id != null && repository.shareSnapshot(id, lens = false)) onDone()
-                            SwitcherAction.Lens -> if (id != null && repository.shareSnapshot(id, lens = true)) onDone()
-                            else -> onClearAll()
+                        val ok = when (action) {
+                            SwitcherAction.Screenshot -> repository.saveScreenshot(id)
+                            SwitcherAction.Share -> repository.shareSnapshot(id, lens = false)
+                            else -> repository.shareSnapshot(id, lens = true)
                         }
+                        if (ok) onDone() else Toast.makeText(context, failed, Toast.LENGTH_SHORT).show()
                     }
                 },
             ) {
@@ -279,6 +282,7 @@ private fun ActionRow(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TaskRow(
     tasks: List<RecentTask>,
@@ -286,6 +290,7 @@ private fun TaskRow(
     listState: LazyListState,
     onOpen: (RecentTask) -> Unit,
     onRemove: (RecentTask) -> Unit,
+    onClearAll: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val screenWidth = LocalConfiguration.current.screenWidthDp
@@ -311,6 +316,20 @@ private fun TaskRow(
                     .width(cardWidth)
                     .animateItem(),
             )
+        }
+        // Like Pixel, Clear all waits past the oldest task
+        item(key = "clear_all") {
+            Box(
+                modifier = Modifier
+                    .width(cardWidth)
+                    .fillMaxHeight()
+                    .animateItem(),
+                contentAlignment = Alignment.Center,
+            ) {
+                FilledTonalButton(onClick = onClearAll) {
+                    Text(text = stringResource(R.string.recents_clear_all))
+                }
+            }
         }
     }
 }

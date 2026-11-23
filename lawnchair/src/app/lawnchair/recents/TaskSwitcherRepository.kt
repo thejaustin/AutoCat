@@ -97,13 +97,13 @@ class TaskSwitcherRepository(private val context: Context) {
             ?.copy(Bitmap.Config.ARGB_8888, false)
     }
 
-    /** Saves the task's snapshot to Pictures/Screenshots. */
+    /** Saves the task's snapshot to DCIM/Screenshots, where Samsung keeps screenshots. */
     suspend fun saveScreenshot(taskId: Int): Boolean = withContext(Dispatchers.IO) {
         val bitmap = snapshotBitmap(taskId) ?: return@withContext false
         val values = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, "Screenshot_${System.currentTimeMillis()}.png")
             put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/Screenshots")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_DCIM}/Screenshots")
         }
         val resolver = context.contentResolver
         val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return@withContext false
