@@ -2,19 +2,28 @@ package app.lawnchair.recents
 
 import android.os.Build
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,23 +61,28 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import app.lawnchair.preferences.PreferenceManager
@@ -78,6 +92,15 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlin.math.abs
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+// Spring specs: M3 Expressive default spatial (damping 0.8, stiffness 380) for movement and
+// default effects (damping 1, stiffness 1600) for fades; the dismiss spring is AOSP's
+// expressive_dismiss_task_trans_y_* from quickstep/res/values/config.xml
+private val SpatialSpring = spring<Float>(dampingRatio = 0.8f, stiffness = 380f)
+private val SpatialSpringOffset = spring<IntOffset>(dampingRatio = 0.8f, stiffness = 380f)
+private val DismissSpring = spring<Float>(dampingRatio = 0.65f, stiffness = 850f)
+private const val EFFECT_STIFFNESS = 1600f
+private const val FLING_DISMISS_VELOCITY = 1200f
 
 /**
  * AutoCat's own recents screen. It works without root by reading and controlling tasks
@@ -89,6 +112,11 @@ class TaskSwitcherActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // The screen runs its own entry spring, so the default window slide would fight it
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
             window.attributes = window.attributes.apply { blurBehindRadius = BLUR_RADIUS }
@@ -116,9 +144,12 @@ private fun TaskSwitcherScreen(
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
+    val rootView = LocalView.current
     var availability by remember { mutableStateOf(repository.availability()) }
     var loading by remember { mutableStateOf(true) }
     val tasks = remember { mutableStateListOf<RecentTask>() }
+    val entry = remember { Animatable(0f) }
+    LaunchedEffect(Unit) { entry.animateTo(1f, SpatialSpring) }
 
     // Re-checked on resume, so granting Shizuku access in its dialog takes effect right away
     LifecycleResumeEffect(Unit) {
@@ -146,7 +177,7 @@ private fun TaskSwitcherScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.55f))
+            .background(Color.Black.copy(alpha = 0.55f * entry.value.coerceIn(0f, 1f)))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -155,59 +186,80 @@ private fun TaskSwitcherScreen(
             .safeDrawingPadding(),
         contentAlignment = Alignment.Center,
     ) {
-        when {
-            availability == TaskSwitcherRepository.Availability.ShizukuNotRunning -> SetupMessage(
-                text = "Recent apps need Shizuku. Start Shizuku, then open this again.",
-            )
+        Box(
+            modifier = Modifier.graphicsLayer {
+                val t = entry.value
+                scaleX = 0.92f + 0.08f * t
+                scaleY = 0.92f + 0.08f * t
+                alpha = t.coerceIn(0f, 1f)
+            },
+            contentAlignment = Alignment.Center,
+        ) {
+            when {
+                availability == TaskSwitcherRepository.Availability.ShizukuNotRunning -> SetupMessage(
+                    text = "Recent apps need Shizuku. Start Shizuku, then open this again.",
+                )
 
-            availability == TaskSwitcherRepository.Availability.PermissionNeeded -> SetupMessage(
-                text = "Allow AutoCat to use Shizuku to show your recent apps.",
-                actionLabel = "Allow",
-                onAction = repository::requestPermission,
-            )
+                availability == TaskSwitcherRepository.Availability.PermissionNeeded -> SetupMessage(
+                    text = "Allow AutoCat to use Shizuku to show your recent apps.",
+                    actionLabel = "Allow",
+                    onAction = repository::requestPermission,
+                )
 
-            loading -> CircularProgressIndicator()
+                loading -> CircularProgressIndicator()
 
-            tasks.isEmpty() -> Text(
-                text = stringResource(R.string.recents_empty_message),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-            )
+                tasks.isEmpty() -> Text(
+                    text = stringResource(R.string.recents_empty_message),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                )
 
-            else -> {
-                val listState = rememberLazyListState()
-                val focused by remember(listState) {
-                    derivedStateOf { listState.focusedIndex() }
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    TaskRow(
-                        tasks = tasks,
-                        repository = repository,
-                        listState = listState,
-                        onOpen = { task ->
-                            scope.launch {
-                                if (repository.open(task.taskId)) onDismiss()
+                else -> {
+                    val listState = rememberLazyListState()
+                    val focused by remember(listState) {
+                        derivedStateOf { listState.focusedIndex() }
+                    }
+                    // Light tick as each card passes the centre, like AOSP's recents scroll
+                    val view = LocalView.current
+                    LaunchedEffect(listState) {
+                        var last = -1
+                        snapshotFlow { focused }.collect {
+                            if (last != -1 && it != last) {
+                                view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                             }
-                        },
-                        onRemove = { task ->
-                            tasks.remove(task)
-                            scope.launch { repository.remove(task.taskId) }
-                        },
-                        onClearAll = {
-                            val removed = tasks.toList()
-                            tasks.clear()
-                            scope.launch {
-                                removed.forEach { repository.remove(it.taskId) }
-                                onDismiss()
-                            }
-                        },
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    ActionRow(
-                        repository = repository,
-                        focusedTask = tasks.getOrNull(focused),
-                        onDone = onDismiss,
-                    )
+                            last = it
+                        }
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        TaskRow(
+                            tasks = tasks,
+                            repository = repository,
+                            listState = listState,
+                            onOpen = { task, bounds ->
+                                scope.launch {
+                                    if (repository.open(task.taskId, rootView, bounds)) onDismiss()
+                                }
+                            },
+                            onRemove = { task ->
+                                tasks.remove(task)
+                                scope.launch { repository.remove(task.taskId) }
+                            },
+                            onClearAll = {
+                                val removed = tasks.toList()
+                                tasks.clear()
+                                scope.launch {
+                                    removed.forEach { repository.remove(it.taskId) }
+                                    onDismiss()
+                                }
+                            },
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        ActionRow(
+                            repository = repository,
+                            focusedTask = tasks.getOrNull(focused),
+                            onDone = onDismiss,
+                        )
+                    }
                 }
             }
         }
@@ -221,6 +273,15 @@ private fun LazyListState.focusedIndex(): Int {
     return info.visibleItemsInfo
         .minByOrNull { abs(it.offset + it.size / 2 - center) }
         ?.index ?: 0
+}
+
+/** 1 when the keyed item sits at the viewport centre, falling to 0 one card-width away. Read in draw phase only. */
+private fun LazyListState.proximityToCenter(key: Any): Float {
+    val info = layoutInfo
+    val item = info.visibleItemsInfo.firstOrNull { it.key == key } ?: return 0f
+    val center = (info.viewportStartOffset + info.viewportEndOffset) / 2
+    val distance = abs(item.offset + item.size / 2 - center)
+    return (1f - distance / item.size.toFloat()).coerceIn(0f, 1f)
 }
 
 // Indices match recentActionOrder; Locked and Clear all have no button in this row
@@ -296,7 +357,7 @@ private fun TaskRow(
     tasks: List<RecentTask>,
     repository: TaskSwitcherRepository,
     listState: LazyListState,
-    onOpen: (RecentTask) -> Unit,
+    onOpen: (RecentTask, IntRect) -> Unit,
     onRemove: (RecentTask) -> Unit,
     onClearAll: () -> Unit,
     modifier: Modifier = Modifier,
@@ -318,11 +379,16 @@ private fun TaskRow(
             TaskCard(
                 task = task,
                 repository = repository,
-                onOpen = { onOpen(task) },
+                onOpen = { bounds -> onOpen(task, bounds) },
                 onRemove = { onRemove(task) },
+                centerProximity = { listState.proximityToCenter(task.taskId) },
                 modifier = Modifier
                     .width(cardWidth)
-                    .animateItem(),
+                    .animateItem(
+                        fadeInSpec = null,
+                        placementSpec = SpatialSpringOffset,
+                        fadeOutSpec = spring(stiffness = EFFECT_STIFFNESS),
+                    ),
             )
         }
         // Like Pixel, Clear all waits past the oldest task
@@ -346,11 +412,14 @@ private fun TaskRow(
 private fun TaskCard(
     task: RecentTask,
     repository: TaskSwitcherRepository,
-    onOpen: () -> Unit,
+    onOpen: (IntRect) -> Unit,
     onRemove: () -> Unit,
+    centerProximity: () -> Float,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
+    val view = LocalView.current
+    var bounds by remember { mutableStateOf(IntRect.Zero) }
     val dismissThreshold = with(LocalDensity.current) { 160.dp.toPx() }
     val offsetY = remember { Animatable(0f) }
     val closeLabel = stringResource(R.string.accessibility_close)
@@ -358,29 +427,42 @@ private fun TaskCard(
         value = repository.loadThumbnail(task.taskId)
     }
 
+    var crossedThreshold by remember { mutableStateOf(false) }
+    val dragState = rememberDraggableState { delta ->
+        val next = (offsetY.value + delta).coerceAtMost(0f)
+        scope.launch { offsetY.snapTo(next) }
+        val crossed = next < -dismissThreshold
+        if (crossed != crossedThreshold) {
+            crossedThreshold = crossed
+            view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+        }
+    }
+
     Column(
         modifier = modifier
             .graphicsLayer {
+                // Neighbours recede slightly, like Pixel's carousel; read here so scrolling never recomposes
+                val scale = 0.92f + 0.08f * centerProximity()
+                scaleX = scale
+                scaleY = scale
                 translationY = offsetY.value
                 alpha = 1f - (abs(offsetY.value) / (dismissThreshold * 2)).coerceAtMost(0.8f)
             }
-            .pointerInput(task.taskId) {
-                detectVerticalDragGestures(
-                    onVerticalDrag = { _, dragAmount ->
-                        scope.launch { offsetY.snapTo((offsetY.value + dragAmount).coerceAtMost(0f)) }
-                    },
-                    onDragEnd = {
-                        scope.launch {
-                            if (offsetY.value < -dismissThreshold) {
-                                offsetY.animateTo(-dismissThreshold * 4)
-                                onRemove()
-                            } else {
-                                offsetY.animateTo(0f)
-                            }
-                        }
-                    },
-                )
-            }
+            .draggable(
+                state = dragState,
+                orientation = Orientation.Vertical,
+                onDragStopped = { velocity ->
+                    val flung = velocity < -FLING_DISMISS_VELOCITY
+                    if (offsetY.value < -dismissThreshold || flung) {
+                        // Same spring AOSP's overview uses for dismissed tasks, seeded with the flick's velocity
+                        offsetY.animateTo(-dismissThreshold * 6, DismissSpring, velocity)
+                        onRemove()
+                    } else {
+                        offsetY.animateTo(0f, SpatialSpring, velocity)
+                    }
+                    crossedThreshold = false
+                },
+            )
             .semantics {
                 customActions = listOf(
                     CustomAccessibilityAction("$closeLabel ${task.label}") {
@@ -427,30 +509,50 @@ private fun TaskCard(
                 )
             }
         }
+        val pressSource = remember { MutableInteractionSource() }
+        val pressed by pressSource.collectIsPressedAsState()
+        // Shape morphs on press: a small M3 Expressive touch
+        val corner by animateDpAsState(
+            targetValue = if (pressed) 40.dp else 28.dp,
+            animationSpec = spring(dampingRatio = 0.6f, stiffness = 800f),
+            label = "card corner",
+        )
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(THUMBNAIL_ASPECT)
-                .clip(RoundedCornerShape(28.dp))
+                .onGloballyPositioned { coords ->
+                    val rect = coords.boundsInWindow()
+                    bounds = IntRect(rect.left.toInt(), rect.top.toInt(), rect.right.toInt(), rect.bottom.toInt())
+                }
+                .clip(RoundedCornerShape(corner))
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .clickable(onClickLabel = "Open ${task.label}", onClick = onOpen),
+                .clickable(
+                    interactionSource = pressSource,
+                    indication = null,
+                    onClickLabel = "Open ${task.label}",
+                    onClick = { onOpen(bounds) },
+                ),
             contentAlignment = Alignment.Center,
         ) {
-            val image = thumbnail
-            if (image != null) {
-                Image(
-                    bitmap = image,
-                    contentDescription = task.label,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                task.icon?.let { icon ->
+            Crossfade(targetState = thumbnail, animationSpec = tween(200), label = "thumbnail") { image ->
+                if (image != null) {
                     Image(
-                        painter = rememberDrawablePainter(icon),
+                        bitmap = image,
                         contentDescription = task.label,
-                        modifier = Modifier.size(64.dp),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
                     )
+                } else {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        task.icon?.let { icon ->
+                            Image(
+                                painter = rememberDrawablePainter(icon),
+                                contentDescription = task.label,
+                                modifier = Modifier.size(64.dp),
+                            )
+                        }
+                    }
                 }
             }
         }

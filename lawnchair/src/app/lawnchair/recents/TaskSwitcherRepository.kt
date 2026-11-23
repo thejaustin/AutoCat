@@ -1,5 +1,6 @@
 package app.lawnchair.recents
 
+import android.app.ActivityOptions
 import android.content.ComponentName
 import android.content.ContentValues
 import android.content.Context
@@ -15,8 +16,10 @@ import android.os.Environment
 import android.os.Process
 import android.provider.MediaStore
 import android.provider.Settings
+import android.view.View
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.unit.IntRect
 import androidx.core.content.FileProvider
 import androidx.core.os.BundleCompat
 import app.lawnchair.shizuku.ShizukuManager
@@ -146,8 +149,14 @@ class TaskSwitcherRepository(private val context: Context) {
         FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }.getOrNull()
 
-    suspend fun open(taskId: Int): Boolean = withContext(Dispatchers.IO) {
-        shizuku.awaitService()?.startTaskFromRecents(taskId, null) == true
+    /** Opens the task, zooming out from [bounds] (window coordinates of its card inside [source]) when given. */
+    suspend fun open(taskId: Int, source: View? = null, bounds: IntRect? = null): Boolean = withContext(Dispatchers.IO) {
+        val options = if (source != null && bounds != null && !bounds.isEmpty) {
+            ActivityOptions.makeScaleUpAnimation(source, bounds.left, bounds.top, bounds.width, bounds.height).toBundle()
+        } else {
+            null
+        }
+        shizuku.awaitService()?.startTaskFromRecents(taskId, options) == true
     }
 
     suspend fun remove(taskId: Int): Boolean = withContext(Dispatchers.IO) {
