@@ -76,6 +76,7 @@ import app.lawnchair.ui.theme.AutoCatTheme
 import com.android.launcher3.R
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlin.math.abs
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -131,7 +132,14 @@ private fun TaskSwitcherScreen(
         }
         loading = true
         tasks.clear()
-        tasks.addAll(repository.loadTasks().orEmpty())
+        // The Shizuku service can still be binding on the first open; retry before showing an empty list
+        var loaded = repository.loadTasks()
+        repeat(LOAD_RETRIES) {
+            if (loaded != null) return@repeat
+            delay(LOAD_RETRY_DELAY_MS)
+            loaded = repository.loadTasks()
+        }
+        tasks.addAll(loaded.orEmpty())
         loading = false
     }
 
@@ -477,6 +485,9 @@ private fun SetupMessage(
         }
     }
 }
+
+private const val LOAD_RETRIES = 3
+private const val LOAD_RETRY_DELAY_MS = 700L
 
 // Phones are tall; most snapshots are about this shape
 private const val THUMBNAIL_ASPECT = 9f / 19.5f
