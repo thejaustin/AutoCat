@@ -11,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,15 +27,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -51,14 +58,19 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.ui.theme.AutoCatTheme
+import com.android.launcher3.R
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlin.math.abs
 import kotlinx.coroutines.launch
@@ -146,38 +158,122 @@ private fun TaskSwitcherScreen(
             loading -> CircularProgressIndicator()
 
             tasks.isEmpty() -> Text(
-                text = "No recent apps",
+                text = stringResource(R.string.recents_empty_message),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White,
             )
 
-            else -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                TaskRow(
-                    tasks = tasks,
-                    repository = repository,
-                    onOpen = { task ->
-                        scope.launch {
-                            if (repository.open(task.taskId)) onDismiss()
-                        }
-                    },
-                    onRemove = { task ->
-                        tasks.remove(task)
-                        scope.launch { repository.remove(task.taskId) }
-                    },
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                FilledTonalButton(
-                    onClick = {
-                        val removed = tasks.toList()
-                        tasks.clear()
-                        scope.launch {
-                            removed.forEach { repository.remove(it.taskId) }
-                            onDismiss()
-                        }
-                    },
-                ) {
-                    Text(text = "Clear all")
+            else -> {
+                val listState = rememberLazyListState()
+                val focused by remember(listState) {
+                    derivedStateOf { listState.focusedIndex() }
                 }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    TaskRow(
+                        tasks = tasks,
+                        repository = repository,
+                        listState = listState,
+                        onOpen = { task ->
+                            scope.launch {
+                                if (repository.open(task.taskId)) onDismiss()
+                            }
+                        },
+                        onRemove = { task ->
+                            tasks.remove(task)
+                            scope.launch { repository.remove(task.taskId) }
+                        },
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    ActionRow(
+                        repository = repository,
+                        focusedTask = tasks.getOrNull(focused),
+                        onClearAll = {
+                            val removed = tasks.toList()
+                            tasks.clear()
+                            scope.launch {
+                                removed.forEach { repository.remove(it.taskId) }
+                                onDismiss()
+                            }
+                        },
+                        onDone = onDismiss,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Index of the item nearest the viewport centre: the task the actions apply to. */
+private fun LazyListState.focusedIndex(): Int {
+    val info = layoutInfo
+    val center = (info.viewportStartOffset + info.viewportEndOffset) / 2
+    return info.visibleItemsInfo
+        .minByOrNull { abs(it.offset + it.size / 2 - center) }
+        ?.index ?: 0
+}
+
+private enum class SwitcherAction { Screenshot, Share, Lens, Locked, ClearAll }
+
+@Composable
+private fun ActionRow(
+    repository: TaskSwitcherRepository,
+    focusedTask: RecentTask?,
+    onClearAll: () -> Unit,
+    onDone: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    // Same prefs as the launcher's own overview actions, so one settings page drives both
+    val prefs = remember { PreferenceManager.getInstance(context) }
+    val actions = remember {
+        val enabled = buildSet {
+            if (prefs.recentsActionScreenshot.get()) add(SwitcherAction.Screenshot)
+            if (prefs.recentsActionShare.get()) add(SwitcherAction.Share)
+            if (prefs.recentsActionLens.get() && repository.isLensAvailable()) add(SwitcherAction.Lens)
+            // Pixel always offers Clear all on the switcher, so it's kept even when the pref is off
+            add(SwitcherAction.ClearAll)
+        }
+        val order = prefs.recentActionOrder.get().split(",").mapNotNull { it.toIntOrNull() }
+        order.mapNotNull { SwitcherAction.entries.getOrNull(it) }.filter { it in enabled }
+    }
+    val task = focusedTask
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        actions.forEach { action ->
+            val label = stringResource(
+                when (action) {
+                    SwitcherAction.Screenshot -> R.string.action_screenshot
+                    SwitcherAction.Share -> R.string.action_share
+                    SwitcherAction.Lens -> R.string.action_lens
+                    else -> R.string.recents_clear_all
+                },
+            )
+            val icon = when (action) {
+                SwitcherAction.Screenshot -> R.drawable.ic_screenshot
+                SwitcherAction.Share -> R.drawable.ic_share
+                SwitcherAction.Lens -> R.drawable.ic_lens
+                else -> R.drawable.ic_clear_all_recents
+            }
+            FilledTonalButton(
+                enabled = action == SwitcherAction.ClearAll || task != null,
+                onClick = {
+                    val id = task?.taskId
+                    scope.launch {
+                        when (action) {
+                            SwitcherAction.Screenshot -> if (id != null && repository.saveScreenshot(id)) onDone()
+                            SwitcherAction.Share -> if (id != null && repository.shareSnapshot(id, lens = false)) onDone()
+                            SwitcherAction.Lens -> if (id != null && repository.shareSnapshot(id, lens = true)) onDone()
+                            else -> onClearAll()
+                        }
+                    }
+                },
+            ) {
+                Icon(painter = painterResource(icon), contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = label, maxLines = 1)
             }
         }
     }
@@ -187,14 +283,22 @@ private fun TaskSwitcherScreen(
 private fun TaskRow(
     tasks: List<RecentTask>,
     repository: TaskSwitcherRepository,
+    listState: LazyListState,
     onOpen: (RecentTask) -> Unit,
     onRemove: (RecentTask) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val cardWidth = (LocalConfiguration.current.screenWidthDp * 0.62f).dp
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+    val cardWidth = (screenWidth * 0.62f).dp
+    // Centres the first and last card, like the Pixel switcher
+    val edge = ((screenWidth - cardWidth.value) / 2f).dp
+    // Tasks are newest first; reversing puts the newest on the right with older ones to its left
     LazyRow(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 32.dp),
+        state = listState,
+        reverseLayout = true,
+        flingBehavior = rememberSnapFlingBehavior(listState),
+        contentPadding = PaddingValues(horizontal = edge),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         items(tasks, key = { it.taskId }) { task ->
@@ -222,6 +326,7 @@ private fun TaskCard(
     val scope = rememberCoroutineScope()
     val dismissThreshold = with(LocalDensity.current) { 160.dp.toPx() }
     val offsetY = remember { Animatable(0f) }
+    val closeLabel = stringResource(R.string.accessibility_close)
     val thumbnail by produceState(initialValue = null as ImageBitmap?, task.taskId) {
         value = repository.loadThumbnail(task.taskId)
     }
@@ -251,7 +356,7 @@ private fun TaskCard(
             }
             .semantics {
                 customActions = listOf(
-                    CustomAccessibilityAction("Close ${task.label}") {
+                    CustomAccessibilityAction("$closeLabel ${task.label}") {
                         onRemove()
                         true
                     },
@@ -259,25 +364,41 @@ private fun TaskCard(
             },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 12.dp),
-        ) {
-            task.icon?.let { icon ->
-                Image(
-                    painter = rememberDrawablePainter(icon),
-                    contentDescription = null,
-                    modifier = Modifier.size(28.dp),
+        var menuOpen by remember { mutableStateOf(false) }
+        Box {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(bottom = 12.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable { menuOpen = true }
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            ) {
+                task.icon?.let { icon ->
+                    Image(
+                        painter = rememberDrawablePainter(icon),
+                        contentDescription = null,
+                        modifier = Modifier.size(28.dp),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text(
+                    text = task.label,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(modifier = Modifier.width(8.dp))
             }
-            Text(
-                text = task.label,
-                style = MaterialTheme.typography.titleSmall,
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.app_info_drop_target_label)) },
+                    onClick = {
+                        menuOpen = false
+                        repository.openAppInfo(task)
+                    },
+                )
+            }
         }
         Box(
             modifier = Modifier
