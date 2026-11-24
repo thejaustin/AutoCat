@@ -14,6 +14,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -78,6 +79,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -95,6 +98,7 @@ import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
@@ -139,10 +143,16 @@ class TaskSwitcherActivity : ComponentActivity() {
         val repository = TaskSwitcherRepository(this)
         setContent {
             AutoCatTheme(darkTheme = true) {
-                TaskSwitcherScreen(
-                    repository = repository,
-                    onDismiss = ::finish,
-                )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // Samsung's compositor reports no window blur, so blur the app underneath ourselves
+                    if (blurRadius > 0 && !(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && windowManager.isCrossWindowBlurEnabled)) {
+                        BlurredBackdrop(repository = repository, radius = blurRadius.dp / 4)
+                    }
+                    TaskSwitcherScreen(
+                        repository = repository,
+                        onDismiss = ::finish,
+                    )
+                }
             }
         }
     }
@@ -340,6 +350,24 @@ private fun TaskSwitcherScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+/** The newest task's snapshot, blurred, behind the cards: a stand-in for window blur where the device has none. */
+@Composable
+private fun BlurredBackdrop(repository: TaskSwitcherRepository, radius: Dp) {
+    val image by produceState(initialValue = null as ImageBitmap?) {
+        value = repository.loadTasks()?.firstOrNull()?.let { repository.loadThumbnail(it.taskId) }
+    }
+    Crossfade(targetState = image, animationSpec = tween(250), label = "backdrop") { bitmap ->
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize().blur(radius, BlurredEdgeTreatment.Unbounded),
+            )
         }
     }
 }
