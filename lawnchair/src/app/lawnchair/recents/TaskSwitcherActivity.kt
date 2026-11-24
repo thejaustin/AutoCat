@@ -15,11 +15,9 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
@@ -59,11 +57,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -166,6 +165,7 @@ class TaskSwitcherActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TaskSwitcherScreen(
     repository: TaskSwitcherRepository,
@@ -250,7 +250,7 @@ private fun TaskSwitcherScreen(
                 tasks.isEmpty() -> Text(
                     text = stringResource(R.string.recents_empty_message),
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 else -> {
@@ -336,15 +336,14 @@ private fun TaskSwitcherScreen(
                             )
                         }
                         if (!grid && closeAllPill) {
-                            Spacer(modifier = Modifier.height(24.dp))
-                            OutlinedButton(
+                            Spacer(modifier = Modifier.height(16.dp))
+                            FilledTonalButton(
                                 onClick = clearAll,
-                                shape = CircleShape,
-                                border = BorderStroke(1.5.dp, Color.White.copy(alpha = 0.7f)),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                                modifier = Modifier.width(220.dp).height(52.dp),
+                                shapes = ButtonDefaults.shapes(CircleShape, CircleShape),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                modifier = Modifier.width(180.dp).height(40.dp),
                             ) {
-                                Text(text = stringResource(R.string.recents_clear_all), style = MaterialTheme.typography.titleMedium)
+                                Text(text = stringResource(R.string.recents_clear_all), style = MaterialTheme.typography.labelLarge)
                             }
                         }
                     }
@@ -399,6 +398,7 @@ private fun LazyListState.proximityToCenter(key: Any): Float {
 // Indices match recentActionOrder; Locked and Clear all have no button in this row
 private enum class SwitcherAction { Screenshot, Share, Lens, Locked, ClearAll }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ActionRow(
     repository: TaskSwitcherRepository,
@@ -441,8 +441,6 @@ private fun ActionRow(
                 else -> R.drawable.ic_clear_all_recents
             }
             FilledTonalButton(
-                enabled = task != null,
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
                 onClick = {
                     val id = task?.taskId ?: return@FilledTonalButton
                     scope.launch {
@@ -454,10 +452,14 @@ private fun ActionRow(
                         if (ok) onDone() else Toast.makeText(context, failed, Toast.LENGTH_SHORT).show()
                     }
                 },
+                // Shape morphs on press, like the grid cards
+                shapes = ButtonDefaults.shapes(),
+                enabled = task != null,
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
             ) {
-                Icon(painter = painterResource(icon), contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(text = label, maxLines = 1)
+                Icon(painter = painterResource(icon), contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
             }
         }
     }
@@ -487,7 +489,7 @@ private fun TaskRow(
         reverseLayout = true,
         flingBehavior = rememberSnapFlingBehavior(listState),
         contentPadding = PaddingValues(horizontal = edge),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(tasks, key = { it.taskId }) { task ->
             TaskCard(
@@ -530,6 +532,7 @@ private fun TaskRow(
  * like the carousel. The grid fills the screen with the cards at the bottom, so a card flung up
  * leaves through the top of the screen instead of being cut off at the edge of the grid.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TaskGrid(
     tasks: List<RecentTask>,
@@ -557,14 +560,16 @@ private fun TaskGrid(
             0.62f
         }
         ).dp
-    val spacing = 16.dp
-    val labelHeight = 56.dp
-    val footer = 84.dp
+    // At most 8dp between cards, per the M3 card spec, rather than the denser-than-needed 16dp
+    val spacing = 8.dp
+    val labelHeight = 48.dp
+    val footer = 64.dp
     val fittedWidth = ((budget - spacing * (rows - 1)) / rows - labelHeight) * THUMBNAIL_ASPECT
     val cardWidth = minOf(fittedWidth, (config.screenWidthDp * 0.29f).dp)
     val rowHeight = cardWidth / THUMBNAIL_ASPECT + labelHeight
     val gridHeight = rowHeight * rows + spacing * (rows - 1)
-    val glass = Color.White.copy(alpha = 0.14f)
+    val pillContainer = MaterialTheme.colorScheme.secondaryContainer
+    val pillContent = MaterialTheme.colorScheme.onSecondaryContainer
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         LazyHorizontalGrid(
             rows = GridCells.Fixed(rows),
@@ -576,7 +581,7 @@ private fun TaskGrid(
                 top = (maxHeight - footer - gridHeight).coerceAtLeast(0.dp),
                 bottom = footer,
             ),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(spacing),
             verticalArrangement = Arrangement.spacedBy(spacing),
         ) {
             items(tasks, key = { it.taskId }) { task ->
@@ -598,23 +603,21 @@ private fun TaskGrid(
         val countPill: @Composable (Modifier) -> Unit = { m ->
             Text(
                 text = stringResource(R.string.switcher_active_apps, tasks.size),
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
+                style = MaterialTheme.typography.labelLarge,
+                color = pillContent,
                 modifier = m
-                    .background(glass, CircleShape)
-                    .border(1.5.dp, Color.White.copy(alpha = 0.7f), CircleShape)
-                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                    .background(pillContainer, CircleShape)
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
             )
         }
         val clearAllPill: @Composable (Modifier) -> Unit = { m ->
-            OutlinedButton(
+            FilledTonalButton(
                 onClick = onClearAll,
-                shape = CircleShape,
-                border = BorderStroke(1.5.dp, Color.White.copy(alpha = 0.7f)),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = glass, contentColor = Color.White),
-                modifier = m.height(52.dp),
+                shapes = ButtonDefaults.shapes(CircleShape, CircleShape),
+                modifier = m.height(40.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             ) {
-                Text(text = stringResource(R.string.recents_clear_all), style = MaterialTheme.typography.titleMedium)
+                Text(text = stringResource(R.string.recents_clear_all), style = MaterialTheme.typography.labelLarge)
             }
         }
         if (showOverflow) {
@@ -623,16 +626,14 @@ private fun TaskGrid(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = footer + gridHeight + 16.dp),
+                    .padding(end = 16.dp, bottom = footer + gridHeight + 12.dp),
             ) {
-                IconButton(
+                FilledTonalIconButton(
                     onClick = { open = true },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(glass, CircleShape)
-                        .border(1.5.dp, Color.White.copy(alpha = 0.7f), CircleShape),
+                    shapes = IconButtonDefaults.shapes(),
+                    modifier = Modifier.size(40.dp),
                 ) {
-                    Icon(Icons.Rounded.MoreVert, contentDescription = null, tint = Color.White)
+                    Icon(Icons.Rounded.MoreVert, contentDescription = null)
                 }
                 DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
                     DropdownMenuItem(
@@ -659,16 +660,16 @@ private fun TaskGrid(
         }
         val topSlot = Modifier
             .align(Alignment.BottomStart)
-            .padding(start = 16.dp, bottom = footer + gridHeight + 16.dp)
+            .padding(start = 16.dp, bottom = footer + gridHeight + 12.dp)
         val footerSlot = Modifier
             .align(Alignment.BottomCenter)
-            .padding(bottom = 24.dp)
+            .padding(bottom = 16.dp)
         if (swapPills) {
-            if (showClearAll) clearAllPill(topSlot.width(160.dp))
+            if (showClearAll) clearAllPill(topSlot.width(130.dp))
             if (showPill) countPill(footerSlot)
         } else {
             if (showPill) countPill(topSlot)
-            if (showClearAll) clearAllPill(footerSlot.width(220.dp))
+            if (showClearAll) clearAllPill(footerSlot.width(180.dp))
         }
     }
 }
@@ -784,24 +785,24 @@ private fun TaskCard(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(bottom = 12.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .padding(bottom = 8.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable { menuOpen = true }
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(horizontal = 6.dp, vertical = 3.dp),
             ) {
                 task.icon?.let { icon ->
                     Image(
                         painter = rememberDrawablePainter(icon),
                         contentDescription = null,
-                        modifier = Modifier.size(if (startAligned) 30.dp else 28.dp),
+                        modifier = Modifier.size(if (startAligned) 24.dp else 22.dp),
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                 }
                 if (showLabel) {
                     Text(
                         text = task.label,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = Color.White,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -843,7 +844,7 @@ private fun TaskCard(
         // Shape morphs on press: a small M3 Expressive touch
         val corner by animateDpAsState(
             // Small grid cards get One UI's tighter corners; the big carousel card keeps the rounder shape
-            targetValue = if (startAligned) (if (pressed) 20.dp else 14.dp) else (if (pressed) 40.dp else 28.dp),
+            targetValue = if (startAligned) (if (pressed) 14.dp else 10.dp) else (if (pressed) 40.dp else 28.dp),
             animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
             label = "card corner",
         )
@@ -895,7 +896,7 @@ private fun TaskCard(
                             Image(
                                 painter = rememberDrawablePainter(icon),
                                 contentDescription = task.label,
-                                modifier = Modifier.size(64.dp),
+                                modifier = Modifier.size(48.dp),
                             )
                         }
                     }
