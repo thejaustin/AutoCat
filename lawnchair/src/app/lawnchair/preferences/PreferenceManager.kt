@@ -269,6 +269,7 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     val recentsActionScreenshot = BoolPref("pref_recentsActionScreenshot", !isOnePlusStock)
     val recentsActionShare = BoolPref("pref_recentsActionShare", isOnePlusStock)
     val recentsActionLens = BoolPref("pref_recentsActionLens", true)
+    val taskSwitcherTakeover = BoolPref("pref_taskSwitcherTakeover", false)
     val recentsActionClearAll = BoolPref("pref_clearAllAsAction", false)
     val recentsActionLocked = BoolPref("pref_lockedAsAction", false)
     val recentsTranslucentBackground = BoolPref("pref_recentsTranslucentBackground", false, recreate)

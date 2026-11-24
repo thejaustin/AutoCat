@@ -19,7 +19,14 @@ package app.lawnchair
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import app.lawnchair.preferences.PreferenceManager
+import app.lawnchair.recents.TaskSwitcherActivity
+import app.lawnchair.recents.TaskSwitcherRepository
 
 class AutoCatAccessibilityService : AccessibilityService() {
 
@@ -27,7 +34,8 @@ class AutoCatAccessibilityService : AccessibilityService() {
         serviceInfo = AccessibilityServiceInfo().apply {
             // Set the type of events that this service wants to listen to.  Others
             // won't be passed to this service.
-            eventTypes = 0
+            // Only window changes, to notice the system recents screen opening
+            eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
 
             // If you only want this service to work with specific applications, set their
             // package names here.  Otherwise, when the service is activated, it will listen
@@ -46,5 +54,35 @@ class AutoCatAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() {}
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+    private val handler = Handler(Looper.getMainLooper())
+    private var lastTakeover = 0L
+
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+        // Quickstep's recents window, in One UI Home, Pixel Launcher or SystemUI alike
+        val className = event.className?.toString() ?: return
+        if (!className.endsWith(RECENTS_CLASS_SUFFIX)) return
+        if (event.packageName == packageName) return
+        if (!PreferenceManager.getInstance(this).taskSwitcherTakeover.get()) return
+        val now = SystemClock.uptimeMillis()
+        if (now - lastTakeover < COOLDOWN_MS) return
+        // Never leave the user without a recents screen: only take over when ours can work
+        if (TaskSwitcherRepository(this).availability() != TaskSwitcherRepository.Availability.Ready) return
+        lastTakeover = now
+        Log.d(TAG, "Taking over recents from ${event.packageName}/$className")
+        // Close the system recents first so dismissing ours returns to the app underneath
+        performGlobalAction(GLOBAL_ACTION_BACK)
+        handler.postDelayed({
+            startActivity(
+                Intent(this, TaskSwitcherActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }, OPEN_DELAY_MS)
+    }
+
+    private companion object {
+        const val TAG = "AutoCatA11y"
+        const val RECENTS_CLASS_SUFFIX = "RecentsActivity"
+        const val COOLDOWN_MS = 1500L
+        const val OPEN_DELAY_MS = 120L
+    }
 }
