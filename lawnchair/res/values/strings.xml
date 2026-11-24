@@ -972,9 +972,9 @@
     <string name="switcher_long_press_menu">Show menu</string>
     <string name="switcher_long_press_appinfo">App info</string>
     <string name="switcher_group_label">Task switcher</string>
-    <string name="switcher_active_apps_pill">Active apps count</string>
-    <string name="switcher_active_apps_pill_summary">Show an “N active apps” pill above the grid</string>
-    <string name="switcher_active_apps">%1$d active apps</string>
+    <string name="switcher_active_apps_pill">Recent apps count</string>
+    <string name="switcher_active_apps_pill_summary">Show an “N recent apps” pill above the grid</string>
+    <string name="switcher_active_apps">%1$d recent apps</string>
     <string name="switcher_layout">Layout</string>
     <string name="switcher_layout_carousel">Carousel (Pixel)</string>
     <string name="switcher_layout_grid">Grid (One UI)</string>
