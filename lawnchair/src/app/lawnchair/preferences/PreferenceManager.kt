@@ -222,6 +222,14 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     val llmMinBatteryLevel = IntPref("pref_llmMinBatteryLevel", 20, {})
     val llmAutoSelectBestModel = BoolPref("pref_llmAutoSelectBestModel", false, {})
     val archivalMethod = StringPref("pref_archivalMethod", "default", {})
+
+    // AutoCat: privileged backend selector (see app.lawnchair.backend.BackendSelector)
+    val backendMode = StringPref("pref_backendMode", "Automatic", {})
+    val backendRootEnabled = BoolPref("pref_backendRootEnabled", true, {})
+    val backendShizukuPlusEnabled = BoolPref("pref_backendShizukuPlusEnabled", true, {})
+    val backendShizukuEnabled = BoolPref("pref_backendShizukuEnabled", true, {})
+    val backendDhizukuEnabled = BoolPref("pref_backendDhizukuEnabled", true, {})
+    val backendAccessibilityEnabled = BoolPref("pref_backendAccessibilityEnabled", true, {})
     val enableWidgetStacks = BoolPref("pref_enableWidgetStacks", false, recreate)
     val settingsCardRadius = IntPref("pref_settingsCardRadius", 24, recreate)
 
