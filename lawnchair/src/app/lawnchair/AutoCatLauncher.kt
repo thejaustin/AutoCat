@@ -267,8 +267,8 @@ class AutoCatLauncher :
         }
 
         lifecycleScope.launch {
-            LauncherOptionsPopup.restoreMissingPopupOptions(this)
-            LauncherOptionsPopup.migrateLegacyPreferences(this)
+            LauncherOptionsPopup.restoreMissingPopupOptions(this@AutoCatLauncher)
+            LauncherOptionsPopup.migrateLegacyPreferences(this@AutoCatLauncher)
         }
 
         // Handle update from version 12 Alpha 4 to version 12 Alpha 5.
