@@ -10,10 +10,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -81,7 +79,6 @@ import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -93,13 +90,9 @@ import kotlin.math.abs
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// Spring specs: M3 Expressive default spatial (damping 0.8, stiffness 380) for movement and
-// default effects (damping 1, stiffness 1600) for fades; the dismiss spring is AOSP's
-// expressive_dismiss_task_trans_y_* from quickstep/res/values/config.xml
-private val SpatialSpring = spring<Float>(dampingRatio = 0.8f, stiffness = 380f)
-private val SpatialSpringOffset = spring<IntOffset>(dampingRatio = 0.8f, stiffness = 380f)
+// Movement and fades use the theme's MotionScheme (MaterialTheme.motionScheme); the dismiss
+// spring is AOSP's expressive_dismiss_task_trans_y_* from quickstep/res/values/config.xml
 private val DismissSpring = spring<Float>(dampingRatio = 0.65f, stiffness = 850f)
-private const val EFFECT_STIFFNESS = 1600f
 private const val FLING_DISMISS_VELOCITY = 1200f
 
 /**
@@ -149,7 +142,8 @@ private fun TaskSwitcherScreen(
     var loading by remember { mutableStateOf(true) }
     val tasks = remember { mutableStateListOf<RecentTask>() }
     val entry = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { entry.animateTo(1f, SpatialSpring) }
+    val entrySpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+    LaunchedEffect(Unit) { entry.animateTo(1f, entrySpec) }
 
     // Re-checked on resume, so granting Shizuku access in its dialog takes effect right away
     LifecycleResumeEffect(Unit) {
@@ -386,8 +380,8 @@ private fun TaskRow(
                     .width(cardWidth)
                     .animateItem(
                         fadeInSpec = null,
-                        placementSpec = SpatialSpringOffset,
-                        fadeOutSpec = spring(stiffness = EFFECT_STIFFNESS),
+                        placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+                        fadeOutSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
                     ),
             )
         }
@@ -427,6 +421,7 @@ private fun TaskCard(
         value = repository.loadThumbnail(task.taskId)
     }
 
+    val returnSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
     var crossedThreshold by remember { mutableStateOf(false) }
     val dragState = rememberDraggableState { delta ->
         val next = (offsetY.value + delta).coerceAtMost(0f)
@@ -458,7 +453,7 @@ private fun TaskCard(
                         offsetY.animateTo(-dismissThreshold * 6, DismissSpring, velocity)
                         onRemove()
                     } else {
-                        offsetY.animateTo(0f, SpatialSpring, velocity)
+                        offsetY.animateTo(0f, returnSpec, velocity)
                     }
                     crossedThreshold = false
                 },
@@ -514,7 +509,7 @@ private fun TaskCard(
         // Shape morphs on press: a small M3 Expressive touch
         val corner by animateDpAsState(
             targetValue = if (pressed) 40.dp else 28.dp,
-            animationSpec = spring(dampingRatio = 0.6f, stiffness = 800f),
+            animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
             label = "card corner",
         )
         Box(
@@ -535,7 +530,7 @@ private fun TaskCard(
                 ),
             contentAlignment = Alignment.Center,
         ) {
-            Crossfade(targetState = thumbnail, animationSpec = tween(200), label = "thumbnail") { image ->
+            Crossfade(targetState = thumbnail, animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(), label = "thumbnail") { image ->
                 if (image != null) {
                     Image(
                         bitmap = image,
