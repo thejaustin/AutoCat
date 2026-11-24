@@ -3,6 +3,7 @@ package app.lawnchair.backend
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.SystemClock
+import android.util.Log
 import app.lawnchair.autoCatApp
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.root.RootHelperManager
@@ -242,7 +243,10 @@ class BackendSelector(context: Context) {
 
                 else -> null
             }
-            if (ops != null) return ops
+            if (ops != null) {
+                Log.i(TAG, "Task control via ${ops.javaClass.simpleName} (backend $backend)")
+                return ops
+            }
         }
         return null
     }
@@ -250,6 +254,7 @@ class BackendSelector(context: Context) {
     companion object {
         private const val ROOT_RETRY_MS = 30_000L
         private const val POLL_MS = 100L
+        private const val TAG = "BackendSelector"
         const val DHIZUKU_PACKAGE = "com.rosan.dhizuku"
 
         @JvmField
