@@ -13,9 +13,11 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
@@ -41,15 +43,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -234,44 +242,86 @@ private fun TaskSwitcherScreen(
                             last = it
                         }
                     }
+                    val switcherPrefs = remember { PreferenceManager.getInstance(rootView.context) }
+                    val grid = remember { switcherPrefs.switcherLayout.get() == "grid" }
+                    val closeAllPill = remember { switcherPrefs.switcherCloseAllPill.get() }
+                    val open: (RecentTask, IntRect) -> Unit = { task, bounds ->
+                        scope.launch {
+                            if (repository.open(task.taskId, rootView, bounds)) onDismiss()
+                        }
+                    }
+                    val remove: (RecentTask) -> Unit = { task ->
+                        tasks.remove(task)
+                        scope.launch { repository.remove(task.taskId) }
+                    }
+                    val windowMode: (RecentTask, WindowMode) -> Unit = { task, mode ->
+                        scope.launch {
+                            val started = when (mode) {
+                                WindowMode.Split -> repository.openSplit(task.taskId)
+                                WindowMode.Popup -> repository.openPopup(task.taskId)
+                            }
+                            if (started) onDismiss()
+                        }
+                    }
+                    val clearAll: () -> Unit = {
+                        val removed = tasks.toList()
+                        tasks.clear()
+                        scope.launch {
+                            removed.forEach { repository.remove(it.taskId) }
+                            onDismiss()
+                        }
+                    }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        TaskRow(
-                            tasks = tasks,
-                            repository = repository,
-                            listState = listState,
-                            onOpen = { task, bounds ->
-                                scope.launch {
-                                    if (repository.open(task.taskId, rootView, bounds)) onDismiss()
-                                }
-                            },
-                            onRemove = { task ->
-                                tasks.remove(task)
-                                scope.launch { repository.remove(task.taskId) }
-                            },
-                            onWindowMode = { task, mode ->
-                                scope.launch {
-                                    val started = when (mode) {
-                                        WindowMode.Split -> repository.openSplit(task.taskId)
-                                        WindowMode.Popup -> repository.openPopup(task.taskId)
-                                    }
-                                    if (started) onDismiss()
-                                }
-                            },
-                            onClearAll = {
-                                val removed = tasks.toList()
-                                tasks.clear()
-                                scope.launch {
-                                    removed.forEach { repository.remove(it.taskId) }
-                                    onDismiss()
-                                }
-                            },
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        ActionRow(
-                            repository = repository,
-                            focusedTask = tasks.getOrNull(focused),
-                            onDone = onDismiss,
-                        )
+                        if (grid) {
+                            if (remember { switcherPrefs.switcherActiveAppsPill.get() }) {
+                                Text(
+                                    text = stringResource(R.string.switcher_active_apps, tasks.size),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color.White,
+                                    modifier = Modifier
+                                        .align(Alignment.Start)
+                                        .padding(start = 16.dp, bottom = 16.dp)
+                                        .border(1.5.dp, Color.White.copy(alpha = 0.7f), CircleShape)
+                                        .padding(horizontal = 20.dp, vertical = 10.dp),
+                                )
+                            }
+                            TaskGrid(
+                                tasks = tasks,
+                                repository = repository,
+                                onOpen = open,
+                                onRemove = remove,
+                                onWindowMode = windowMode,
+                            )
+                        } else {
+                            TaskRow(
+                                tasks = tasks,
+                                repository = repository,
+                                listState = listState,
+                                onOpen = open,
+                                onRemove = remove,
+                                onWindowMode = windowMode,
+                                onClearAll = clearAll,
+                                showClearAll = !closeAllPill,
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            ActionRow(
+                                repository = repository,
+                                focusedTask = tasks.getOrNull(focused),
+                                onDone = onDismiss,
+                            )
+                        }
+                        if (grid || closeAllPill) {
+                            Spacer(modifier = Modifier.height(24.dp))
+                            OutlinedButton(
+                                onClick = clearAll,
+                                shape = CircleShape,
+                                border = BorderStroke(1.5.dp, Color.White.copy(alpha = 0.7f)),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                                modifier = Modifier.width(220.dp).height(52.dp),
+                            ) {
+                                Text(text = stringResource(R.string.recents_clear_all), style = MaterialTheme.typography.titleMedium)
+                            }
+                        }
                     }
                 }
             }
@@ -374,6 +424,7 @@ private fun TaskRow(
     onRemove: (RecentTask) -> Unit,
     onWindowMode: (RecentTask, WindowMode) -> Unit,
     onClearAll: () -> Unit,
+    showClearAll: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val screenWidth = LocalConfiguration.current.screenWidthDp
@@ -407,18 +458,60 @@ private fun TaskRow(
             )
         }
         // Like Pixel, Clear all waits past the oldest task
-        item(key = "clear_all") {
-            Box(
-                modifier = Modifier
-                    .width(cardWidth)
-                    .fillMaxHeight()
-                    .animateItem(),
-                contentAlignment = Alignment.Center,
-            ) {
-                FilledTonalButton(onClick = onClearAll) {
-                    Text(text = stringResource(R.string.recents_clear_all))
+        if (showClearAll) {
+            item(key = "clear_all") {
+                Box(
+                    modifier = Modifier
+                        .width(cardWidth)
+                        .fillMaxHeight()
+                        .animateItem(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    FilledTonalButton(onClick = onClearAll) {
+                        Text(text = stringResource(R.string.recents_clear_all))
+                    }
                 }
             }
+        }
+    }
+}
+
+/** One UI's Good Lock grid: two rows of cards that scroll sideways, newest at the right like the carousel. */
+@Composable
+private fun TaskGrid(
+    tasks: List<RecentTask>,
+    repository: TaskSwitcherRepository,
+    onOpen: (RecentTask, IntRect) -> Unit,
+    onRemove: (RecentTask) -> Unit,
+    onWindowMode: (RecentTask, WindowMode) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+    val cardWidth = (screenWidth * 0.29f).dp
+    val rowHeight = cardWidth / THUMBNAIL_ASPECT + 56.dp
+    LazyHorizontalGrid(
+        rows = GridCells.Fixed(2),
+        reverseLayout = true,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(rowHeight * 2 + 16.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        items(tasks, key = { it.taskId }) { task ->
+            TaskCard(
+                task = task,
+                repository = repository,
+                onOpen = { bounds -> onOpen(task, bounds) },
+                onRemove = { onRemove(task) },
+                onWindowMode = { mode -> onWindowMode(task, mode) },
+                centerProximity = { 1f },
+                startAligned = true,
+                modifier = Modifier
+                    .width(cardWidth)
+                    .animateItem(),
+            )
         }
     }
 }
@@ -432,10 +525,12 @@ private fun TaskCard(
     onWindowMode: (WindowMode) -> Unit,
     centerProximity: () -> Float,
     modifier: Modifier = Modifier,
+    startAligned: Boolean = false,
 ) {
     val view = LocalView.current
     val prefs = remember { PreferenceManager.getInstance(view.context) }
-    val oneUiHeader = remember { prefs.switcherHeaderStyle.get() == "oneui" }
+    val oneUiHeader = remember { startAligned || prefs.switcherHeaderStyle.get() == "oneui" }
+    val showLabel = remember { prefs.switcherShowLabel.get() }
     val longPress = remember { prefs.switcherLongPress.get() }
     var bounds by remember { mutableStateOf(IntRect.Zero) }
     val dismissThreshold = with(LocalDensity.current) { 160.dp.toPx() }
@@ -540,13 +635,15 @@ private fun TaskCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
-                Text(
-                    text = task.label,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                if (showLabel) {
+                    Text(
+                        text = task.label,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                 DropdownMenuItem(

@@ -152,6 +152,19 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     val switcherHeaderStyle = StringPref("pref_switcherHeaderStyle", "pixel")
 
     /** What holding a switcher card does: "menu", "split", "popup" or "appinfo". */
+
+    // "carousel" (Pixel) or "grid" (One UI Good Lock style: two rows that scroll sideways)
+    val switcherLayout = StringPref("pref_switcherLayout", "carousel")
+
+    // Shows the app name next to its icon above each card
+    val switcherShowLabel = BoolPref("pref_switcherShowLabel", true)
+
+    // Keeps an outlined Close all pill fixed at the bottom instead of past the last card
+    val switcherCloseAllPill = BoolPref("pref_switcherCloseAllPill", false)
+
+    // Outlined "N active apps" pill above the grid
+    val switcherActiveAppsPill = BoolPref("pref_switcherActiveAppsPill", true)
+
     val switcherLongPress = StringPref("pref_switcherLongPress", "menu")
 
     private val fontCache = FontCache.INSTANCE.get(context)

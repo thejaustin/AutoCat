@@ -94,6 +94,29 @@ fun QuickstepPreferences(
         val recentsTranslucentBackground by prefs.recentsTranslucentBackground.observeAsState()
         PreferenceGroup(heading = stringResource(id = R.string.switcher_group_label)) {
             ListPreference(
+                adapter = prefs.switcherLayout.getAdapter(),
+                entries = listOf(
+                    ListPreferenceEntry("carousel") { stringResource(R.string.switcher_layout_carousel) },
+                    ListPreferenceEntry("grid") { stringResource(R.string.switcher_layout_grid) },
+                ),
+                label = stringResource(R.string.switcher_layout),
+            )
+            SwitchPreference(
+                adapter = prefs.switcherShowLabel.getAdapter(),
+                label = stringResource(R.string.switcher_show_label),
+                description = stringResource(R.string.switcher_show_label_summary),
+            )
+            SwitchPreference(
+                adapter = prefs.switcherActiveAppsPill.getAdapter(),
+                label = stringResource(R.string.switcher_active_apps_pill),
+                description = stringResource(R.string.switcher_active_apps_pill_summary),
+            )
+            SwitchPreference(
+                adapter = prefs.switcherCloseAllPill.getAdapter(),
+                label = stringResource(R.string.switcher_close_all_pill),
+                description = stringResource(R.string.switcher_close_all_pill_summary),
+            )
+            ListPreference(
                 adapter = prefs.switcherHeaderStyle.getAdapter(),
                 entries = listOf(
                     ListPreferenceEntry("pixel") { stringResource(R.string.switcher_header_pixel) },
