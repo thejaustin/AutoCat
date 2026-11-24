@@ -431,10 +431,12 @@ private fun TaskCard(
     // Accumulated synchronously: a quick flick delivers several deltas before a launched snapTo runs
     var rawOffset by remember { mutableFloatStateOf(0f) }
     var dismissing by remember { mutableStateOf(false) }
+    // While a finger is down the card follows rawOffset directly; the Animatable only runs after release,
+    // so a late queued snapTo can no longer cancel the return animation and leave the card parked
+    var dragging by remember { mutableStateOf(false) }
     val dragState = rememberDraggableState { delta ->
         val next = (rawOffset + delta).coerceAtMost(0f)
         rawOffset = next
-        scope.launch { offsetY.snapTo(next) }
         val crossed = next < -dismissThreshold
         if (crossed != crossedThreshold) {
             crossedThreshold = crossed
@@ -449,13 +451,21 @@ private fun TaskCard(
                 val scale = 0.92f + 0.08f * centerProximity()
                 scaleX = scale
                 scaleY = scale
-                translationY = offsetY.value
-                alpha = 1f - (abs(offsetY.value) / (dismissThreshold * 2)).coerceAtMost(if (dismissing) 1f else 0.8f)
+                val y = if (dragging) rawOffset else offsetY.value
+                translationY = y
+                alpha = 1f - (abs(y) / (dismissThreshold * 2)).coerceAtMost(if (dismissing) 1f else 0.8f)
             }
             .draggable(
                 state = dragState,
                 orientation = Orientation.Vertical,
+                onDragStarted = {
+                    offsetY.stop()
+                    rawOffset = offsetY.value.coerceAtMost(0f)
+                    dragging = true
+                },
                 onDragStopped = { velocity ->
+                    offsetY.snapTo(rawOffset)
+                    dragging = false
                     val flung = velocity < -FLING_DISMISS_VELOCITY
                     if (rawOffset < -dismissThreshold || flung) {
                         // Same spring AOSP's overview uses for dismissed tasks, seeded with the flick's velocity
