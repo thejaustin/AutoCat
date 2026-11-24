@@ -1,7 +1,6 @@
 package app.lawnchair.ui.preferences.components.controls
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -108,11 +107,11 @@ fun SwitchPreferencePreviewCard(
 ) {
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected) MaterialTheme.colorScheme.primary else preferenceGroupColor(),
-        animationSpec = tween(durationMillis = 300),
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
     )
     val textColor by animateColorAsState(
         targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-        animationSpec = tween(durationMillis = 300),
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
     )
 
     Column(

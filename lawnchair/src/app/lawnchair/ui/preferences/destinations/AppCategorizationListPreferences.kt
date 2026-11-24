@@ -5,9 +5,6 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -376,24 +373,18 @@ fun AppCategorizationListPreferences(
                 // Material 3 Expressive: Animated visibility for category expansion
                 if (expandedTabs.contains(tabName) || filterMode != FilterMode.ALL || searchQuery.isNotEmpty()) {
                     items(apps, key = { it.packageName }) { appTab ->
-                        // Spring-based entrance animation
+                        // MotionScheme-driven entrance animation
                         AnimatedVisibility(
                             visible = true,
                             enter = expandVertically(
-                                animationSpec = spring(
-                                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                                    stiffness = Spring.StiffnessMedium,
-                                ),
+                                animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
                             ) + fadeIn(
-                                animationSpec = tween(300),
+                                animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
                             ),
                             exit = shrinkVertically(
-                                animationSpec = spring(
-                                    dampingRatio = Spring.DampingRatioNoBouncy,
-                                    stiffness = Spring.StiffnessMedium,
-                                ),
+                                animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
                             ) + fadeOut(
-                                animationSpec = tween(200),
+                                animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
                             ),
                         ) {
                             AppTabItem(
@@ -519,10 +510,7 @@ private fun TabHeader(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium,
-                ),
+                animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
             )
             .shadow(
                 elevation = if (expanded) 4.dp else 2.dp,
@@ -991,10 +979,7 @@ private fun ExpressiveFilterChip(
         },
         modifier = Modifier
             .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMedium,
-                ),
+                animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
             ),
         shape = RoundedCornerShape(12.dp),
         border = if (selected) {
