@@ -980,6 +980,10 @@
     <string name="switcher_grid_rows_3">3 rows</string>
     <string name="switcher_mini_mode">Mini mode</string>
     <string name="switcher_mini_mode_summary">Smaller cards at the bottom of the screen, easier to reach with one hand</string>
+    <string name="switcher_blur">Background blur</string>
+    <string name="switcher_blur_none">Off</string>
+    <string name="switcher_blur_soft">Soft</string>
+    <string name="switcher_blur_strong">Strong</string>
     <string name="switcher_layout">Layout</string>
     <string name="switcher_layout_carousel">Carousel (Pixel)</string>
     <string name="switcher_layout_grid">Grid (One UI)</string>

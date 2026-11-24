@@ -171,6 +171,9 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     // One UI mini mode: smaller cards that sit at the bottom, within thumb reach
     val switcherMiniMode = BoolPref("pref_switcherMiniMode", false)
 
+    // Background blur strength: "none", "soft" or "strong"
+    val switcherBlur = StringPref("pref_switcherBlur", "strong")
+
     val switcherLongPress = StringPref("pref_switcherLongPress", "menu")
 
     private val fontCache = FontCache.INSTANCE.get(context)

@@ -28,6 +28,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -124,9 +125,10 @@ class TaskSwitcherActivity : ComponentActivity() {
             overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
             overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val blurRadius = blurRadiusFor(PreferenceManager.getInstance(this).switcherBlur.get())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && blurRadius > 0) {
             window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-            window.attributes = window.attributes.apply { blurBehindRadius = BLUR_RADIUS }
+            window.attributes = window.attributes.apply { blurBehindRadius = blurRadius }
         }
         val repository = TaskSwitcherRepository(this)
         setContent {
@@ -140,7 +142,11 @@ class TaskSwitcherActivity : ComponentActivity() {
     }
 
     companion object {
-        private const val BLUR_RADIUS = 48
+        private fun blurRadiusFor(setting: String) = when (setting) {
+            "none" -> 0
+            "soft" -> 48
+            else -> 140
+        }
     }
 }
 
@@ -153,10 +159,10 @@ private fun TaskSwitcherScreen(
     val scope = rememberCoroutineScope()
     val rootView = LocalView.current
     // Mini mode only applies to the grid, where it moves the cards down to the thumb
-    val miniMode = remember {
-        val p = PreferenceManager.getInstance(rootView.context)
-        p.switcherLayout.get() == "grid" && p.switcherMiniMode.get()
-    }
+    val switcherPrefs0 = remember { PreferenceManager.getInstance(rootView.context) }
+    val gridLayout = remember { switcherPrefs0.switcherLayout.get() == "grid" }
+    // A blurred backdrop needs less dimming to keep the cards readable
+    val scrimAlpha = remember { if (switcherPrefs0.switcherBlur.get() == "none") 0.55f else 0.32f }
     var availability by remember { mutableStateOf(repository.availability()) }
     var loading by remember { mutableStateOf(true) }
     val tasks = remember { mutableStateListOf<RecentTask>() }
@@ -190,17 +196,17 @@ private fun TaskSwitcherScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.55f * entry.value.coerceIn(0f, 1f)))
+            .background(Color.Black.copy(alpha = scrimAlpha * entry.value.coerceIn(0f, 1f)))
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onDismiss,
             )
             .safeDrawingPadding(),
-        contentAlignment = if (miniMode) Alignment.BottomCenter else Alignment.Center,
+        contentAlignment = Alignment.Center,
     ) {
         Box(
-            modifier = Modifier.graphicsLayer {
+            modifier = Modifier.then(if (gridLayout) Modifier.fillMaxSize() else Modifier).graphicsLayer {
                 val t = entry.value
                 scaleX = 0.92f + 0.08f * t
                 scaleY = 0.92f + 0.08f * t
@@ -248,7 +254,7 @@ private fun TaskSwitcherScreen(
                         }
                     }
                     val switcherPrefs = remember { PreferenceManager.getInstance(rootView.context) }
-                    val grid = remember { switcherPrefs.switcherLayout.get() == "grid" }
+                    val grid = gridLayout
                     val closeAllPill = remember { switcherPrefs.switcherCloseAllPill.get() }
                     val open: (RecentTask, IntRect) -> Unit = { task, bounds ->
                         scope.launch {
@@ -276,20 +282,11 @@ private fun TaskSwitcherScreen(
                             onDismiss()
                         }
                     }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        modifier = if (grid) Modifier.fillMaxSize() else Modifier,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         if (grid) {
-                            if (remember { switcherPrefs.switcherActiveAppsPill.get() }) {
-                                Text(
-                                    text = stringResource(R.string.switcher_active_apps, tasks.size),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = Color.White,
-                                    modifier = Modifier
-                                        .align(Alignment.Start)
-                                        .padding(start = 16.dp, bottom = 16.dp)
-                                        .border(1.5.dp, Color.White.copy(alpha = 0.7f), CircleShape)
-                                        .padding(horizontal = 20.dp, vertical = 10.dp),
-                                )
-                            }
                             TaskGrid(
                                 tasks = tasks,
                                 repository = repository,
@@ -297,7 +294,9 @@ private fun TaskSwitcherScreen(
                                 onRemove = remove,
                                 onWindowMode = windowMode,
                                 rows = switcherPrefs.switcherGridRows.get().toIntOrNull()?.coerceIn(2, 3) ?: 2,
-                                mini = miniMode,
+                                mini = switcherPrefs.switcherMiniMode.get(),
+                                showPill = remember { switcherPrefs.switcherActiveAppsPill.get() },
+                                onClearAll = clearAll,
                             )
                         } else {
                             TaskRow(
@@ -317,7 +316,7 @@ private fun TaskSwitcherScreen(
                                 onDone = onDismiss,
                             )
                         }
-                        if (grid || closeAllPill) {
+                        if (!grid && closeAllPill) {
                             Spacer(modifier = Modifier.height(24.dp))
                             OutlinedButton(
                                 onClick = clearAll,
@@ -483,7 +482,11 @@ private fun TaskRow(
     }
 }
 
-/** One UI's Good Lock grid: two or three rows of cards that scroll sideways, newest at the right like the carousel. */
+/**
+ * One UI's Good Lock grid: two or three rows of cards that scroll sideways, newest at the right
+ * like the carousel. The grid fills the screen with the cards at the bottom, so a card flung up
+ * leaves through the top of the screen instead of being cut off at the edge of the grid.
+ */
 @Composable
 private fun TaskGrid(
     tasks: List<RecentTask>,
@@ -493,6 +496,8 @@ private fun TaskGrid(
     onWindowMode: (RecentTask, WindowMode) -> Unit,
     rows: Int,
     mini: Boolean,
+    showPill: Boolean,
+    onClearAll: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val config = LocalConfiguration.current
@@ -508,33 +513,67 @@ private fun TaskGrid(
         ).dp
     val spacing = 16.dp
     val labelHeight = 56.dp
+    val footer = 84.dp
     val fittedWidth = ((budget - spacing * (rows - 1)) / rows - labelHeight) * THUMBNAIL_ASPECT
     val cardWidth = minOf(fittedWidth, (config.screenWidthDp * 0.29f).dp)
     val rowHeight = cardWidth / THUMBNAIL_ASPECT + labelHeight
-    LazyHorizontalGrid(
-        rows = GridCells.Fixed(rows),
-        reverseLayout = true,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(rowHeight * rows + spacing * (rows - 1)),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(spacing),
-    ) {
-        items(tasks, key = { it.taskId }) { task ->
-            TaskCard(
-                task = task,
-                repository = repository,
-                onOpen = { bounds -> onOpen(task, bounds) },
-                onRemove = { onRemove(task) },
-                onWindowMode = { mode -> onWindowMode(task, mode) },
-                centerProximity = { 1f },
-                startAligned = true,
-                iconOnly = cardWidth < ICON_ONLY_WIDTH,
+    val gridHeight = rowHeight * rows + spacing * (rows - 1)
+    val glass = Color.White.copy(alpha = 0.14f)
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        LazyHorizontalGrid(
+            rows = GridCells.Fixed(rows),
+            reverseLayout = true,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = (maxHeight - footer - gridHeight).coerceAtLeast(0.dp),
+                bottom = footer,
+            ),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(spacing),
+        ) {
+            items(tasks, key = { it.taskId }) { task ->
+                TaskCard(
+                    task = task,
+                    repository = repository,
+                    onOpen = { bounds -> onOpen(task, bounds) },
+                    onRemove = { onRemove(task) },
+                    onWindowMode = { mode -> onWindowMode(task, mode) },
+                    centerProximity = { 1f },
+                    startAligned = true,
+                    iconOnly = cardWidth < ICON_ONLY_WIDTH,
+                    modifier = Modifier
+                        .width(cardWidth)
+                        .animateItem(),
+                )
+            }
+        }
+        if (showPill) {
+            Text(
+                text = stringResource(R.string.switcher_active_apps, tasks.size),
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
                 modifier = Modifier
-                    .width(cardWidth)
-                    .animateItem(),
+                    .align(Alignment.BottomStart)
+                    .padding(start = 16.dp, bottom = footer + gridHeight + 16.dp)
+                    .background(glass, CircleShape)
+                    .border(1.5.dp, Color.White.copy(alpha = 0.7f), CircleShape)
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
             )
+        }
+        OutlinedButton(
+            onClick = onClearAll,
+            shape = CircleShape,
+            border = BorderStroke(1.5.dp, Color.White.copy(alpha = 0.7f)),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = glass, contentColor = Color.White),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp)
+                .width(220.dp)
+                .height(52.dp),
+        ) {
+            Text(text = stringResource(R.string.recents_clear_all), style = MaterialTheme.typography.titleMedium)
         }
     }
 }

@@ -109,6 +109,15 @@ fun QuickstepPreferences(
                 ),
                 label = stringResource(R.string.switcher_grid_rows),
             )
+            ListPreference(
+                adapter = prefs.switcherBlur.getAdapter(),
+                entries = listOf(
+                    ListPreferenceEntry("none") { stringResource(R.string.switcher_blur_none) },
+                    ListPreferenceEntry("soft") { stringResource(R.string.switcher_blur_soft) },
+                    ListPreferenceEntry("strong") { stringResource(R.string.switcher_blur_strong) },
+                ),
+                label = stringResource(R.string.switcher_blur),
+            )
             SwitchPreference(
                 adapter = prefs.switcherMiniMode.getAdapter(),
                 label = stringResource(R.string.switcher_mini_mode),
