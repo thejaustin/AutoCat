@@ -712,14 +712,14 @@ private fun TaskCard(
                     Image(
                         painter = rememberDrawablePainter(icon),
                         contentDescription = null,
-                        modifier = Modifier.size(28.dp),
+                        modifier = Modifier.size(if (startAligned) 34.dp else 28.dp),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 if (showLabel) {
                     Text(
                         text = task.label,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = if (startAligned) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall,
                         color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
