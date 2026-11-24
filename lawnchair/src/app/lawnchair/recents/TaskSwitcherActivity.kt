@@ -200,6 +200,10 @@ private fun TaskSwitcherScreen(
                     text = "Recent apps need Shizuku. Start Shizuku, then open this again.",
                 )
 
+                availability == TaskSwitcherRepository.Availability.BackendDisabled -> SetupMessage(
+                    text = stringResource(R.string.recents_backend_disabled),
+                )
+
                 availability == TaskSwitcherRepository.Availability.PermissionNeeded -> SetupMessage(
                     text = "Allow AutoCat to use Shizuku to show your recent apps.",
                     actionLabel = "Allow",

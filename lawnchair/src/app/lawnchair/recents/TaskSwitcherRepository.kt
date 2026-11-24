@@ -53,6 +53,9 @@ class TaskSwitcherRepository(private val context: Context) {
         data object Ready : Availability
         data object ShizukuNotRunning : Availability
         data object PermissionNeeded : Availability
+
+        /** Shizuku is usable but turned off or pinned away in Privileged access settings. */
+        data object BackendDisabled : Availability
     }
 
     /**
@@ -69,7 +72,7 @@ class TaskSwitcherRepository(private val context: Context) {
             !shizuku.hasPermission() -> Availability.PermissionNeeded
 
             // Shizuku is fine but the user turned it off or pinned another backend
-            else -> Availability.ShizukuNotRunning
+            else -> Availability.BackendDisabled
         }
     }
 

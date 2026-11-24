@@ -1137,6 +1137,8 @@
     <string name="privileged_access_description">How AutoCat reaches system features such as recent apps, screen lock and app archiving. Automatic tries root, ShizukuPlus, Shizuku, Dhizuku, then accessibility, using only what is available.</string>
     <string name="privileged_access_mode_label">Backend</string>
     <string name="privileged_access_mode_description">Automatic, or always use a single backend. A pinned backend that is unavailable fails instead of falling back.</string>
+    <string name="recents_backend_disabled">Recent apps are turned off in Privileged access settings. Enable Shizuku or ShizukuPlus (or choose Automatic) to use them.</string>
+    <string name="privileged_access_screen_lock_only">%1$s (screen lock only)</string>
     <string name="privileged_access_mode_automatic">Automatic</string>
     <string name="privileged_access_backend_root">Root</string>
     <string name="privileged_access_backend_shizuku_plus">ShizukuPlus</string>
