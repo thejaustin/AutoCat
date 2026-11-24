@@ -23,10 +23,13 @@ import app.lawnchair.data.tab.entities.AppTab
 import app.lawnchair.preferences.PreferenceManager
 import kotlin.math.min
 import kotlin.math.pow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 
 /**
  * LLM-based categorizer that uses AI to assign apps to custom categories.
@@ -62,17 +65,29 @@ class LLMCategorizer(
     // Kept between calls so the on-device model stays loaded while a batch runs
     private var onDeviceProvider: LiteRtLmProvider? = null
 
+    // Local-server provider, rebuilt only when its settings change (it owns a ping/model-id cache)
+    private var endpointProvider: LocalEndpointProvider? = null
+    private var endpointConfig: Pair<String, String>? = null
+
     /**
      * Providers in the order to try: local server and on-device model first when
      * "Local AI Engine" is on, then the preferred cloud provider, then the other cloud providers.
      */
+    @Synchronized
     private fun orderedProviders(preferredProviderId: String): List<LLMProvider> {
         val prefs = PreferenceManager.getInstance(context)
         val local = buildList {
             if (prefs.llmUseLocalModel.get()) {
                 val endpointUrl = prefs.localEndpointUrl.get()
                 if (prefs.localEndpointEnabled.get() && endpointUrl.isNotBlank()) {
-                    add(LocalEndpointProvider(context, endpointUrl, prefs.localEndpointModelId.get()))
+                    val config = endpointUrl to prefs.localEndpointModelId.get()
+                    val cached = endpointProvider?.takeIf { endpointConfig == config }
+                    add(
+                        cached ?: LocalEndpointProvider(context, config.first, config.second).also {
+                            endpointProvider = it
+                            endpointConfig = config
+                        },
+                    )
                 }
                 LocalModelStore.selectedModelPath(context)?.let { path ->
                     val provider = onDeviceProvider?.takeIf { it.modelPath == path }
@@ -183,6 +198,7 @@ class LLMCategorizer(
         val primary = allProviders.first()
 
         for (provider in allProviders) {
+            currentCoroutineContext().ensureActive()
             // Check circuit breaker first
             if (!circuitBreaker.isAvailable(provider.name)) {
                 android.util.Log.d(TAG, "Skipping ${provider.name} for ${appInfo.packageName} - circuit breaker OPEN")
@@ -249,6 +265,8 @@ class LLMCategorizer(
                 // Record failure with circuit breaker
                 circuitBreaker.recordFailure(provider.name, e)
                 // Try next provider
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "Unexpected error with ${provider.name}", e)
                 // Record failure with circuit breaker
@@ -401,6 +419,7 @@ class LLMCategorizer(
                         var lastError: String? = null
 
                         for (provider in allProviders) {
+                            currentCoroutineContext().ensureActive()
                             // Check circuit breaker first
                             if (!circuitBreaker.isAvailable(provider.name)) {
                                 android.util.Log.d(TAG, "Batch $batchIndex: Skipping ${provider.name} (circuit breaker OPEN)")
@@ -436,11 +455,15 @@ class LLMCategorizer(
                                         val result = provider.categorizeAppBatch(batchInfo, tabNames)
                                         circuitBreaker.recordSuccess(provider.name)
                                         result
+                                    } catch (e: CancellationException) {
+                                        throw e
                                     } catch (e: Exception) {
                                         circuitBreaker.recordFailure(provider.name, e)
                                         throw e
                                     }
                                 }
+                            } catch (e: CancellationException) {
+                                throw e
                             } catch (e: Exception) {
                                 null
                             }
@@ -583,6 +606,7 @@ class LLMCategorizer(
         val isGooglePreferred = primaryProvider === googleProvider
 
         for (app in apps) {
+            currentCoroutineContext().ensureActive()
             // Check circuit breaker for the primary provider before processing the app
             if (!circuitBreaker.isAvailable(primaryProvider.name)) {
                 android.util.Log.d(TAG, "Skipping app ${app.packageName} - primary provider ${primaryProvider.name} is OPEN")
@@ -601,6 +625,8 @@ class LLMCategorizer(
                     // Other providers: fast delay
                     kotlinx.coroutines.delay(200)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "Error categorizing ${app.packageName} in sequential batch", e)
                 // The circuit breaker would have already recorded a failure inside the categorize(app) call

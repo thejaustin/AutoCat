@@ -60,8 +60,10 @@ class CategorizationManager(private val context: Context) {
     private val categoryDao by lazy { database.categoryDao() }
     private val metadataProvider by lazy { AppMetadataProvider(context) }
     private val builtInCategorizer by lazy { BuiltInCategorizer(categoryDao) }
-    private val llmCategorizer by lazy { LLMCategorizer(context, categoryDao) }
-    private val mlCategorizer by lazy { MLCategorizer(context, categoryDao) }
+    private val llmCategorizerDelegate = lazy { LLMCategorizer(context, categoryDao) }
+    private val llmCategorizer by llmCategorizerDelegate
+    private val mlCategorizerDelegate = lazy { MLCategorizer(context, categoryDao) }
+    private val mlCategorizer by mlCategorizerDelegate
     private val appProvider by lazy { AutoCatAppProvider.getInstance(context) }
     private val folderSyncService by lazy { CategoryFolderSyncService(context) }
 
@@ -382,10 +384,20 @@ class CategorizationManager(private val context: Context) {
     }
 
     /**
+     * Releases native resources held by the pipeline stages (the TFLite interpreter).
+     * Call when the owner is torn down; stages that were never created are not instantiated.
+     */
+    fun close() {
+        if (mlCategorizerDelegate.isInitialized()) mlCategorizer.close()
+    }
+
+    /**
      * Resets all circuit breakers for LLM providers.
+     * Safe to call from any thread: a categorizer that was never created has nothing to reset,
+     * and creating it here would open the Room database on the caller's thread.
      */
     fun resetCircuitBreakers() {
-        llmCategorizer.resetCircuitBreakers()
+        if (llmCategorizerDelegate.isInitialized()) llmCategorizer.resetCircuitBreakers()
     }
 
     /**

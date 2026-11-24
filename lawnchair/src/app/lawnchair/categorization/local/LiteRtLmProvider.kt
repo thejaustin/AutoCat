@@ -17,15 +17,22 @@ import com.google.ai.edge.litertlm.Content
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
 import java.io.File
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 /**
  * LLM provider that runs a LiteRT-LM model (.litertlm) on the device's CPU.
@@ -46,6 +53,9 @@ class LiteRtLmProvider(
     private var engine: Engine? = null
     private val engineMutex = Mutex()
     private val releaseScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    // Native calls run here so a timed-out request can walk away from them
+    private val inferenceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var releaseJob: Job? = null
 
     private val learner by lazy {
@@ -55,21 +65,55 @@ class LiteRtLmProvider(
 
     /**
      * Runs [prompt] in a fresh conversation and returns the model's text reply.
+     *
+     * LiteRT-LM's `sendMessage` is a blocking native call that cannot be interrupted, so it runs
+     * in its own coroutine and we only wait for it with a timeout. A timeout (or cancellation)
+     * therefore just abandons the call: it keeps running until the native code returns. To keep
+     * that from touching shared state, the engine it uses is dropped from the cache straight away
+     * and closed only once the abandoned call has finished; the next request loads a fresh engine.
+     * I couldn't check whether 0.19.1 has a cancellable async API (no local copy of the library),
+     * so this does not rely on one.
      */
     private suspend fun generate(prompt: String): String = engineMutex.withLock {
         releaseJob?.cancel()
+        currentCoroutineContext().ensureActive()
+        var activeEngine: Engine? = null
+        var call: Deferred<String>? = null
         try {
-            val activeEngine = engine ?: loadEngine().also { engine = it }
-            activeEngine.createConversation().use { conversation ->
-                val reply = conversation.sendMessage(prompt)
-                reply.contents.contents
-                    .filterIsInstance<Content.Text>()
-                    .joinToString("") { it.text }
-                    .replace(THINKING_BLOCK, "")
-                    .trim()
+            val loaded = engine ?: loadEngine().also { engine = it }
+            activeEngine = loaded
+            val inFlight = inferenceScope.async { runInference(loaded, prompt) }
+            call = inFlight
+            withTimeout(INFERENCE_TIMEOUT_MS) { inFlight.await() }
+        } catch (e: CancellationException) {
+            // Timed out or cancelled while the native call may still be running
+            abandon(activeEngine, call)
+            if (e is TimeoutCancellationException) {
+                throw LLMException("On-device inference timed out after ${INFERENCE_TIMEOUT_MS / 1000}s", e)
             }
+            throw e
         } finally {
             scheduleRelease()
+        }
+    }
+
+    private fun runInference(activeEngine: Engine, prompt: String): String = activeEngine.createConversation().use { conversation ->
+        val reply = conversation.sendMessage(prompt)
+        reply.contents.contents
+            .filterIsInstance<Content.Text>()
+            .joinToString("") { it.text }
+            .replace(THINKING_BLOCK, "")
+            .trim()
+    }
+
+    /** Must be called with [engineMutex] held. */
+    private fun abandon(abandonedEngine: Engine?, call: Deferred<String>?) {
+        if (abandonedEngine == null) return
+        if (engine === abandonedEngine) engine = null
+        if (call == null || call.isCompleted) {
+            runCatching { abandonedEngine.close() }
+        } else {
+            call.invokeOnCompletion { runCatching { abandonedEngine.close() } }
         }
     }
 
@@ -136,6 +180,8 @@ class LiteRtLmProvider(
             val effectiveHints = hints.ifBlank { learner.generateLLMHintText() }
             val prompt = buildPrompt(appName, appPackage, appDescription, availableTabs, effectiveHints)
             parseResponse(generate(prompt), availableTabs)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LLMLogger.logError(name, "CATEGORIZE_APP", e, mapOf("package" to appPackage))
             throw LLMException("On-device categorization failed: ${e.message}", e)
@@ -149,6 +195,7 @@ class LiteRtLmProvider(
         val effectiveHints = learner.generateLLMHintText()
         val results = mutableMapOf<String, CategorizationResult>()
         apps.forEach { app ->
+            currentCoroutineContext().ensureActive()
             try {
                 results[app.packageName] = categorizeWithHints(
                     appName = app.appName,
@@ -157,6 +204,8 @@ class LiteRtLmProvider(
                     availableTabs = availableTabs,
                     hints = effectiveHints,
                 )
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 LLMLogger.logError(name, "CATEGORIZE_BATCH", e, mapOf("package" to app.packageName))
             }
@@ -193,6 +242,8 @@ class LiteRtLmProvider(
                     )
                 }
             }.take(maxSuggestions)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LLMLogger.logError(name, "SUGGEST_CATEGORIES", e)
             throw LLMException("On-device suggestion failed: ${e.message}", e)
@@ -221,6 +272,8 @@ class LiteRtLmProvider(
                     confidence = 0.65f,
                 )
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             LLMLogger.logError(name, "SUGGEST_FOLDERS", e, mapOf("tab" to tabName))
             emptyList()
@@ -267,6 +320,7 @@ class LiteRtLmProvider(
     companion object {
         private const val TAG = "LiteRtLmProvider"
         private const val IDLE_RELEASE_MS = 60_000L
+        private const val INFERENCE_TIMEOUT_MS = 90_000L
 
         // Reasoning models such as Qwen3 may answer with a <think> block first
         private val THINKING_BLOCK = Regex("(?s)<think>.*?</think>")

@@ -14,15 +14,24 @@ import app.lawnchair.categorization.llm.TestResult
 import app.lawnchair.data.tab.TabDatabase
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -51,20 +60,13 @@ class LocalEndpointProvider(
         UserCorrectionLearner.getInstance(context, dao)
     }
 
-    private val httpClient: OkHttpClient by lazy {
-        OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(90, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .build()
-    }
-
     // Cached ping result — re-checked every 30 s
-    private var lastPingMs: Long = 0L
-    private var lastPingResult: Boolean = false
+    @Volatile private var lastPingMs: Long = 0L
+
+    @Volatile private var lastPingResult: Boolean = false
 
     // Cached model id — refreshed when null
-    private var resolvedModelId: String? = null
+    @Volatile private var resolvedModelId: String? = null
 
     override suspend fun isAvailable(): Boolean = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
@@ -138,6 +140,8 @@ class LocalEndpointProvider(
                             availableTabs = availableTabs,
                             hints = effectiveHints,
                         )
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         LLMLogger.logError(name, "CATEGORIZE_BATCH", e, mapOf("package" to app.packageName))
                         null
@@ -203,17 +207,20 @@ class LocalEndpointProvider(
      * Returns the model ID to use: [preferredModelId] if set, otherwise the first
      * model from /v1/models. Result is cached for the lifetime of this instance.
      */
-    private fun resolveModelId(): String? {
+    private suspend fun resolveModelId(): String? {
         if (preferredModelId.isNotBlank()) return preferredModelId
         resolvedModelId?.let { return it }
         return fetchFirstModelId().also { resolvedModelId = it }
     }
 
-    private fun fetchFirstModelId(): String? {
+    private suspend fun fetchFirstModelId(): String? {
         return try {
             val url = baseUrl.trimEnd('/') + "/v1/models"
             val request = Request.Builder().url(url).get().build()
-            httpClient.newCall(request).execute().use { resp ->
+            val client = sharedClient.newBuilder()
+                .readTimeout(MODELS_READ_TIMEOUT_SEC, TimeUnit.SECONDS)
+                .build()
+            client.newCall(request).await().use { resp ->
                 if (!resp.isSuccessful) return null
                 val body = resp.body?.string() ?: return null
                 val json = JSONObject(body)
@@ -224,7 +231,7 @@ class LocalEndpointProvider(
         }
     }
 
-    private fun callChatCompletions(modelId: String, systemMessage: String, userMessage: String): String {
+    private suspend fun callChatCompletions(modelId: String, systemMessage: String, userMessage: String): String {
         val url = baseUrl.trimEnd('/') + "/v1/chat/completions"
         val messages = JSONArray().apply {
             put(
@@ -248,9 +255,20 @@ class LocalEndpointProvider(
         }.toString().toRequestBody("application/json".toMediaType())
 
         val request = Request.Builder().url(url).post(body).build()
-        val responseText = httpClient.newCall(request).execute().use { resp ->
-            if (!resp.isSuccessful) throw LLMException("HTTP ${resp.code} from local endpoint")
-            resp.body?.string() ?: throw LLMException("Empty response from local endpoint")
+        // Inference can be slow on a local server, so reads get a longer timeout than the
+        // shared client default. newBuilder() shares the connection pool and dispatcher.
+        val client = sharedClient.newBuilder()
+            .readTimeout(INFERENCE_READ_TIMEOUT_SEC, TimeUnit.SECONDS)
+            .build()
+        val responseText = try {
+            withTimeout(INFERENCE_TIMEOUT_MS) {
+                client.newCall(request).await().use { resp ->
+                    if (!resp.isSuccessful) throw LLMException("HTTP ${resp.code} from local endpoint")
+                    resp.body?.string() ?: throw LLMException("Empty response from local endpoint")
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            throw LLMException("Local endpoint timed out after ${INFERENCE_TIMEOUT_MS / 1000}s", e)
         }
 
         val json = JSONObject(responseText)
@@ -291,5 +309,34 @@ class LocalEndpointProvider(
 
     companion object {
         private const val PARALLEL_BATCH_LIMIT = 4
+        private const val MODELS_READ_TIMEOUT_SEC = 15L
+        private const val INFERENCE_READ_TIMEOUT_SEC = 90L
+        private const val INFERENCE_TIMEOUT_MS = 120_000L
+
+        /** One client (and connection pool) for every provider instance. */
+        private val sharedClient: OkHttpClient by lazy {
+            OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(INFERENCE_READ_TIMEOUT_SEC, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build()
+        }
+    }
+
+    /** Executes the call without blocking a thread; cancelling the coroutine cancels the HTTP call. */
+    private suspend fun Call.await(): Response = suspendCancellableCoroutine { cont ->
+        cont.invokeOnCancellation { cancel() }
+        enqueue(
+            object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    if (cont.isActive) cont.resumeWithException(e)
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    // If the coroutine was cancelled meanwhile, nobody will close the body
+                    if (cont.isActive) cont.resume(response) else response.close()
+                }
+            },
+        )
     }
 }
