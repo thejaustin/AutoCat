@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import app.lawnchair.preferences.PreferenceManager
+import app.lawnchair.shizuku.IUserService
 import app.lawnchair.util.MainThreadInitializedObject
 import com.topjohnwu.superuser.Shell
 import com.topjohnwu.superuser.ipc.RootService
@@ -21,7 +21,6 @@ import kotlinx.coroutines.withContext
 
 class RootHelperManager(private val context: Context) {
     private val scope = MainScope() + CoroutineName("RootHelperManager")
-    private val prefs = PreferenceManager.getInstance(context)
     private val isAvailableDeferred by lazy {
         scope.async(Dispatchers.IO) {
             Shell.rootAccess()
@@ -31,27 +30,42 @@ class RootHelperManager(private val context: Context) {
 
     suspend fun isAvailable() = isAvailableDeferred.await()
 
+    private var taskServiceDeferred: Deferred<IUserService>? = null
+
     @Throws(RootNotAvailableException::class)
     suspend fun getService(): IRootHelper {
-        prefs.autoLaunchRoot.set(isAvailable())
-
         if (!isAvailable()) throw RootNotAvailableException()
 
         if (rootHelperDeferred == null) {
             rootHelperDeferred = scope.async {
-                bindImpl { rootHelperDeferred = null }
+                bindImpl(Intent(context, RootHelper::class.java), IRootHelper.Stub::asInterface) {
+                    rootHelperDeferred = null
+                }
             }
         }
         return rootHelperDeferred!!.await()
     }
 
-    private suspend fun bindImpl(onDisconnected: () -> Unit): IRootHelper {
+    /** The recent-tasks service hosted in the root process. Untested without a granted su. */
+    @Throws(RootNotAvailableException::class)
+    suspend fun getTaskService(): IUserService {
+        if (!isAvailable()) throw RootNotAvailableException()
+
+        if (taskServiceDeferred == null) {
+            taskServiceDeferred = scope.async {
+                val intent = Intent(context, RootHelper::class.java).setAction(RootHelper.ACTION_TASKS)
+                bindImpl(intent, IUserService.Stub::asInterface) { taskServiceDeferred = null }
+            }
+        }
+        return taskServiceDeferred!!.await()
+    }
+
+    private suspend fun <T> bindImpl(intent: Intent, asInterface: (IBinder) -> T, onDisconnected: () -> Unit): T {
         return withContext(Dispatchers.IO) {
-            val intent = Intent(context, RootHelper::class.java)
             suspendCoroutine {
                 val connection = object : ServiceConnection {
                     override fun onServiceConnected(name: ComponentName, service: IBinder) {
-                        it.resume(IRootHelper.Stub.asInterface(service))
+                        it.resume(asInterface(service))
                     }
 
                     override fun onServiceDisconnected(name: ComponentName) {

@@ -14,7 +14,7 @@ import kotlin.system.exitProcess
  * through hidden framework APIs by reflection, because their signatures change between
  * Android versions.
  */
-class UserService(context: Context) : IUserService.Stub() {
+open class UserService(context: Context) : IUserService.Stub() {
 
     private val activityTaskManager: Any by lazy {
         Class.forName("android.app.ActivityTaskManager").getMethod("getService").invoke(null)!!

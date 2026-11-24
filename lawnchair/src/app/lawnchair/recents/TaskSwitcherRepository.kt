@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.IntRect
 import androidx.core.content.FileProvider
 import androidx.core.os.BundleCompat
+import app.lawnchair.backend.BackendSelector
+import app.lawnchair.backend.Capability
 import app.lawnchair.shizuku.ShizukuManager
 import app.lawnchair.shizuku.UserService
 import java.io.File
@@ -36,12 +38,15 @@ data class RecentTask(
 )
 
 /**
- * Reads and controls recent tasks through the Shizuku shell service, so AutoCat can show
- * its own recents screen without being the system's recents provider.
+ * Reads and controls recent tasks through a privileged IUserService, so AutoCat can show
+ * its own recents screen without being the system's recents provider. The [BackendSelector]
+ * picks the host: the root service when root is chosen, otherwise the Shizuku service
+ * (stock Shizuku and ShizukuPlus alike).
  */
 class TaskSwitcherRepository(private val context: Context) {
 
     private val shizuku = ShizukuManager.getInstance(context)
+    private val selector = BackendSelector.getInstance(context)
     private val packageManager = context.packageManager
 
     sealed interface Availability {
@@ -50,10 +55,22 @@ class TaskSwitcherRepository(private val context: Context) {
         data object PermissionNeeded : Availability
     }
 
-    fun availability(): Availability = when {
-        !shizuku.isShizukuAvailable() -> Availability.ShizukuNotRunning
-        !shizuku.hasPermission() -> Availability.PermissionNeeded
-        else -> Availability.Ready
+    /**
+     * Ready when any enabled backend can host the task service. Reads cached state only, so it is
+     * safe on the main thread; the Shizuku messages remain the hint when nothing is available.
+     */
+    fun availability(): Availability {
+        if (selector.resolveNow(Capability.TaskControl).backends.isNotEmpty()) return Availability.Ready
+        // Root state is probed off the main thread; the next check sees the result
+        selector.refreshInBackground()
+        return when {
+            !shizuku.isShizukuAvailable() -> Availability.ShizukuNotRunning
+
+            !shizuku.hasPermission() -> Availability.PermissionNeeded
+
+            // Shizuku is fine but the user turned it off or pinned another backend
+            else -> Availability.ShizukuNotRunning
+        }
     }
 
     fun requestPermission() {
@@ -62,7 +79,7 @@ class TaskSwitcherRepository(private val context: Context) {
 
     /** Recent tasks, newest first, without home screens. Null when the service isn't reachable. */
     suspend fun loadTasks(): List<RecentTask>? = withContext(Dispatchers.IO) {
-        val service = shizuku.awaitService() ?: return@withContext null
+        val service = selector.taskService() ?: return@withContext null
         // UserHandle.hashCode() is the user id
         val result = service.getRecentTasks(MAX_TASKS, Process.myUserHandle().hashCode())
         val ids = result.getIntArray(UserService.KEY_TASK_IDS) ?: return@withContext emptyList()
@@ -82,7 +99,7 @@ class TaskSwitcherRepository(private val context: Context) {
 
     suspend fun loadThumbnail(taskId: Int): ImageBitmap? = withContext(Dispatchers.IO) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return@withContext null
-        val service = shizuku.awaitService() ?: return@withContext null
+        val service = selector.taskService() ?: return@withContext null
         val result = service.getTaskThumbnail(taskId)
         val buffer = BundleCompat.getParcelable(result, UserService.KEY_BUFFER, HardwareBuffer::class.java)
             ?: return@withContext null
@@ -92,7 +109,7 @@ class TaskSwitcherRepository(private val context: Context) {
     /** A software copy of the task's snapshot; hardware bitmaps can't be compressed or saved. */
     private suspend fun snapshotBitmap(taskId: Int): Bitmap? = withContext(Dispatchers.IO) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return@withContext null
-        val service = shizuku.awaitService() ?: return@withContext null
+        val service = selector.taskService() ?: return@withContext null
         val result = service.getTaskThumbnail(taskId)
         val buffer = BundleCompat.getParcelable(result, UserService.KEY_BUFFER, HardwareBuffer::class.java)
             ?: return@withContext null
@@ -156,11 +173,11 @@ class TaskSwitcherRepository(private val context: Context) {
         } else {
             null
         }
-        shizuku.awaitService()?.startTaskFromRecents(taskId, options) == true
+        selector.taskService()?.startTaskFromRecents(taskId, options) == true
     }
 
     suspend fun remove(taskId: Int): Boolean = withContext(Dispatchers.IO) {
-        shizuku.awaitService()?.removeTask(taskId) == true
+        selector.taskService()?.removeTask(taskId) == true
     }
 
     private fun homePackages(): Set<String> {

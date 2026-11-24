@@ -66,7 +66,8 @@ class AutoCatAccessibilityService : AccessibilityService() {
         if (!PreferenceManager.getInstance(this).taskSwitcherTakeover.get()) return
         val now = SystemClock.uptimeMillis()
         if (now - lastTakeover < COOLDOWN_MS) return
-        // Never leave the user without a recents screen: only take over when ours can work
+        // Never leave the user without a recents screen: only take over when ours can work.
+        // availability() asks the BackendSelector, so root, ShizukuPlus and Shizuku all count.
         if (TaskSwitcherRepository(this).availability() != TaskSwitcherRepository.Availability.Ready) return
         lastTakeover = now
         Log.d(TAG, "Taking over recents from ${event.packageName}/$className")
