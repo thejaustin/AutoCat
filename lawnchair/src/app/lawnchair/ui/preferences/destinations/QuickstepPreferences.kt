@@ -92,6 +92,26 @@ fun QuickstepPreferences(
     ) {
         if (!AutoCatApp.isRecentsEnabled) QuickSwitchIgnoredWarning()
         val recentsTranslucentBackground by prefs.recentsTranslucentBackground.observeAsState()
+        PreferenceGroup(heading = stringResource(id = R.string.switcher_group_label)) {
+            ListPreference(
+                adapter = prefs.switcherHeaderStyle.getAdapter(),
+                entries = listOf(
+                    ListPreferenceEntry("pixel") { stringResource(R.string.switcher_header_pixel) },
+                    ListPreferenceEntry("oneui") { stringResource(R.string.switcher_header_oneui) },
+                ),
+                label = stringResource(R.string.switcher_header_style),
+            )
+            ListPreference(
+                adapter = prefs.switcherLongPress.getAdapter(),
+                entries = listOf(
+                    ListPreferenceEntry("menu") { stringResource(R.string.switcher_long_press_menu) },
+                    ListPreferenceEntry("split") { stringResource(R.string.switcher_split_screen) },
+                    ListPreferenceEntry("popup") { stringResource(R.string.switcher_popup_view) },
+                    ListPreferenceEntry("appinfo") { stringResource(R.string.switcher_long_press_appinfo) },
+                ),
+                label = stringResource(R.string.switcher_long_press),
+            )
+        }
         PreferenceGroup(heading = stringResource(id = R.string.general_label)) {
             SwitchPreference(
                 adapter = prefs.recentsTranslucentBackground.getAdapter(),

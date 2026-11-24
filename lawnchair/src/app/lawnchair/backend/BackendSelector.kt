@@ -251,6 +251,19 @@ class BackendSelector(context: Context) {
         return null
     }
 
+    /** A shell for system commands (split screen), from the same backends as [taskService]. */
+    suspend fun shellExecutor(): PmExecutor? {
+        for (backend in resolve(Capability.TaskControl).backends) {
+            val executor: PmExecutor? = when (backend) {
+                Backend.Root -> RootPmExecutor
+                Backend.ShizukuPlus, Backend.Shizuku -> shizuku.awaitService()?.let(::ServicePmExecutor)
+                else -> null
+            }
+            if (executor != null) return executor
+        }
+        return null
+    }
+
     companion object {
         private const val ROOT_RETRY_MS = 30_000L
         private const val POLL_MS = 100L

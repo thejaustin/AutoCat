@@ -12,6 +12,7 @@ import android.graphics.drawable.Drawable
 import android.hardware.HardwareBuffer
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.os.Environment
 import android.os.Process
 import android.provider.MediaStore
@@ -183,6 +184,22 @@ class TaskSwitcherRepository(private val context: Context) {
         opened
     }
 
+    /** Opens the task in a freeform window (One UI's pop-up view). */
+    suspend fun openPopup(taskId: Int): Boolean = withContext(Dispatchers.IO) {
+        val options = Bundle().apply { putInt(KEY_WINDOWING_MODE, WINDOWING_MODE_FREEFORM) }
+        val opened = selector.taskService()?.startTaskFromRecents(taskId, options) == true
+        Log.i(TAG, "popup task $taskId -> $opened")
+        opened
+    }
+
+    /** Puts the task in the top half of split screen through SystemUI's WMShell command; the user then picks the other app. */
+    suspend fun openSplit(taskId: Int): Boolean = withContext(Dispatchers.IO) {
+        val args = listOf("dumpsys", "activity", "service", "SystemUIService", "WMShell", "splitscreen", "moveToSideStage", "$taskId", "0")
+        val result = selector.shellExecutor()?.exec(args)
+        Log.i(TAG, "split task $taskId -> ${result?.success} ${result?.error.orEmpty()}")
+        result?.success == true
+    }
+
     suspend fun remove(taskId: Int): Boolean = withContext(Dispatchers.IO) {
         val service = selector.taskService()
         val removed = service?.removeTask(taskId) == true
@@ -213,6 +230,8 @@ class TaskSwitcherRepository(private val context: Context) {
     companion object {
         private const val TAG = "TaskSwitcherRepo"
         private const val MAX_TASKS = 30
+        private const val KEY_WINDOWING_MODE = "android.activity.windowingMode"
+        private const val WINDOWING_MODE_FREEFORM = 5
         private const val LENS_PACKAGE = "com.google.ar.lens"
     }
 }

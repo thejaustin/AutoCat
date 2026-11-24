@@ -963,6 +963,15 @@
     <string name="task_switcher_takeover_description">Replaces the system recents screen with AutoCat\'s. Needs Shizuku and the AutoCat accessibility service.</string>
     <string name="task_switcher_action_failed">Couldn\'t capture this app</string>
     <string name="recents_clear_all">Clear all</string>
+    <string name="switcher_split_screen">Split screen</string>
+    <string name="switcher_popup_view">Pop-up view</string>
+    <string name="switcher_header_style">Card header style</string>
+    <string name="switcher_header_pixel">Pixel (centered)</string>
+    <string name="switcher_header_oneui">One UI (start-aligned)</string>
+    <string name="switcher_long_press">Hold on a card</string>
+    <string name="switcher_long_press_menu">Show menu</string>
+    <string name="switcher_long_press_appinfo">App info</string>
+    <string name="switcher_group_label">Task switcher</string>
     <string name="task_menu_force_stop">Force close</string>
 
     <string name="window_corner_radius_label">Screen corner radius</string>

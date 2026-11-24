@@ -17,6 +17,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -96,6 +97,8 @@ import kotlinx.coroutines.launch
 // spring is AOSP's expressive_dismiss_task_trans_y_* from quickstep/res/values/config.xml
 private val DismissSpring = spring<Float>(dampingRatio = 0.65f, stiffness = 850f)
 private const val TAG = "TaskSwitcher"
+
+private enum class WindowMode { Split, Popup }
 private const val FLING_DISMISS_VELOCITY = 700f
 
 /**
@@ -245,6 +248,15 @@ private fun TaskSwitcherScreen(
                                 tasks.remove(task)
                                 scope.launch { repository.remove(task.taskId) }
                             },
+                            onWindowMode = { task, mode ->
+                                scope.launch {
+                                    val started = when (mode) {
+                                        WindowMode.Split -> repository.openSplit(task.taskId)
+                                        WindowMode.Popup -> repository.openPopup(task.taskId)
+                                    }
+                                    if (started) onDismiss()
+                                }
+                            },
                             onClearAll = {
                                 val removed = tasks.toList()
                                 tasks.clear()
@@ -360,6 +372,7 @@ private fun TaskRow(
     listState: LazyListState,
     onOpen: (RecentTask, IntRect) -> Unit,
     onRemove: (RecentTask) -> Unit,
+    onWindowMode: (RecentTask, WindowMode) -> Unit,
     onClearAll: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -382,6 +395,7 @@ private fun TaskRow(
                 repository = repository,
                 onOpen = { bounds -> onOpen(task, bounds) },
                 onRemove = { onRemove(task) },
+                onWindowMode = { mode -> onWindowMode(task, mode) },
                 centerProximity = { listState.proximityToCenter(task.taskId) },
                 modifier = Modifier
                     .width(cardWidth)
@@ -415,10 +429,14 @@ private fun TaskCard(
     repository: TaskSwitcherRepository,
     onOpen: (IntRect) -> Unit,
     onRemove: () -> Unit,
+    onWindowMode: (WindowMode) -> Unit,
     centerProximity: () -> Float,
     modifier: Modifier = Modifier,
 ) {
     val view = LocalView.current
+    val prefs = remember { PreferenceManager.getInstance(view.context) }
+    val oneUiHeader = remember { prefs.switcherHeaderStyle.get() == "oneui" }
+    val longPress = remember { prefs.switcherLongPress.get() }
     var bounds by remember { mutableStateOf(IntRect.Zero) }
     val dismissThreshold = with(LocalDensity.current) { 160.dp.toPx() }
     val offsetY = remember { Animatable(0f) }
@@ -502,7 +520,7 @@ private fun TaskCard(
                     },
                 )
             },
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = if (oneUiHeader) Alignment.Start else Alignment.CenterHorizontally,
     ) {
         var menuOpen by remember { mutableStateOf(false) }
         Box {
@@ -538,6 +556,27 @@ private fun TaskCard(
                         repository.openAppInfo(task)
                     },
                 )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.switcher_split_screen)) },
+                    onClick = {
+                        menuOpen = false
+                        onWindowMode(WindowMode.Split)
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.switcher_popup_view)) },
+                    onClick = {
+                        menuOpen = false
+                        onWindowMode(WindowMode.Popup)
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.accessibility_close)) },
+                    onClick = {
+                        menuOpen = false
+                        onRemove()
+                    },
+                )
             }
         }
         val pressSource = remember { MutableInteractionSource() }
@@ -558,11 +597,20 @@ private fun TaskCard(
                 }
                 .clip(RoundedCornerShape(corner))
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .clickable(
+                .combinedClickable(
                     interactionSource = pressSource,
                     indication = null,
                     onClickLabel = "Open ${task.label}",
                     onClick = { onOpen(bounds) },
+                    onLongClick = {
+                        view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                        when (longPress) {
+                            "split" -> onWindowMode(WindowMode.Split)
+                            "popup" -> onWindowMode(WindowMode.Popup)
+                            "appinfo" -> repository.openAppInfo(task)
+                            else -> menuOpen = true
+                        }
+                    },
                 ),
             contentAlignment = Alignment.Center,
         ) {

@@ -148,6 +148,12 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
 
     val recentActionOrder = StringPref("pref_recentActionOrder", "0,1,2,3,4", recreate)
 
+    /** Task switcher card header: "pixel" centres icon and title, "oneui" puts them at the start above the card. */
+    val switcherHeaderStyle = StringPref("pref_switcherHeaderStyle", "pixel")
+
+    /** What holding a switcher card does: "menu", "split", "popup" or "appinfo". */
+    val switcherLongPress = StringPref("pref_switcherLongPress", "menu")
+
     private val fontCache = FontCache.INSTANCE.get(context)
     val fontWorkspace = FontPref("pref_workspaceFont", fontCache.uiText, recreate)
     val fontHeading = FontPref("pref_fontHeading", fontCache.uiRegular, recreate)
