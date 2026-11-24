@@ -134,6 +134,11 @@ fun QuickstepPreferences(
                 description = stringResource(R.string.switcher_grid_close_all_summary),
             )
             SwitchPreference(
+                adapter = prefs.switcherOverflowMenu.getAdapter(),
+                label = stringResource(R.string.switcher_overflow_menu),
+                description = stringResource(R.string.switcher_overflow_menu_summary),
+            )
+            SwitchPreference(
                 adapter = prefs.switcherSwapPills.getAdapter(),
                 label = stringResource(R.string.switcher_swap_pills),
                 description = stringResource(R.string.switcher_swap_pills_summary),

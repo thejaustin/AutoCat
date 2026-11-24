@@ -1,5 +1,6 @@
 package app.lawnchair.recents
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -51,12 +52,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -96,6 +100,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import app.lawnchair.preferences.PreferenceManager
+import app.lawnchair.ui.preferences.PreferenceActivity
 import app.lawnchair.ui.theme.AutoCatTheme
 import com.android.launcher3.R
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -299,6 +304,7 @@ private fun TaskSwitcherScreen(
                                 showPill = remember { switcherPrefs.switcherActiveAppsPill.get() },
                                 showClearAll = remember { switcherPrefs.switcherGridCloseAll.get() },
                                 swapPills = remember { switcherPrefs.switcherSwapPills.get() },
+                                showOverflow = remember { switcherPrefs.switcherOverflowMenu.get() },
                                 onClearAll = clearAll,
                             )
                         } else {
@@ -502,6 +508,7 @@ private fun TaskGrid(
     showPill: Boolean,
     showClearAll: Boolean,
     swapPills: Boolean,
+    showOverflow: Boolean,
     onClearAll: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -574,6 +581,46 @@ private fun TaskGrid(
                 modifier = m.height(52.dp),
             ) {
                 Text(text = stringResource(R.string.recents_clear_all), style = MaterialTheme.typography.titleMedium)
+            }
+        }
+        if (showOverflow) {
+            var open by remember { mutableStateOf(false) }
+            val context = LocalContext.current
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = footer + gridHeight + 16.dp),
+            ) {
+                IconButton(
+                    onClick = { open = true },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(glass, CircleShape)
+                        .border(1.5.dp, Color.White.copy(alpha = 0.7f), CircleShape),
+                ) {
+                    Icon(Icons.Rounded.MoreVert, contentDescription = null, tint = Color.White)
+                }
+                DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.recents_clear_all)) },
+                        onClick = {
+                            open = false
+                            onClearAll()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.switcher_settings)) },
+                        onClick = {
+                            open = false
+                            runCatching {
+                                context.startActivity(
+                                    Intent(context, PreferenceActivity::class.java)
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                                )
+                            }
+                        },
+                    )
+                }
             }
         }
         val topSlot = Modifier
