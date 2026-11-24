@@ -6,7 +6,6 @@ import android.os.SystemClock
 import app.lawnchair.autoCatApp
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.root.RootHelperManager
-import app.lawnchair.shizuku.IUserService
 import app.lawnchair.shizuku.ShizukuManager
 import app.lawnchair.util.MainThreadInitializedObject
 import com.topjohnwu.superuser.Shell
@@ -39,10 +38,19 @@ class BackendSelector(context: Context) {
 
     @Volatile private var plusProbe: Boolean? = null
 
+    /** Cached Plus task binder; dropped when it or the Shizuku server dies. */
+    @Volatile private var plusTasks: PlusTaskClient? = null
+
     init {
         // A new or dead server may be a different flavour of Shizuku
-        Shizuku.addBinderReceivedListener { plusProbe = null }
-        Shizuku.addBinderDeadListener { plusProbe = null }
+        Shizuku.addBinderReceivedListener {
+            plusProbe = null
+            plusTasks = null
+        }
+        Shizuku.addBinderDeadListener {
+            plusProbe = null
+            plusTasks = null
+        }
     }
 
     /** Warms the root and Plus caches off the main thread so the next [resolveNow] sees them. */
@@ -188,25 +196,41 @@ class BackendSelector(context: Context) {
 
     // endregion
 
+    /** The Plus task client, from cache or freshly obtained and probed. Null falls through to the UserService. */
+    private fun plusTaskClient(): PlusTaskClient? {
+        plusTasks?.let { if (it.isAlive) return it }
+        plusTasks = null
+        if (!shizukuUsableNow()) return null
+        val client = PlusTaskClient.obtain() ?: return null
+        if (!client.probe()) return null
+        client.linkToDeath { if (plusTasks === client) plusTasks = null }
+        plusTasks = client
+        return client
+    }
+
     /**
-     * The IUserService for [Capability.TaskControl]: hosted by the root service when root is
-     * chosen, otherwise by Shizuku. Null when no backend can provide it.
+     * The task calls for [Capability.TaskControl]: ShizukuPlus's task API when a Plus server is
+     * detected and answers, otherwise the IUserService hosted by root or Shizuku. Null when no
+     * backend can provide it.
      */
-    suspend fun taskService(): IUserService? {
+    suspend fun taskService(): TaskOps? {
         for (backend in resolve(Capability.TaskControl).backends) {
-            val service = when (backend) {
+            val ops: TaskOps? = when (backend) {
                 Backend.Root -> try {
-                    RootHelperManager.INSTANCE.get(context).getTaskService()
+                    RootHelperManager.INSTANCE.get(context).getTaskService()?.let(::UserServiceTaskOps)
                 } catch (_: Exception) {
                     // Includes RootNotAvailableException and remote failures: try the next backend
                     null
                 }
 
-                Backend.ShizukuPlus, Backend.Shizuku -> shizuku.awaitService()
+                Backend.ShizukuPlus -> withContext(Dispatchers.IO) { plusTaskClient() }
+                    ?: shizuku.awaitService()?.let(::UserServiceTaskOps)
+
+                Backend.Shizuku -> shizuku.awaitService()?.let(::UserServiceTaskOps)
 
                 else -> null
             }
-            if (service != null) return service
+            if (ops != null) return ops
         }
         return null
     }
