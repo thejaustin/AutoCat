@@ -24,6 +24,7 @@ import app.lawnchair.backend.Backend
 import app.lawnchair.backend.BackendMode
 import app.lawnchair.backend.BackendSelector
 import app.lawnchair.backend.BackendStatus
+import app.lawnchair.backend.Capability
 import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.observeAsState
@@ -179,8 +180,11 @@ private fun PrivilegedAccessGroup(modifier: Modifier = Modifier) {
 
     val modeEntries = remember {
         BackendMode.entries.map { mode ->
-            ListPreferenceEntry(mode.name) {
-                stringResource(
+            // A pinned backend must serve recents and app operations too, not only the screen lock
+            val pinned = mode.pinned
+            val servesAll = pinned == null || (pinned.supports(Capability.TaskControl) && pinned.supports(Capability.AppState))
+            ListPreferenceEntry(mode.name, enabled = servesAll) {
+                val name = stringResource(
                     when (mode) {
                         BackendMode.Automatic -> R.string.privileged_access_mode_automatic
                         BackendMode.Root -> R.string.privileged_access_backend_root
@@ -190,6 +194,7 @@ private fun PrivilegedAccessGroup(modifier: Modifier = Modifier) {
                         BackendMode.Accessibility -> R.string.privileged_access_backend_accessibility
                     },
                 )
+                if (servesAll) name else stringResource(R.string.privileged_access_screen_lock_only, name)
             }
         }
     }
