@@ -497,7 +497,15 @@ private fun TaskGrid(
 ) {
     val config = LocalConfiguration.current
     // Cards are sized so every row fits in a share of the screen height: less of it in mini mode
-    val budget = (config.screenHeightDp * if (mini) 0.42f else 0.62f).dp
+    val budget = (
+        config.screenHeightDp * if (mini) {
+            0.5f
+        } else if (rows >= 3) {
+            0.74f
+        } else {
+            0.62f
+        }
+        ).dp
     val spacing = 16.dp
     val labelHeight = 56.dp
     val fittedWidth = ((budget - spacing * (rows - 1)) / rows - labelHeight) * THUMBNAIL_ASPECT
@@ -522,6 +530,7 @@ private fun TaskGrid(
                 onWindowMode = { mode -> onWindowMode(task, mode) },
                 centerProximity = { 1f },
                 startAligned = true,
+                iconOnly = cardWidth < ICON_ONLY_WIDTH,
                 modifier = Modifier
                     .width(cardWidth)
                     .animateItem(),
@@ -540,11 +549,12 @@ private fun TaskCard(
     centerProximity: () -> Float,
     modifier: Modifier = Modifier,
     startAligned: Boolean = false,
+    iconOnly: Boolean = false,
 ) {
     val view = LocalView.current
     val prefs = remember { PreferenceManager.getInstance(view.context) }
     val oneUiHeader = remember { startAligned || prefs.switcherHeaderStyle.get() == "oneui" }
-    val showLabel = remember { prefs.switcherShowLabel.get() }
+    val showLabel = remember { prefs.switcherShowLabel.get() } && !iconOnly
     val longPress = remember { prefs.switcherLongPress.get() }
     var bounds by remember { mutableStateOf(IntRect.Zero) }
     val dismissThreshold = with(LocalDensity.current) { 160.dp.toPx() }
@@ -782,4 +792,6 @@ private const val LOAD_RETRIES = 3
 private const val LOAD_RETRY_DELAY_MS = 700L
 
 // Phones are tall; most snapshots are about this shape
+// Cards narrower than this show just the app icon above them
+private val ICON_ONLY_WIDTH = 96.dp
 private const val THUMBNAIL_ASPECT = 9f / 19.5f
