@@ -133,10 +133,12 @@ fun FolderContextMenuContent(
         }
 
         // contentKey = screen::class so progress updates don't retrigger the fade transition.
+        val fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
+        val fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
         AnimatedContent(
             targetState = screen,
             contentKey = { it::class },
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            transitionSpec = { fadeIn(fadeInSpec) togetherWith fadeOut(fadeOutSpec) },
             label = "FolderMenuScreen",
         ) { currentScreen ->
             when (currentScreen) {
