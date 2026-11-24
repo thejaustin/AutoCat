@@ -4,23 +4,35 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Opacity
 import androidx.compose.material.icons.rounded.RoundedCorner
+import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.ViewAgenda
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import app.lawnchair.AutoCatApp
+import app.lawnchair.backend.Backend
+import app.lawnchair.backend.BackendMode
+import app.lawnchair.backend.BackendSelector
+import app.lawnchair.backend.BackendStatus
+import app.lawnchair.preferences.PreferenceAdapter
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.observeAsState
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.preferences.components.QuickActionsPreferences
 import app.lawnchair.ui.preferences.components.RecentsQuickAction
+import app.lawnchair.ui.preferences.components.controls.ListPreference
+import app.lawnchair.ui.preferences.components.controls.ListPreferenceEntry
 import app.lawnchair.ui.preferences.components.controls.SliderPreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.controls.WarningPreference
@@ -107,6 +119,8 @@ fun QuickstepPreferences(
             )
         }
 
+        PrivilegedAccessGroup()
+
         QuickActionsPreferences(
             items = recentActionsPreferences,
             adapter = prefs.recentActionOrder.getAdapter(),
@@ -145,6 +159,81 @@ fun QuickstepPreferences(
             }
         }
     }
+}
+
+/** Mode selector, one switch per backend and a live status line for each (see [BackendSelector]). */
+@Composable
+private fun PrivilegedAccessGroup(modifier: Modifier = Modifier) {
+    val prefs = preferenceManager()
+    val context = LocalContext.current
+    val selector = remember { BackendSelector.getInstance(context) }
+    var refresh by remember { mutableIntStateOf(0) }
+    // Re-checked on resume, so granting Shizuku or root elsewhere shows up when coming back
+    LifecycleResumeEffect(Unit) {
+        refresh++
+        onPauseOrDispose { }
+    }
+    val statuses by produceState<Map<Backend, BackendStatus>>(emptyMap(), refresh) {
+        value = selector.statusAll(forceRefresh = true)
+    }
+
+    val modeEntries = remember {
+        BackendMode.entries.map { mode ->
+            ListPreferenceEntry(mode.name) {
+                stringResource(
+                    when (mode) {
+                        BackendMode.Automatic -> R.string.privileged_access_mode_automatic
+                        BackendMode.Root -> R.string.privileged_access_backend_root
+                        BackendMode.ShizukuPlus -> R.string.privileged_access_backend_shizuku_plus
+                        BackendMode.Shizuku -> R.string.privileged_access_backend_shizuku
+                        BackendMode.Dhizuku -> R.string.privileged_access_backend_dhizuku
+                        BackendMode.Accessibility -> R.string.privileged_access_backend_accessibility
+                    },
+                )
+            }
+        }
+    }
+
+    PreferenceGroup(
+        heading = stringResource(id = R.string.privileged_access_label),
+        description = stringResource(id = R.string.privileged_access_description),
+        modifier = modifier,
+    ) {
+        ListPreference(
+            adapter = prefs.backendMode.getAdapter(),
+            entries = modeEntries,
+            label = stringResource(id = R.string.privileged_access_mode_label),
+            description = stringResource(id = R.string.privileged_access_mode_description),
+            icon = Icons.Rounded.Security,
+        )
+        BackendSwitch(Backend.Root, R.string.privileged_access_backend_root, prefs.backendRootEnabled.getAdapter(), statuses)
+        BackendSwitch(Backend.ShizukuPlus, R.string.privileged_access_backend_shizuku_plus, prefs.backendShizukuPlusEnabled.getAdapter(), statuses)
+        BackendSwitch(Backend.Shizuku, R.string.privileged_access_backend_shizuku, prefs.backendShizukuEnabled.getAdapter(), statuses)
+        BackendSwitch(Backend.Dhizuku, R.string.privileged_access_backend_dhizuku, prefs.backendDhizukuEnabled.getAdapter(), statuses)
+        BackendSwitch(Backend.Accessibility, R.string.privileged_access_backend_accessibility, prefs.backendAccessibilityEnabled.getAdapter(), statuses)
+    }
+}
+
+@Composable
+private fun BackendSwitch(
+    backend: Backend,
+    label: Int,
+    adapter: PreferenceAdapter<Boolean>,
+    statuses: Map<Backend, BackendStatus>,
+) {
+    val status = statuses[backend]
+    val description = when {
+        status == null -> R.string.privileged_access_status_checking
+        status == BackendStatus.Available -> R.string.privileged_access_status_available
+        status == BackendStatus.Detected && backend == Backend.Dhizuku -> R.string.privileged_access_status_dhizuku_detected
+        status == BackendStatus.Detected -> R.string.privileged_access_status_plus_detected
+        else -> R.string.privileged_access_status_unavailable
+    }
+    SwitchPreference(
+        adapter = adapter,
+        label = stringResource(id = label),
+        description = stringResource(id = description),
+    )
 }
 
 @PreviewAutoCat

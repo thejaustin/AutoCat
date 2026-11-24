@@ -1131,4 +1131,21 @@
     <string name="lawnchair_action_failed">Failed to trigger action</string>
 
     <string name="please_wait">Please wait…</string>
+
+    <!-- Privileged access (backend selector) -->
+    <string name="privileged_access_label">Privileged access</string>
+    <string name="privileged_access_description">How AutoCat reaches system features such as recent apps, screen lock and app archiving. Automatic tries root, ShizukuPlus, Shizuku, Dhizuku, then accessibility, using only what is available.</string>
+    <string name="privileged_access_mode_label">Backend</string>
+    <string name="privileged_access_mode_description">Automatic, or always use a single backend. A pinned backend that is unavailable fails instead of falling back.</string>
+    <string name="privileged_access_mode_automatic">Automatic</string>
+    <string name="privileged_access_backend_root">Root</string>
+    <string name="privileged_access_backend_shizuku_plus">ShizukuPlus</string>
+    <string name="privileged_access_backend_shizuku">Shizuku</string>
+    <string name="privileged_access_backend_dhizuku">Dhizuku</string>
+    <string name="privileged_access_backend_accessibility">Accessibility service</string>
+    <string name="privileged_access_status_checking">Checking\u2026</string>
+    <string name="privileged_access_status_available">Available</string>
+    <string name="privileged_access_status_unavailable">Not available</string>
+    <string name="privileged_access_status_plus_detected">Detected: ShizukuPlus. Allow AutoCat in Shizuku to use it.</string>
+    <string name="privileged_access_status_dhizuku_detected">Detected: Dhizuku is installed, but AutoCat can\'t use it yet.</string>
 </resources>
