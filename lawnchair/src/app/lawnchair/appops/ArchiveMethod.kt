@@ -19,4 +19,7 @@ sealed class ArchiveMethod {
 
     /** Launch system uninstall intent per-app (user confirms each) */
     data object IntentFallback : ArchiveMethod()
+
+    /** The user pinned a backend that can't be used right now; operations fail with [reason]. */
+    data class Unavailable(val reason: String) : ArchiveMethod()
 }

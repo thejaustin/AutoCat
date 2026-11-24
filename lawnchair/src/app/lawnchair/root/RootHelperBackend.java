@@ -1,15 +1,14 @@
 package app.lawnchair.root;
 
 import android.content.Context;
-import android.os.Build;
 import android.os.PowerManager;
 import android.os.SystemClock;
 
 import androidx.core.content.ContextCompat;
 
-import com.topjohnwu.superuser.Shell;
-
-import java.util.List;
+import app.lawnchair.backend.PackageOps;
+import app.lawnchair.backend.PmResult;
+import app.lawnchair.backend.RootPmExecutor;
 
 public class RootHelperBackend extends IRootHelper.Stub {
     private final Context mContext;
@@ -29,24 +28,18 @@ public class RootHelperBackend extends IRootHelper.Stub {
 
     @Override
     public String archivePackage(String packageName) {
-        if (Build.VERSION.SDK_INT >= 35) {
-            Shell.Result result = Shell.cmd("pm archive " + packageName).exec();
-            if (result.isSuccess()) {
-                return "success";
-            }
-            // Fallback to uninstall -k if pm archive not supported on this ROM
-            return uninstallPackageKeepData(packageName);
-        }
-        return uninstallPackageKeepData(packageName);
+        return format(PackageOps.INSTANCE.archive(RootPmExecutor.INSTANCE, packageName));
     }
 
     @Override
     public String uninstallPackageKeepData(String packageName) {
-        Shell.Result result = Shell.cmd("pm uninstall -k " + packageName).exec();
-        if (result.isSuccess()) {
+        return format(PackageOps.INSTANCE.uninstall(RootPmExecutor.INSTANCE, packageName, true));
+    }
+
+    private static String format(PmResult result) {
+        if (result.getSuccess()) {
             return "success";
         }
-        List<String> err = result.getErr();
-        return "error: " + (err.isEmpty() ? "unknown" : String.join("\n", err));
+        return "error: " + (result.getError().isEmpty() ? "unknown" : result.getError());
     }
 }
