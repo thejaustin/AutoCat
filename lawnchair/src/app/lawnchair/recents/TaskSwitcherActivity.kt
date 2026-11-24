@@ -53,6 +53,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -93,7 +94,7 @@ import kotlinx.coroutines.launch
 // Movement and fades use the theme's MotionScheme (MaterialTheme.motionScheme); the dismiss
 // spring is AOSP's expressive_dismiss_task_trans_y_* from quickstep/res/values/config.xml
 private val DismissSpring = spring<Float>(dampingRatio = 0.65f, stiffness = 850f)
-private const val FLING_DISMISS_VELOCITY = 1200f
+private const val FLING_DISMISS_VELOCITY = 700f
 
 /**
  * AutoCat's own recents screen. It works without root by reading and controlling tasks
@@ -427,8 +428,11 @@ private fun TaskCard(
 
     val returnSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
     var crossedThreshold by remember { mutableStateOf(false) }
+    // Accumulated synchronously: a quick flick delivers several deltas before a launched snapTo runs
+    var rawOffset by remember { mutableFloatStateOf(0f) }
     val dragState = rememberDraggableState { delta ->
-        val next = (offsetY.value + delta).coerceAtMost(0f)
+        val next = (rawOffset + delta).coerceAtMost(0f)
+        rawOffset = next
         scope.launch { offsetY.snapTo(next) }
         val crossed = next < -dismissThreshold
         if (crossed != crossedThreshold) {
@@ -452,12 +456,13 @@ private fun TaskCard(
                 orientation = Orientation.Vertical,
                 onDragStopped = { velocity ->
                     val flung = velocity < -FLING_DISMISS_VELOCITY
-                    if (offsetY.value < -dismissThreshold || flung) {
+                    if (rawOffset < -dismissThreshold || flung) {
                         // Same spring AOSP's overview uses for dismissed tasks, seeded with the flick's velocity
                         offsetY.animateTo(-dismissThreshold * 6, DismissSpring, velocity)
                         onRemove()
                     } else {
                         offsetY.animateTo(0f, returnSpec, velocity)
+                        rawOffset = 0f
                     }
                     crossedThreshold = false
                 },
