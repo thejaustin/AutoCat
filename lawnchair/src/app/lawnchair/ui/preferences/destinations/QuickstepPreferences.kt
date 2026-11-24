@@ -96,6 +96,17 @@ fun QuickstepPreferences(
             }
         }
 
+        PreferenceGroup(
+            heading = stringResource(id = R.string.task_switcher_label),
+            description = stringResource(id = R.string.task_switcher_takeover_description),
+        ) {
+            SwitchPreference(
+                adapter = prefs.taskSwitcherTakeover.getAdapter(),
+                label = stringResource(id = R.string.task_switcher_takeover_label),
+                icon = Icons.Rounded.ViewAgenda,
+            )
+        }
+
         QuickActionsPreferences(
             items = recentActionsPreferences,
             adapter = prefs.recentActionOrder.getAdapter(),
