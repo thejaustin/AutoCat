@@ -2,6 +2,7 @@ package app.lawnchair.recents
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.WindowManager
 import android.widget.Toast
@@ -94,6 +95,7 @@ import kotlinx.coroutines.launch
 // Movement and fades use the theme's MotionScheme (MaterialTheme.motionScheme); the dismiss
 // spring is AOSP's expressive_dismiss_task_trans_y_* from quickstep/res/values/config.xml
 private val DismissSpring = spring<Float>(dampingRatio = 0.65f, stiffness = 850f)
+private const val TAG = "TaskSwitcher"
 private const val FLING_DISMISS_VELOCITY = 700f
 
 /**
@@ -416,7 +418,6 @@ private fun TaskCard(
     centerProximity: () -> Float,
     modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
     val view = LocalView.current
     var bounds by remember { mutableStateOf(IntRect.Zero) }
     val dismissThreshold = with(LocalDensity.current) { 160.dp.toPx() }
@@ -458,16 +459,23 @@ private fun TaskCard(
             .draggable(
                 state = dragState,
                 orientation = Orientation.Vertical,
+                enabled = !dismissing,
                 onDragStarted = {
-                    offsetY.stop()
                     rawOffset = offsetY.value.coerceAtMost(0f)
                     dragging = true
+                    offsetY.stop()
+                    Log.i(TAG, "drag start at $rawOffset")
                 },
                 onDragStopped = { velocity ->
+                    crossedThreshold = false
                     offsetY.snapTo(rawOffset)
                     dragging = false
-                    val flung = velocity < -FLING_DISMISS_VELOCITY
-                    if (rawOffset < -dismissThreshold || flung) {
+                    // Like AOSP's TaskViewDismissTouchController: a fling's direction beats the card's position
+                    val flingUp = velocity < -FLING_DISMISS_VELOCITY
+                    val flingDown = velocity > FLING_DISMISS_VELOCITY
+                    val dismiss = flingUp || (!flingDown && rawOffset < -dismissThreshold)
+                    Log.i(TAG, "drag stop velocity=$velocity offset=$rawOffset dismiss=$dismiss")
+                    if (dismiss) {
                         // Same spring AOSP's overview uses for dismissed tasks, seeded with the flick's velocity
                         dismissing = true
                         var removed = false
