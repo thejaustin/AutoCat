@@ -704,7 +704,8 @@ private fun TaskCard(
         val pressed by pressSource.collectIsPressedAsState()
         // Shape morphs on press: a small M3 Expressive touch
         val corner by animateDpAsState(
-            targetValue = if (pressed) 40.dp else 28.dp,
+            // Small grid cards get One UI's tighter corners; the big carousel card keeps the rounder shape
+            targetValue = if (startAligned) (if (pressed) 20.dp else 14.dp) else (if (pressed) 40.dp else 28.dp),
             animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
             label = "card corner",
         )
