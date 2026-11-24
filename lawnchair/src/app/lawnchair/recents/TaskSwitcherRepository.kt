@@ -16,6 +16,7 @@ import android.os.Environment
 import android.os.Process
 import android.provider.MediaStore
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -176,11 +177,17 @@ class TaskSwitcherRepository(private val context: Context) {
         } else {
             null
         }
-        selector.taskService()?.startTaskFromRecents(taskId, options) == true
+        val service = selector.taskService()
+        val opened = service?.startTaskFromRecents(taskId, options) == true
+        Log.i(TAG, "open task $taskId via ${service?.javaClass?.simpleName} -> $opened")
+        opened
     }
 
     suspend fun remove(taskId: Int): Boolean = withContext(Dispatchers.IO) {
-        selector.taskService()?.removeTask(taskId) == true
+        val service = selector.taskService()
+        val removed = service?.removeTask(taskId) == true
+        Log.i(TAG, "remove task $taskId via ${service?.javaClass?.simpleName} -> $removed")
+        removed
     }
 
     private fun homePackages(): Set<String> {
@@ -204,6 +211,7 @@ class TaskSwitcherRepository(private val context: Context) {
     }
 
     companion object {
+        private const val TAG = "TaskSwitcherRepo"
         private const val MAX_TASKS = 30
         private const val LENS_PACKAGE = "com.google.ar.lens"
     }
