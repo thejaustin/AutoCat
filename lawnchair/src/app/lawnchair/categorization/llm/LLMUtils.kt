@@ -8,6 +8,7 @@ import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.util.Log
 import kotlin.math.pow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 
 /**
@@ -67,6 +68,8 @@ object LLMUtils {
         repeat(maxRetries) { attempt ->
             try {
                 return operation()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 lastException = e
 
