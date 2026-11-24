@@ -25,7 +25,7 @@ class UserServiceTaskOps(private val service: IUserService) : TaskOps {
 
 /**
  * Hand-written client for ShizukuPlus's `af.shizuku.server.ITaskManagerPlus`, reached through
- * `IShizukuService.getTaskManagerPlus()` (transaction 130) on the Shizuku binder.
+ * `IShizukuService.getTaskManagerPlus()` (AIDL id 130, transaction code 131) on the Shizuku binder.
  *
  * This exists because AutoCat pins stock `dev.rikka.shizuku:api`. It can be replaced by the
  * generated stub (and `ShizukuPlusAPI.Tasks`) once the Plus API artifact is published.
@@ -111,7 +111,9 @@ class PlusTaskClient private constructor(private val binder: IBinder) : TaskOps 
     companion object {
         private const val DESCRIPTOR = "af.shizuku.server.ITaskManagerPlus"
         private const val SHIZUKU_DESCRIPTOR = "moe.shizuku.server.IShizukuService"
-        private const val TX_GET_TASK_MANAGER_PLUS = 130
+
+        // AIDL transaction code is FIRST_CALL_TRANSACTION + the explicit id (130); a bare 130 hits getDeviceControlPlus.
+        private const val TX_GET_TASK_MANAGER_PLUS = IBinder.FIRST_CALL_TRANSACTION + 130
         private const val TX_GET_RECENT_TASKS = IBinder.FIRST_CALL_TRANSACTION
         private const val TX_GET_TASK_THUMBNAIL = IBinder.FIRST_CALL_TRANSACTION + 1
         private const val TX_START_TASK_FROM_RECENTS = IBinder.FIRST_CALL_TRANSACTION + 2
@@ -132,7 +134,7 @@ class PlusTaskClient private constructor(private val binder: IBinder) : TaskOps 
                 data.writeInterfaceToken(SHIZUKU_DESCRIPTOR)
                 if (!shizukuBinder.transact(TX_GET_TASK_MANAGER_PLUS, data, reply, 0)) return null
                 reply.readException()
-                reply.readStrongBinder()?.let(::PlusTaskClient)
+                reply.readStrongBinder()?.takeIf { it.interfaceDescriptor == DESCRIPTOR }?.let(::PlusTaskClient)
             } catch (_: Throwable) {
                 null
             } finally {
