@@ -266,8 +266,10 @@ class AutoCatLauncher :
             hasBackGesture = handler !is GestureHandlerConfig.NoOp
         }
 
-        LauncherOptionsPopup.restoreMissingPopupOptions(this)
-        LauncherOptionsPopup.migrateLegacyPreferences(this)
+        lifecycleScope.launch {
+            LauncherOptionsPopup.restoreMissingPopupOptions(this)
+            LauncherOptionsPopup.migrateLegacyPreferences(this)
+        }
 
         // Handle update from version 12 Alpha 4 to version 12 Alpha 5.
         if (

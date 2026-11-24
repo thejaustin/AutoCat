@@ -16,6 +16,7 @@ import com.patrykmichalik.opto.core.setBlocking
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 class AutoCatBugReporter(private val context: Context) {
 
@@ -41,17 +42,22 @@ class AutoCatBugReporter(private val context: Context) {
 
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            val report = sendNotification(throwable)
-            if (report != null) {
-                PreferenceManager2.getInstance(context).lastCrashId.setBlocking(report.id)
-                if (PreferenceManager2.getInstance(context).autoCrashReporting.firstBlocking()) {
-                    context.startService(
-                        android.content.Intent(context, UploaderService::class.java)
-                            .putExtra("report", report),
-                    )
+            try {
+                val report = sendNotification(throwable)
+                if (report != null) {
+                    PreferenceManager2.getInstance(context).lastCrashId.setBlocking(report.id)
+                    if (PreferenceManager2.getInstance(context).autoCrashReporting.firstBlocking()) {
+                        context.startService(
+                            android.content.Intent(context, UploaderService::class.java)
+                                .putExtra("report", report),
+                        )
+                    }
                 }
+            } finally {
+                // Always hand off to the default handler so the process gets killed,
+                // even if generating the report fails. Otherwise the app would hang.
+                defaultHandler?.uncaughtException(thread, throwable)
             }
-            defaultHandler?.uncaughtException(thread, throwable)
         }
 
         removeOldLogs()
@@ -91,7 +97,9 @@ class AutoCatBugReporter(private val context: Context) {
 
     inner class Report(val error: String, val throwable: Throwable? = null) {
 
-        private val fileName = "$appName bug report ${SimpleDateFormat.getDateTimeInstance().format(Date())}"
+        // Use a fixed, locale-independent format: some locales produce characters
+        // such as '/' that are not valid in a file name.
+        private val fileName = "$appName bug report ${SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(Date())}"
 
         fun generateBugReport(): BugReport? {
             val contents = writeContents()

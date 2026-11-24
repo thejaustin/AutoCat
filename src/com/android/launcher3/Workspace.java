@@ -149,6 +149,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import app.lawnchair.hotseat.HotseatPagedView;
+import app.lawnchair.gestures.PanToMoveController;
 import app.lawnchair.preferences2.PreferenceCacheExtensionsKt;
 import static app.lawnchair.util.AutoCatUtilsKt.toBitmap;
 import app.lawnchair.AutoCatApp;
@@ -342,7 +343,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     private DragController.DragListener mAccessibilityDragListener;
 
     PreferenceManager2 mPreferenceManager2;
+    private PanToMoveController mPanToMoveController;
     PreferenceManager mPreferenceManger;
+    private int mDefaultPage = -1;
 
     /**
      * Used to inflate the Workspace from XML.
@@ -368,6 +371,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         mWallpaperManager = WallpaperManager.getInstance(context);
         mAllAppsIconSize = mLauncher.getDeviceProfile().getAllAppsProfile().getIconSizePx();
         mPreferenceManager2 = PreferenceManager2.getInstance(context);
+        mPanToMoveController = new PanToMoveController(context, this);
         mPreferenceManger = PreferenceManager.getInstance(context);
         mWallpaperOffset = new WallpaperOffsetInterpolator(this);
 
@@ -513,6 +517,10 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         return r;
     }
 
+    /**
+     * Starts workspace drag handling and motion sensing, except for accessibility drags confined
+     * to a folder.
+     */
     @Override
     public void onDragStart(DragObject dragObject, DragOptions options) {
         if (ENFORCE_DRAG_EVENT_ORDER) {
@@ -561,6 +569,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         if (mAccessibilityDragListener != null) {
             mAccessibilityDragListener.onDragStart(dragObject, options);
         }
+        if (!(options.isAccessibleDrag && dragObject.dragSource instanceof Folder)) {
+            mPanToMoveController.onDragStarted();
+        }
         if (!mLauncher.isInState(EDIT_MODE)) {
             mLauncher.getStateManager().goToState(SPRING_LOADED);
         }
@@ -577,6 +588,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         mDeferRemoveExtraEmptyScreen = true;
     }
 
+    /**
+     * Ends workspace drag handling and unregisters motion sensors before clearing drag state.
+     */
     @Override
     public void onDragEnd() {
         if (ENFORCE_DRAG_EVENT_ORDER) {
@@ -600,6 +614,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         if (mAccessibilityDragListener != null) {
             mAccessibilityDragListener.onDragEnd();
         }
+        mPanToMoveController.onDragEnded();
         mDragInfo = null;
         mDragSourceInternal = null;
     }
@@ -608,6 +623,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      * Initializes various states for this workspace.
      */
     protected void initWorkspace() {
+        mDefaultPage = PreferenceCacheExtensionsKt.firstCached(mPreferenceManager2.getDefaultHomePage());
         mCurrentPage = getDefaultPage();
         setClipToPadding(false);
 
@@ -1185,8 +1201,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         updateAccessibilityViewPageDescription();
 
         // Reset default home page if it's now out of range after page removal
-        int storedDefault = PreferenceCacheExtensionsKt.firstCached(mPreferenceManager2.getDefaultHomePage());
-        if (storedDefault >= getChildCount()) {
+        int storedDefault = mDefaultPage >= 0 ? mDefaultPage
+                : PreferenceCacheExtensionsKt.firstCached(mPreferenceManager2.getDefaultHomePage());
+        if (getChildCount() > 0 && storedDefault >= getChildCount()) {
             setDefaultPage(DEFAULT_PAGE);
         }
         persistCurrentScreenOrderSync();
@@ -1676,8 +1693,12 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         mLauncher.getStateManager().addStateListener(mAccessibilityDropListener);
     }
 
+    /**
+     * Detaches the workspace and ensures motion sensors are unregistered with the view.
+     */
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+        mPanToMoveController.onDragEnded();
         mWallpaperOffset.setWindowToken(null);
         mLauncher.getStateManager().removeStateListener(mAccessibilityDropListener);
     }
@@ -2311,8 +2332,12 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     @Override
     public void prepareAccessibilityDrop() {}
 
+    /**
+     * Stops motion sensing before processing the final drop on the workspace.
+     */
     @Override
     public void onDrop(final DragObject d, DragOptions options) {
+        mPanToMoveController.onDragEnded();
         mDragViewVisualCenter = d.getVisualCenter(mDragViewVisualCenter);
         CellLayout dropTargetLayout = mDropToLayout;
 
@@ -2468,8 +2493,13 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                     CellLayoutLayoutParams lp = (CellLayoutLayoutParams) cell.getLayoutParams();
                     mTargetCell[0] = lp.getCellX();
                     mTargetCell[1] = lp.getCellY();
-                    CellLayout layout = (CellLayout) cell.getParent().getParent();
-                    layout.markCellsAsOccupiedForView(cell);
+                    // The cell can be detached from the workspace while the drag is in
+                    // progress (e.g. if the workspace rebound mid-drag); there is no
+                    // parent layout left to mark as occupied in that case.
+                    CellLayout layout = getParentCellLayoutForView(cell);
+                    if (layout != null) {
+                        layout.markCellsAsOccupiedForView(cell);
+                    }
                 }
             } else {
                 // When drag is cancelled, reattach content view back to its original parent.
@@ -2486,7 +2516,19 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 }
             }
 
-            final CellLayout parent = (CellLayout) cell.getParent().getParent();
+            // The dropped cell can be detached from the workspace at this point, e.g. a
+            // widget whose host view failed to re-attach in addInScreen after being
+            // detached from the drag view, or a view removed by a mid-drag rebind.
+            // Skip the drop animations and clean up the drag view instead of crashing.
+            final CellLayout parent = getParentCellLayoutForView(cell);
+            if (parent == null) {
+                d.deferDragViewCleanupPostAnimation = false;
+                cell.setVisibility(VISIBLE);
+                if (!mLauncher.isInState(EDIT_MODE)) {
+                    mLauncher.getStateManager().goToState(NORMAL, SPRING_LOADED_EXIT_DELAY);
+                }
+                return;
+            }
             if (d.dragView.hasDrawn()) {
                 if (droppedOnOriginalCellDuringTransition) {
                     // Animate the item to its original position, while simultaneously exiting
@@ -2895,6 +2937,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             if (layout == null) {
                 // Check visible pages
                 IntSet visiblePageIndices = getVisiblePageIndices();
+                if (isPageInTransition()) {
+                    visiblePageIndices.add(getNextPage());
+                }
                 for (int visiblePageIndex : visiblePageIndices) {
                     layout = verifyInsidePage(visiblePageIndex, d.x, d.y);
                     if (layout != null) break;
@@ -3335,6 +3380,16 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             cellLayout.onDropChild(view);
             cellLayout.getShortcutsAndWidgets().measureChild(view);
 
+            // addInScreen can fail to attach the view through any of its silent failure
+            // branches (unknown screen id, missing hotseat page, or addViewToCellLayout
+            // returning false). Animating a detached view into position then crashes with
+            // an NPE in DragLayer#animateViewIntoPosition when it dereferences the missing
+            // parent. Skip the drop animation and clean up the drag view instead; the item
+            // was already committed to the model above and reappears on the next bind.
+            if (!(view.getParent() instanceof ShortcutAndWidgetContainer)) {
+                d.deferDragViewCleanupPostAnimation = false;
+                return;
+            }
             if (d.dragView != null) {
                 // We wrap the animation call in the temporary set and reset of the current
                 // cellLayout to its final transform -- this means we animate the drag view to
@@ -4056,9 +4111,16 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      * Falls back to {@link #DEFAULT_PAGE} if the stored page is out of range.
      */
     public int getDefaultPage() {
-        int storedPage = PreferenceCacheExtensionsKt.firstCached(mPreferenceManager2.getDefaultHomePage());
+        int storedPage = mDefaultPage >= 0 ? mDefaultPage
+                : PreferenceCacheExtensionsKt.firstCached(mPreferenceManager2.getDefaultHomePage());
+        if (storedPage < 0) {
+            return DEFAULT_PAGE;
+        }
+        if (mLauncher != null && mLauncher.isWorkspaceLoading()) {
+            return storedPage;
+        }
         int pageCount = getChildCount();
-        if (storedPage >= 0 && storedPage < pageCount) {
+        if (pageCount == 0 || storedPage < pageCount) {
             return storedPage;
         }
         return DEFAULT_PAGE;
@@ -4068,6 +4130,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      * Sets the given page index as the default home page.
      */
     public void setDefaultPage(int pageIndex) {
+        mDefaultPage = pageIndex;
         com.patrykmichalik.opto.core.PreferenceExtensionsKt.setBlocking(mPreferenceManager2.getDefaultHomePage(), pageIndex);
     }
 
