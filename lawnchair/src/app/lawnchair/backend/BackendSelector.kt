@@ -6,7 +6,6 @@ import android.os.SystemClock
 import app.lawnchair.autoCatApp
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.root.RootHelperManager
-import app.lawnchair.root.RootNotAvailableException
 import app.lawnchair.shizuku.IUserService
 import app.lawnchair.shizuku.ShizukuManager
 import app.lawnchair.util.MainThreadInitializedObject
@@ -198,7 +197,8 @@ class BackendSelector(context: Context) {
             val service = when (backend) {
                 Backend.Root -> try {
                     RootHelperManager.INSTANCE.get(context).getTaskService()
-                } catch (_: RootNotAvailableException) {
+                } catch (_: Exception) {
+                    // Includes RootNotAvailableException and remote failures: try the next backend
                     null
                 }
 

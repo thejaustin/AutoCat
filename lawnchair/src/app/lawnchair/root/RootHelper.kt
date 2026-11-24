@@ -7,15 +7,15 @@ import app.lawnchair.shizuku.UserService
 import com.topjohnwu.superuser.ipc.RootService
 
 class RootHelper : RootService() {
-    override fun onBind(intent: Intent): IBinder = when (intent.action) {
-        ACTION_TASKS -> RootUserService(this)
-        else -> RootHelperBackend(this)
-    }
+    override fun onBind(intent: Intent) = RootHelperBackend(this)
+}
 
-    companion object {
-        /** Binds the root-hosted IUserService (recent tasks) instead of [RootHelperBackend]. */
-        const val ACTION_TASKS = "app.lawnchair.root.action.TASKS"
-    }
+/**
+ * Hosts [RootUserService] in its own service, so its binder can't be mixed up with
+ * [RootHelper]'s (libsu tracks root services per component).
+ */
+class RootTaskService : RootService() {
+    override fun onBind(intent: Intent): IBinder = RootUserService(this)
 }
 
 /**

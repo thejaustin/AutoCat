@@ -18,6 +18,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 class RootHelperManager(private val context: Context) {
     private val scope = MainScope() + CoroutineName("RootHelperManager")
@@ -46,18 +47,31 @@ class RootHelperManager(private val context: Context) {
         return rootHelperDeferred!!.await()
     }
 
-    /** The recent-tasks service hosted in the root process. Untested without a granted su. */
+    /**
+     * The recent-tasks service hosted in the root process. Untested without a granted su.
+     * Throws [RootNotAvailableException] if root is missing or the bind doesn't complete in time,
+     * so the caller can fall through to another backend.
+     */
     @Throws(RootNotAvailableException::class)
     suspend fun getTaskService(): IUserService {
         if (!isAvailable()) throw RootNotAvailableException()
 
-        if (taskServiceDeferred == null) {
-            taskServiceDeferred = scope.async {
-                val intent = Intent(context, RootHelper::class.java).setAction(RootHelper.ACTION_TASKS)
-                bindImpl(intent, IUserService.Stub::asInterface) { taskServiceDeferred = null }
+        val deferred = taskServiceDeferred ?: scope.async {
+            bindImpl(Intent(context, RootTaskService::class.java), IUserService.Stub::asInterface) {
+                taskServiceDeferred = null
             }
+        }.also { taskServiceDeferred = it }
+        val service = try {
+            withTimeoutOrNull(BIND_TIMEOUT_MS) { deferred.await() }
+        } catch (_: Exception) {
+            null
         }
-        return taskServiceDeferred!!.await()
+        if (service == null) {
+            deferred.cancel()
+            taskServiceDeferred = null
+            throw RootNotAvailableException()
+        }
+        return service
     }
 
     private suspend fun <T> bindImpl(intent: Intent, asInterface: (IBinder) -> T, onDisconnected: () -> Unit): T {
@@ -78,6 +92,7 @@ class RootHelperManager(private val context: Context) {
     }
 
     companion object {
+        private const val BIND_TIMEOUT_MS = 8_000L
         val INSTANCE = MainThreadInitializedObject(::RootHelperManager)
     }
 }
