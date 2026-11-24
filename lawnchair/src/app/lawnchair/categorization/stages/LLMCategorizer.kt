@@ -62,6 +62,10 @@ class LLMCategorizer(
     // Kept between calls so the on-device model stays loaded while a batch runs
     private var onDeviceProvider: LiteRtLmProvider? = null
 
+    // Local-server provider, rebuilt only when its settings change (it owns a ping/model-id cache)
+    private var endpointProvider: LocalEndpointProvider? = null
+    private var endpointConfig: Pair<String, String>? = null
+
     /**
      * Providers in the order to try: local server and on-device model first when
      * "Local AI Engine" is on, then the preferred cloud provider, then the other cloud providers.
@@ -72,7 +76,14 @@ class LLMCategorizer(
             if (prefs.llmUseLocalModel.get()) {
                 val endpointUrl = prefs.localEndpointUrl.get()
                 if (prefs.localEndpointEnabled.get() && endpointUrl.isNotBlank()) {
-                    add(LocalEndpointProvider(context, endpointUrl, prefs.localEndpointModelId.get()))
+                    val config = endpointUrl to prefs.localEndpointModelId.get()
+                    val cached = endpointProvider?.takeIf { endpointConfig == config }
+                    add(
+                        cached ?: LocalEndpointProvider(context, config.first, config.second).also {
+                            endpointProvider = it
+                            endpointConfig = config
+                        },
+                    )
                 }
                 LocalModelStore.selectedModelPath(context)?.let { path ->
                     val provider = onDeviceProvider?.takeIf { it.modelPath == path }
