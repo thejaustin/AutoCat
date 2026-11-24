@@ -24,6 +24,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.widget.Toast
 import app.lawnchair.AutoCatLauncher
 import app.lawnchair.backend.Backend
 import app.lawnchair.backend.BackendSelector
@@ -52,7 +53,13 @@ class SleepGestureHandler(context: Context) : GestureHandler(context) {
 
         // The global backend mode and per-backend toggles decide what is usable; the sleep mode
         // can only prefer one of those, never override a disabled or unavailable backend.
-        val usable = selector.resolve(Capability.ScreenLock).backends
+        val resolution = selector.resolve(Capability.ScreenLock)
+        if (resolution.pinnedUnavailable != null) {
+            // The user pinned a backend that can't run: say so instead of locking some other way
+            Toast.makeText(context, resolution.failureReason(), Toast.LENGTH_LONG).show()
+            return
+        }
+        val usable = resolution.backends
         val preferred = when (pref) {
             SleepMode.ROOT -> Backend.Root
             SleepMode.ACCESSIBILITY -> Backend.Accessibility
