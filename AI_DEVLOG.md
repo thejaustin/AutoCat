@@ -66,6 +66,10 @@ Tested on SM-S948U (AT&T, One UI 9, Android 17 / SDK 37, bootloader locked, veri
 
 ## Session History (newest first)
 
+### 2026-11-24 — Claude Code (Sonnet 5.5) — upstream sync (41 commits)
+
+Merged `upstream/16-dev` (6bf7100a06) into `feat/upstream-sync-2026-11-24`. True merge-base was `94b36676`; the older entry citing `00bb0d82` is stale (that is just the shallow-clone graft target). Conflicts: libs.versions.toml, AutoCatApp (baseline profile install + DecorReattachGuard added to our deferred-init onCreate), AutoCatLauncher (popup restore now in lifecycleScope), AutoCatBugReporter (always delegate to default handler), HeadlessWidgetsManager (upstream wholesale). Toolchain taken from upstream (AGP 9.5.2, Gradle 9.9.2, compose-bom 2026.11.01). Decision pending for maintainer: KSP stays at 2.3.12 (hold comment kept); upstream is on 2.3.14 and google/ksp#3286 is closed, so bumping may be fine. litert stays 1.4.2. CI-only, not built locally.
+
 ### 2026-11-03 — Claude Code (Opus 5.5) — upstream sync + model refresh
 Branch `feat/upstream-sync-2026-11`. Commits: merge `d665f5b810`, `462e8e1226` (models), `275e31128c` (LLM budgets).
 
