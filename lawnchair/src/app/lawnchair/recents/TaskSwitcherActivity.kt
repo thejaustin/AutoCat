@@ -430,6 +430,7 @@ private fun TaskCard(
     var crossedThreshold by remember { mutableStateOf(false) }
     // Accumulated synchronously: a quick flick delivers several deltas before a launched snapTo runs
     var rawOffset by remember { mutableFloatStateOf(0f) }
+    var dismissing by remember { mutableStateOf(false) }
     val dragState = rememberDraggableState { delta ->
         val next = (rawOffset + delta).coerceAtMost(0f)
         rawOffset = next
@@ -449,7 +450,7 @@ private fun TaskCard(
                 scaleX = scale
                 scaleY = scale
                 translationY = offsetY.value
-                alpha = 1f - (abs(offsetY.value) / (dismissThreshold * 2)).coerceAtMost(0.8f)
+                alpha = 1f - (abs(offsetY.value) / (dismissThreshold * 2)).coerceAtMost(if (dismissing) 1f else 0.8f)
             }
             .draggable(
                 state = dragState,
@@ -458,8 +459,16 @@ private fun TaskCard(
                     val flung = velocity < -FLING_DISMISS_VELOCITY
                     if (rawOffset < -dismissThreshold || flung) {
                         // Same spring AOSP's overview uses for dismissed tasks, seeded with the flick's velocity
-                        offsetY.animateTo(-dismissThreshold * 6, DismissSpring, velocity)
-                        onRemove()
+                        dismissing = true
+                        var removed = false
+                        // Remove as soon as the card has faded out; waiting for the spring to settle left it hanging
+                        offsetY.animateTo(-dismissThreshold * 6, DismissSpring, velocity) {
+                            if (!removed && value < -dismissThreshold * 2f) {
+                                removed = true
+                                onRemove()
+                            }
+                        }
+                        if (!removed) onRemove()
                     } else {
                         offsetY.animateTo(0f, returnSpec, velocity)
                         rawOffset = 0f
