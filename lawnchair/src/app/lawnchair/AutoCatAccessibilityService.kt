@@ -84,6 +84,10 @@ class AutoCatAccessibilityService : AccessibilityService() {
         const val TAG = "AutoCatA11y"
         const val RECENTS_CLASS_SUFFIX = "RecentsActivity"
         const val COOLDOWN_MS = 1500L
-        const val OPEN_DELAY_MS = 120L
+
+        // Just long enough for GLOBAL_ACTION_BACK to close the system recents window before ours
+        // opens; our own activity has no enter transition, so cutting this shortens the visible
+        // flash of the system screen without the two overlapping mid-transition.
+        const val OPEN_DELAY_MS = 50L
     }
 }
