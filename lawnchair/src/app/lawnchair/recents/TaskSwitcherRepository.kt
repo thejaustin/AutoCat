@@ -1,6 +1,8 @@
 package app.lawnchair.recents
 
+import android.app.ActivityOptions
 import android.content.ComponentName
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,13 +10,21 @@ import android.graphics.Bitmap
 import android.graphics.ColorSpace
 import android.graphics.drawable.Drawable
 import android.hardware.HardwareBuffer
+import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.os.Process
+import android.provider.MediaStore
+import android.provider.Settings
+import android.view.View
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.unit.IntRect
+import androidx.core.content.FileProvider
 import androidx.core.os.BundleCompat
 import app.lawnchair.shizuku.ShizukuManager
 import app.lawnchair.shizuku.UserService
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -79,8 +89,74 @@ class TaskSwitcherRepository(private val context: Context) {
         Bitmap.wrapHardwareBuffer(buffer, ColorSpace.get(ColorSpace.Named.SRGB))?.asImageBitmap()
     }
 
-    suspend fun open(taskId: Int): Boolean = withContext(Dispatchers.IO) {
-        shizuku.awaitService()?.startTaskFromRecents(taskId, null) == true
+    /** A software copy of the task's snapshot; hardware bitmaps can't be compressed or saved. */
+    private suspend fun snapshotBitmap(taskId: Int): Bitmap? = withContext(Dispatchers.IO) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return@withContext null
+        val service = shizuku.awaitService() ?: return@withContext null
+        val result = service.getTaskThumbnail(taskId)
+        val buffer = BundleCompat.getParcelable(result, UserService.KEY_BUFFER, HardwareBuffer::class.java)
+            ?: return@withContext null
+        Bitmap.wrapHardwareBuffer(buffer, ColorSpace.get(ColorSpace.Named.SRGB))
+            ?.copy(Bitmap.Config.ARGB_8888, false)
+    }
+
+    /** Saves the task's snapshot to DCIM/Screenshots, where Samsung keeps screenshots. */
+    suspend fun saveScreenshot(taskId: Int): Boolean = withContext(Dispatchers.IO) {
+        val bitmap = snapshotBitmap(taskId) ?: return@withContext false
+        val values = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "Screenshot_${System.currentTimeMillis()}.png")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_DCIM}/Screenshots")
+        }
+        val resolver = context.contentResolver
+        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return@withContext false
+        val saved = runCatching {
+            resolver.openOutputStream(uri)?.use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) } == true
+        }.getOrDefault(false)
+        if (!saved) resolver.delete(uri, null, null)
+        saved
+    }
+
+    /** Opens the share sheet for the task's snapshot, or Lens when [lens] is set. */
+    suspend fun shareSnapshot(taskId: Int, lens: Boolean): Boolean = withContext(Dispatchers.IO) {
+        val bitmap = snapshotBitmap(taskId) ?: return@withContext false
+        val uri = persist(bitmap) ?: return@withContext false
+        val send = Intent(Intent.ACTION_SEND)
+            .setType("image/png")
+            .putExtra(Intent.EXTRA_STREAM, uri)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        if (lens) send.setPackage(LENS_PACKAGE)
+        val intent = if (lens) send else Intent.createChooser(send, null)
+        runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isSuccess
+    }
+
+    fun isLensAvailable(): Boolean = packageManager.getLaunchIntentForPackage(LENS_PACKAGE) != null
+
+    fun openAppInfo(task: RecentTask) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            .setData(Uri.fromParts("package", task.component.packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+    }
+
+    private fun persist(bitmap: Bitmap): Uri? = runCatching {
+        val dir = File(context.cacheDir, "task_images").apply {
+            mkdirs()
+            listFiles()?.forEach { it.delete() }
+        }
+        val file = File(dir, "task_${System.currentTimeMillis()}.png")
+        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    }.getOrNull()
+
+    /** Opens the task, zooming out from [bounds] (window coordinates of its card inside [source]) when given. */
+    suspend fun open(taskId: Int, source: View? = null, bounds: IntRect? = null): Boolean = withContext(Dispatchers.IO) {
+        val options = if (source != null && bounds != null && !bounds.isEmpty) {
+            ActivityOptions.makeScaleUpAnimation(source, bounds.left, bounds.top, bounds.width, bounds.height).toBundle()
+        } else {
+            null
+        }
+        shizuku.awaitService()?.startTaskFromRecents(taskId, options) == true
     }
 
     suspend fun remove(taskId: Int): Boolean = withContext(Dispatchers.IO) {
@@ -109,5 +185,6 @@ class TaskSwitcherRepository(private val context: Context) {
 
     companion object {
         private const val MAX_TASKS = 30
+        private const val LENS_PACKAGE = "com.google.ar.lens"
     }
 }
