@@ -12,6 +12,7 @@ import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import rikka.shizuku.Shizuku
@@ -71,6 +72,14 @@ class BackendSelector(context: Context) {
     }
 
     // region availability
+
+    private suspend fun awaitShizukuBinder(timeoutMs: Long = 3_000) {
+        var waited = 0L
+        while (waited < timeoutMs && !(runCatching { Shizuku.pingBinder() }.getOrDefault(false))) {
+            delay(POLL_MS)
+            waited += POLL_MS
+        }
+    }
 
     private fun shizukuUsableNow(): Boolean = try {
         shizuku.hasPermission()
@@ -197,9 +206,12 @@ class BackendSelector(context: Context) {
     // endregion
 
     /** The Plus task client, from cache or freshly obtained and probed. Null falls through to the UserService. */
-    private fun plusTaskClient(): PlusTaskClient? {
+    private suspend fun plusTaskClient(): PlusTaskClient? {
         plusTasks?.let { if (it.isAlive) return it }
         plusTasks = null
+        // On a cold start the binder arrives a moment after the activity opens; without waiting,
+        // the Plus path would always be skipped and the UserService used instead.
+        awaitShizukuBinder()
         if (!shizukuUsableNow()) return null
         val client = PlusTaskClient.obtain() ?: return null
         if (!client.probe()) return null
@@ -237,6 +249,7 @@ class BackendSelector(context: Context) {
 
     companion object {
         private const val ROOT_RETRY_MS = 30_000L
+        private const val POLL_MS = 100L
         const val DHIZUKU_PACKAGE = "com.rosan.dhizuku"
 
         @JvmField
