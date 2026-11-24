@@ -12,6 +12,8 @@ import java.nio.ByteOrder
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.Interpreter
 
@@ -34,39 +36,66 @@ import org.tensorflow.lite.Interpreter
 class MLCategorizer(
     private val context: Context,
     private val categoryDao: TabDao,
-) {
-    private var interpreter: Interpreter? = null
-
-    init {
-        tryLoadModel()
-    }
+) : AutoCloseable {
+    private val lock = Any()
+    private var loadedInterpreter: Interpreter? = null
+    private var loadAttempted = false
+    private var closed = false
 
     // ─── TFLite model loading ───────────────────────────────────────────────
 
-    private fun tryLoadModel() {
-        try {
-            val modelBuffer = loadModelFromAssets() ?: return
-            interpreter = Interpreter(modelBuffer)
-            Log.d(TAG, "TFLite model loaded from assets")
+    /**
+     * Returns the interpreter, loading it on first use. Loading happens at most once, and only
+     * from callers already on [Dispatchers.IO] (all public entry points are). Returns null
+     * when the model asset doesn't exist, which is the case in builds that don't ship one.
+     */
+    private fun interpreter(): Interpreter? = synchronized(lock) {
+        if (!loadAttempted && !closed) {
+            loadAttempted = true
+            loadedInterpreter = tryLoadModel()
+        }
+        loadedInterpreter
+    }
+
+    private fun tryLoadModel(): Interpreter? {
+        if (context.assets.list(MODEL_ASSET_DIR)?.contains(MODEL_ASSET_NAME) != true) {
+            Log.i(TAG, "No TFLite model in assets – using keyword classifier")
+            return null
+        }
+        return try {
+            val modelBuffer = loadModelFromAssets() ?: return null
+            Interpreter(modelBuffer).also { Log.d(TAG, "TFLite model loaded from assets") }
         } catch (e: Exception) {
-            Log.i(TAG, "No TFLite model found – using keyword classifier fallback")
+            Log.w(TAG, "TFLite model failed to load – using keyword classifier: ${e.message}")
+            null
         }
     }
 
     private fun loadModelFromAssets(): MappedByteBuffer? {
+        val file = File(context.cacheDir, "autocat_model_tmp.tflite")
         return try {
-            val file = File(context.cacheDir, "autocat_model_tmp.tflite")
             context.assets.openFd(MODEL_ASSET_PATH).use { assetFd ->
                 assetFd.createInputStream().use { inputStream ->
                     file.outputStream().use { out -> inputStream.copyTo(out) }
                 }
             }
-            val buffer = file.inputStream().channel.map(FileChannel.MapMode.READ_ONLY, 0, file.length())
-            file.delete()
-            buffer
+            file.inputStream().use { input ->
+                input.channel.map(FileChannel.MapMode.READ_ONLY, 0, file.length())
+            }
         } catch (e: Exception) {
-            LLMLogger.logWarning("MLCategorizer", "MODEL_LOAD", "TFLite model not found in assets, using keyword classifier", mapOf("error" to (e.message ?: "unknown")))
+            LLMLogger.logWarning("MLCategorizer", "MODEL_LOAD", "TFLite model could not be read from assets, using keyword classifier", mapOf("error" to (e.message ?: "unknown")))
             null
+        } finally {
+            file.delete()
+        }
+    }
+
+    /** Releases the TFLite interpreter. The keyword classifier keeps working afterwards. */
+    override fun close() {
+        synchronized(lock) {
+            closed = true
+            loadedInterpreter?.close()
+            loadedInterpreter = null
         }
     }
 
@@ -75,11 +104,13 @@ class MLCategorizer(
     suspend fun categorizeBatch(apps: List<AppInfo>): Int = withContext(Dispatchers.IO) {
         val customTabs = categoryDao.getVisibleCustomCategories()
         if (customTabs.isEmpty()) return@withContext 0
+        val usesModel = interpreter() != null
 
         val tabNames = customTabs.map { it.name }
         var count = 0
 
         val appTabs = apps.mapNotNull { app ->
+            currentCoroutineContext().ensureActive()
             val tabName = classify(app, tabNames) ?: return@mapNotNull null
             count++
             AppTab(
@@ -88,7 +119,7 @@ class MLCategorizer(
                 confidence = CONFIDENCE_ML,
                 source = AppTab.SOURCE_ML,
                 isUserOverride = false,
-                reasoning = if (interpreter != null) "On-device ML model" else "Keyword classifier",
+                reasoning = if (usesModel) "On-device ML model" else "Keyword classifier",
             )
         }
 
@@ -103,6 +134,7 @@ class MLCategorizer(
         if (customTabs.isEmpty()) return@withContext false
 
         val tabNames = customTabs.map { it.name }
+        val usesModel = interpreter() != null
         val tabName = classify(appInfo, tabNames) ?: return@withContext false
 
         val appTab = AppTab(
@@ -111,7 +143,7 @@ class MLCategorizer(
             confidence = CONFIDENCE_ML,
             source = AppTab.SOURCE_ML,
             isUserOverride = false,
-            reasoning = if (interpreter != null) "On-device ML model" else "Keyword classifier",
+            reasoning = if (usesModel) "On-device ML model" else "Keyword classifier",
         )
         categoryDao.insertAppCategory(appTab)
         true
@@ -120,7 +152,7 @@ class MLCategorizer(
     // ─── Classification ─────────────────────────────────────────────────────
 
     private fun classify(appInfo: AppInfo, availableTabs: List<String>): String? {
-        interpreter?.let { interp ->
+        interpreter()?.let { interp ->
             val result = runTFLiteInference(interp, appInfo, availableTabs)
             if (result != null) return result
         }
@@ -135,20 +167,23 @@ class MLCategorizer(
         availableTabs: List<String>,
     ): String? {
         return try {
-            val inputBuffer = buildFeatureVector(appInfo)
-            val outputBuffer = ByteBuffer.allocateDirect(CATEGORY_COUNT * 4)
-                .apply { order(ByteOrder.nativeOrder()) }
+            // Interpreter isn't thread-safe, and close() may race with a running request
+            synchronized(lock) {
+                val inputBuffer = buildFeatureVector(appInfo)
+                val outputBuffer = ByteBuffer.allocateDirect(CATEGORY_COUNT * 4)
+                    .apply { order(ByteOrder.nativeOrder()) }
 
-            interp.run(inputBuffer, outputBuffer)
+                interp.run(inputBuffer, outputBuffer)
 
-            outputBuffer.rewind()
-            val probabilities = FloatArray(CATEGORY_COUNT) { outputBuffer.float }
+                outputBuffer.rewind()
+                val probabilities = FloatArray(CATEGORY_COUNT) { outputBuffer.float }
 
-            val bestIndex = probabilities.indices.maxByOrNull { probabilities[it] } ?: return null
-            if (probabilities[bestIndex] < TFLITE_MIN_CONFIDENCE) return null
+                val bestIndex = probabilities.indices.maxByOrNull { probabilities[it] } ?: return null
+                if (probabilities[bestIndex] < TFLITE_MIN_CONFIDENCE) return null
 
-            val predictedCategory = MODEL_CATEGORIES.getOrNull(bestIndex) ?: return null
-            findBestMatchingTab(predictedCategory, availableTabs)
+                val predictedCategory = MODEL_CATEGORIES.getOrNull(bestIndex) ?: return null
+                findBestMatchingTab(predictedCategory, availableTabs)
+            }
         } catch (e: Exception) {
             Log.w(TAG, "TFLite inference failed for ${appInfo.packageName}: ${e.message}")
             LLMLogger.logWarning("MLCategorizer", "TFLITE_INFERENCE", "TFLite inference failed, falling back to keyword classifier", mapOf("package" to appInfo.packageName, "error" to (e.message ?: "unknown")))
@@ -213,7 +248,9 @@ class MLCategorizer(
 
     companion object {
         private const val TAG = "MLCategorizer"
-        private const val MODEL_ASSET_PATH = "ml/autocat_categorizer.tflite"
+        private const val MODEL_ASSET_DIR = "ml"
+        private const val MODEL_ASSET_NAME = "autocat_categorizer.tflite"
+        private const val MODEL_ASSET_PATH = "$MODEL_ASSET_DIR/$MODEL_ASSET_NAME"
         private const val CONFIDENCE_ML = 0.60f
         private const val TFLITE_MIN_CONFIDENCE = 0.50f
 
