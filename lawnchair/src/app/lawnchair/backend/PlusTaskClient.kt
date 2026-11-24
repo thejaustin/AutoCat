@@ -3,6 +3,7 @@ package app.lawnchair.backend
 import android.os.Bundle
 import android.os.IBinder
 import android.os.Parcel
+import android.util.Log
 import app.lawnchair.shizuku.IUserService
 import rikka.shizuku.Shizuku
 
@@ -92,7 +93,8 @@ class PlusTaskClient private constructor(private val binder: IBinder) : TaskOps 
                     result = bundle
                 }
             }
-        } catch (_: Throwable) {
+        } catch (e: Throwable) {
+            Log.w(TAG, "Plus task call $code failed", e)
             return Bundle.EMPTY
         }
         return result
@@ -102,13 +104,15 @@ class PlusTaskClient private constructor(private val binder: IBinder) : TaskOps 
         var result = false
         try {
             transact(code, { write() }) { result = readInt() != 0 }
-        } catch (_: Throwable) {
+        } catch (e: Throwable) {
+            Log.w(TAG, "Plus task call $code failed", e)
             return false
         }
         return result
     }
 
     companion object {
+        private const val TAG = "PlusTaskClient"
         private const val DESCRIPTOR = "af.shizuku.server.ITaskManagerPlus"
         private const val SHIZUKU_DESCRIPTOR = "moe.shizuku.server.IShizukuService"
 
@@ -134,8 +138,11 @@ class PlusTaskClient private constructor(private val binder: IBinder) : TaskOps 
                 data.writeInterfaceToken(SHIZUKU_DESCRIPTOR)
                 if (!shizukuBinder.transact(TX_GET_TASK_MANAGER_PLUS, data, reply, 0)) return null
                 reply.readException()
-                reply.readStrongBinder()?.takeIf { it.interfaceDescriptor == DESCRIPTOR }?.let(::PlusTaskClient)
-            } catch (_: Throwable) {
+                val binder = reply.readStrongBinder()
+                if (binder == null) Log.i(TAG, "Plus server returned no task binder (feature off or stock server)")
+                binder?.takeIf { it.interfaceDescriptor == DESCRIPTOR }?.let(::PlusTaskClient)
+            } catch (e: Throwable) {
+                Log.w(TAG, "Couldn't get the Plus task binder", e)
                 null
             } finally {
                 data.recycle()
