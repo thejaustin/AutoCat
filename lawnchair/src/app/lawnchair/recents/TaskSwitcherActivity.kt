@@ -93,6 +93,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import app.lawnchair.preferences.PreferenceManager
 import app.lawnchair.ui.theme.AutoCatTheme
@@ -613,7 +614,11 @@ private fun TaskCard(
     val offsetY = remember { Animatable(0f) }
     val closeLabel = stringResource(R.string.accessibility_close)
     val thumbnail by produceState(initialValue = null as ImageBitmap?, task.taskId) {
-        value = repository.loadThumbnail(task.taskId)
+        value = repository.loadThumbnail(task.taskId) ?: run {
+            // A snapshot can be missing for a moment after an app is backgrounded
+            delay(700)
+            repository.loadThumbnail(task.taskId)
+        }
     }
 
     val returnSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
@@ -797,7 +802,14 @@ private fun TaskCard(
                         modifier = Modifier.fillMaxSize(),
                     )
                 } else {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    // Tint the placeholder with the icon's average colour, like One UI's icon cards
+                    val tint = remember(task.icon) {
+                        runCatching {
+                            val px = task.icon!!.toBitmap(1, 1).getPixel(0, 0)
+                            Color(px).copy(alpha = 0.22f)
+                        }.getOrDefault(Color.Transparent)
+                    }
+                    Box(modifier = Modifier.fillMaxSize().background(tint), contentAlignment = Alignment.Center) {
                         task.icon?.let { icon ->
                             Image(
                                 painter = rememberDrawablePainter(icon),

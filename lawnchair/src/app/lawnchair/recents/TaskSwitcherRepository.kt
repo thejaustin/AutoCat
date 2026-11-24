@@ -108,8 +108,18 @@ class TaskSwitcherRepository(private val context: Context) {
         val result = service.getTaskThumbnail(taskId)
         val buffer = BundleCompat.getParcelable(result, UserService.KEY_BUFFER, HardwareBuffer::class.java)
             ?: return@withContext null
-        Bitmap.wrapHardwareBuffer(buffer, ColorSpace.get(ColorSpace.Named.SRGB))?.asImageBitmap()
+        val bitmap = Bitmap.wrapHardwareBuffer(buffer, ColorSpace.get(ColorSpace.Named.SRGB))
+            ?: return@withContext null
+        // Windows that block screenshots come back solid black; the icon card reads better
+        if (isBlank(bitmap)) null else bitmap.asImageBitmap()
     }
+
+    /** True when a sample of the snapshot is entirely black or transparent. */
+    private fun isBlank(bitmap: Bitmap): Boolean = runCatching {
+        val sample = Bitmap.createScaledBitmap(bitmap.copy(Bitmap.Config.ARGB_8888, false), 8, 8, true)
+        val pixels = IntArray(64).also { sample.getPixels(it, 0, 8, 0, 0, 8, 8) }
+        pixels.all { (it ushr 24) < 16 || (it and 0xFFFFFF) == 0 }
+    }.getOrDefault(false)
 
     /** A software copy of the task's snapshot; hardware bitmaps can't be compressed or saved. */
     private suspend fun snapshotBitmap(taskId: Int): Bitmap? = withContext(Dispatchers.IO) {
