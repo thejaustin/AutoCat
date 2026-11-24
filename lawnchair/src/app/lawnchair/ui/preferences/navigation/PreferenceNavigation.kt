@@ -3,12 +3,18 @@ package app.lawnchair.ui.preferences.navigation
 import android.content.Intent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -72,9 +78,6 @@ import app.lawnchair.ui.preferences.destinations.icons.AdvancedIconPreferences
 import app.lawnchair.ui.preferences.destinations.icons.IconPackPreferences
 import app.lawnchair.ui.preferences.destinations.icons.ThemedIconsPreferences
 import com.android.launcher3.util.ComponentKey
-import soup.compose.material.motion.animation.materialSharedAxisXIn
-import soup.compose.material.motion.animation.materialSharedAxisXOut
-import soup.compose.material.motion.animation.rememberSlideDistance
 
 inline fun <reified T> getDeepLink(route: T) where T : PreferenceRoute, T : PreferenceDeepLink = listOf(navDeepLink<T>(basePath = route.deepLink))
 
@@ -86,7 +89,19 @@ fun PreferenceNavigation(
     intent: Intent? = null,
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val slideDistance = rememberSlideDistance()
+    // Container-style motion driven by the theme's MotionScheme (expressive).
+    val motionScheme = MaterialTheme.motionScheme
+    val spatial = motionScheme.defaultSpatialSpec<IntOffset>()
+    val fastSpatial = motionScheme.fastSpatialSpec<IntOffset>()
+    val fadeInSpec = motionScheme.defaultEffectsSpec<Float>()
+    val fadeOutSpec = motionScheme.fastEffectsSpec<Float>()
+    val slideFraction = 4
+    fun enter(forward: Boolean) = fadeIn(fadeInSpec) + slideInHorizontally(spatial) { w ->
+        (if (forward) w else -w) / slideFraction
+    }
+    fun exit(forward: Boolean) = fadeOut(fadeOutSpec) + slideOutHorizontally(fastSpatial) { w ->
+        (if (forward) -w else w) / slideFraction
+    }
 
     LaunchedEffect(intent) {
         intent?.let { navController.handleDeepLink(it) }
@@ -97,12 +112,12 @@ fun PreferenceNavigation(
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            enterTransition = { materialSharedAxisXIn(!isRtl, slideDistance) },
-            exitTransition = { materialSharedAxisXOut(!isRtl, slideDistance) },
-            popEnterTransition = { materialSharedAxisXIn(isRtl, slideDistance) },
-            popExitTransition = { materialSharedAxisXOut(isRtl, slideDistance) },
-            predictivePopEnterTransition = { materialSharedAxisXIn(isRtl, slideDistance) },
-            predictivePopExitTransition = { materialSharedAxisXOut(isRtl, slideDistance) },
+            enterTransition = { enter(!isRtl) },
+            exitTransition = { exit(!isRtl) },
+            popEnterTransition = { enter(isRtl) },
+            popExitTransition = { exit(isRtl) },
+            predictivePopEnterTransition = { enter(isRtl) },
+            predictivePopExitTransition = { exit(isRtl) },
         ) {
             composable<Root> {
                 val isExpandedScreen = LocalIsExpandedScreen.current

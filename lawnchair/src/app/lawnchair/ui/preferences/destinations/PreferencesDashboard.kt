@@ -16,11 +16,9 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -180,10 +178,7 @@ fun PreferencesDashboard(
             }
         },
     ) {
-        val emphasizedSpring = spring<androidx.compose.ui.unit.IntOffset>(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessLow,
-        )
+        val emphasizedSpring = MaterialTheme.motionScheme.defaultSpatialSpec<androidx.compose.ui.unit.IntOffset>()
 
         var showDashboardContent by remember { mutableStateOf(false) }
         LaunchedEffect(Unit) {
@@ -192,7 +187,7 @@ fun PreferencesDashboard(
 
         AnimatedVisibility(
             visible = showDashboardContent,
-            enter = fadeIn(spring(stiffness = Spring.StiffnessVeryLow)) +
+            enter = fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()) +
                 slideInVertically(emphasizedSpring) { it / 8 },
         ) {
             Column {

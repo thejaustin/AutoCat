@@ -1,7 +1,6 @@
 package app.lawnchair.ui.preferences.components.controls
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -24,7 +23,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import app.lawnchair.ui.preferences.animations.PreferenceAnimationDefaults
 import app.lawnchair.ui.preferences.components.layout.ExpandAndShrink
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.haptics.PreferenceHapticType
@@ -63,9 +61,7 @@ fun CollapsiblePreferenceGroup(
     // Animate chevron rotation
     val chevronRotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
-        animationSpec = tween(
-            durationMillis = PreferenceAnimationDefaults.EXPAND_DURATION,
-        ),
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "chevron rotation",
     )
 
@@ -157,9 +153,7 @@ fun SimpleCollapsibleGroup(
 
     val chevronRotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
-        animationSpec = tween(
-            durationMillis = PreferenceAnimationDefaults.EXPAND_DURATION,
-        ),
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
         label = "chevron rotation",
     )
 

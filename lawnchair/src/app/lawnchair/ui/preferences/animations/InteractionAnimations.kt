@@ -2,11 +2,10 @@ package app.lawnchair.ui.preferences.animations
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -30,6 +29,7 @@ fun Modifier.pressableScale(
 ): Modifier = if (enabled) {
     composed {
         val scale = remember { Animatable(1f) }
+        val pressSpec = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
         val coroutineScope = rememberCoroutineScope()
 
         this
@@ -45,10 +45,7 @@ fun Modifier.pressableScale(
                     coroutineScope.launch {
                         scale.animateTo(
                             targetValue = targetScale,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessMedium,
-                            ),
+                            animationSpec = pressSpec,
                         )
                     }
 
@@ -57,10 +54,7 @@ fun Modifier.pressableScale(
                     coroutineScope.launch {
                         scale.animateTo(
                             targetValue = 1f,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessMedium,
-                            ),
+                            animationSpec = pressSpec,
                         )
                     }
                 }
@@ -87,6 +81,7 @@ fun Modifier.pressAndHoldScale(
 ): Modifier = if (enabled) {
     composed {
         val scale = remember { Animatable(1f) }
+        val pressSpec = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
         val coroutineScope = rememberCoroutineScope()
 
         this
@@ -102,10 +97,7 @@ fun Modifier.pressAndHoldScale(
                     coroutineScope.launch {
                         scale.animateTo(
                             targetValue = pressedScale,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessHigh,
-                            ),
+                            animationSpec = pressSpec,
                         )
                     }
 
@@ -115,10 +107,7 @@ fun Modifier.pressAndHoldScale(
                     coroutineScope.launch {
                         scale.animateTo(
                             targetValue = 1f,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessMedium,
-                            ),
+                            animationSpec = pressSpec,
                         )
                     }
                 }
