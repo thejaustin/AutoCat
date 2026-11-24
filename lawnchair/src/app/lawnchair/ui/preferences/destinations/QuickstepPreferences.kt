@@ -101,6 +101,19 @@ fun QuickstepPreferences(
                 ),
                 label = stringResource(R.string.switcher_layout),
             )
+            ListPreference(
+                adapter = prefs.switcherGridRows.getAdapter(),
+                entries = listOf(
+                    ListPreferenceEntry("2") { stringResource(R.string.switcher_grid_rows_2) },
+                    ListPreferenceEntry("3") { stringResource(R.string.switcher_grid_rows_3) },
+                ),
+                label = stringResource(R.string.switcher_grid_rows),
+            )
+            SwitchPreference(
+                adapter = prefs.switcherMiniMode.getAdapter(),
+                label = stringResource(R.string.switcher_mini_mode),
+                description = stringResource(R.string.switcher_mini_mode_summary),
+            )
             SwitchPreference(
                 adapter = prefs.switcherShowLabel.getAdapter(),
                 label = stringResource(R.string.switcher_show_label),

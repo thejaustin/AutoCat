@@ -165,6 +165,12 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     // Outlined "N active apps" pill above the grid
     val switcherActiveAppsPill = BoolPref("pref_switcherActiveAppsPill", true)
 
+    // Grid rows: "2" or "3"
+    val switcherGridRows = StringPref("pref_switcherGridRows", "2")
+
+    // One UI mini mode: smaller cards that sit at the bottom, within thumb reach
+    val switcherMiniMode = BoolPref("pref_switcherMiniMode", false)
+
     val switcherLongPress = StringPref("pref_switcherLongPress", "menu")
 
     private val fontCache = FontCache.INSTANCE.get(context)

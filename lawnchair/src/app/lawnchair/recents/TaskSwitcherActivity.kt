@@ -152,6 +152,11 @@ private fun TaskSwitcherScreen(
 ) {
     val scope = rememberCoroutineScope()
     val rootView = LocalView.current
+    // Mini mode only applies to the grid, where it moves the cards down to the thumb
+    val miniMode = remember {
+        val p = PreferenceManager.getInstance(rootView.context)
+        p.switcherLayout.get() == "grid" && p.switcherMiniMode.get()
+    }
     var availability by remember { mutableStateOf(repository.availability()) }
     var loading by remember { mutableStateOf(true) }
     val tasks = remember { mutableStateListOf<RecentTask>() }
@@ -192,7 +197,7 @@ private fun TaskSwitcherScreen(
                 onClick = onDismiss,
             )
             .safeDrawingPadding(),
-        contentAlignment = Alignment.Center,
+        contentAlignment = if (miniMode) Alignment.BottomCenter else Alignment.Center,
     ) {
         Box(
             modifier = Modifier.graphicsLayer {
@@ -291,6 +296,8 @@ private fun TaskSwitcherScreen(
                                 onOpen = open,
                                 onRemove = remove,
                                 onWindowMode = windowMode,
+                                rows = switcherPrefs.switcherGridRows.get().toIntOrNull()?.coerceIn(2, 3) ?: 2,
+                                mini = miniMode,
                             )
                         } else {
                             TaskRow(
@@ -476,7 +483,7 @@ private fun TaskRow(
     }
 }
 
-/** One UI's Good Lock grid: two rows of cards that scroll sideways, newest at the right like the carousel. */
+/** One UI's Good Lock grid: two or three rows of cards that scroll sideways, newest at the right like the carousel. */
 @Composable
 private fun TaskGrid(
     tasks: List<RecentTask>,
@@ -484,20 +491,27 @@ private fun TaskGrid(
     onOpen: (RecentTask, IntRect) -> Unit,
     onRemove: (RecentTask) -> Unit,
     onWindowMode: (RecentTask, WindowMode) -> Unit,
+    rows: Int,
+    mini: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val screenWidth = LocalConfiguration.current.screenWidthDp
-    val cardWidth = (screenWidth * 0.29f).dp
-    val rowHeight = cardWidth / THUMBNAIL_ASPECT + 56.dp
+    val config = LocalConfiguration.current
+    // Cards are sized so every row fits in a share of the screen height: less of it in mini mode
+    val budget = (config.screenHeightDp * if (mini) 0.42f else 0.62f).dp
+    val spacing = 16.dp
+    val labelHeight = 56.dp
+    val fittedWidth = ((budget - spacing * (rows - 1)) / rows - labelHeight) * THUMBNAIL_ASPECT
+    val cardWidth = minOf(fittedWidth, (config.screenWidthDp * 0.29f).dp)
+    val rowHeight = cardWidth / THUMBNAIL_ASPECT + labelHeight
     LazyHorizontalGrid(
-        rows = GridCells.Fixed(2),
+        rows = GridCells.Fixed(rows),
         reverseLayout = true,
         modifier = modifier
             .fillMaxWidth()
-            .height(rowHeight * 2 + 16.dp),
+            .height(rowHeight * rows + spacing * (rows - 1)),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(spacing),
     ) {
         items(tasks, key = { it.taskId }) { task ->
             TaskCard(
