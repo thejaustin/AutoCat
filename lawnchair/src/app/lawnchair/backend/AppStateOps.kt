@@ -49,8 +49,11 @@ class AppStateOps(private val context: Context) {
 
     suspend fun install(file: File) = execute { PackageOps.install(it, file) }
 
-    private suspend fun execute(op: (PmExecutor) -> PmResult): AppStateResult = withContext(Dispatchers.IO) {
-        val resolution = resolve()
+    private suspend fun execute(
+        allowed: (Backend) -> Boolean = { true },
+        op: (PmExecutor) -> PmResult,
+    ): AppStateResult = withContext(Dispatchers.IO) {
+        val resolution = resolve().let { it.copy(backends = it.backends.filter(allowed)) }
         if (resolution.isEmpty) {
             return@withContext if (resolution.pinnedUnavailable != null) {
                 AppStateResult.Failed(resolution.failureReason())
