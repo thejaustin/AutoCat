@@ -358,8 +358,14 @@ private fun TaskSwitcherScreen(
 @Composable
 private fun BlurredBackdrop(repository: TaskSwitcherRepository, radius: Dp) {
     val image by produceState(initialValue = null as ImageBitmap?) {
-        value = repository.loadTasks()?.firstOrNull()?.let { repository.loadThumbnail(it.taskId) }
+        // Skip our own task: we're already the foreground activity, so it would otherwise be
+        // "newest" and the backdrop would just be a blank frame of ourselves.
+        val task = repository.loadTasks()?.firstOrNull { it.component.className != TaskSwitcherActivity::class.java.name }
+        value = task?.let { repository.loadThumbnail(it.taskId) }
     }
+    // An opaque scrim underneath so the app behind never shows through sharp, whether the
+    // snapshot hasn't loaded yet or there wasn't one to use.
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f)))
     Crossfade(targetState = image, animationSpec = tween(250), label = "backdrop") { bitmap ->
         if (bitmap != null) {
             Image(

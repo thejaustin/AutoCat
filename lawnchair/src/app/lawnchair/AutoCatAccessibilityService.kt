@@ -57,10 +57,29 @@ class AutoCatAccessibilityService : AccessibilityService() {
     private val handler = Handler(Looper.getMainLooper())
     private var lastTakeover = 0L
 
+    // Set while we're waiting to see the system recents window actually close, so the next
+    // unrelated window-state event (ours included) opens the switcher instead of a blind delay.
+    private var awaitingClose = false
+    private val openSwitcher = Runnable {
+        if (!awaitingClose) return@Runnable
+        awaitingClose = false
+        startActivity(
+            Intent(this, TaskSwitcherActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
+
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-        // Quickstep's recents window, in One UI Home, Pixel Launcher or SystemUI alike
         val className = event.className?.toString() ?: return
+
+        if (awaitingClose && !className.endsWith(RECENTS_CLASS_SUFFIX)) {
+            // The recents window is gone (any other window event fired); open on top of it now
+            // rather than guessing a delay, since the system animation length isn't ours to know.
+            handler.removeCallbacks(openSwitcher)
+            openSwitcher.run()
+            return
+        }
+        // Quickstep's recents window, in One UI Home, Pixel Launcher or SystemUI alike
         if (!className.endsWith(RECENTS_CLASS_SUFFIX)) return
         if (event.packageName == packageName) return
         if (!PreferenceManager.getInstance(this).taskSwitcherTakeover.get()) return
@@ -73,11 +92,8 @@ class AutoCatAccessibilityService : AccessibilityService() {
         Log.d(TAG, "Taking over recents from ${event.packageName}/$className")
         // Close the system recents first so dismissing ours returns to the app underneath
         performGlobalAction(GLOBAL_ACTION_BACK)
-        handler.postDelayed({
-            startActivity(
-                Intent(this, TaskSwitcherActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-            )
-        }, OPEN_DELAY_MS)
+        awaitingClose = true
+        handler.postDelayed(openSwitcher, CLOSE_TIMEOUT_MS)
     }
 
     private companion object {
@@ -85,9 +101,8 @@ class AutoCatAccessibilityService : AccessibilityService() {
         const val RECENTS_CLASS_SUFFIX = "RecentsActivity"
         const val COOLDOWN_MS = 1500L
 
-        // Just long enough for GLOBAL_ACTION_BACK to close the system recents window before ours
-        // opens; our own activity has no enter transition, so cutting this shortens the visible
-        // flash of the system screen without the two overlapping mid-transition.
-        const val OPEN_DELAY_MS = 50L
+        // Fallback only, for when no further window-state event arrives at all; normally the
+        // event the system fires as recents closes opens the switcher first.
+        const val CLOSE_TIMEOUT_MS = 250L
     }
 }
