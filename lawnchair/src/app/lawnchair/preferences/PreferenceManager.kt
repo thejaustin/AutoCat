@@ -164,6 +164,8 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
 
     // Outlined "N active apps" pill above the grid
     val switcherActiveAppsPill = BoolPref("pref_switcherActiveAppsPill", true)
+    val switcherGridCloseAll = BoolPref("pref_switcherGridCloseAll", true)
+    val switcherSwapPills = BoolPref("pref_switcherSwapPills", false)
 
     // Grid rows: "2" or "3"
     val switcherGridRows = StringPref("pref_switcherGridRows", "2")

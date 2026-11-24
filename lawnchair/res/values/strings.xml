@@ -972,6 +972,10 @@
     <string name="switcher_long_press_menu">Show menu</string>
     <string name="switcher_long_press_appinfo">App info</string>
     <string name="switcher_group_label">Task switcher</string>
+    <string name="switcher_grid_close_all">Close all button</string>
+    <string name="switcher_grid_close_all_summary">Show the Close all button in the grid</string>
+    <string name="switcher_swap_pills">Swap count and Close all</string>
+    <string name="switcher_swap_pills_summary">Put Close all above the grid and the count at the bottom</string>
     <string name="switcher_active_apps_pill">Recent apps count</string>
     <string name="switcher_active_apps_pill_summary">Show an “N recent apps” pill above the grid</string>
     <string name="switcher_active_apps">%1$d recent apps</string>

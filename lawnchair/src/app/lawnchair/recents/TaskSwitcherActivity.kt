@@ -296,6 +296,8 @@ private fun TaskSwitcherScreen(
                                 rows = switcherPrefs.switcherGridRows.get().toIntOrNull()?.coerceIn(2, 3) ?: 2,
                                 mini = switcherPrefs.switcherMiniMode.get(),
                                 showPill = remember { switcherPrefs.switcherActiveAppsPill.get() },
+                                showClearAll = remember { switcherPrefs.switcherGridCloseAll.get() },
+                                swapPills = remember { switcherPrefs.switcherSwapPills.get() },
                                 onClearAll = clearAll,
                             )
                         } else {
@@ -497,6 +499,8 @@ private fun TaskGrid(
     rows: Int,
     mini: Boolean,
     showPill: Boolean,
+    showClearAll: Boolean,
+    swapPills: Boolean,
     onClearAll: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -549,31 +553,40 @@ private fun TaskGrid(
                 )
             }
         }
-        if (showPill) {
+        val countPill: @Composable (Modifier) -> Unit = { m ->
             Text(
                 text = stringResource(R.string.switcher_active_apps, tasks.size),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 16.dp, bottom = footer + gridHeight + 16.dp)
+                modifier = m
                     .background(glass, CircleShape)
                     .border(1.5.dp, Color.White.copy(alpha = 0.7f), CircleShape)
                     .padding(horizontal = 20.dp, vertical = 10.dp),
             )
         }
-        OutlinedButton(
-            onClick = onClearAll,
-            shape = CircleShape,
-            border = BorderStroke(1.5.dp, Color.White.copy(alpha = 0.7f)),
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = glass, contentColor = Color.White),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp)
-                .width(220.dp)
-                .height(52.dp),
-        ) {
-            Text(text = stringResource(R.string.recents_clear_all), style = MaterialTheme.typography.titleMedium)
+        val clearAllPill: @Composable (Modifier) -> Unit = { m ->
+            OutlinedButton(
+                onClick = onClearAll,
+                shape = CircleShape,
+                border = BorderStroke(1.5.dp, Color.White.copy(alpha = 0.7f)),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = glass, contentColor = Color.White),
+                modifier = m.height(52.dp),
+            ) {
+                Text(text = stringResource(R.string.recents_clear_all), style = MaterialTheme.typography.titleMedium)
+            }
+        }
+        val topSlot = Modifier
+            .align(Alignment.BottomStart)
+            .padding(start = 16.dp, bottom = footer + gridHeight + 16.dp)
+        val footerSlot = Modifier
+            .align(Alignment.BottomCenter)
+            .padding(bottom = 24.dp)
+        if (swapPills) {
+            if (showClearAll) clearAllPill(topSlot.width(160.dp))
+            if (showPill) countPill(footerSlot)
+        } else {
+            if (showPill) countPill(topSlot)
+            if (showClearAll) clearAllPill(footerSlot.width(220.dp))
         }
     }
 }
